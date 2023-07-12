@@ -264,11 +264,11 @@ Having an explicit reachability pass resolves both of these.
 # Prior art
 [prior-art]: #prior-art
 
-- Modular Avatar
-- VRCFury
-- Avatar Optimizer
-- Lazy Optimizer
-- liltoon's shader optimization pass
+- [Modular Avatar](https://github.com/bdunderscore/modular-avatar)
+- [VRCFury](https://github.com/VRCFury/VRCFury)
+- [Avatar Optimizer](https://github.com/anatawa12/AvatarOptimizer)
+- [Lazy Optimizer](https://github.com/euan142/LazyOptimiser)
+- [liltoon](https://github.com/lilxyzw/lilToon)'s shader optimization pass
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
