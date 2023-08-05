@@ -4,10 +4,15 @@ on:
   workflow_dispatch:
   push:
     branches: main
-    paths: Packages/com.vrchat.demo-template/**
+    paths:
+      - Packages/nadena.dev.av3-build-framework/**
+      - .github/workflows/release.yml
+    tags:
+      - '*'
+
 
 env:
-  packageName: "com.vrchat.demo-template"
+  packageName: "nadena.dev.av3-build-framework"
 
 permissions:
   contents: write
@@ -19,6 +24,19 @@ jobs:
     
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+        
+      - name: Reset version
+        id: reset-version
+        run: |
+          git fetch --tags
+          git log
+          git log 0.0.1
+          VERSION_TAG=$(git describe --tags| sed 's/-\([0-9]\+\)-/-alpha.\1./')
+          jq ".version = \"$VERSION_TAG\"" Packages/${{env.packageName}}/package.json > tmp.$$.json
+          mv tmp.$$.json Packages/${{env.packageName}}/package.json
+          cat Packages/${{env.packageName}}/package.json
     
       - name: get version
         id: version
