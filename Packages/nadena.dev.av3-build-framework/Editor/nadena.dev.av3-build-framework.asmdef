@@ -1,0 +1,20 @@
+{
+    "name": "nadena.dev.av3-build-framework",
+    "references": [
+        "VRC.SDKBase",
+        "VRC.SDK3A",
+        "VRC.SDK3A.Editor",
+        "nadena.dev.build-framework"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

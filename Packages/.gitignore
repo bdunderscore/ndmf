@@ -1,5 +1,7 @@
 /*/
 !com.vrchat.core.*
 
-# Change this to match your new package name
-!com.vrchat.demo-template 
+!nadena.dev.av3-build-framework 
+!nadena.dev.av3-build-framework/
+!com.vrchat.core.*/
+/nadena.dev.modular-avatar/
