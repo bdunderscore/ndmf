@@ -1,7 +1,7 @@
 name: Build Repo Listing
 
 env:
-  CurrentPackageName: com.vrchat.demo-template
+  CurrentPackageName: nadena.dev.av3-build-framework
   listPublishDirectory: Website
   pathToCi: ci
   
