@@ -1,6 +1,11 @@
-﻿using nadena.dev.build_framework;
+﻿using System.Linq;
+using nadena.dev.build_framework;
 using nadena.dev.build_framework.animation;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace UnitTests
 {
@@ -86,6 +91,57 @@ namespace UnitTests
             Assert.AreEqual("a/b/c", toc.MapPath("a/b/c"));
             Assert.AreEqual("a", toc.MapPath("a/b/c", true));
             Assert.AreEqual("a/b/c/d", toc.MapPath("a/b/c/d", true));
+        }
+
+        [Test]
+        public void TestAnimatorControllerUpdates()
+        {
+            var root = CreatePrefab("BasicObjectReferenceTest.prefab");
+            var parent = root.transform.Find("parent").gameObject;
+            var child = parent.transform.Find("child").gameObject;
+            
+            var toc = new TrackObjectRenamesContext();
+            var buildContext = CreateContext(root);
+            toc.OnActivate(buildContext);
+            toc.MarkTransformLookthrough(child);
+
+            parent.name = "p2";
+
+            var oldFx = buildContext.AvatarDescriptor.baseAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.FX); 
+            var oldIk = buildContext.AvatarDescriptor.specialAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.IKPose);
+            
+            toc.OnDeactivate(buildContext);
+            
+            var newFx = buildContext.AvatarDescriptor.baseAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var newIk = buildContext.AvatarDescriptor.specialAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.IKPose);
+            
+            Assert.AreNotEqual(oldFx.animatorController, newFx.animatorController);
+            Assert.AreNotEqual(oldIk.animatorController, newIk.animatorController);
+
+            CheckClips(newFx.animatorController as AnimatorController);
+            CheckClips(newIk.animatorController as AnimatorController);
+
+            void CheckClips(AnimatorController controller)
+            {
+                var clip = controller.layers[0].stateMachine.states[0].state.motion
+                    as AnimationClip;
+
+                foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+                {
+                    if (binding.type == typeof(Transform))
+                    {
+                        Assert.AreEqual("p2", binding.path);                        
+                    }
+                    else
+                    {
+                        Assert.AreEqual("p2/child", binding.path);
+                    }
+                }
+            }
         }
     }
 }

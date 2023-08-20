@@ -23,10 +23,11 @@ namespace UnitTests
             if (_scriptToDirectory == null)
             {
                 _scriptToDirectory = new Dictionary<System.Type, string>();
-                foreach (var path in AssetDatabase.FindAssets("t:MonoScript", new string[] { "Assets/UnitTests" }))
+                foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new string[] { "Assets/UnitTests" }))
                 {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
                     var obj = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
-                    if (obj != null)
+                    if (obj != null && obj.GetClass() != null)
                     {
                         _scriptToDirectory.Add(obj.GetClass(), Path.GetDirectoryName(path));
                     }
