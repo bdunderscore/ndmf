@@ -8,17 +8,23 @@
     },
     "jp.lilxyzw.liltoon": {
       "version": "1.4.0"
+    },
+    "lyuma.av3emulator": {
+      "version": "3.2.1"
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.8.5"
     }
   },
   "locked": {
     "com.vrchat.avatars": {
-      "version": "3.2.2-beta.1",
+      "version": "3.2.3",
       "dependencies": {
-        "com.vrchat.base": "3.2.2-beta.1"
+        "com.vrchat.base": "3.2.3"
       }
     },
     "com.vrchat.base": {
-      "version": "3.2.2-beta.1",
+      "version": "3.2.3",
       "dependencies": {}
     },
     "com.vrchat.core.vpm-resolver": {
@@ -28,6 +34,18 @@
     "jp.lilxyzw.liltoon": {
       "version": "1.4.0",
       "dependencies": {}
+    },
+    "lyuma.av3emulator": {
+      "version": "3.2.1",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.1.0 <3.3.0"
+      }
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.8.5",
+      "dependencies": {
+        "com.vrchat.avatars": "3.2.x"
+      }
     }
   }
 }
