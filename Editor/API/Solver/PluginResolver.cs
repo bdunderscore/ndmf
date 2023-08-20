@@ -60,7 +60,7 @@ namespace nadena.dev.build_framework
                 .ToList();
 
             Passes = TopoSort.DoSort(passes, constraints)
-                .Select(p => new ConcretePass(p.QualifiedName, p.Operation))
+                .Select(p => new ConcretePass(p))
                 .ToImmutableList();
         }
     }

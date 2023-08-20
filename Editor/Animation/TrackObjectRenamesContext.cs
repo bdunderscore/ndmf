@@ -36,7 +36,7 @@ namespace nadena.dev.build_framework.animation
             }
         }
 
-        private void ClearCache()
+        public void ClearCache()
         {
             _originalPathToMappedPath = null;
             _transformOriginalPathToMappedPath = null;
@@ -246,7 +246,7 @@ namespace nadena.dev.build_framework.animation
         private AnimationClip ApplyMappingsToClip(AnimationClip originalClip, Dictionary<AnimationClip, AnimationClip> clipCache = null)
         {
             if (originalClip == null) return null;
-            if (clipCache?.TryGetValue(originalClip, out var cachedClip) == true) return cachedClip;
+            if (clipCache != null && clipCache.TryGetValue(originalClip, out var cachedClip)) return cachedClip;
             
             var clip = UnityEngine.Object.Instantiate(originalClip);
             
@@ -288,6 +288,8 @@ namespace nadena.dev.build_framework.animation
 
         private VRCAvatarDescriptor.CustomAnimLayer[] MapLayers(VRCAvatarDescriptor.CustomAnimLayer[] layers)
         {
+            if (layers == null) return null;
+            
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
