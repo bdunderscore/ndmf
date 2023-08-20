@@ -243,36 +243,55 @@ namespace nadena.dev.build_framework.animation
             }
         }
 
+        private string MapPath(EditorCurveBinding binding)
+        {
+            if (binding.type == typeof(Animator) && binding.path == "")
+            {
+                return "";
+            }
+            else
+            {
+                return MapPath(binding.path, binding.type == typeof(Transform));
+            }
+        }
+        
         private AnimationClip ApplyMappingsToClip(AnimationClip originalClip, Dictionary<AnimationClip, AnimationClip> clipCache = null)
         {
             if (originalClip == null) return null;
             if (clipCache != null && clipCache.TryGetValue(originalClip, out var cachedClip)) return cachedClip;
             
-            var clip = UnityEngine.Object.Instantiate(originalClip);
+            var newClip = new AnimationClip();
+            newClip.name = originalClip.name;
             
-            // We perform manipulation using SerializedObject to avoid errors when missing components are present
-            SerializedObject serializedObject = new SerializedObject(clip);
-
-            foreach (var prop in serializedObject.ObjectProperties())
+            // TODO - should we use direct SerializedObject manipulation to avoid missing script issues?
+            foreach (var binding in AnimationUtility.GetCurveBindings(newClip))
             {
-                if (prop.name == "path" && prop.propertyType == SerializedPropertyType.String)
-                {
-                    // Find neighboring classID to determine if this is a Transform reference
-                    var classID = prop.FindPropertyRelative("../classID");
-                    bool xformMapping = classID != null && classID.intValue == 4;
-                    
-                    prop.stringValue = MapPath(prop.stringValue, xformMapping);
-                }
+                var newBinding = binding;
+                newBinding.path = MapPath(binding);
+                newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
+                    AnimationUtility.GetEditorCurve(newClip, binding));
             }
 
-            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(newClip))
+            {
+                var newBinding = objBinding;
+                newBinding.path = MapPath(objBinding);
+                AnimationUtility.SetObjectReferenceCurve(newClip, newBinding,
+                    AnimationUtility.GetObjectReferenceCurve(newClip, objBinding));
+            }
+
+            newClip.wrapMode = newClip.wrapMode;
+            newClip.legacy = newClip.legacy;
+            newClip.frameRate = newClip.frameRate;
+            newClip.localBounds = newClip.localBounds;
+            AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(newClip));
 
             if (clipCache != null)
             {
-                clipCache.Add(originalClip, clip);
+                clipCache.Add(originalClip, newClip);
             }
             
-            return clip;
+            return newClip;
         }
 
         public void OnDeactivate(BuildContext context)

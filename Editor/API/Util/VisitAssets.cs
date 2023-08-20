@@ -89,10 +89,10 @@ namespace nadena.dev.build_framework.util
 
     public static class WalkObjectProps
     {
-        public static IEnumerable<SerializedProperty> ObjectProperties(this SerializedObject obj)
+        public static IEnumerable<SerializedProperty> AllProperties(this SerializedObject obj)
         {
             var target = obj.targetObject;
-            if (target is Mesh || target is AnimationClip || target is Texture)
+            if (target is Mesh || target is Texture)
             {
                 // Skip iterating objects with heavyweight internal arrays
                 yield break;
@@ -110,24 +110,34 @@ namespace nadena.dev.build_framework.util
             {
                 enterChildren = true;
                 if (prop.name == "m_GameObject") continue;
+                if (target is AnimationClip && prop.name == "curve")
+                {
+                    // Skip the contents of animation curves as they can be quite large and are generally uninteresting
+                    enterChildren = false;
+                }
+                
                 if (prop.propertyType == SerializedPropertyType.String)
                 {
                     enterChildren = false;
-                    continue;
                 }
 
                 if (prop.isArray && IsPrimitiveArray(prop))
                 {
                     enterChildren = false;
-                    continue;
                 }
-                
-                if (prop.propertyType != SerializedPropertyType.ObjectReference)
-                {
-                    continue;
-                }
-                
+
                 yield return prop;
+            }
+        }
+        
+        public static IEnumerable<SerializedProperty> ObjectProperties(this SerializedObject obj)
+        {
+            foreach (var prop in obj.AllProperties())
+            {
+                if (prop.propertyType == SerializedPropertyType.ObjectReference)
+                {
+                    yield return prop;
+                }
             }
         }
         
