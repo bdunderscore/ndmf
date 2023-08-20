@@ -11,11 +11,13 @@ namespace nadena.dev.build_framework
     {
         public string Description { get; }
         public Action<BuildContext> Process { get; }
+        internal InstantiatedPass InstantiatedPass { get; }
         
-        public ConcretePass(string description, Action<BuildContext> process)
+        internal ConcretePass(InstantiatedPass pass)
         {
-            Description = description;
-            Process = process;
+            Description = pass.QualifiedName;
+            Process = pass.Operation;
+            InstantiatedPass = pass;
         }
     }
 
@@ -45,11 +47,14 @@ namespace nadena.dev.build_framework
                 pluginTemplates.Select(t => new InstantiatedPlugin(t))
             );
 
-            var passes = plugins.SelectMany(p => p.Passes).ToList();
+            var phases = (IList<BuiltInPhase>) Enum.GetValues(typeof(BuiltInPhase));
+            
+            var passes = plugins.SelectMany(p => p.Passes)
+                .Union(phases.Select(p => new InstantiatedPass((BuiltInPhase)p)));
             var passNames = passes
                 .Select(p => new KeyValuePair<string, InstantiatedPass>(p.QualifiedName, p))
                 .ToImmutableDictionary();
-            var constraints = plugins.SelectMany(p => p.PassConstraints)
+            var constraints = passes.SelectMany(p => p.Constraints)
                 .Where((tuple, i) => passNames.ContainsKey(tuple.Item1) && passNames.ContainsKey(tuple.Item2))
                 .Select((tuple, i) => (passNames[tuple.Item1], passNames[tuple.Item2]))
                 .ToList();

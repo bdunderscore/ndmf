@@ -38,6 +38,7 @@ namespace nadena.dev.build_framework.model
             {
                 var newPass = new InstantiatedPass(this, pass);
                 newPass.AddRunsAfter(passes.Last().QualifiedName);
+                newPass.AddPhaseConstraints();
                 passes.Add(newPass);
             }
 
@@ -67,6 +68,8 @@ namespace nadena.dev.build_framework.model
     {
         public readonly string BEFORE_PLUGIN_HOOK = "/_internal/BeforePlugin";
         public readonly string AFTER_PLUGIN_HOOK = "/_internal/AfterPlugin";
+
+        public BuiltInPhase ExecutionPhase { get; }
         
         public bool InternalPass { get; }
         public string QualifiedName { get; }
@@ -86,6 +89,15 @@ namespace nadena.dev.build_framework.model
         {
             Constraints = Constraints.Add((other, QualifiedName));
         }
+
+        internal void AddPhaseConstraints()
+        {
+            Constraints = Constraints.Add((BuiltInPhasePassName(ExecutionPhase), QualifiedName));
+            if ((int) ExecutionPhase < Enum.GetValues(typeof(BuildContext)).Length)
+            {
+                Constraints = Constraints.Add((QualifiedName, BuiltInPhasePassName(ExecutionPhase + 1)));
+            }
+        }
         
         internal InstantiatedPass(InstantiatedPlugin parent, PluginPass pass)
         {
@@ -94,6 +106,7 @@ namespace nadena.dev.build_framework.model
             InternalPass = false;
             QualifiedName = parent.QualifiedName + "/" + passType.Name;
             DisplayName = pass.DisplayName;
+            ExecutionPhase = pass.ExecutionPhase;
 
             _compatibleContexts = pass.CompatibleContexts.Select(ctx =>
             {
@@ -117,7 +130,7 @@ namespace nadena.dev.build_framework.model
             {
                 constraints.Add((after, QualifiedName));
             }
-            
+   
             Constraints = constraints.ToImmutableList();
         }
 
@@ -152,6 +165,36 @@ namespace nadena.dev.build_framework.model
             }
             
             DisplayName = QualifiedName;
+            Constraints = constraints.ToImmutableList();
+        }
+
+        private static string BuiltInPhasePassName(BuiltInPhase phase)
+        {
+            return "/_internal/Phase/" + phase;
+        }
+        
+        internal InstantiatedPass(BuiltInPhase phase)
+        {
+            Operation = _ctx => { };
+            InternalPass = true;
+            _compatibleContexts = null;
+            RequiredContexts = ImmutableHashSet<Type>.Empty;
+            
+            DisplayName = "Phase: " + phase;
+            QualifiedName = BuiltInPhasePassName(phase);
+
+            int index = (int) phase;
+            var constraints = new List<(string, string)>();
+            
+            if (index > 0)
+            {
+                constraints.Add((BuiltInPhasePassName((BuiltInPhase) (index - 1)), QualifiedName));
+            }
+            if (index < Enum.GetValues(typeof(BuiltInPhase)).Length - 1)
+            {
+                constraints.Add((QualifiedName, BuiltInPhasePassName((BuiltInPhase) (index + 1))));
+            }
+            
             Constraints = constraints.ToImmutableList();
         }
     }
