@@ -50,6 +50,8 @@ namespace nadena.dev.build_framework.animation
             VRCAvatarDescriptor.CustomAnimLayer[] layers
         )
         {
+            if (layers == null) return null;
+            
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
