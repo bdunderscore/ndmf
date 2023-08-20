@@ -52,14 +52,14 @@ namespace nadena.dev.build_framework
         private static void ProcessAvatar(BuildContext buildContext)
         {
             var resolver = new PluginResolver();
-
+            
             foreach (var pass in resolver.Passes)
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 try
                 {
-                    pass.Process(buildContext);
+                    buildContext.RunPass(pass);
                 }
                 catch (Exception e)
                 {
@@ -70,6 +70,8 @@ namespace nadena.dev.build_framework
 
                 Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
             }
+            
+            buildContext.Finish();
         }
     }
 }

@@ -6,14 +6,22 @@ namespace nadena.dev.build_framework.util
 {
     public static class VisitAssets
     {
+        public delegate bool AssetFilter(UnityEngine.Object obj);
+        
         public static IEnumerable<UnityEngine.Object> ReferencedAssets(
             this UnityEngine.Object root,
             bool traverseSaved = true,
-            bool includeScene = true
+            bool includeScene = true,
+            AssetFilter traversalFilter = null
         )
         {
             HashSet<UnityEngine.Object> visited = new HashSet<Object>();
             Queue<UnityEngine.Object> queue = new Queue<Object>();
+
+            if (traversalFilter == null)
+            {
+                traversalFilter = obj => true;
+            }
 
             if (root is GameObject go)
             {
@@ -42,7 +50,7 @@ namespace nadena.dev.build_framework.util
 
                     foreach (Transform child in t)
                     {
-                        if (visited.Add(child))
+                        if (visited.Add(child) && traversalFilter(child.gameObject))
                         {
                             queue.Enqueue(child);
                         }
@@ -50,7 +58,7 @@ namespace nadena.dev.build_framework.util
                     
                     foreach (var comp in t.GetComponents<Component>())
                     {
-                        if (visited.Add(comp) && !(comp is Transform))
+                        if (visited.Add(comp) && !(comp is Transform) && traversalFilter(comp))
                         {
                             queue.Enqueue(comp);
                         }
@@ -69,6 +77,7 @@ namespace nadena.dev.build_framework.util
                     if (value != null 
                         && (objIsScene || traverseSaved || !EditorUtility.IsPersistent(value))
                         && visited.Add(value)
+                        && traversalFilter(value)
                     )
                     {
                         queue.Enqueue(value);

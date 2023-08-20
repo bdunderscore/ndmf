@@ -33,6 +33,7 @@ namespace nadena.dev.build_framework
 
     public abstract class PluginPass
     {
+        public virtual BuiltInPhase ExecutionPhase => BuiltInPhase.Transforming;
         public virtual string DisplayName => GetType().Name;
 
         public virtual ImmutableList<string> RunsBefore => ImmutableList<string>.Empty;
