@@ -56,7 +56,7 @@ namespace nadena.dev.build_framework.animation
 
         private int controllerBaseLayer = 0;
 
-        public AnimatorCombiner(BuildContext context, String assetName)
+        public AnimatorCombiner(String assetName)
         {
             _combined = new AnimatorController();
             isSaved = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(_combined));
@@ -295,7 +295,7 @@ namespace nadena.dev.build_framework.animation
                 if (basePath == "" || clip.IsProxyAnimation()) return clip;
 
                 AnimationClip newClip = new AnimationClip();
-                newClip.name = "rebased " + clip.name;
+                newClip.name = clip.name;
                 if (isSaved)
                 {
                     AssetDatabase.AddObjectToAsset(newClip, _combined);
