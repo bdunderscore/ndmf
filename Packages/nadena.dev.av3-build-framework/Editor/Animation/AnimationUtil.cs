@@ -16,11 +16,11 @@ namespace nadena.dev.build_framework.animation
         private const string GUID_GESTURE_HANDSONLY_MASK = "b2b8bad9583e56a46a3e21795e96ad92";
 
         
-        public static AnimatorController DeepCloneAnimator(this BuildContext context, RuntimeAnimatorController controller)
+        public static AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
         {
             if (controller == null) return null;
 
-            var merger = new AnimatorCombiner(context, controller.name + " (clone)");
+            var merger = new AnimatorCombiner(controller.name + " (clone)");
             switch (controller)
             {
                 case AnimatorController ac:
@@ -55,7 +55,7 @@ namespace nadena.dev.build_framework.animation
                 var layer = layers[i];
                 if (layer.animatorController != null && !context.IsTemporaryAsset(layer.animatorController))
                 {
-                    layer.animatorController = context.DeepCloneAnimator(layer.animatorController);                    
+                    layer.animatorController = DeepCloneAnimator(layer.animatorController);                    
                 }
 
                 layers[i] = layer;
@@ -156,6 +156,19 @@ namespace nadena.dev.build_framework.animation
             }
 
             return controller;
+        }
+        
+        public static bool IsProxyAnimation(this Motion m)
+        {
+            var path = AssetDatabase.GetAssetPath(m);
+
+            // This is a fairly wide condition in order to deal with:
+            // 1. Future additions of proxy animations (so GUIDs are out)
+            // 2. Unitypackage based installations of the VRCSDK
+            // 3. VCC based installations of the VRCSDK
+            // 4. Very old VCC based installations of the VRCSDK where proxy animations were copied into Assets
+            return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy")
+                   || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
         }
     }
 }
