@@ -93,7 +93,7 @@ namespace nadena.dev.build_framework.model
         internal void AddPhaseConstraints()
         {
             Constraints = Constraints.Add((BuiltInPhasePassName(ExecutionPhase), QualifiedName));
-            if ((int) ExecutionPhase < Enum.GetValues(typeof(BuildContext)).Length)
+            if ((int) ExecutionPhase < Enum.GetValues(typeof(BuiltInPhase)).Length)
             {
                 Constraints = Constraints.Add((QualifiedName, BuiltInPhasePassName(ExecutionPhase + 1)));
             }
@@ -196,6 +196,11 @@ namespace nadena.dev.build_framework.model
             }
             
             Constraints = constraints.ToImmutableList();
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(QualifiedName)}: {QualifiedName}, {nameof(DisplayName)}: {DisplayName}";
         }
     }
 }
