@@ -67,6 +67,7 @@ namespace nadena.dev.build_framework
             AssetDatabase.GenerateUniqueAssetPath(avatarPath);
             AssetContainer = ScriptableObject.CreateInstance<GeneratedAssets>();
             AssetDatabase.CreateAsset(AssetContainer, avatarPath);
+            Debug.Log($"Setting path for asset container; desired={avatarPath} actual={AssetDatabase.GetAssetPath(AssetContainer)}");
             
             AnimationUtil.CloneAllControllers(this);
         }
@@ -79,8 +80,15 @@ namespace nadena.dev.build_framework
 
         public void Serialize()
         {
+            Debug.Log($"AssetContainer path: {AssetDatabase.GetAssetPath(AssetContainer)}");
+            if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
+            {
+                throw new Exception("Asset container was lost");
+            }
+            
             foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: false, includeScene: false))
             {
+                //Debug.Log($"Adding asset of type {asset.GetType()}");
                 AssetDatabase.AddObjectToAsset(asset, AssetContainer);
             }
         }
@@ -121,6 +129,8 @@ namespace nadena.dev.build_framework
                 }
                 _activeExtensions.Remove(kvp.Key);
             }
+            
+            Serialize();
         }
     }
 }

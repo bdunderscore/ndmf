@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.build_framework;
 using nadena.dev.build_framework.model;
+using UnityEngine;
 
 namespace nadena.dev.build_framework
 {
@@ -48,9 +49,10 @@ namespace nadena.dev.build_framework
             );
 
             var phases = (IList<BuiltInPhase>) Enum.GetValues(typeof(BuiltInPhase));
-            
+
             var passes = plugins.SelectMany(p => p.Passes)
-                .Union(phases.Select(p => new InstantiatedPass((BuiltInPhase)p)));
+                .Union(phases.Select(p => new InstantiatedPass((BuiltInPhase) p)))
+                .ToList();
             var passNames = passes
                 .Select(p => new KeyValuePair<string, InstantiatedPass>(p.QualifiedName, p))
                 .ToImmutableDictionary();
@@ -59,6 +61,11 @@ namespace nadena.dev.build_framework
                 .Select((tuple, i) => (passNames[tuple.Item1], passNames[tuple.Item2]))
                 .ToList();
 
+            foreach (var pass in passes)
+            {
+                Debug.Log($"Pass found: {pass.QualifiedName}");
+            }
+            
             Passes = TopoSort.DoSort(passes, constraints)
                 .Select(p => new ConcretePass(p))
                 .ToImmutableList();

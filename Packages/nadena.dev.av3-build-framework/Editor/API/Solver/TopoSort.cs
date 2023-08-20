@@ -46,6 +46,14 @@ namespace nadena.dev.build_framework
             
             foreach (var (before, after) in OrderingConstraints)
             {
+                if (!Nodes.ContainsKey(before))
+                {
+                    throw new Exception($"No 'before' node for constraint ({before}, {after})");
+                }
+                if (!Nodes.ContainsKey(after))
+                {
+                    throw new Exception($"No 'after' node for constraint ({before}, {after})");
+                }
                 Nodes[before].Blocking.Add(Nodes[after]);
                 Nodes[after].Awaiting.Add(before);
                 Ready.Remove(Nodes[after]);
