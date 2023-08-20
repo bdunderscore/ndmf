@@ -33,7 +33,7 @@ jobs:
           git fetch --tags
           git log
           git log 0.0.1
-          VERSION_TAG=$(git describe --tags| sed 's/-\([0-9]\+\)-/-alpha.\1./')
+          VERSION_TAG=$(git describe --tags --exclude='*-*.*.*'| sed 's/-\([0-9]\+\)-/-alpha.\1./')
           jq ".version = \"$VERSION_TAG\"" Packages/${{env.packageName}}/package.json > tmp.$$.json
           mv tmp.$$.json Packages/${{env.packageName}}/package.json
           cat Packages/${{env.packageName}}/package.json
