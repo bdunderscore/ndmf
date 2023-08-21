@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using nadena.dev.build_framework.model;
+using nadena.dev.build_framework.runtime;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -72,9 +73,13 @@ namespace nadena.dev.build_framework
         
         public static void ProcessAvatar(GameObject root)
         {
+            if (root.GetComponent<AlreadyProcessedTag>()) return;
+            
             var buildContext = new BuildContext(root, "Assets/ZZZ_GeneratedAssets");
 
             ProcessAvatar(buildContext);
+
+            if (RuntimeUtil.isPlaying) root.AddComponent<AlreadyProcessedTag>();
         }
 
         private static void ProcessAvatar(BuildContext buildContext)
