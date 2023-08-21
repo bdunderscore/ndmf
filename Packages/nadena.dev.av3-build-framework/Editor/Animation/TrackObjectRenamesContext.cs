@@ -17,7 +17,7 @@ namespace nadena.dev.build_framework.animation
     /// Users of this context need to be aware that, when creating new curves (or otherwise introducing new motions,
     /// use context.ObjectPath to obtain a suitable path for the target objects).
     /// </summary>
-    public sealed class TrackObjectRenamesContext : ExtensionContext
+    public sealed class TrackObjectRenamesContext : IExtensionContext
     {
         private Dictionary<GameObject, List<string>> _objectToOriginalPaths = new Dictionary<GameObject, List<string>>();
         private HashSet<GameObject> _transformLookthroughObjects = new HashSet<GameObject>();

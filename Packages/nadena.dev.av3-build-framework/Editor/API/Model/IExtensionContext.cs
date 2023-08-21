@@ -2,7 +2,7 @@
 
 namespace nadena.dev.build_framework
 {
-    public interface ExtensionContext
+    public interface IExtensionContext
     {
         void OnActivate(BuildContext context);
         void OnDeactivate(BuildContext context);

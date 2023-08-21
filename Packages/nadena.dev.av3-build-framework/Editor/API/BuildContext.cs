@@ -23,8 +23,8 @@ namespace nadena.dev.build_framework
         public UnityEngine.Object AssetContainer { get; private set; }
         
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
-        private Dictionary<Type, ExtensionContext> _extensions = new Dictionary<Type, ExtensionContext>();
-        private Dictionary<Type, ExtensionContext> _activeExtensions = new Dictionary<Type, ExtensionContext>();
+        private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
+        private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
         
         public T GetState<T>() where T : new()
         {
@@ -109,7 +109,7 @@ namespace nadena.dev.build_framework
             {
                 if (!_extensions.TryGetValue(ty, out var ctx))
                 {
-                    ctx = (ExtensionContext) ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
+                    ctx = (IExtensionContext) ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
                 }
 
                 ctx.OnActivate(this);
