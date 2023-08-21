@@ -5,3 +5,5 @@
 !nadena.dev.av3-build-framework/
 !com.vrchat.core.*/
 /nadena.dev.modular-avatar/
+/nadena.dev.av3-build-framework/__Generated/
+/nadena.dev.av3-build-framework/__Generated.meta
