@@ -76,6 +76,7 @@ namespace nadena.dev.build_framework
             else if (obj == PlayModeStateChange.EnteredEditMode)
             {
                 armedSource = ApplyOnPlayGlobalActivator.OnDemandSource.Awake;
+                AvatarProcessor.CleanTemporaryAssets();
             }
         }
     }

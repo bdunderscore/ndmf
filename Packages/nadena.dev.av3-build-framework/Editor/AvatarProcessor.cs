@@ -75,7 +75,7 @@ namespace nadena.dev.build_framework
         {
             if (root.GetComponent<AlreadyProcessedTag>()) return;
             
-            var buildContext = new BuildContext(root, "Assets/ZZZ_GeneratedAssets");
+            var buildContext = new BuildContext(root, TemporaryAssetRoot);
 
             ProcessAvatar(buildContext);
 
