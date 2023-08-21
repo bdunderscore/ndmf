@@ -1,5 +1,5 @@
 {
-    "name": "nadena.dev.av3-build-framework",
+    "name": "nadena.dev.build_framework",
     "references": [
         "VRC.SDKBase",
         "VRC.SDK3A",
