@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using nadena.dev.build_framework.animation;
 using nadena.dev.build_framework.runtime;
 using nadena.dev.build_framework.util;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using Debug = UnityEngine.Debug;
 
 namespace nadena.dev.build_framework
 {
@@ -38,7 +39,7 @@ namespace nadena.dev.build_framework
             return (T) value;
         }
 
-        public T Extension<T>() where T : ExtensionContext
+        public T Extension<T>() where T : IExtensionContext
         {
             if (!_activeExtensions.TryGetValue(typeof(T), out var value))
             {
@@ -100,11 +101,18 @@ namespace nadena.dev.build_framework
             {
                 if (!pass.InstantiatedPass.IsContextCompatible(kvp.Key))
                 {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    
                     kvp.Value.OnDeactivate(this);
+                    
+                    sw.Stop();
+                    Debug.Log($"Deactivated {kvp.Key} in {sw.ElapsedMilliseconds}ms");
+                    
                     _activeExtensions.Remove(kvp.Key);
                 }
             }
-
+            
             foreach (var ty in pass.InstantiatedPass.RequiredContexts)
             {
                 if (!_extensions.TryGetValue(ty, out var ctx))
@@ -112,8 +120,17 @@ namespace nadena.dev.build_framework
                     ctx = (IExtensionContext) ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
                 }
 
-                ctx.OnActivate(this);
-                _activeExtensions.Add(ty, ctx);
+                if (!_activeExtensions.ContainsKey(ty))
+                {
+                    Stopwatch sw = new Stopwatch();
+
+                    sw.Start();
+                    ctx.OnActivate(this);
+                    sw.Stop();
+                    Debug.Log($"Activated {ty} in {sw.ElapsedMilliseconds}ms");
+                    
+                    _activeExtensions.Add(ty, ctx);
+                }
             }
             
             pass.Process(this);

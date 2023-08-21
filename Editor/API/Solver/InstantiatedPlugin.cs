@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
-using UnityEngine.Animations;
 
 namespace nadena.dev.build_framework.model
 {
@@ -83,7 +81,9 @@ namespace nadena.dev.build_framework.model
         public IImmutableSet<Type> RequiredContexts { get; }
 
         public bool IsContextCompatible(Type contextType)
-            => _compatibleContexts == null || _compatibleContexts.Contains(contextType.FullName);
+            => _compatibleContexts == null 
+               || _compatibleContexts.Contains(contextType.FullName)
+               || RequiredContexts.Contains(contextType);
 
         internal void AddRunsAfter(string other)
         {
@@ -119,6 +119,10 @@ namespace nadena.dev.build_framework.model
             }).ToImmutableHashSet();
             
             RequiredContexts = pass.RequiredContexts;
+            if (RequiredContexts == null)
+            {
+                throw new Exception("RequiredContexts must not be null (for pass " + pass + ")");
+            }
 
             var constraints = new List<(string, string)>();
             foreach (var before in pass.RunsBefore)
