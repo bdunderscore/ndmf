@@ -10,7 +10,7 @@ namespace DefaultNamespace
         {
             RuntimeUtil.delayCall = call =>
             {
-                 EditorApplication.delayCall += call;
+                 EditorApplication.delayCall += () => call();
             };
         }
     }
