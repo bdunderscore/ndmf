@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -171,6 +172,39 @@ namespace nadena.dev.build_framework.animation
             // 4. Very old VCC based installations of the VRCSDK where proxy animations were copied into Assets
             return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy")
                    || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
+        }
+        
+        /// <summary>
+        /// Enumerates all states in an animator controller
+        /// </summary>
+        /// <param name="ac"></param>
+        /// <returns></returns>
+        internal static IEnumerable<AnimatorState> States(AnimatorController ac)
+        {
+            HashSet<AnimatorStateMachine> visitedStateMachines = new HashSet<AnimatorStateMachine>();
+            Queue<AnimatorStateMachine> pending = new Queue<AnimatorStateMachine>();
+
+            foreach (var layer in ac.layers)
+            {
+                if (layer.stateMachine != null) pending.Enqueue(layer.stateMachine);
+            }
+
+            while (pending.Count > 0)
+            {
+                var next = pending.Dequeue();
+                if (visitedStateMachines.Contains(next)) continue;
+                visitedStateMachines.Add(next);
+
+                foreach (var child in next.stateMachines)
+                {
+                    if (child.stateMachine != null) pending.Enqueue(child.stateMachine);
+                }
+
+                foreach (var state in next.states)
+                {
+                    yield return state.state;
+                }
+            }
         }
     }
 }
