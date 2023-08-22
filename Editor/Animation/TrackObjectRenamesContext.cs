@@ -160,7 +160,7 @@ namespace nadena.dev.build_framework.animation
             return cache;
         }
 
-        internal string MapPath(string path, bool isTransformMapping = false)
+        public string MapPath(string path, bool isTransformMapping = false)
         {
             ImmutableDictionary<string, string> mappings;
 
@@ -184,6 +184,7 @@ namespace nadena.dev.build_framework.animation
         }
 
         public RuntimeAnimatorController ApplyMappingsToAnimator(
+            BuildContext context,
             RuntimeAnimatorController controller,
             Dictionary<AnimationClip, AnimationClip> clipCache = null)
         {
@@ -197,7 +198,11 @@ namespace nadena.dev.build_framework.animation
             switch (controller)
             {
                 case AnimatorController ac:
-                    ac = AnimationUtil.DeepCloneAnimator(ac);
+                    if (!context.IsTemporaryAsset(ac))
+                    {
+                        ac = AnimationUtil.DeepCloneAnimator(ac);
+                    }
+
                     foreach (var asset in ac.ReferencedAssets())
                     {
                         if (asset is AnimatorState state)
@@ -226,7 +231,7 @@ namespace nadena.dev.build_framework.animation
                 case AnimatorOverrideController aoc:
                 {
                     AnimatorOverrideController newController = new AnimatorOverrideController();
-                    newController.runtimeAnimatorController = ApplyMappingsToAnimator(aoc.runtimeAnimatorController);
+                    newController.runtimeAnimatorController = ApplyMappingsToAnimator(context, aoc.runtimeAnimatorController);
                     List<KeyValuePair<AnimationClip, AnimationClip>> overrides =
                         new List<KeyValuePair<AnimationClip, AnimationClip>>();
 
@@ -296,8 +301,8 @@ namespace nadena.dev.build_framework.animation
 
         public void OnDeactivate(BuildContext context)
         {
-            context.AvatarDescriptor.baseAnimationLayers = MapLayers(context.AvatarDescriptor.baseAnimationLayers);
-            context.AvatarDescriptor.specialAnimationLayers = MapLayers(context.AvatarDescriptor.specialAnimationLayers);
+            context.AvatarDescriptor.baseAnimationLayers = MapLayers(context, context.AvatarDescriptor.baseAnimationLayers);
+            context.AvatarDescriptor.specialAnimationLayers = MapLayers(context, context.AvatarDescriptor.specialAnimationLayers);
 
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {
@@ -305,14 +310,17 @@ namespace nadena.dev.build_framework.animation
             }
         }
 
-        private VRCAvatarDescriptor.CustomAnimLayer[] MapLayers(VRCAvatarDescriptor.CustomAnimLayer[] layers)
+        private VRCAvatarDescriptor.CustomAnimLayer[] MapLayers(
+            BuildContext buildContext,
+            VRCAvatarDescriptor.CustomAnimLayer[] layers
+        )
         {
             if (layers == null) return null;
             
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
-                layer.animatorController = ApplyMappingsToAnimator(layer.animatorController);
+                layer.animatorController = ApplyMappingsToAnimator(buildContext, layer.animatorController);
                 layers[i] = layer;
             }
 
