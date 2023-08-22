@@ -60,16 +60,17 @@ namespace nadena.dev.build_framework
             _avatarRootObject = avatarDescriptor.gameObject;
             _avatarRootTransform = avatarDescriptor.transform;
             
-            // Ensure the target directory exists
-            System.IO.Directory.CreateDirectory(assetRootPath);
-
             var avatarName = _avatarRootObject.name;
-            var avatarPath = System.IO.Path.Combine(assetRootPath, avatarName) + ".asset";
-
-            AssetDatabase.GenerateUniqueAssetPath(avatarPath);
+            
             AssetContainer = ScriptableObject.CreateInstance<GeneratedAssets>();
-            AssetDatabase.CreateAsset(AssetContainer, avatarPath);
-            Debug.Log($"Setting path for asset container; desired={avatarPath} actual={AssetDatabase.GetAssetPath(AssetContainer)}");
+            if (assetRootPath != null)
+            {
+                // Ensure the target directory exists
+                System.IO.Directory.CreateDirectory(assetRootPath);
+                var avatarPath = System.IO.Path.Combine(assetRootPath, avatarName) + ".asset";
+                AssetDatabase.GenerateUniqueAssetPath(avatarPath);
+                AssetDatabase.CreateAsset(AssetContainer, avatarPath);
+            }
             
             AnimationUtil.CloneAllControllers(this);
         }
@@ -82,58 +83,80 @@ namespace nadena.dev.build_framework
 
         public void Serialize()
         {
-            Debug.Log($"AssetContainer path: {AssetDatabase.GetAssetPath(AssetContainer)}");
             if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
             {
-                throw new Exception("Asset container was lost");
+                return; // unit tests with no serialized assets
             }
             
             foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: false, includeScene: false))
             {
-                //Debug.Log($"Adding asset of type {asset.GetType()}");
                 AssetDatabase.AddObjectToAsset(asset, AssetContainer);
             }
         }
 
+        public void DeactivateExtensionContext<T>() where T : IExtensionContext
+        {
+            DeactivateExtensionContext(typeof(T));
+        }
+        
+        public void DeactivateExtensionContext(Type t) {
+            if (_activeExtensions.ContainsKey(t))
+            {
+                var ctx = _activeExtensions[t];
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                    
+                ctx.OnDeactivate(this);
+                    
+                sw.Stop();
+                Debug.Log($"Deactivated {t} in {sw.ElapsedMilliseconds}ms");
+                    
+                _activeExtensions.Remove(t);
+            }
+        }
+        
         internal void RunPass(ConcretePass pass)
         {
-            foreach (var kvp in _activeExtensions.ToList())
+            foreach (var extension in _activeExtensions.Where(
+                         t => !pass.InstantiatedPass.IsContextCompatible(t.Key)
+                     ).ToList())
             {
-                if (!pass.InstantiatedPass.IsContextCompatible(kvp.Key))
-                {
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
-                    
-                    kvp.Value.OnDeactivate(this);
-                    
-                    sw.Stop();
-                    Debug.Log($"Deactivated {kvp.Key} in {sw.ElapsedMilliseconds}ms");
-                    
-                    _activeExtensions.Remove(kvp.Key);
-                }
+                DeactivateExtensionContext(extension.Key);
             }
             
             foreach (var ty in pass.InstantiatedPass.RequiredContexts)
             {
-                if (!_extensions.TryGetValue(ty, out var ctx))
-                {
-                    ctx = (IExtensionContext) ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
-                }
-
-                if (!_activeExtensions.ContainsKey(ty))
-                {
-                    Stopwatch sw = new Stopwatch();
-
-                    sw.Start();
-                    ctx.OnActivate(this);
-                    sw.Stop();
-                    Debug.Log($"Activated {ty} in {sw.ElapsedMilliseconds}ms");
-                    
-                    _activeExtensions.Add(ty, ctx);
-                }
+                ActivateExtensionContext(ty);
             }
             
             pass.Process(this);
+        }
+        
+        public T ActivateExtensionContext<T>() where T : IExtensionContext
+        {
+            return (T) ActivateExtensionContext(typeof(T));
+        }
+
+        public IExtensionContext ActivateExtensionContext(Type ty)
+        {
+            if (!_extensions.TryGetValue(ty, out var ctx))
+            {
+                ctx = (IExtensionContext) ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
+            }
+
+            if (!_activeExtensions.ContainsKey(ty))
+            {
+                Stopwatch sw = new Stopwatch();
+
+                sw.Start();
+                ctx.OnActivate(this);
+                sw.Stop();
+                Debug.Log($"Activated {ty} in {sw.ElapsedMilliseconds}ms");
+
+                _activeExtensions.Add(ty, ctx);
+            }
+
+            return _activeExtensions[ty];
         }
 
         internal void Finish()
