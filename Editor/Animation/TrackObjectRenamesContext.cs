@@ -267,29 +267,38 @@ namespace nadena.dev.build_framework.animation
             
             var newClip = new AnimationClip();
             newClip.name = originalClip.name;
+
+            SerializedObject before = new SerializedObject(originalClip);
+            SerializedObject after = new SerializedObject(newClip);
+
+            var before_hqCurve = before.FindProperty("m_UseHighQualityCurve");
+            var after_hqCurve = after.FindProperty("m_UseHighQualityCurve");
+            
+            after_hqCurve.boolValue = before_hqCurve.boolValue;
+            after.ApplyModifiedPropertiesWithoutUndo();
             
             // TODO - should we use direct SerializedObject manipulation to avoid missing script issues?
-            foreach (var binding in AnimationUtility.GetCurveBindings(newClip))
+            foreach (var binding in AnimationUtility.GetCurveBindings(originalClip))
             {
                 var newBinding = binding;
                 newBinding.path = MapPath(binding);
                 newClip.SetCurve(newBinding.path, newBinding.type, newBinding.propertyName,
-                    AnimationUtility.GetEditorCurve(newClip, binding));
+                    AnimationUtility.GetEditorCurve(originalClip, binding));
             }
 
-            foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(newClip))
+            foreach (var objBinding in AnimationUtility.GetObjectReferenceCurveBindings(originalClip))
             {
                 var newBinding = objBinding;
                 newBinding.path = MapPath(objBinding);
                 AnimationUtility.SetObjectReferenceCurve(newClip, newBinding,
-                    AnimationUtility.GetObjectReferenceCurve(newClip, objBinding));
+                    AnimationUtility.GetObjectReferenceCurve(originalClip, objBinding));
             }
 
             newClip.wrapMode = newClip.wrapMode;
             newClip.legacy = newClip.legacy;
             newClip.frameRate = newClip.frameRate;
             newClip.localBounds = newClip.localBounds;
-            AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(newClip));
+            AnimationUtility.SetAnimationClipSettings(newClip, AnimationUtility.GetAnimationClipSettings(originalClip));
 
             if (clipCache != null)
             {
@@ -309,6 +318,8 @@ namespace nadena.dev.build_framework.animation
                 listener.OnCommitObjectRenames(context, this);
             }
         }
+        
+        // TODO: port test AnimatesAddedBones from MA
 
         private VRCAvatarDescriptor.CustomAnimLayer[] MapLayers(
             BuildContext buildContext,
