@@ -23,6 +23,11 @@ namespace nadena.dev.build_framework
             AvatarProcessor.TemporaryAssetRoot = priorDirectory;
         }
     }
+
+    internal class AvatarBuildStateTracker : MonoBehaviour
+    {
+        internal BuildContext buildContext;
+    } 
     
     public class AvatarProcessor
     {
@@ -46,7 +51,7 @@ namespace nadena.dev.build_framework
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext);
+                    ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
                 }
                 finally
                 {
@@ -74,34 +79,46 @@ namespace nadena.dev.build_framework
         public static void ProcessAvatar(GameObject root)
         {
             if (root.GetComponent<AlreadyProcessedTag>()) return;
-            
+
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
+            
+            ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
 
-            ProcessAvatar(buildContext);
-
-            if (RuntimeUtil.isPlaying) root.AddComponent<AlreadyProcessedTag>();
+            if (RuntimeUtil.isPlaying)
+            {
+                root.AddComponent<AlreadyProcessedTag>();
+            }
         }
 
-        private static void ProcessAvatar(BuildContext buildContext)
+        internal static void ProcessAvatar(BuildContext buildContext, BuiltInPhase firstPhase,  BuiltInPhase lastPhase)
         {
             var resolver = new PluginResolver();
-            
-            foreach (var pass in resolver.Passes)
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-                try
-                {
-                    buildContext.RunPass(pass);
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogError("Error processing pass " + pass.Description);
-                    Debug.LogException(e);
-                    throw e;
-                }
 
-                Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
+            for (var phase = firstPhase; phase <= lastPhase; phase++)
+            {
+                Debug.Log($"=== Processing phase {phase} ===");
+                if (!resolver.Passes.TryGetValue(phase, out var passes))
+                {
+                    continue;
+                }
+                
+                foreach (var pass in passes)
+                {
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    try
+                    {
+                        buildContext.RunPass(pass);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogError("Error processing pass " + pass.Description);
+                        Debug.LogException(e);
+                        throw e;
+                    }
+
+                    Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
             
             buildContext.Finish();

@@ -24,7 +24,7 @@ namespace nadena.dev.build_framework
 
     public class PluginResolver
     {
-        public ImmutableList<ConcretePass> Passes { get; private set; }
+        public ImmutableDictionary<BuiltInPhase, ImmutableList<ConcretePass>> Passes { get; private set; }
         
         public PluginResolver() : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
@@ -44,15 +44,33 @@ namespace nadena.dev.build_framework
 
         public PluginResolver(IEnumerable<Plugin> pluginTemplates)
         {
-            var plugins = new List<InstantiatedPlugin>(
-                pluginTemplates.Select(t => new InstantiatedPlugin(t))
-            );
+            Dictionary<BuiltInPhase, List<InstantiatedPass>> pluginsByPhase =
+                new Dictionary<BuiltInPhase, List<InstantiatedPass>>();
 
-            var phases = (IList<BuiltInPhase>) Enum.GetValues(typeof(BuiltInPhase));
+            foreach (var template in pluginTemplates)
+            {
+                var instantiated = new InstantiatedPlugin(template);
+                foreach (var pass in instantiated.Passes)
+                {
+                    var phase = pass.ExecutionPhase;
+                    if (!pluginsByPhase.TryGetValue(phase, out var list))
+                    {
+                        list = new List<InstantiatedPass>();
+                        pluginsByPhase[phase] = list;
+                    }
+                    list.Add(pass);
+                }
+            }
 
-            var passes = plugins.SelectMany(p => p.Passes)
-                .Union(phases.Select(p => new InstantiatedPass((BuiltInPhase) p)))
-                .ToList();
+            Passes = pluginsByPhase.Select(kvp =>
+                new KeyValuePair<BuiltInPhase, ImmutableList<ConcretePass>>(
+                    kvp.Key,
+                    ToposortPasses(kvp.Value))
+            ).ToImmutableDictionary();
+        }
+
+        ImmutableList<ConcretePass> ToposortPasses(List<InstantiatedPass> passes)
+        {
             var passNames = passes
                 .Select(p => new KeyValuePair<string, InstantiatedPass>(p.QualifiedName, p))
                 .ToImmutableDictionary();
@@ -66,9 +84,9 @@ namespace nadena.dev.build_framework
                 Debug.Log($"Pass found: {pass.QualifiedName}");
             }
             
-            Passes = TopoSort.DoSort(passes, constraints)
+            return TopoSort.DoSort(passes, constraints)
                 .Select(p => new ConcretePass(p))
                 .ToImmutableList();
-        }
+        } 
     }
 }

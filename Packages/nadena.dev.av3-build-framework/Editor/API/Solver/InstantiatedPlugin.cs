@@ -36,7 +36,6 @@ namespace nadena.dev.build_framework.model
             {
                 var newPass = new InstantiatedPass(this, pass);
                 newPass.AddRunsAfter(passes.Last().QualifiedName);
-                newPass.AddPhaseConstraints();
                 passes.Add(newPass);
             }
 
@@ -88,15 +87,6 @@ namespace nadena.dev.build_framework.model
         internal void AddRunsAfter(string other)
         {
             Constraints = Constraints.Add((other, QualifiedName));
-        }
-
-        internal void AddPhaseConstraints()
-        {
-            Constraints = Constraints.Add((BuiltInPhasePassName(ExecutionPhase), QualifiedName));
-            if ((int) ExecutionPhase < Enum.GetValues(typeof(BuiltInPhase)).Length)
-            {
-                Constraints = Constraints.Add((QualifiedName, BuiltInPhasePassName(ExecutionPhase + 1)));
-            }
         }
         
         internal InstantiatedPass(InstantiatedPlugin parent, PluginPass pass)
@@ -169,36 +159,6 @@ namespace nadena.dev.build_framework.model
             }
             
             DisplayName = QualifiedName;
-            Constraints = constraints.ToImmutableList();
-        }
-
-        private static string BuiltInPhasePassName(BuiltInPhase phase)
-        {
-            return "/_internal/Phase/" + phase;
-        }
-        
-        internal InstantiatedPass(BuiltInPhase phase)
-        {
-            Operation = _ctx => { };
-            InternalPass = true;
-            _compatibleContexts = null;
-            RequiredContexts = ImmutableHashSet<Type>.Empty;
-            
-            DisplayName = "Phase: " + phase;
-            QualifiedName = BuiltInPhasePassName(phase);
-
-            int index = (int) phase;
-            var constraints = new List<(string, string)>();
-            
-            if (index > 0)
-            {
-                constraints.Add((BuiltInPhasePassName((BuiltInPhase) (index - 1)), QualifiedName));
-            }
-            if (index < Enum.GetValues(typeof(BuiltInPhase)).Length - 1)
-            {
-                constraints.Add((QualifiedName, BuiltInPhasePassName((BuiltInPhase) (index + 1))));
-            }
-            
             Constraints = constraints.ToImmutableList();
         }
 
