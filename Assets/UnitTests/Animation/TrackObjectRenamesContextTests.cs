@@ -99,6 +99,12 @@ namespace UnitTests
             var root = CreatePrefab("BasicObjectReferenceTest.prefab");
             var parent = root.transform.Find("parent").gameObject;
             var child = parent.transform.Find("child").gameObject;
+
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            var oldFx = descriptor.baseAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.FX); 
+            var oldIk = descriptor.specialAnimationLayers.First(l =>
+                l.type == VRCAvatarDescriptor.AnimLayerType.IKPose);
             
             var toc = new TrackObjectRenamesContext();
             var buildContext = CreateContext(root);
@@ -107,11 +113,6 @@ namespace UnitTests
 
             parent.name = "p2";
 
-            var oldFx = buildContext.AvatarDescriptor.baseAnimationLayers.First(l =>
-                l.type == VRCAvatarDescriptor.AnimLayerType.FX); 
-            var oldIk = buildContext.AvatarDescriptor.specialAnimationLayers.First(l =>
-                l.type == VRCAvatarDescriptor.AnimLayerType.IKPose);
-            
             toc.OnDeactivate(buildContext);
             
             var newFx = buildContext.AvatarDescriptor.baseAnimationLayers.First(l =>
