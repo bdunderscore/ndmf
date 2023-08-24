@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using nadena.dev.build_framework.runtime;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
+using Debug = UnityEngine.Debug;
 
 namespace nadena.dev.build_framework.VRChat
 {
@@ -48,7 +50,11 @@ namespace nadena.dev.build_framework.VRChat
             try
             {
                 AvatarProcessor.ProcessAvatar(holder.context, BuiltInPhase.Optimization, BuiltInPhase.Optimization);
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 holder.context.Finish();
+                sw.Stop();
+                Debug.Log($"Build Framework: Saved assets in {sw.ElapsedMilliseconds}ms");
                 UnityEngine.Object.DestroyImmediate(holder);
                 
                 return true;
