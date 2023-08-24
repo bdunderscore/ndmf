@@ -56,10 +56,15 @@ namespace nadena.dev.build_framework.animation
 
         private int controllerBaseLayer = 0;
 
-        public AnimatorCombiner(String assetName)
+        public AnimatorCombiner(String assetName, UnityEngine.Object assetContainer)
         {
             _combined = new AnimatorController();
-            isSaved = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(_combined));
+            if (assetContainer != null)
+            {
+                AssetDatabase.AddObjectToAsset(_combined, assetContainer);
+            }
+
+            isSaved = assetContainer != null;
             _combined.name = assetName;
         }
 
