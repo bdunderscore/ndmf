@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,8 +16,10 @@ namespace nadena.dev.build_framework.util
             AssetFilter traversalFilter = null
         )
         {
+            int index = 0;
+            
             HashSet<UnityEngine.Object> visited = new HashSet<Object>();
-            Queue<UnityEngine.Object> queue = new Queue<Object>();
+            Queue<(int, UnityEngine.Object)> queue = new Queue<(int, Object)>();
 
             if (traversalFilter == null)
             {
@@ -29,11 +32,11 @@ namespace nadena.dev.build_framework.util
             }
             
             visited.Add(root);
-            queue.Enqueue(root);
+            queue.Enqueue((index++, root));
 
             while (queue.Count > 0)
             {
-                var next = queue.Dequeue();
+                var (_originalIndex, next) = queue.Dequeue();
                 var isScene = next is GameObject || next is Component;
 
                 if (includeScene || !isScene)
@@ -50,17 +53,24 @@ namespace nadena.dev.build_framework.util
 
                     foreach (Transform child in t)
                     {
+                        if (t == null) continue; // How can this happen???
+                        
                         if (visited.Add(child) && traversalFilter(child.gameObject))
                         {
-                            queue.Enqueue(child);
+                            queue.Enqueue((index++, child));
                         }
                     }
                     
                     foreach (var comp in t.GetComponents<Component>())
                     {
+                        if (comp == null)
+                        {
+                            continue; // missing scripts
+                        }
+                        
                         if (visited.Add(comp) && !(comp is Transform) && traversalFilter(comp))
                         {
-                            queue.Enqueue(comp);
+                            queue.Enqueue((index++, comp));
                         }
                     }
 
@@ -75,12 +85,13 @@ namespace nadena.dev.build_framework.util
                     var objIsScene = value is GameObject || value is Component;
                     
                     if (value != null 
-                        && (objIsScene || traverseSaved || !EditorUtility.IsPersistent(value))
+                        && !objIsScene
+                        && (traverseSaved || !EditorUtility.IsPersistent(value))
                         && visited.Add(value)
                         && traversalFilter(value)
                     )
                     {
-                        queue.Enqueue(value);
+                        queue.Enqueue((index++, value));
                     }
                 }
             }

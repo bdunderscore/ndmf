@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
+using UnityObject = UnityEngine.Object;
 
 namespace nadena.dev.build_framework
 {
@@ -87,10 +88,58 @@ namespace nadena.dev.build_framework
             {
                 return; // unit tests with no serialized assets
             }
-            
-            foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: false, includeScene: false))
+
+            HashSet<UnityObject> _savedObjects =
+                new HashSet<UnityObject>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)));
+
+            _savedObjects.Remove(AssetContainer);
+
+            int index = 0;
+            foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
             {
-                AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+                if (asset is MonoScript)
+                {
+                    // MonoScripts aren't considered to be a Main or Sub-asset, but they can't be added to asset
+                    // containers either.
+                    continue;
+                }
+                
+                if (_savedObjects.Contains(asset))
+                {
+                    _savedObjects.Remove(asset);
+                    continue;
+                }
+
+                if (asset == null)
+                {
+                    Debug.Log($"Asset {index} is null");
+                }
+                index++;
+
+                if (!EditorUtility.IsPersistent(asset))
+                {
+                    try
+                    {
+                        AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+                    }
+                    catch (UnityException ex)
+                    {
+                        Debug.Log($"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
+                                  $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
+                        throw ex;
+                    }
+                }
+            }
+            
+            // Remove obsolete temporary assets
+            foreach (var asset in _savedObjects)
+            {
+                if (!(asset is Component || asset is GameObject))
+                {
+                    // Traversal can't currently handle prefabs, so this must have been manually added. Avoid purging it.
+                    continue;
+                }
+                AssetDatabase.RemoveObjectFromAsset(asset);
             }
         }
 
