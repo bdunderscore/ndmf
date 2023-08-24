@@ -17,11 +17,11 @@ namespace nadena.dev.build_framework.animation
         private const string GUID_GESTURE_HANDSONLY_MASK = "b2b8bad9583e56a46a3e21795e96ad92";
 
         
-        public static AnimatorController DeepCloneAnimator(RuntimeAnimatorController controller)
+        public static AnimatorController DeepCloneAnimator(BuildContext context, RuntimeAnimatorController controller)
         {
             if (controller == null) return null;
 
-            var merger = new AnimatorCombiner(controller.name + " (clone)");
+            var merger = new AnimatorCombiner(controller.name + " (clone)", context.AssetContainer);
             switch (controller)
             {
                 case AnimatorController ac:
@@ -58,7 +58,7 @@ namespace nadena.dev.build_framework.animation
                 var layer = layers[i];
                 if (layer.animatorController != null && !context.IsTemporaryAsset(layer.animatorController))
                 {
-                    layer.animatorController = DeepCloneAnimator(layer.animatorController);                    
+                    layer.animatorController = DeepCloneAnimator(context, layer.animatorController);                    
                 }
 
                 layers[i] = layer;

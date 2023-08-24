@@ -200,7 +200,7 @@ namespace nadena.dev.build_framework.animation
                 case AnimatorController ac:
                     if (!context.IsTemporaryAsset(ac))
                     {
-                        ac = AnimationUtil.DeepCloneAnimator(ac);
+                        ac = AnimationUtil.DeepCloneAnimator(context, ac);
                     }
 
                     foreach (var asset in ac.ReferencedAssets())
