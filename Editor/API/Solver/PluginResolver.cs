@@ -8,17 +8,33 @@ using UnityEngine;
 
 namespace nadena.dev.build_framework
 {
+    class TypeComparer : IComparer<Type>
+    {
+        public int Compare(Type x, Type y)
+        {
+            if (x == y) return 0;
+            if (x == null) return 1;
+            if (y == null) return -1;
+            
+            return StringComparer.Ordinal.Compare(x.FullName, y.FullName);
+        }
+    }
+    
     public class ConcretePass
     {
         public string Description { get; }
         public Action<BuildContext> Process { get; }
         internal InstantiatedPass InstantiatedPass { get; }
+        internal ImmutableList<Type> DeactivatePlugins { get; }
+        internal ImmutableList<Type> ActivatePlugins { get; }
         
-        internal ConcretePass(InstantiatedPass pass)
+        internal ConcretePass(InstantiatedPass pass, ImmutableList<Type> deactivatePlugins, ImmutableList<Type> activatePlugins)
         {
-            Description = pass.QualifiedName;
+            Description = pass.DisplayName;
             Process = pass.Operation;
             InstantiatedPass = pass;
+            DeactivatePlugins = deactivatePlugins;
+            ActivatePlugins = activatePlugins;
         }
     }
 
@@ -65,11 +81,11 @@ namespace nadena.dev.build_framework
             Passes = pluginsByPhase.Select(kvp =>
                 new KeyValuePair<BuiltInPhase, ImmutableList<ConcretePass>>(
                     kvp.Key,
-                    ToposortPasses(kvp.Value))
+                    ToposortPasses(kvp.Key, kvp.Value))
             ).ToImmutableDictionary();
         }
 
-        ImmutableList<ConcretePass> ToposortPasses(List<InstantiatedPass> passes)
+        ImmutableList<ConcretePass> ToposortPasses(BuiltInPhase phase, List<InstantiatedPass> passes)
         {
             var passNames = passes
                 .Select(p => new KeyValuePair<string, InstantiatedPass>(p.QualifiedName, p))
@@ -83,10 +99,48 @@ namespace nadena.dev.build_framework
             {
                 Debug.Log($"Pass found: {pass.QualifiedName}");
             }
-            
-            return TopoSort.DoSort(passes, constraints)
-                .Select(p => new ConcretePass(p))
-                .ToImmutableList();
+
+            var sorted = TopoSort.DoSort(passes, constraints);
+            SortedSet<Type> activeExtensions = new SortedSet<Type>(new TypeComparer());
+
+            var concrete = new List<ConcretePass>();
+            foreach (var pass in sorted)
+            {
+                var toDeactivate = new List<Type>();
+                var toActivate = new List<Type>();
+                activeExtensions.RemoveWhere(t =>
+                {
+                    if (!pass.IsContextCompatible(t))
+                    {
+                        toDeactivate.Add(t);
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                foreach (var t in pass.RequiredContexts.ToImmutableSortedSet(new TypeComparer()))
+                {
+                    if (!activeExtensions.Contains(t))
+                    {
+                        toActivate.Add(t);
+                        activeExtensions.Add(t);
+                    }
+                }
+                
+                concrete.Add(new ConcretePass(pass, toDeactivate.ToImmutableList(), toActivate.ToImmutableList()));
+            }
+
+            if (activeExtensions.Count > 0)
+            {
+                var deactivator = CleanupPlugin.ExtensionDeactivator(phase);
+                concrete.Add(new ConcretePass(deactivator,
+                    activeExtensions.ToImmutableList(),
+                    ImmutableList<Type>.Empty
+                ));
+            }
+
+            return concrete.ToImmutableList();
         } 
     }
 }
