@@ -51,6 +51,8 @@ namespace nadena.dev.build_framework
                 {
                     AssetDatabase.StartAssetEditing();
                     ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
+                    
+                    buildContext.Finish();
                 }
                 finally
                 {
