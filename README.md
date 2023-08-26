@@ -1,78 +1,93 @@
-# VPM Package Template
+# Avatar Build Plugin Framework (working title)
 
-Starter for making Packages, including automation for building and publishing them.
+This package is a framework for building non-destructive editor plugins for VRChat avatars. It provides the following facilities:
 
-Once you're all set up, you'll be able to push changes to this repository and have .zip and .unitypackage versions automatically generated, and a listing made which works in the VPM for delivering updates for this package. If you want to make a listing with a variety of packages, check out our [template-package-listing](https://github.com/vrchat-community/template-package-listing) repo.
+* Plugin execution sequencing based on high level phases, and explicit runs-before/runs-after relationships between processing passes
+* Support for applying transformations when entering play mode
+* Support for applying transformations when building avatars
+* Support for saving temporary/generated assets, and cleaning up those assets once the avatar build is completed.
+* Support for adjusting animation paths after objects are moved
 
-## ▶ Getting Started
+Future plans include:
+* A unified error reporting UI
+* Support for caching generated assets across subsequent builds
+* Support for platforms other than VRChat.
 
-* Press [![Use This Template](https://user-images.githubusercontent.com/737888/185467681-e5fdb099-d99f-454b-8d9e-0760e5a6e588.png)](https://github.com/vrchat-community/template-package/generate)
-to start a new GitHub project based on this template.
-  * Choose a fitting repository name and description.
-  * Set the visibility to 'Public'. You can also choose 'Private' and change it later.
-  * You don't need to select 'Include all branches.'
-* Clone this repository locally using Git.
-  * If you're unfamiliar with Git and GitHub, [visit GitHub's documentation](https://docs.github.com/en/get-started/quickstart/git-and-github-learning-resources) to learn more.
-* Add the folder to Unity Hub and open it as a Unity Project.
-* After opening the project, wait while the VPM resolver is downloaded and added to your project.
-  * This gives you access to the VPM Package Maker and Package Resolver tools.
+## Project status
 
-## 🚇 Migrating Assets Package
-Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
+This project is currently in a pre-alpha state. Expect large-scale refactoring, including renaming of the project itself, in the coming weeks. The framework is however functional, and you can take a look at the draft PRs for [Modular Avatar](https://github.com/bdunderscore/modular-avatar/pull/406) and [AAO](https://github.com/anatawa12/AvatarOptimizer/pull/375) to see examples of usage.
 
-## Working on Your Package
+## Getting started
 
-* Delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
-  * If you reuse the package, don't forget to rename it!
-* Update the `.gitignore` file in the "Packages" directory to include your package.
-  * For example, change `!com.vrchat.demo-template` to `!com.username.package-name`.
-  * `.gitignore` files normally *exclude* the contents of your "Packages" directory. This `.gitignore` in this template show how to *include* the demo package. You can easily change this out for your own package name.
-* Open the Unity project and work on your package's files in your favorite code editor.
-* When you're ready, commit and push your changes.
-* Once you've set up the automation as described below, you can easily publish new versions.
+A minimal plugin definition looks a bit like this:
 
-## Setting up the Automation
+```csharp
+[assembly: ExportsPlugin(typeof MyPlugin)]
 
-You'll need to make a few changes in [release.yml](.github/workflows/release.yml):
-* Change the `paths` property on line 7 to point to the directory where your package's source files are. Leave the `/**` at the end so GitHub knows to run this action whenever any file in that directory is changed.
-  * In the template, this property is `paths: Packages/com.vrchat.demo-template/**`
-* Change the `packageName` property on line 10 to include the name of your package, like `packageName: "com.vrchat.demo-template"`
+namespace com.mydomain {
+  class MyPlugin : Plugin {
+    public override string QualifiedName => "com.mydomain.myplugin";
+    public override ImmutableList<Pass> Passes => ImmutableList<PluginPass>.Empty
+      .Add(new MyPass());
+  }
 
-You'll also need to make a change to [build-listing.yml](.github/workflows/build-listing.yml):
-* Change `CurrentPackageName` in line 4 from `com.vrchat.demo-template` to your own package name.
+  class MyPass : PluginPass {
+    public override void Process(BuildContext context) {
+      // do something to the avatar at context.AvatarRootTransform
+    }
+  }
+}
+```
 
-Finally, go to the "Settings" page for your repo, then choose "Pages", and look for the heading "Build and deployment". Change the "Source" dropdown from "Deploy from a branch" to "GitHub Actions".
+## Execution model
 
-That's it!
-Some other notes:
-* We highly recommend you keep the existing folder structure of this template.
-  * The root of the project should be a Unity project.
-  * Your packages should be in the "Packages" directory.
-  * If you deviate from this folder structure, you'll need to update the paths that assume your package is in the "Packages" directory on lines 24, 38, 41 and 57.
-* If you want to store and generate your web files in a folder other than "Website" in the root, you can change the `listPublicDirectory` item [here in build-listing.yml](.github/workflows/build-listing.yml#L17).
+ABPF models execution using "Plugins" and "Passes". A plugin is meant to be an end-user-visible extension, such as Modular Avatar or AAO, while a pass is an internal step in the execution of that plugin. Breaking your execution into smaller passes allows better control of the order of execution between passes.
 
-## 🎉 Publishing a Release
+Passes are grouped into execution phases, which execute in the following order:
+* Resolving - This is intended to run before any editor extensions modify the avatar, and is useful for rehydrating components with serialized state that need to refer to the pre-transformation avatar (e.g. if you have a path serialized to a string which you need to resolve to an object before objects start moving around)
+* Generating - This is intended to run before editor extensions which primarily generate new objects and components for use by other systems.
+* Transforming - This is intended as the "general-purpose" execution phase, where most extensions which transform avatars run.
+* Optimization - This is intended as an execution phase for optimization plugins which aren't intended to modify the avatar in a semantically-meaningful way.
 
-A release will be automatically built whenever you push changes to your main branch which update files in the package folder you specified in `release.yml`. The version specified in your `package.json` file will be used to define the version of the release.
+Within each phase, passes are always executed in the order in which they are declared in the plugin definition. However, depending on dependency declarations, passes from other plugins can be injected between your passes.
 
-## 📃 Rebuilding the Listing
+Plugins and passes can both declare runs-before and runs-after dependencies on other plugins and passes. These dependencies are applied independently for each phase. For example, consider this example:
 
-Whenever you make a change to a release - automatically publishing it, or manually creating, editing or deleting one, the [Build Repo Listing](.github/workflows/build-listing.yml) action will make a new index of all the releases available, and publish them as a website hosted fore free on [GitHub Pages](https://pages.github.com/). This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format `https://username.github.io/repo-name`.
+```
+ Plugin A runs-before plugin B
+ Plugin A passes: (Resolving:A1, Resolving:A2, Generating: A1)
+ Plugin B passes: (Resolving:B1, Generating: B2)
+ Resulting order: (Resolving:A1, Resolving:A2, Resolving:B1, Generating:A1, Generating:B2)
+```
 
-## 🏠 Customizing the Landing Page
+When you declare a runs-before or runs-after at the _pass_ level, you can insert a pass in between passes from another plugin. As such, generally you should define your passes in such a way that it's safe to inject additional transformations before or after. If it's not, consider merging passes, or not exposing the pass name.
 
-The action which rebuilds the listing also publishes a landing page. The source for this page is in `Website/index.html`. The automation system uses [Scriban](https://github.com/scriban/scriban) to fill in the objects like `{{ this }}` with information from the latest release's manifest, so it will stay up-to-date with the name, id and description that you provide there. You are welcome to modify this page however you want - just use the existing `{{ template.objects }}` to fill in that info wherever you like. The entire contents of your "Website" folder are published to your GitHub Page each time.
+## Context data
 
-## Technical Stuff
+The `BuildContext` object is passed to all passes when executing them, and contains references to key objects in the avatar (the root GameObject, Transform, and Avatar Descriptor). It also carries some useful state.
 
-You are welcome to make your own changes to the automation process to make it fit your needs, and you can create Pull Requests if you have some changes you think we should adopt. Here's some more info on the included automation:
+The `BuildContext.GetState<T>()` function can be used to attach arbitrary state to the build context, which will be passed from one pass to the next. State attached this way will be created (using a zero-argument constructor) if not yet present.
 
-### Build Release Action
-[release.yml](/.github/workflows/release.yml)
+## Extension contexts
 
-This is a composite action combining a variety of existing GitHub Actions and some shell commands to create both a .zip of your Package and a .unitypackage. It creates a release which is named for the `version` in the `package.json` file found in your target Package, and publishes the zip, the unitypackage and the package.json file to this release.
+An extension context is a callback which is executed before and after a group of passes which need its services. For example, the `TrackObjectRenamesContext` will track when objects are renamed, and apply those renames to any animations on the avatar. The goal is to be able to amortize the cost of this context across multiple passes which need its services (or which at least don't interfere with the extension context).
 
-### Build Repo Listing
-[build-listing.yml](.github/workflows/build-listing.yml)
+Passes can declare required and compatible contexts, e.g.:
 
-This is a composite action which builds a vpm-compatible [Repo Listing](https://vcc.docs.vrchat.com/vpm/repos) based on the releases you've created. In order to find all your releases and combine them into a listing, it checks out [another repository](https://github.com/vrchat-community/package-list-action) which has a [Nuke](https://nuke.build/) project which includes the VPM core lib to have access to its types and methods. This project will be expanded to include more functionality in the future - for now, the action just calls its `BuildRepoListing` target.
+```csharp
+    abstract class MAPass : PluginPass
+    {
+        public override IImmutableSet<Type> RequiredContexts =>
+            ImmutableHashSet<Type>.Empty.Add(typeof(ModularAvatarContext));
+        
+        public override IImmutableSet<object> CompatibleContexts =>
+            ImmutableHashSet<object>.Empty.Add(typeof(TrackObjectRenamesContext));
+
+        protected BuildContext MAContext(build_framework.BuildContext context)
+        {
+            return context.Extension<ModularAvatarContext>().BuildContext;
+        }
+    }
+```
+
+A required context instructs the framework to "activate" this context before executing the pass. The context will then be "deactivated" before executing the next pass that is not compatible with that context, or when the build is completed. The context object can then be accessed by calling `BuildContext.Extension<ExtensionName>()`.
