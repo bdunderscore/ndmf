@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using nadena.dev.build_framework.model;
 using nadena.dev.build_framework.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -83,6 +82,7 @@ namespace nadena.dev.build_framework
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
             
             ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
+            buildContext.Finish();
 
             if (RuntimeUtil.isPlaying)
             {
@@ -116,12 +116,11 @@ namespace nadena.dev.build_framework
                         Debug.LogException(e);
                         throw e;
                     }
+                    stopwatch.Stop();
 
                     Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
                 }
             }
-            
-            buildContext.Finish();
         }
     }
 }

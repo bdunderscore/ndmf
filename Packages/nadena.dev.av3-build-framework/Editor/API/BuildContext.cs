@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using nadena.dev.build_framework.animation;
+using nadena.dev.build_framework.reporting;
 using nadena.dev.build_framework.runtime;
 using nadena.dev.build_framework.util;
 using UnityEditor;
@@ -18,6 +20,8 @@ namespace nadena.dev.build_framework
         private readonly VRCAvatarDescriptor _avatarDescriptor;
         private readonly GameObject _avatarRootObject;
         private readonly Transform _avatarRootTransform;
+
+        private Stopwatch sw = new Stopwatch();
         
         public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
         public GameObject AvatarRootObject => _avatarRootObject;
@@ -57,6 +61,10 @@ namespace nadena.dev.build_framework
         
         public BuildContext(VRCAvatarDescriptor avatarDescriptor, string assetRootPath)
         {
+            BuildEvent.Dispatch(new BuildEvent.BuildStarted(avatarDescriptor.gameObject));
+            
+            sw.Start();
+            
             _avatarDescriptor = avatarDescriptor;
             _avatarRootObject = avatarDescriptor.gameObject;
             _avatarRootTransform = avatarDescriptor.transform;
@@ -74,6 +82,8 @@ namespace nadena.dev.build_framework
             }
             
             AnimationUtil.CloneAllControllers(this);
+            
+            sw.Stop();
         }
 
         public bool IsTemporaryAsset(UnityEngine.Object obj)
@@ -152,33 +162,47 @@ namespace nadena.dev.build_framework
             if (_activeExtensions.ContainsKey(t))
             {
                 var ctx = _activeExtensions[t];
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                    
                 ctx.OnDeactivate(this);
-                    
-                sw.Stop();
-                Debug.Log($"Deactivated {t} in {sw.ElapsedMilliseconds}ms");
-                    
                 _activeExtensions.Remove(t);
             }
         }
         
         internal void RunPass(ConcretePass pass)
         {
-            foreach (var extension in _activeExtensions.Where(
-                         t => !pass.InstantiatedPass.IsContextCompatible(t.Key)
-                     ).ToList())
-            {
-                DeactivateExtensionContext(extension.Key);
-            }
+            sw.Start();
             
-            foreach (var ty in pass.InstantiatedPass.RequiredContexts)
+            ImmutableDictionary<Type, double> deactivationTimes = ImmutableDictionary<Type, double>.Empty;
+            
+            foreach (var ty in pass.DeactivatePlugins)
             {
+                Stopwatch sw2 = new Stopwatch();
+                sw2.Start();
+                DeactivateExtensionContext(ty);
+                deactivationTimes = deactivationTimes.Add(ty, sw2.ElapsedMilliseconds);
+            }
+
+            ImmutableDictionary<Type, double> activationTimes = ImmutableDictionary<Type, double>.Empty;
+            foreach (var ty in pass.ActivatePlugins)
+            {
+                Stopwatch sw2 = new Stopwatch();
+                sw2.Start();
                 ActivateExtensionContext(ty);
+                activationTimes = activationTimes.Add(ty, sw2.ElapsedMilliseconds);
             }
-            
+
+            Stopwatch passTimer = new Stopwatch();
+            passTimer.Start();
             pass.Process(this);
+            passTimer.Stop();
+            
+            BuildEvent.Dispatch(new BuildEvent.PassExecuted(
+                pass.InstantiatedPass.QualifiedName,
+                passTimer.ElapsedMilliseconds,
+                activationTimes,
+                deactivationTimes
+                ));
+            
+            sw.Stop();
         }
         
         public T ActivateExtensionContext<T>() where T : IExtensionContext
@@ -195,13 +219,7 @@ namespace nadena.dev.build_framework
 
             if (!_activeExtensions.ContainsKey(ty))
             {
-                Stopwatch sw = new Stopwatch();
-
-                sw.Start();
                 ctx.OnActivate(this);
-                sw.Stop();
-                Debug.Log($"Activated {ty} in {sw.ElapsedMilliseconds}ms");
-
                 _activeExtensions.Add(ty, ctx);
             }
 
@@ -210,6 +228,7 @@ namespace nadena.dev.build_framework
 
         internal void Finish()
         {
+            sw.Start();
             foreach (var kvp in _activeExtensions.ToList())
             {
                 kvp.Value.OnDeactivate(this);
@@ -221,6 +240,9 @@ namespace nadena.dev.build_framework
             }
             
             Serialize();
+            sw.Stop();
+            
+            BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
         }
     }
 }

@@ -7,6 +7,8 @@ namespace nadena.dev.build_framework.model
 {
     internal class InstantiatedPlugin
     {
+        public string Description => Plugin.Description;
+        
         internal InstantiatedPlugin(Type target)
         {
             if (!typeof(Plugin).IsAssignableFrom(target))
@@ -30,18 +32,27 @@ namespace nadena.dev.build_framework.model
             QualifiedName = Plugin.QualifiedName;
             
             var passes = new List<InstantiatedPass>();
-            passes.Add(new InstantiatedPass(this, ConstraintType.RunsAfter));
 
-            foreach (var pass in Plugin.Passes)
+            foreach (var builtInPhaseObj in Enum.GetValues(typeof(BuiltInPhase)))
             {
-                var newPass = new InstantiatedPass(this, pass);
-                newPass.AddRunsAfter(passes.Last().QualifiedName);
-                passes.Add(newPass);
-            }
+                var phase = (BuiltInPhase) builtInPhaseObj;
+                var phasePasses = plugin.Passes.Where(p => p.ExecutionPhase == phase).ToList();
 
-            var finalPass = new InstantiatedPass(this, ConstraintType.RunsBefore);
-            finalPass.AddRunsAfter(passes.Last().QualifiedName);
-            passes.Add(finalPass);
+                if (phasePasses.Count == 0) continue;
+                
+                passes.Add(new InstantiatedPass(this, ConstraintType.RunsAfter, phase));
+
+                foreach (var pass in phasePasses)
+                {
+                    var newPass = new InstantiatedPass(this, pass);
+                    newPass.AddRunsAfter(passes.Last().QualifiedName);
+                    passes.Add(newPass);
+                }
+
+                var finalPass = new InstantiatedPass(this, ConstraintType.RunsBefore, phase);
+                finalPass.AddRunsAfter(passes.Last().QualifiedName);
+                passes.Add(finalPass);
+            }
 
             Passes = passes.ToImmutableList();
         }
@@ -66,6 +77,7 @@ namespace nadena.dev.build_framework.model
         public readonly string BEFORE_PLUGIN_HOOK = "/_internal/BeforePlugin";
         public readonly string AFTER_PLUGIN_HOOK = "/_internal/AfterPlugin";
 
+        public InstantiatedPlugin Plugin { get; }
         public BuiltInPhase ExecutionPhase { get; }
         
         public bool InternalPass { get; }
@@ -91,6 +103,8 @@ namespace nadena.dev.build_framework.model
         
         internal InstantiatedPass(InstantiatedPlugin parent, PluginPass pass)
         {
+            Plugin = parent;
+            
             var passType = pass.GetType();
             Operation = pass.Process;
             InternalPass = false;
@@ -128,12 +142,15 @@ namespace nadena.dev.build_framework.model
             Constraints = constraints.ToImmutableList();
         }
 
-        internal InstantiatedPass(InstantiatedPlugin parent, ConstraintType constraintType)
+        internal InstantiatedPass(InstantiatedPlugin parent, ConstraintType constraintType, BuiltInPhase builtInPhase)
         {
+            Plugin = parent;
+            
             Operation = _ctx => { };
             InternalPass = true;
             _compatibleContexts = null;
             RequiredContexts = ImmutableHashSet<Type>.Empty;
+            ExecutionPhase = builtInPhase;
             
             IEnumerable<(string, string)> constraints;
             switch (constraintType)
@@ -165,6 +182,37 @@ namespace nadena.dev.build_framework.model
         public override string ToString()
         {
             return $"{nameof(QualifiedName)}: {QualifiedName}, {nameof(DisplayName)}: {DisplayName}";
+        }
+    }
+
+    internal class CleanupPlugin : Plugin
+    {
+        private static InstantiatedPlugin InstantiatedPlugin = new InstantiatedPlugin(new CleanupPlugin());
+        
+        public override string QualifiedName => "nadena.dev.av3-build-framework.internal.cleanup";
+        public override string Description => "Cleanup";
+        public override ImmutableList<PluginPass> Passes => ImmutableList<PluginPass>.Empty;
+
+        public static InstantiatedPass ExtensionDeactivator(BuiltInPhase phase)
+        {
+            return new InstantiatedPass(InstantiatedPlugin, new Pass(phase));
+        }
+        
+        internal class Pass : PluginPass
+        {
+            public override string DisplayName => "Deactivate extensions";
+            
+            public override BuiltInPhase ExecutionPhase { get; }
+            
+            public Pass(BuiltInPhase phase)
+            {
+                ExecutionPhase = phase;
+            }
+
+            public override void Process(BuildContext context)
+            {
+                // no-op - this just serves to deactivate extension contexts
+            }
         }
     }
 }

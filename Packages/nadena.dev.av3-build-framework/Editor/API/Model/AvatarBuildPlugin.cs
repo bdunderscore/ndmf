@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using UnityEngine;
 
 namespace nadena.dev.build_framework
 {
@@ -29,6 +30,7 @@ namespace nadena.dev.build_framework
         public virtual ImmutableList<string> RunsAfter => ImmutableList<string>.Empty;
         public virtual ImmutableList<string> RequiredPlugins => ImmutableList<string>.Empty;
         public virtual ImmutableList<string> RequiredPasses => ImmutableList<string>.Empty;
+        public virtual string Description => QualifiedName;
     }
 
     public abstract class PluginPass
