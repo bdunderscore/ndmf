@@ -1,18 +1,18 @@
 ﻿/*
  * MIT License
- * 
+ *
  * Copyright (c) 2022-2023 bd_
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,14 +25,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.build_framework.util;
+using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
-namespace nadena.dev.build_framework.animation
+namespace nadena.dev.ndmf.animation
 {
     public class AnimatorCombiner
     {
@@ -61,7 +61,15 @@ namespace nadena.dev.build_framework.animation
             _combined = new AnimatorController();
             if (assetContainer != null)
             {
-                AssetDatabase.AddObjectToAsset(_combined, assetContainer);
+                if (!EditorUtility.IsPersistent(assetContainer) ||
+                    string.IsNullOrEmpty(AssetDatabase.GetAssetPath(assetContainer)))
+                {
+                    Debug.Log("Nonpersistent asset container: " + assetContainer.name);
+                }
+                else
+                {
+                    AssetDatabase.AddObjectToAsset(_combined, assetContainer);
+                }
             }
 
             isSaved = assetContainer != null;

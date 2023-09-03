@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.build_framework.util;
+using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.build_framework.animation
+namespace nadena.dev.ndmf.animation
 {
     using UnityObject = UnityEngine.Object;
+
     /// <summary>
     /// This extension context tracks when objects are renamed, and updates animations accordingly.
     /// Users of this context need to be aware that, when creating new curves (or otherwise introducing new motions,
@@ -19,11 +20,13 @@ namespace nadena.dev.build_framework.animation
     /// </summary>
     public sealed class TrackObjectRenamesContext : IExtensionContext
     {
-        private Dictionary<GameObject, List<string>> _objectToOriginalPaths = new Dictionary<GameObject, List<string>>();
+        private Dictionary<GameObject, List<string>>
+            _objectToOriginalPaths = new Dictionary<GameObject, List<string>>();
+
         private HashSet<GameObject> _transformLookthroughObjects = new HashSet<GameObject>();
         private ImmutableDictionary<string, string> _originalPathToMappedPath = null;
         private ImmutableDictionary<string, string> _transformOriginalPathToMappedPath = null;
-        
+
         public void OnActivate(BuildContext context)
         {
             _objectToOriginalPaths.Clear();
@@ -32,7 +35,7 @@ namespace nadena.dev.build_framework.animation
 
             foreach (var xform in context.AvatarRootTransform.GetComponentsInChildren<Transform>(true))
             {
-                _objectToOriginalPaths.Add(xform.gameObject, new List<string> { xform.gameObject.AvatarRootPath() });
+                _objectToOriginalPaths.Add(xform.gameObject, new List<string> {xform.gameObject.AvatarRootPath()});
             }
         }
 
@@ -72,7 +75,7 @@ namespace nadena.dev.build_framework.animation
                 return internalPath;
             }
         }
-        
+
         /// <summary>
         /// Marks an object as having been removed. Its paths will be remapped to its parent. 
         /// </summary>
@@ -93,7 +96,7 @@ namespace nadena.dev.build_framework.animation
             }
         }
 
-        
+
         /// <summary>
         /// Marks an object as having been replaced by another object. All references to the old object will be replaced
         /// by the new object. References originally to the new object will continue to point to the new object.
@@ -124,8 +127,8 @@ namespace nadena.dev.build_framework.animation
                 _transformLookthroughObjects.Add(newObject);
             }
         }
-        
-        
+
+
         private ImmutableDictionary<string, string> BuildMapping(ref ImmutableDictionary<string, string> cache,
             bool transformLookup)
         {
@@ -192,9 +195,9 @@ namespace nadena.dev.build_framework.animation
             {
                 clipCache = new Dictionary<AnimationClip, AnimationClip>();
             }
-            
+
             if (controller == null) return null;
-            
+
             switch (controller)
             {
                 case AnimatorController ac:
@@ -211,7 +214,8 @@ namespace nadena.dev.build_framework.animation
                             {
                                 state.motion = ApplyMappingsToClip(clip, clipCache);
                             }
-                        } else if (asset is BlendTree tree)
+                        }
+                        else if (asset is BlendTree tree)
                         {
                             var children = tree.children;
                             for (int i = 0; i < children.Length; i++)
@@ -231,16 +235,18 @@ namespace nadena.dev.build_framework.animation
                 case AnimatorOverrideController aoc:
                 {
                     AnimatorOverrideController newController = new AnimatorOverrideController();
-                    newController.runtimeAnimatorController = ApplyMappingsToAnimator(context, aoc.runtimeAnimatorController);
+                    newController.runtimeAnimatorController =
+                        ApplyMappingsToAnimator(context, aoc.runtimeAnimatorController);
                     List<KeyValuePair<AnimationClip, AnimationClip>> overrides =
                         new List<KeyValuePair<AnimationClip, AnimationClip>>();
 
                     overrides = overrides.Select(kvp =>
-                        new KeyValuePair<AnimationClip, AnimationClip>(kvp.Key, ApplyMappingsToClip(kvp.Value, clipCache)))
+                            new KeyValuePair<AnimationClip, AnimationClip>(kvp.Key,
+                                ApplyMappingsToClip(kvp.Value, clipCache)))
                         .ToList();
-                    
+
                     newController.ApplyOverrides(overrides);
-                    
+
                     return newController;
                 }
                 default:
@@ -259,12 +265,13 @@ namespace nadena.dev.build_framework.animation
                 return MapPath(binding.path, binding.type == typeof(Transform));
             }
         }
-        
-        private AnimationClip ApplyMappingsToClip(AnimationClip originalClip, Dictionary<AnimationClip, AnimationClip> clipCache = null)
+
+        private AnimationClip ApplyMappingsToClip(AnimationClip originalClip,
+            Dictionary<AnimationClip, AnimationClip> clipCache = null)
         {
             if (originalClip == null) return null;
             if (clipCache != null && clipCache.TryGetValue(originalClip, out var cachedClip)) return cachedClip;
-            
+
             var newClip = new AnimationClip();
             newClip.name = originalClip.name;
 
@@ -273,10 +280,10 @@ namespace nadena.dev.build_framework.animation
 
             var before_hqCurve = before.FindProperty("m_UseHighQualityCurve");
             var after_hqCurve = after.FindProperty("m_UseHighQualityCurve");
-            
+
             after_hqCurve.boolValue = before_hqCurve.boolValue;
             after.ApplyModifiedPropertiesWithoutUndo();
-            
+
             // TODO - should we use direct SerializedObject manipulation to avoid missing script issues?
             foreach (var binding in AnimationUtility.GetCurveBindings(originalClip))
             {
@@ -304,21 +311,23 @@ namespace nadena.dev.build_framework.animation
             {
                 clipCache.Add(originalClip, newClip);
             }
-            
+
             return newClip;
         }
 
         public void OnDeactivate(BuildContext context)
         {
-            context.AvatarDescriptor.baseAnimationLayers = MapLayers(context, context.AvatarDescriptor.baseAnimationLayers);
-            context.AvatarDescriptor.specialAnimationLayers = MapLayers(context, context.AvatarDescriptor.specialAnimationLayers);
+            context.AvatarDescriptor.baseAnimationLayers =
+                MapLayers(context, context.AvatarDescriptor.baseAnimationLayers);
+            context.AvatarDescriptor.specialAnimationLayers =
+                MapLayers(context, context.AvatarDescriptor.specialAnimationLayers);
 
             foreach (var listener in context.AvatarRootObject.GetComponentsInChildren<IOnCommitObjectRenames>())
             {
                 listener.OnCommitObjectRenames(context, this);
             }
         }
-        
+
         // TODO: port test AnimatesAddedBones from MA
 
         private VRCAvatarDescriptor.CustomAnimLayer[] MapLayers(
@@ -327,7 +336,7 @@ namespace nadena.dev.build_framework.animation
         )
         {
             if (layers == null) return null;
-            
+
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];

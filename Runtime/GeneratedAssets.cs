@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace nadena.dev.build_framework.runtime
+namespace nadena.dev.ndmf.runtime
 {
     [PreferBinarySerialization]
     public class GeneratedAssets : ScriptableObject

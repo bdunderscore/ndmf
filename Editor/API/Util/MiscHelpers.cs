@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.build_framework.util
+namespace nadena.dev.ndmf.util
 {
     public static class MiscHelpers
     {
@@ -34,13 +34,13 @@ namespace nadena.dev.build_framework.util
             if (avatar == null) return null;
             return RelativePath(avatar.gameObject, child);
         }
-        
+
         [CanBeNull]
         public static string AvatarRootPath(this Component child)
         {
             return child.gameObject.AvatarRootPath();
         }
-        
+
         public static VRCAvatarDescriptor FindAvatarInParents(Transform target)
         {
             while (target != null)

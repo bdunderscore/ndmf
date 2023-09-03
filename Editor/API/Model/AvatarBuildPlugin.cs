@@ -4,28 +4,26 @@ using System.Collections.Immutable;
 using System.Linq;
 using UnityEngine;
 
-namespace nadena.dev.build_framework
+namespace nadena.dev.ndmf
 {
     [System.AttributeUsage(System.AttributeTargets.Assembly)]
     public class ExportsPlugin : System.Attribute
     {
         public Type PluginType;
-        
+
         public ExportsPlugin(Type pluginType)
         {
             PluginType = pluginType;
         }
     }
-    
+
     public abstract class Plugin
     {
         public abstract string QualifiedName { get; }
         public virtual bool EnableByDefault => true;
 
-        public abstract ImmutableList<PluginPass> Passes {
-            get;
-        }
-        
+        public abstract ImmutableList<PluginPass> Passes { get; }
+
         public virtual ImmutableList<string> RunsBefore => ImmutableList<string>.Empty;
         public virtual ImmutableList<string> RunsAfter => ImmutableList<string>.Empty;
         public virtual ImmutableList<string> RequiredPlugins => ImmutableList<string>.Empty;
@@ -47,5 +45,4 @@ namespace nadena.dev.build_framework
 
         public abstract void Process(BuildContext context);
     }
-
 }

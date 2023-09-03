@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-using nadena.dev.build_framework.runtime;
+using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
 
-namespace nadena.dev.build_framework
+namespace nadena.dev.ndmf
 {
     [InitializeOnLoad]
     internal static class ApplyOnPlay
@@ -41,7 +41,8 @@ namespace nadena.dev.build_framework
          * To workaround this, we initially process in awake; then, after OnPlayModeStateChanged is invoked (ie, after
          * all initially-enabled components have Awake called), we switch to processing from Start instead.
          */
-        private static ApplyOnPlayGlobalActivator.OnDemandSource armedSource = ApplyOnPlayGlobalActivator.OnDemandSource.Awake;
+        private static ApplyOnPlayGlobalActivator.OnDemandSource armedSource =
+            ApplyOnPlayGlobalActivator.OnDemandSource.Awake;
 
         static ApplyOnPlay()
         {
@@ -50,9 +51,10 @@ namespace nadena.dev.build_framework
             //EditorApplication.delayCall += () => Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
         }
 
-        private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source, MonoBehaviour component)
+        private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source,
+            MonoBehaviour component)
         {
-            if (/* ModularAvatarSettings.applyOnPlay && */source == armedSource && component != null)
+            if ( /* ModularAvatarSettings.applyOnPlay && */source == armedSource && component != null)
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;

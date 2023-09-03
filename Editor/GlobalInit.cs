@@ -1,4 +1,4 @@
-﻿using nadena.dev.build_framework.runtime;
+﻿using nadena.dev.ndmf.runtime;
 using UnityEditor;
 
 namespace DefaultNamespace
@@ -8,10 +8,7 @@ namespace DefaultNamespace
     {
         static GlobalInit()
         {
-            RuntimeUtil.delayCall = call =>
-            {
-                 EditorApplication.delayCall += () => call();
-            };
+            RuntimeUtil.delayCall = call => { EditorApplication.delayCall += () => call(); };
         }
     }
 }

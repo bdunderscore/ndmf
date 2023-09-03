@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace nadena.dev.build_framework.runtime
+namespace nadena.dev.ndmf.runtime
 {
     [AddComponentMenu("")]
     internal class AlreadyProcessedTag : MonoBehaviour

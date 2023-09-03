@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using VRC.SDKBase;
 
-namespace nadena.dev.build_framework.runtime.samples
+namespace nadena.dev.ndmf.runtime.samples
 {
     public class SetViewpoint : MonoBehaviour, IEditorOnly
     {
-        
     }
 }

@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.build_framework.runtime
+namespace nadena.dev.ndmf.runtime
 {
     /// <summary>
     /// A collection of general-purpose utilities that are available from Runtime-scope scripts.
@@ -16,23 +16,25 @@ namespace nadena.dev.build_framework.runtime
         /// access EditorApplication.
         /// </summary>
         public static Action<Action> delayCall { get; internal set; }
-        
+
         static RuntimeUtil()
         {
             delayCall = action => { throw new Exception("delayCall() cannot be called during static initialization"); };
         }
-        
+
         // Shadow the VRC-provided methods to avoid deprecation warnings
-        internal static T GetOrAddComponent<T>(this GameObject obj) where T: Component {
+        internal static T GetOrAddComponent<T>(this GameObject obj) where T : Component
+        {
             var component = obj.GetComponent<T>();
             if (component == null) component = obj.AddComponent<T>();
             return component;
         }
-        
-        internal static T GetOrAddComponent<T>(this Component obj) where T: Component {
+
+        internal static T GetOrAddComponent<T>(this Component obj) where T : Component
+        {
             return obj.gameObject.GetOrAddComponent<T>();
         }
-        
+
         /// <summary>
         /// Returns whether the editor is in play mode.
         /// </summary>
@@ -41,7 +43,7 @@ namespace nadena.dev.build_framework.runtime
 #else
         public static bool isPlaying => true;
 #endif
-        
+
         /// <summary>
         /// Returns the relative path from root to child, or null is child is not a descendant of root.
         /// </summary>

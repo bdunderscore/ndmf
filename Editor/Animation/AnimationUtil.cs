@@ -5,7 +5,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.build_framework.animation
+namespace nadena.dev.ndmf.animation
 {
     public static class AnimationUtil
     {
@@ -16,7 +16,7 @@ namespace nadena.dev.build_framework.animation
 
         private const string GUID_GESTURE_HANDSONLY_MASK = "b2b8bad9583e56a46a3e21795e96ad92";
 
-        
+
         public static AnimatorController DeepCloneAnimator(BuildContext context, RuntimeAnimatorController controller)
         {
             if (controller == null) return null;
@@ -36,14 +36,16 @@ namespace nadena.dev.build_framework.animation
 
             return merger.Finish();
         }
-        
+
         internal static void CloneAllControllers(BuildContext context)
         {
             // Ensure all of the controllers on the avatar descriptor point to temporary assets.
             // This helps reduce the risk that we'll accidentally modify the original assets.
-            
-            context.AvatarDescriptor.baseAnimationLayers = CloneLayers(context, context.AvatarDescriptor.baseAnimationLayers);
-            context.AvatarDescriptor.specialAnimationLayers = CloneLayers(context, context.AvatarDescriptor.specialAnimationLayers);
+
+            context.AvatarDescriptor.baseAnimationLayers =
+                CloneLayers(context, context.AvatarDescriptor.baseAnimationLayers);
+            context.AvatarDescriptor.specialAnimationLayers =
+                CloneLayers(context, context.AvatarDescriptor.specialAnimationLayers);
         }
 
         private static VRCAvatarDescriptor.CustomAnimLayer[] CloneLayers(
@@ -52,13 +54,13 @@ namespace nadena.dev.build_framework.animation
         )
         {
             if (layers == null) return null;
-            
+
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
                 if (layer.animatorController != null && !context.IsTemporaryAsset(layer.animatorController))
                 {
-                    layer.animatorController = DeepCloneAnimator(context, layer.animatorController);                    
+                    layer.animatorController = DeepCloneAnimator(context, layer.animatorController);
                 }
 
                 layers[i] = layer;
@@ -101,8 +103,8 @@ namespace nadena.dev.build_framework.animation
                 return null;
             }
         }
-        
-        
+
+
         private static AnimatorController ResolveLayerController(VRCAvatarDescriptor.CustomAnimLayer layer)
         {
             AnimatorController controller = null;
@@ -160,7 +162,7 @@ namespace nadena.dev.build_framework.animation
 
             return controller;
         }
-        
+
         public static bool IsProxyAnimation(this Motion m)
         {
             var path = AssetDatabase.GetAssetPath(m);
@@ -173,7 +175,7 @@ namespace nadena.dev.build_framework.animation
             return path.Contains("/AV3 Demo Assets/Animation/ProxyAnim/proxy")
                    || path.Contains("/VRCSDK/Examples3/Animation/ProxyAnim/proxy");
         }
-        
+
         /// <summary>
         /// Enumerates all states in an animator controller
         /// </summary>

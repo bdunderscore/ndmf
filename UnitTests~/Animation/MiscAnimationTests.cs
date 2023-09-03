@@ -1,5 +1,5 @@
-﻿using nadena.dev.build_framework;
-using nadena.dev.build_framework.animation;
+﻿using nadena.dev.ndmf;
+using nadena.dev.ndmf.animation;
 using NUnit.Framework;
 using UnityEditor;
 

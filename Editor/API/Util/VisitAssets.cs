@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace nadena.dev.build_framework.util
+namespace nadena.dev.ndmf.util
 {
     public static class VisitAssets
     {
         public delegate bool AssetFilter(UnityEngine.Object obj);
-        
+
         public static IEnumerable<UnityEngine.Object> ReferencedAssets(
             this UnityEngine.Object root,
             bool traverseSaved = true,
@@ -17,7 +17,7 @@ namespace nadena.dev.build_framework.util
         )
         {
             int index = 0;
-            
+
             HashSet<UnityEngine.Object> visited = new HashSet<Object>();
             Queue<(int, UnityEngine.Object)> queue = new Queue<(int, Object)>();
 
@@ -30,7 +30,7 @@ namespace nadena.dev.build_framework.util
             {
                 root = go.transform;
             }
-            
+
             visited.Add(root);
             queue.Enqueue((index++, root));
 
@@ -54,20 +54,20 @@ namespace nadena.dev.build_framework.util
                     foreach (Transform child in t)
                     {
                         if (t == null) continue; // How can this happen???
-                        
+
                         if (visited.Add(child) && traversalFilter(child.gameObject))
                         {
                             queue.Enqueue((index++, child));
                         }
                     }
-                    
+
                     foreach (var comp in t.GetComponents<Component>())
                     {
                         if (comp == null)
                         {
                             continue; // missing scripts
                         }
-                        
+
                         if (visited.Add(comp) && !(comp is Transform) && traversalFilter(comp))
                         {
                             queue.Enqueue((index++, comp));
@@ -76,20 +76,20 @@ namespace nadena.dev.build_framework.util
 
                     continue;
                 }
-                
+
                 foreach (var prop in new SerializedObject(next).ObjectProperties())
                 {
                     var value = prop.objectReferenceValue;
                     if (value == null) continue;
-                    
+
                     var objIsScene = value is GameObject || value is Component;
-                    
-                    if (value != null 
+
+                    if (value != null
                         && !objIsScene
                         && (traverseSaved || !EditorUtility.IsPersistent(value))
                         && visited.Add(value)
                         && traversalFilter(value)
-                    )
+                       )
                     {
                         queue.Enqueue((index++, value));
                     }
@@ -114,7 +114,7 @@ namespace nadena.dev.build_framework.util
                 // Don't muck around with unity internal stuff here...
                 yield break;
             }
-            
+
             SerializedProperty prop = obj.GetIterator();
             bool enterChildren = true;
             while (prop.Next(enterChildren))
@@ -126,7 +126,7 @@ namespace nadena.dev.build_framework.util
                     // Skip the contents of animation curves as they can be quite large and are generally uninteresting
                     enterChildren = false;
                 }
-                
+
                 if (prop.propertyType == SerializedPropertyType.String)
                 {
                     enterChildren = false;
@@ -140,7 +140,7 @@ namespace nadena.dev.build_framework.util
                 yield return prop;
             }
         }
-        
+
         public static IEnumerable<SerializedProperty> ObjectProperties(this SerializedObject obj)
         {
             foreach (var prop in obj.AllProperties())
@@ -151,7 +151,7 @@ namespace nadena.dev.build_framework.util
                 }
             }
         }
-        
+
         private static bool IsPrimitiveArray(SerializedProperty prop)
         {
             if (prop.arraySize == 0) return false;
@@ -165,6 +165,5 @@ namespace nadena.dev.build_framework.util
                     return true;
             }
         }
-        
     }
 }

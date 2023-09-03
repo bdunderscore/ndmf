@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using UnityEngine;
 
-namespace nadena.dev.build_framework.reporting
+namespace nadena.dev.ndmf.reporting
 {
     internal class BuildEvent
     {
@@ -15,7 +15,7 @@ namespace nadena.dev.build_framework.reporting
         {
             public GameObject AvatarRoot { get; }
             public string AvatarRootName { get; }
-            
+
             public BuildStarted(GameObject avatarRoot)
             {
                 AvatarRoot = avatarRoot;
@@ -27,7 +27,7 @@ namespace nadena.dev.build_framework.reporting
         {
             public double ElapsedTimeMS { get; }
             public bool Successful { get; }
-            
+
             public BuildEnded(double elapsedTimeMs, bool successful)
             {
                 ElapsedTimeMS = elapsedTimeMs;
@@ -39,11 +39,11 @@ namespace nadena.dev.build_framework.reporting
         {
             public string QualifiedName { get; }
             public double PassExecutionTime { get; }
-            
+
             public ImmutableDictionary<Type, double> PassActivationTimes { get; }
             public ImmutableDictionary<Type, double> PassDeactivationTimes { get; }
-            
-            public PassExecuted(string qualifiedName, double passExecutionTime, 
+
+            public PassExecuted(string qualifiedName, double passExecutionTime,
                 ImmutableDictionary<Type, double> passActivationTimes,
                 ImmutableDictionary<Type, double> passDeactivationTimes)
             {
@@ -55,10 +55,11 @@ namespace nadena.dev.build_framework.reporting
         }
 
         public delegate void OnEventDelegate(BuildEvent buildEvent);
+
         public static event OnEventDelegate OnBuildEvent;
-        
+
         public static ImmutableList<BuildEvent> LastBuildEvents { get; private set; } = ImmutableList<BuildEvent>.Empty;
-        
+
         internal static void Dispatch(BuildEvent buildEvent)
         {
             OnBuildEvent?.Invoke(buildEvent);
@@ -66,9 +67,8 @@ namespace nadena.dev.build_framework.reporting
             {
                 LastBuildEvents = ImmutableList<BuildEvent>.Empty;
             }
+
             LastBuildEvents = LastBuildEvents.Add(buildEvent);
         }
     }
-    
-    
 }

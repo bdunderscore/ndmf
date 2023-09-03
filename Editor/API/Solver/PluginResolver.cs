@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.build_framework;
-using nadena.dev.build_framework.model;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.model;
 using UnityEngine;
 
-namespace nadena.dev.build_framework
+namespace nadena.dev.ndmf
 {
     class TypeComparer : IComparer<Type>
     {
@@ -15,11 +15,11 @@ namespace nadena.dev.build_framework
             if (x == y) return 0;
             if (x == null) return 1;
             if (y == null) return -1;
-            
+
             return StringComparer.Ordinal.Compare(x.FullName, y.FullName);
         }
     }
-    
+
     public class ConcretePass
     {
         public string Description { get; }
@@ -27,8 +27,9 @@ namespace nadena.dev.build_framework
         internal InstantiatedPass InstantiatedPass { get; }
         internal ImmutableList<Type> DeactivatePlugins { get; }
         internal ImmutableList<Type> ActivatePlugins { get; }
-        
-        internal ConcretePass(InstantiatedPass pass, ImmutableList<Type> deactivatePlugins, ImmutableList<Type> activatePlugins)
+
+        internal ConcretePass(InstantiatedPass pass, ImmutableList<Type> deactivatePlugins,
+            ImmutableList<Type> activatePlugins)
         {
             Description = pass.DisplayName;
             Process = pass.Operation;
@@ -41,12 +42,12 @@ namespace nadena.dev.build_framework
     public class PluginResolver
     {
         public ImmutableDictionary<BuiltInPhase, ImmutableList<ConcretePass>> Passes { get; private set; }
-        
+
         public PluginResolver() : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                     assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
                 .Select(export => ((ExportsPlugin) export).PluginType)
-            )
+        )
         {
         }
 
@@ -55,7 +56,6 @@ namespace nadena.dev.build_framework
                 plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as Plugin)
         )
         {
-            
         }
 
         public PluginResolver(IEnumerable<Plugin> pluginTemplates)
@@ -74,6 +74,7 @@ namespace nadena.dev.build_framework
                         list = new List<InstantiatedPass>();
                         pluginsByPhase[phase] = list;
                     }
+
                     list.Add(pass);
                 }
             }
@@ -127,7 +128,7 @@ namespace nadena.dev.build_framework
                         activeExtensions.Add(t);
                     }
                 }
-                
+
                 concrete.Add(new ConcretePass(pass, toDeactivate.ToImmutableList(), toActivate.ToImmutableList()));
             }
 
@@ -141,6 +142,6 @@ namespace nadena.dev.build_framework
             }
 
             return concrete.ToImmutableList();
-        } 
+        }
     }
 }

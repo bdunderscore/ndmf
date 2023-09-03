@@ -1,4 +1,4 @@
-﻿namespace nadena.dev.build_framework.animation
+﻿namespace nadena.dev.ndmf.animation
 {
     /// <summary>
     /// This interface tags components which supply additional animation controllers for merging. They will be given

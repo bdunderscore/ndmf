@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using nadena.dev.build_framework.animation;
-using nadena.dev.build_framework.reporting;
-using nadena.dev.build_framework.runtime;
-using nadena.dev.build_framework.util;
+using nadena.dev.ndmf.animation;
+using nadena.dev.ndmf.reporting;
+using nadena.dev.ndmf.runtime;
+using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using UnityObject = UnityEngine.Object;
 
-namespace nadena.dev.build_framework
+namespace nadena.dev.ndmf
 {
     public class BuildContext
     {
@@ -22,16 +22,16 @@ namespace nadena.dev.build_framework
         private readonly Transform _avatarRootTransform;
 
         private Stopwatch sw = new Stopwatch();
-        
+
         public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
         public GameObject AvatarRootObject => _avatarRootObject;
         public Transform AvatarRootTransform => _avatarRootTransform;
         public UnityEngine.Object AssetContainer { get; private set; }
-        
+
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
         private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
-        
+
         public T GetState<T>() where T : new()
         {
             if (_state.TryGetValue(typeof(T), out var value))
@@ -50,27 +50,27 @@ namespace nadena.dev.build_framework
             {
                 throw new Exception($"Extension {typeof(T)} not active");
             }
-            
+
             return (T) value;
         }
 
-        public BuildContext(GameObject obj, string assetRootPath) 
+        public BuildContext(GameObject obj, string assetRootPath)
             : this(obj.GetComponent<VRCAvatarDescriptor>(), assetRootPath)
         {
         }
-        
+
         public BuildContext(VRCAvatarDescriptor avatarDescriptor, string assetRootPath)
         {
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(avatarDescriptor.gameObject));
-            
+
             sw.Start();
-            
+
             _avatarDescriptor = avatarDescriptor;
             _avatarRootObject = avatarDescriptor.gameObject;
             _avatarRootTransform = avatarDescriptor.transform;
-            
+
             var avatarName = _avatarRootObject.name;
-            
+
             AssetContainer = ScriptableObject.CreateInstance<GeneratedAssets>();
             if (assetRootPath != null)
             {
@@ -79,16 +79,20 @@ namespace nadena.dev.build_framework
                 var avatarPath = System.IO.Path.Combine(assetRootPath, avatarName) + ".asset";
                 AssetDatabase.GenerateUniqueAssetPath(avatarPath);
                 AssetDatabase.CreateAsset(AssetContainer, avatarPath);
+                if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
+                {
+                    throw new Exception("Failed to persist asset container");
+                }
             }
-            
+
             AnimationUtil.CloneAllControllers(this);
-            
+
             sw.Stop();
         }
 
         public bool IsTemporaryAsset(UnityEngine.Object obj)
         {
-            return !EditorUtility.IsPersistent(obj) 
+            return !EditorUtility.IsPersistent(obj)
                    || AssetDatabase.GetAssetPath(obj) == AssetDatabase.GetAssetPath(AssetContainer);
         }
 
@@ -113,7 +117,7 @@ namespace nadena.dev.build_framework
                     // containers either.
                     continue;
                 }
-                
+
                 if (_savedObjects.Contains(asset))
                 {
                     _savedObjects.Remove(asset);
@@ -124,6 +128,7 @@ namespace nadena.dev.build_framework
                 {
                     Debug.Log($"Asset {index} is null");
                 }
+
                 index++;
 
                 if (!EditorUtility.IsPersistent(asset))
@@ -134,13 +139,14 @@ namespace nadena.dev.build_framework
                     }
                     catch (UnityException ex)
                     {
-                        Debug.Log($"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
-                                  $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
+                        Debug.Log(
+                            $"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
+                            $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
                         throw ex;
                     }
                 }
             }
-            
+
             // Remove obsolete temporary assets
             foreach (var asset in _savedObjects)
             {
@@ -149,6 +155,7 @@ namespace nadena.dev.build_framework
                     // Traversal can't currently handle prefabs, so this must have been manually added. Avoid purging it.
                     continue;
                 }
+
                 AssetDatabase.RemoveObjectFromAsset(asset);
             }
         }
@@ -157,8 +164,9 @@ namespace nadena.dev.build_framework
         {
             DeactivateExtensionContext(typeof(T));
         }
-        
-        public void DeactivateExtensionContext(Type t) {
+
+        public void DeactivateExtensionContext(Type t)
+        {
             if (_activeExtensions.ContainsKey(t))
             {
                 var ctx = _activeExtensions[t];
@@ -166,13 +174,13 @@ namespace nadena.dev.build_framework
                 _activeExtensions.Remove(t);
             }
         }
-        
+
         internal void RunPass(ConcretePass pass)
         {
             sw.Start();
-            
+
             ImmutableDictionary<Type, double> deactivationTimes = ImmutableDictionary<Type, double>.Empty;
-            
+
             foreach (var ty in pass.DeactivatePlugins)
             {
                 Stopwatch sw2 = new Stopwatch();
@@ -194,17 +202,17 @@ namespace nadena.dev.build_framework
             passTimer.Start();
             pass.Process(this);
             passTimer.Stop();
-            
+
             BuildEvent.Dispatch(new BuildEvent.PassExecuted(
                 pass.InstantiatedPass.QualifiedName,
                 passTimer.ElapsedMilliseconds,
                 activationTimes,
                 deactivationTimes
-                ));
-            
+            ));
+
             sw.Stop();
         }
-        
+
         public T ActivateExtensionContext<T>() where T : IExtensionContext
         {
             return (T) ActivateExtensionContext(typeof(T));
@@ -236,12 +244,13 @@ namespace nadena.dev.build_framework
                 {
                     d.Dispose();
                 }
+
                 _activeExtensions.Remove(kvp.Key);
             }
-            
+
             Serialize();
             sw.Stop();
-            
+
             BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
         }
     }

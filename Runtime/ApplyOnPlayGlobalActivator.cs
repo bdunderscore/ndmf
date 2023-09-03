@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using VRC.SDK3.Avatars.Components;
 
-namespace nadena.dev.build_framework.runtime
+namespace nadena.dev.ndmf.runtime
 {
     [InitializeOnLoad]
     class ApplyOnPlayGlobalActivator : MonoBehaviour
@@ -22,10 +22,10 @@ namespace nadena.dev.build_framework.runtime
                     EditorApplication.delayCall += () => CreateIfNotPresent(scene);
                 }
             };
-            
+
             EditorApplication.delayCall += () => CreateIfNotPresent(SceneManager.GetActiveScene());
         }
-        
+
         internal enum OnDemandSource
         {
             Awake,
@@ -35,7 +35,7 @@ namespace nadena.dev.build_framework.runtime
         internal delegate void OnDemandProcessAvatarDelegate(OnDemandSource source, MonoBehaviour component);
 
         internal static OnDemandProcessAvatarDelegate OnDemandProcessAvatar = (_m, _c) => { };
-        
+
         private void Awake()
         {
             if (!RuntimeUtil.isPlaying || this == null) return;
@@ -98,8 +98,8 @@ namespace nadena.dev.build_framework.runtime
         //private const HideFlags HIDE_FLAGS = HideFlags.HideInHierarchy;
         private const HideFlags HIDE_FLAGS = HideFlags.HideInHierarchy;
     }
-    
-    
+
+
     [AddComponentMenu("")]
     [ExecuteInEditMode]
     [DefaultExecutionOrder(-9997)]

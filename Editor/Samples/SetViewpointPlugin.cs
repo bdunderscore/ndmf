@@ -1,13 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Collections.Generic;
-using nadena.dev.build_framework;
-using nadena.dev.build_framework.runtime.samples;
-using nadena.dev.build_framework.samples;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.runtime.samples;
+using nadena.dev.ndmf.samples;
 using UnityEngine;
 
 [assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
 
-namespace nadena.dev.build_framework.samples
+namespace nadena.dev.ndmf.samples
 {
     public class SetViewpointPlugin : Plugin
     {

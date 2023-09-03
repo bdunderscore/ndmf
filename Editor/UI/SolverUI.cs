@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.build_framework.model;
-using nadena.dev.build_framework.reporting;
+using nadena.dev.ndmf.model;
+using nadena.dev.ndmf.reporting;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace nadena.dev.build_framework.ui
+namespace nadena.dev.ndmf.ui
 {
     public class SolverWindow : EditorWindow
     {
@@ -17,9 +17,9 @@ namespace nadena.dev.build_framework.ui
         {
             GetWindow<SolverWindow>("Plugin sequence display");
         }
-        
+
         private SolverUI _solverUI;
-        
+
         private void OnEnable()
         {
             _solverUI = new SolverUI();
@@ -52,15 +52,15 @@ namespace nadena.dev.build_framework.ui
     {
         public double? ExecutionTimeMS;
     }
-    
+
     public class SolverUI : TreeView
     {
         private static PluginResolver Resolver = new PluginResolver();
-        
+
         public SolverUI() : this(new TreeViewState())
         {
         }
-        
+
         public SolverUI(TreeViewState state) : base(state)
         {
             Reload();
@@ -75,13 +75,12 @@ namespace nadena.dev.build_framework.ui
 
             return null;
         }
-        
+
         protected override TreeViewItem BuildRoot()
         {
-            
             var root = new SolverUIItem() {id = 0, depth = -1, displayName = "Avatar Build"};
             var allItems = new List<SolverUIItem>();
-            
+
             int id = 1;
 
             IEnumerator<BuildEvent> events = BuildEvent.LastBuildEvents.GetEnumerator();
@@ -118,7 +117,7 @@ namespace nadena.dev.build_framework.ui
 
                     var passItem = allItems[allItems.Count - 1];
                     if (passEvent == null) continue;
-                    
+
                     passItem.ExecutionTimeMS = passEvent.PassExecutionTime;
 
                     if (passEvent.PassActivationTimes.Count > 0 || passEvent.PassDeactivationTimes.Count > 0)
@@ -157,8 +156,8 @@ namespace nadena.dev.build_framework.ui
                     pluginItem.ExecutionTimeMS += passItem.ExecutionTimeMS;
                     phaseItem.ExecutionTimeMS += passItem.ExecutionTimeMS;
                 }
-
             }
+
             foreach (var pass in allItems)
             {
                 if (pass.ExecutionTimeMS.HasValue)
@@ -167,7 +166,7 @@ namespace nadena.dev.build_framework.ui
                 }
             }
 
-            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TreeViewItem)i).ToList());
+            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TreeViewItem) i).ToList());
 
             return root;
         }
