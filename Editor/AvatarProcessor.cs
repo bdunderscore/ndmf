@@ -3,6 +3,7 @@ using System.Diagnostics;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 
 namespace nadena.dev.ndmf
@@ -29,44 +30,9 @@ namespace nadena.dev.ndmf
         internal BuildContext buildContext;
     }
 
-    public class AvatarProcessor
+    public static class AvatarProcessor
     {
         internal static string TemporaryAssetRoot = "Packages/nadena.dev.ndmf/__Generated";
-
-        [MenuItem("GameObject/[BuildFramework] Manual Bake Avatar", true, 100)]
-        static bool ValidateApplyToCurrentAvatarGameobject()
-        {
-            return true;
-        }
-
-        [MenuItem("GameObject/[BuildFramework] Manual Bake Avatar", false, 100)]
-        static void ApplyToCurrentAvatar()
-        {
-            using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
-            {
-                var avatar = UnityObject.Instantiate(Selection.activeGameObject);
-                var buildContext = new BuildContext(avatar, TemporaryAssetRoot);
-
-                avatar.transform.position += Vector3.forward * 2f;
-                try
-                {
-                    AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
-
-                    buildContext.Finish();
-                }
-                finally
-                {
-                    AssetDatabase.StopAssetEditing();
-                }
-            }
-        }
-
-        [MenuItem("Tools/Manual bake plugins")]
-        static void ApplyToCurrentAvatar2()
-        {
-            ApplyToCurrentAvatar();
-        }
 
         public static void CleanTemporaryAssets()
         {
@@ -76,6 +42,35 @@ namespace nadena.dev.ndmf
 
             AssetDatabase.DeleteAsset(subdir);
             FileUtil.DeleteFileOrDirectory(subdir);
+        }
+
+        public static bool CanProcessObject(GameObject avatar)
+        {
+            return (avatar != null && avatar.GetComponent<VRCAvatarDescriptor>() != null);
+        }
+
+        public static GameObject ProcessAvatarUI(GameObject obj)
+        {
+            using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
+            {
+                var avatar = UnityObject.Instantiate(obj);
+                var buildContext = new BuildContext(avatar, AvatarProcessor.TemporaryAssetRoot);
+
+                avatar.transform.position += Vector3.forward * 2f;
+                try
+                {
+                    AssetDatabase.StartAssetEditing();
+                    AvatarProcessor.ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
+
+                    buildContext.Finish();
+
+                    return avatar;
+                }
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
 
         public static void ProcessAvatar(GameObject root)

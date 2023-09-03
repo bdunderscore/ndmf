@@ -54,7 +54,7 @@ namespace nadena.dev.ndmf
         private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source,
             MonoBehaviour component)
         {
-            if ( /* ModularAvatarSettings.applyOnPlay && */source == armedSource && component != null)
+            if (Settings.ApplyOnPlay && source == armedSource && component != null)
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;

@@ -12,7 +12,7 @@ namespace nadena.dev.ndmf.ui
 {
     public class SolverWindow : EditorWindow
     {
-        [MenuItem("Window/[ABPF] Plugin sequence display")]
+        [MenuItem("Tools/NDM Framework/Debug Tools/Plugin sequence display", false, 100)]
         public static void ShowWindow()
         {
             GetWindow<SolverWindow>("Plugin sequence display");
