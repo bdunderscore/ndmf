@@ -23,7 +23,7 @@ namespace UnitTests
             if (_scriptToDirectory == null)
             {
                 _scriptToDirectory = new Dictionary<System.Type, string>();
-                foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new string[] { "Assets/UnitTests" }))
+                foreach (var guid in AssetDatabase.FindAssets("t:MonoScript", new string[] { "Packages/nadena.dev.ndmf/UnitTests" }))
                 {
                     var path = AssetDatabase.GUIDToAssetPath(guid);
                     var obj = AssetDatabase.LoadAssetAtPath<MonoScript>(path);

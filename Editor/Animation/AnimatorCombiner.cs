@@ -419,7 +419,7 @@ namespace nadena.dev.ndmf.animation
 
             cloneMap[original] = obj;
 
-            if (isSaved)
+            if (isSaved && _combined != null && EditorUtility.IsPersistent(_combined))
             {
                 AssetDatabase.AddObjectToAsset(obj, _combined);
             }
