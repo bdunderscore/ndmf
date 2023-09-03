@@ -39,4 +39,8 @@ crashlytics-build.properties
 
 # Symlinked unit-tests directory
 UnitTests/
+UnitTests
 UnitTests.meta
+
+__Generated.meta
+__Generated/
