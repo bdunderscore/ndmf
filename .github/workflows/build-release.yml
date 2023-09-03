@@ -12,11 +12,13 @@ on:
 env:
   packageName: "nadena.dev.ndmf"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -61,6 +63,10 @@ jobs:
           filename: ".github/${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
           exclusions: '.github .git* *~ .gitignore *.ps1*'
 
+      - name: Move zipfile
+        run: |
+          mv .github/${{env.zipFile}} ${{env.zipFile}}
+
       - uses: actions/upload-artifact@v3
         with:
           name: package-zip
@@ -75,5 +81,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
-            Packages/${{ env.packageName }}/package.json
+            package.json
