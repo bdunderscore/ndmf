@@ -63,6 +63,7 @@ namespace nadena.dev.ndmf
         {
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(avatarDescriptor.gameObject));
 
+            Debug.Log("Starting processing for avatar: " + avatarDescriptor.gameObject.name);
             sw.Start();
 
             _avatarDescriptor = avatarDescriptor;
