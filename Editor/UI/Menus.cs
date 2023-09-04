@@ -30,7 +30,7 @@ namespace nadena.dev.ndmf.ui
         public static void ApplyToCurrentAvatarGameobject()
         {
             AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
-
+        }
 #endif
 
         [MenuItem(APPLY_ON_PLAY_MENU_NAME, false, APPLY_ON_PLAY_PRIO)]

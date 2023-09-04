@@ -8,10 +8,20 @@ using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.ndmf.runtime
 {
+    /// <summary>
+    /// This component is used to trigger MA processing upon entering play mode (prior to Av3Emu running).
+    /// We create it on a hidden object via AvatarTagObject's OnValidate, and it will proceed to add MAAvatarActivator
+    /// components to all avatar roots which contain MA components. This MAAvatarActivator component then performs MA
+    /// processing on Awake.
+    ///
+    /// Note that we do not directly process the avatars from MAActivator. This is to avoid processing avatars that are
+    /// initially inactive in the scene (which can have high overhead if the user has a lot of inactive avatars in the
+    /// scene).
+    /// </summary>
     [InitializeOnLoad]
     class ApplyOnPlayGlobalActivator : MonoBehaviour
     {
-        private const string TAG_OBJECT_NAME = "ModularAvatarInternal_Activator";
+        private const string TAG_OBJECT_NAME = "nadena.dev.ndmf__Activator";
 
         static ApplyOnPlayGlobalActivator()
         {

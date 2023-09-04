@@ -14,6 +14,7 @@ namespace UnitTests
 {
     public class TestBase
     {
+        private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
         private static Dictionary<System.Type, string> _scriptToDirectory = null;
         private List<GameObject> objects;
 
@@ -46,12 +47,13 @@ namespace UnitTests
                 Object.DestroyImmediate(obj);
             }
 
-            //Util.DeleteTemporaryAssets();
+            AssetDatabase.DeleteAsset(TEMP_ASSET_PATH);
+            FileUtil.DeleteFileOrDirectory(TEMP_ASSET_PATH);
         }
 
         protected BuildContext CreateContext(GameObject root)
         {
-            return new BuildContext(root, "Assets/ZZZ_Temp"); // TODO - cleanup
+            return new BuildContext(root, TEMP_ASSET_PATH); // TODO - cleanup
         }
 
         protected GameObject CreateRoot(string name)
