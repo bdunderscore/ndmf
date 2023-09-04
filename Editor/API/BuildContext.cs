@@ -65,7 +65,7 @@ namespace nadena.dev.ndmf
 
             Debug.Log("Starting processing for avatar: " + avatarDescriptor.gameObject.name);
             sw.Start();
-
+            
             _avatarDescriptor = avatarDescriptor;
             _avatarRootObject = avatarDescriptor.gameObject;
             _avatarRootTransform = avatarDescriptor.transform;
@@ -87,6 +87,15 @@ namespace nadena.dev.ndmf
             }
 
             AnimationUtil.CloneAllControllers(this);
+            
+            // Ensure that no prefab instances remain somehow
+            foreach (Transform t in _avatarRootTransform.GetComponentsInChildren<Transform>(true))
+            {
+                if (PrefabUtility.IsPartOfAnyPrefab(t))
+                {
+                    throw new Exception("Can't process an avatar that contains prefab instances/assets");
+                }
+            }
 
             sw.Stop();
         }
