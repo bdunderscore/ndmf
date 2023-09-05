@@ -47,6 +47,9 @@ namespace nadena.dev.ndmf
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                     assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
                 .Select(export => ((ExportsPlugin) export).PluginType)
+                .ToImmutableSortedSet(new TypeComparer())
+                // Ensure internal passes run first (absent any ordering constraints)
+                .Prepend(typeof(InternalPasses))
         )
         {
         }
