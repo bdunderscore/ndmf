@@ -35,6 +35,11 @@ namespace nadena.dev.ndmf
     {
         public virtual BuiltInPhase ExecutionPhase => BuiltInPhase.Transforming;
         public virtual string DisplayName => GetType().Name;
+        
+        /// <summary>
+        /// The fully-qualified name of this pass, which can be used to identify it cross-plugin.
+        /// </summary>
+        public virtual string QualifiedName => GetType().FullName;
 
         public virtual ImmutableList<string> RunsBefore => ImmutableList<string>.Empty;
         public virtual ImmutableList<string> RunsAfter => ImmutableList<string>.Empty;

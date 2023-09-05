@@ -105,11 +105,10 @@ namespace nadena.dev.ndmf.model
         {
             Plugin = parent;
 
-            var passType = pass.GetType();
             Operation = pass.Process;
             InternalPass = false;
-            QualifiedName = parent.QualifiedName + "/" + passType.Name;
-            DisplayName = pass.DisplayName;
+            QualifiedName = pass.QualifiedName;
+            DisplayName = parent.QualifiedName + "/" + pass.DisplayName;
             ExecutionPhase = pass.ExecutionPhase;
 
             _compatibleContexts = pass.CompatibleContexts.Select(ctx =>

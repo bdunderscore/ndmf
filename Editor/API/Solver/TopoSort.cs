@@ -7,20 +7,20 @@ namespace nadena.dev.ndmf
 {
     public static class TopoSort
     {
-        private class Node<T> : IComparable<Node<T>>
+        private class Node<T, O> : IComparable<Node<T, O>> where O: IComparable<O>
         {
             public T obj;
-            public int FallbackOrder;
+            public O FallbackOrder;
             public HashSet<T> Awaiting = new HashSet<T>();
-            public List<Node<T>> Blocking = new List<Node<T>>();
+            public List<Node<T, O>> Blocking = new List<Node<T, O>>();
 
-            public Node(T obj, int index)
+            public Node(T obj, O index)
             {
                 this.obj = obj;
                 FallbackOrder = index;
             }
 
-            public int CompareTo(Node<T> other)
+            public int CompareTo(Node<T, O> other)
             {
                 if (ReferenceEquals(this, other)) return 0;
                 if (ReferenceEquals(null, other)) return 1;
@@ -33,12 +33,12 @@ namespace nadena.dev.ndmf
             IEnumerable<(T, T)> OrderingConstraints
         )
         {
-            SortedSet<Node<T>> Ready = new SortedSet<Node<T>>();
-            Dictionary<T, Node<T>> Nodes = new Dictionary<T, Node<T>>();
+            SortedSet<Node<T, int>> Ready = new SortedSet<Node<T, int>>();
+            Dictionary<T, Node<T, int>> Nodes = new Dictionary<T, Node<T, int>>();
             int i = 0;
             foreach (var val in Values)
             {
-                var node = new Node<T>(val, i);
+                var node = new Node<T, int>(val, i);
                 Nodes[val] = node;
                 Ready.Add(node);
                 i++;
