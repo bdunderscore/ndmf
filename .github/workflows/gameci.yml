@@ -67,6 +67,16 @@ jobs:
           key: Library-${{ matrix.projectPath }}
           restore-keys: Library-
 
+      - uses: game-ci/unity-builder@v3
+        id: docgen
+        with:
+          targetPlatform: StandaloneWindows
+          buildMethod: DocsBuilder.BuildDocs
+          allowDirtyBuild: true
+        env:
+          # meh, just a personal license...
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
       - uses: game-ci/unity-test-runner@v3
         id: gameci
         env:
@@ -79,15 +89,6 @@ jobs:
           customParameters: -nographics -assemblyNames Tests
           targetPlatform: StandaloneWindows
 
-      - uses: game-ci/unity-builder@v3
-        id: docgen
-        with:
-          targetPlatform: StandaloneWindows
-          buildMethod: DocsBuilder.BuildDocs
-          allowDirtyBuild: true
-        env:
-          # meh, just a personal license...
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
       - uses: actions/upload-artifact@v3
         if: always()
