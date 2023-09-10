@@ -77,12 +77,12 @@ jobs:
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames Tests
-          targetPlatform: StandaloneWindows64
+          targetPlatform: StandaloneWindows
 
       - uses: game-ci/unity-builder@v3
         id: docgen
         with:
-          targetPlatform: StandaloneWindows64 
+          targetPlatform: StandaloneWindows
           buildMethod: DocsBuilder.BuildDocs
           allowDirtyBuild: true
         env:
