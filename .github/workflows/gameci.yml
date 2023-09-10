@@ -67,6 +67,11 @@ jobs:
           key: Library-${{ matrix.projectPath }}
           restore-keys: Library-
 
+      - run: |
+          # Copy .NET DLLs into Assets so they're visible to docfx...
+          docker run -v .:/mnt unityci/editor:ubuntu-2019.4.31f1-windows-mono-2 sh -c \
+            'cp /opt/unity/Editor/Data/MonoBleedingEdge/lib/mono/4.7-api/*.dll /mnt/Assets -v'
+
       - uses: game-ci/unity-builder@v3
         id: docgen
         with:
@@ -76,6 +81,9 @@ jobs:
         env:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
+      - run: |
+          rm Assets/*.dll -v
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
