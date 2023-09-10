@@ -11,8 +11,10 @@ public static class DocsBuilder
         AssetDatabase.Refresh();
         projectGeneration.GenerateAndWriteSolutionAndProjects();
         
+        RunProcess("apt-get -y update");
+        RunProcess("apt-get -y install dotnet7");
         RunProcess("dotnet tool update -g docfx");
-        RunProcess("ls -l");
+        RunProcess("ls -l /root/.dotnet/tools");
     }
 
     private static void RunProcess(string command)
