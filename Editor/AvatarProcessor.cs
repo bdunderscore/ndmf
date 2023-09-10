@@ -31,10 +31,16 @@ namespace nadena.dev.ndmf
         internal BuildContext buildContext;
     }
 
+    /// <summary>
+    /// This class is the main entry point for triggering NDMF processing of an avatar.
+    /// </summary>
     public static class AvatarProcessor
     {
         internal static string TemporaryAssetRoot = "Packages/nadena.dev.ndmf/__Generated";
 
+        /// <summary>
+        /// Deletes all temporary assets after a build.
+        /// </summary>
         public static void CleanTemporaryAssets()
         {
             AssetDatabase.SaveAssets();
@@ -45,11 +51,22 @@ namespace nadena.dev.ndmf
             FileUtil.DeleteFileOrDirectory(subdir);
         }
 
+        /// <summary>
+        /// Returns true if the given GameObject appears to be an avatar that can be processed.
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <returns></returns>
         public static bool CanProcessObject(GameObject avatar)
         {
             return (avatar != null && avatar.GetComponent<VRCAvatarDescriptor>() != null);
         }
 
+        /// <summary>
+        /// Process an avatar on request by the user. The resulting assets will be saved in a persistent directory
+        /// that will not be cleaned up by CleanTemporaryAssets.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static GameObject ProcessAvatarUI(GameObject obj)
         {
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
@@ -74,6 +91,11 @@ namespace nadena.dev.ndmf
             }
         }
 
+        /// <summary>
+        /// Processes an avatar as part of an automated process. The resulting assets will be saved in a temporary
+        /// location.
+        /// </summary>
+        /// <param name="root"></param>
         public static void ProcessAvatar(GameObject root)
         {
             if (root.GetComponent<AlreadyProcessedTag>()) return;

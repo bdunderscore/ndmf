@@ -1,10 +1,10 @@
 ﻿using nadena.dev.ndmf.runtime;
 using UnityEditor;
 
-namespace DefaultNamespace
+namespace nadena.dev.ndmf
 {
     [InitializeOnLoad]
-    public static class GlobalInit
+    internal static class GlobalInit
     {
         static GlobalInit()
         {

@@ -15,7 +15,11 @@ using UnityObject = UnityEngine.Object;
 
 namespace nadena.dev.ndmf
 {
-    public class BuildContext
+    /// <summary>
+    /// The BuildContext is passed to all plugins during the build process. It provides access to the avatar being
+    /// built, as well as various other context information.
+    /// </summary>
+    public sealed class BuildContext
     {
         private readonly VRCAvatarDescriptor _avatarDescriptor;
         private readonly GameObject _avatarRootObject;
@@ -23,9 +27,23 @@ namespace nadena.dev.ndmf
 
         private Stopwatch sw = new Stopwatch();
 
+        /// <summary>
+        /// The VRChat avatar descriptor for the avatar being built.
+        /// </summary>
         public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
+        /// <summary>
+        /// The root GameObject of the avatar being built.
+        /// </summary>
         public GameObject AvatarRootObject => _avatarRootObject;
+        /// <summary>
+        /// The root Transform of the avatar being built.
+        /// </summary>
         public Transform AvatarRootTransform => _avatarRootTransform;
+        /// <summary>
+        /// An asset container that can be used to store generated assets. NDMF will automatically add any objects
+        /// referenced by the avatar to this container when the build completes, but in some cases it can be necessary
+        /// to manually save assets (e.g. when using AnimatorController builtins).
+        /// </summary>
         public UnityEngine.Object AssetContainer { get; private set; }
 
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();

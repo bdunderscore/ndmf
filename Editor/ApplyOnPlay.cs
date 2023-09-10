@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#if UNITY_EDITOR // workaround issues with docfx
+
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -83,3 +85,4 @@ namespace nadena.dev.ndmf
         }
     }
 }
+#endif
