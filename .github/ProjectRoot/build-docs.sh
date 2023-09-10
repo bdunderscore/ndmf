@@ -1,4 +1,4 @@
-﻿
+#!/bin/bash
 
 set -euxo pipefail
 
@@ -8,5 +8,5 @@ apt-get -y install dotnet7
 ls -l /root/.dotnet/tools
 ls -l .
 
-docfx Packages/nadena.dev.ndmf/docfx~/docfx.json
+/root/.dotnet/tools/docfx Packages/nadena.dev.ndmf/docfx~/docfx.json
 tar -C Packages/nadena.dev.ndmf/docfx~/_site -czf build/StandaloneWindows/docs.tgz .

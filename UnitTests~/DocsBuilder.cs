@@ -26,7 +26,8 @@ public static class DocsBuilder
             System.Console.Error.WriteLine("Failed to build docs: " + e);
         }
         
-        
+        System.Console.Out.WriteLine("### The following output is to make the GameCI builder happy.");
+        System.Console.Out.WriteLine("# Build results\n#\nSize:");
     }
 
     private static void RunProcess(string command)
