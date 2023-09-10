@@ -36,6 +36,8 @@ namespace nadena.dev.ndmf.sample
 }
 ```
 
+You can see a functional example here: https://github.com/bdunderscore/ndmf/blob/main/Editor/Samples/SetViewpointPlugin.cs
+
 ## Execution model
 
 NDMF models execution using "Plugins" and "Passes". A plugin is meant to be an end-user-visible extension, such as Modular Avatar or AAO, while a pass is an internal step in the execution of that plugin. Breaking your execution into smaller passes allows better control of the order of execution between passes.
