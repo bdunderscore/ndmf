@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Xml;
 using Microsoft.Unity.VisualStudio.Editor;
 using UnityEditor;
 
@@ -19,6 +20,7 @@ public static class DocsBuilder
         
         try
         {
+            MungeProjectFiles();
             RunProcess("./build-docs.sh");
         }
         catch (Exception e)
@@ -28,6 +30,50 @@ public static class DocsBuilder
         
         System.Console.Out.WriteLine("### The following output is to make the GameCI builder happy.");
         System.Console.Out.WriteLine("# Build results\n#\nSize:");
+    }
+
+    private static void MungeProjectFiles()
+    {
+        foreach (var file in Directory.EnumerateFiles("."))
+        {
+            if (file.EndsWith(".csproj"))
+            {
+                MungeProjectFile(file);
+            } 
+        }
+    }
+
+    private static void MungeProjectFile(string file)
+    {
+        XmlDocument doc = new XmlDocument();
+        doc.Load(file);
+        
+        var root = doc.DocumentElement;
+        var assemblyGroup = doc.CreateElement("ItemGroup");
+
+        foreach (var possibleDll in
+                 Directory.EnumerateFiles("/opt/unity/Editor/Data/MonoBleedingEdge/lib/mono/4.7-api"))
+        {
+            if (possibleDll.EndsWith(".dll"))
+            {
+                var assembly = possibleDll.Substring(
+                    possibleDll.LastIndexOf('/'));
+                assembly = possibleDll.Substring(possibleDll.Length - 4);
+                
+                var referenceNode = doc.CreateElement("Reference");
+                referenceNode.SetAttribute("Include", assembly);
+                
+                var hintNode = doc.CreateElement("HintPath");
+                hintNode.InnerText = possibleDll;
+
+                referenceNode.AppendChild(hintNode);
+                assemblyGroup.AppendChild(referenceNode);
+            }
+            
+            root.AppendChild(assemblyGroup);
+            
+            doc.Save(file);
+        }
     }
 
     private static void RunProcess(string command)
