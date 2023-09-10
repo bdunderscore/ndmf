@@ -9,4 +9,4 @@ ls -l /root/.dotnet/tools
 ls -l .
 
 /root/.dotnet/tools/docfx Packages/nadena.dev.ndmf/docfx~/docfx.json
-tar -C Packages/nadena.dev.ndmf/docfx~/_site -czf build/StandaloneWindows/docs.tgz .
+mv _site build/StandaloneWindows/docs

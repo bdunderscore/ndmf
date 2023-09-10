@@ -26,7 +26,7 @@ name: GameCI
 
 on:
   push:
-    branches: [master, dev]
+    branches: [main, dev]
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
@@ -34,15 +34,14 @@ on:
   workflow_dispatch: {}
 
 # pull_request_target grants access to a privileged GITHUB_TOKEN by default, revoke this
-permissions:
-  contents: read
-  checks: write
+permissions: {}
 
 jobs:
-  build-and-test:
+  build-docs:
     runs-on: ubuntu-latest
     permissions:
       checks: write
+      contents: read
     steps:
       - uses: actions/checkout@v3
         with:
@@ -64,7 +63,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ matrix.projectPath }}
+          key: docs-Library-${{ matrix.projectPath }}
           restore-keys: Library-
 
       - uses: game-ci/unity-builder@v3
@@ -77,8 +76,40 @@ jobs:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: docs
+          path: build/StandaloneWindows64/docs
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - run: |
-          ls -l build || true
+          mkdir .github/ProjectRoot/Packages/nadena.dev.ndmf -p
+          mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
+          mv .github/ProjectRoot/* .
+          mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
+
+      - uses: anatawa12/sh-actions/resolve-vpm-packages@master
+
+      - run: |
+          ls -lR
+      - run: |
+          ls -lR Packages/nadena*
+
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.projectPath }}
+          restore-keys: Library-
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
@@ -98,8 +129,37 @@ jobs:
         with:
           name: Test results
           path: ${{ steps.gameci.outputs.artifactsPath }}
+
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Coverage results
           path: ${{ steps.gameci.outputs.coveragePath }}
+
+  publish-docs:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: true
+    needs: build-docs
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: docs
+          path: docs
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
