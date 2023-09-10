@@ -76,6 +76,9 @@ jobs:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
+      - run: |
+          ls -lR build
+
       - uses: actions/upload-artifact@v3
         if: always()
         with:
