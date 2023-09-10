@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
@@ -60,7 +61,7 @@ namespace nadena.dev.ndmf
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    AvatarProcessor.ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
+                    AvatarProcessor.ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
 
                     buildContext.Finish();
 
@@ -79,7 +80,7 @@ namespace nadena.dev.ndmf
 
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
 
-            ProcessAvatar(buildContext, BuiltInPhase.Resolving, BuiltInPhase.Optimization);
+            ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
             buildContext.Finish();
 
             if (RuntimeUtil.isPlaying)
@@ -88,17 +89,17 @@ namespace nadena.dev.ndmf
             }
         }
 
-        internal static void ProcessAvatar(BuildContext buildContext, BuiltInPhase firstPhase, BuiltInPhase lastPhase)
+        internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)
         {
             var resolver = new PluginResolver();
+            bool processing = false;
 
-            for (var phase = firstPhase; phase <= lastPhase; phase++)
+            foreach (var (phase, passes) in resolver.Passes)
             {
+                if (firstPhase == phase) processing = true;
+                if (!processing) continue;
+                
                 Debug.Log($"=== Processing phase {phase} ===");
-                if (!resolver.Passes.TryGetValue(phase, out var passes))
-                {
-                    continue;
-                }
 
                 foreach (var pass in passes)
                 {
@@ -119,6 +120,8 @@ namespace nadena.dev.ndmf
 
                     Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
                 }
+
+                if (lastPhase == phase) break;
             }
         }
     }

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.ndmf.model;
+using nadena.dev.ndmf.fluent;
 using nadena.dev.ndmf.reporting;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
 namespace nadena.dev.ndmf.ui
 {
@@ -87,9 +84,9 @@ namespace nadena.dev.ndmf.ui
 
             foreach (var phaseKVP in Resolver.Passes)
             {
-                var phase = phaseKVP.Key;
-                var passes = phaseKVP.Value;
-                InstantiatedPlugin priorPlugin = null;
+                var phase = phaseKVP.Item1;
+                var passes = phaseKVP.Item2;
+                IPlugin priorPlugin = null;
                 SolverUIItem pluginItem = null;
 
                 allItems.Add(new SolverUIItem() {id = id++, depth = 1, displayName = phase.ToString()});
@@ -97,12 +94,12 @@ namespace nadena.dev.ndmf.ui
 
                 foreach (var pass in passes)
                 {
-                    if (pass.InstantiatedPass.InternalPass) continue;
+                    if (pass.InstantiatedPass.IsPhantom) continue;
 
-                    var plugin = pass.InstantiatedPass.Plugin;
+                    var plugin = pass.Plugin;
                     if (plugin != priorPlugin)
                     {
-                        allItems.Add(new SolverUIItem() {id = id++, depth = 2, displayName = plugin.Description});
+                        allItems.Add(new SolverUIItem() {id = id++, depth = 2, displayName = plugin.DisplayName});
                         priorPlugin = plugin;
                         pluginItem = allItems[allItems.Count - 1];
                     }

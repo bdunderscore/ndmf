@@ -1,90 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf.model;
 using UnityEditor.Graphs;
 
 namespace nadena.dev.ndmf
 {
-    public static class TopoSort
+    internal static class TopoSort
     {
-        private class Node<T, O> : IComparable<Node<T, O>> where O: IComparable<O>
-        {
-            public T obj;
-            public O FallbackOrder;
-            public HashSet<T> Awaiting = new HashSet<T>();
-            public List<Node<T, O>> Blocking = new List<Node<T, O>>();
-
-            public Node(T obj, O index)
-            {
-                this.obj = obj;
-                FallbackOrder = index;
-            }
-
-            public int CompareTo(Node<T, O> other)
-            {
-                if (ReferenceEquals(this, other)) return 0;
-                if (ReferenceEquals(null, other)) return 1;
-                return FallbackOrder.CompareTo(other.FallbackOrder);
-            }
-        }
-
         public static List<T> DoSort<T>(
             IEnumerable<T> Values,
-            IEnumerable<(T, T)> OrderingConstraints
+            IEnumerable<(T, T, ConstraintType)> OrderingConstraints
         )
         {
-            SortedSet<Node<T, int>> Ready = new SortedSet<Node<T, int>>();
-            Dictionary<T, Node<T, int>> Nodes = new Dictionary<T, Node<T, int>>();
-            int i = 0;
-            foreach (var val in Values)
+            Dictionary<T, TopoPass<T>> passes = new Dictionary<T, TopoPass<T>>();
+
+            int fallbackSort = 0;
+            foreach (var value in Values)
             {
-                var node = new Node<T, int>(val, i);
-                Nodes[val] = node;
-                Ready.Add(node);
-                i++;
+                passes[value] = new TopoPass<T>(value, fallbackSort++);
+            }
+            
+            foreach (var (first, second, type) in OrderingConstraints)
+            {
+                passes[first].AddConstraint(passes[second], type);
             }
 
-            foreach (var (before, after) in OrderingConstraints)
+            HashSet<TopoPass<T>> notExecuted = new HashSet<TopoPass<T>>(passes.Values);
+            SortedSet<TopoPass<T>> ready = new SortedSet<TopoPass<T>>(new TopoPassComparer<T>());
+            Stack<TopoPass<T>> priorityStack = new Stack<TopoPass<T>>();
+
+            foreach (var pass in passes)
             {
-                if (!Nodes.ContainsKey(before))
+                if (pass.Value.IsReady)
                 {
-                    throw new Exception($"No 'before' node for constraint ({before}, {after})");
-                }
-
-                if (!Nodes.ContainsKey(after))
-                {
-                    throw new Exception($"No 'after' node for constraint ({before}, {after})");
-                }
-
-                Nodes[before].Blocking.Add(Nodes[after]);
-                Nodes[after].Awaiting.Add(before);
-                Ready.Remove(Nodes[after]);
-            }
-
-            List<T> Sorted = new List<T>();
-            while (Ready.Count > 0)
-            {
-                var next = Ready.First();
-                Ready.Remove(next);
-
-                Sorted.Add(next.obj);
-                foreach (var successor in next.Blocking)
-                {
-                    successor.Awaiting.Remove(next.obj);
-                    if (successor.Awaiting.Count == 0)
-                    {
-                        Ready.Add(successor);
-                    }
+                    ready.Add(pass.Value);
                 }
             }
 
-            if (Sorted.Count < Nodes.Count)
+            var order = new List<T>();
+            
+            while (ready.Count > 0)
             {
-                // TODO more useful error message
-                throw new Exception("Cycle detected");
+                TopoPass<T> nextPass = null;
+
+                while (priorityStack.Count > 0 && priorityStack.Peek().CanRetire)
+                {
+                    priorityStack.Pop();
+                }
+
+                if (priorityStack.Count > 0)
+                {
+                    nextPass = priorityStack.Peek().NextPriorityPass();
+                }
+
+                nextPass = nextPass ?? ready.Min;
+                
+                ready.Remove(nextPass);
+                notExecuted.Remove(nextPass);
+                order.Add(nextPass.Pass);
+
+                foreach (var nowReady in nextPass.Schedule())
+                {
+                    ready.Add(nowReady);
+                }
+                
+                priorityStack.Push(nextPass);
             }
 
-            return Sorted;
+            if (notExecuted.Count > 0)
+            {
+                throw new Exception("Constraint loop detected");
+            }
+
+            return order;
+        }
+    }
+
+    internal class TopoPassComparer<T> : IComparer<TopoPass<T>>
+    {
+        public int Compare(TopoPass<T> x, TopoPass<T> y)
+        {
+            if (ReferenceEquals(x, y)) return 0;
+            if (ReferenceEquals(null, y)) return 1;
+            if (ReferenceEquals(null, x)) return -1;
+            return x.FallbackOrder.CompareTo(y.FallbackOrder);
         }
     }
 }

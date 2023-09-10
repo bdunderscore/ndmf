@@ -1,16 +1,17 @@
-﻿using nadena.dev.Av3BuildFramework;
+﻿using nadena.dev.ndmf;
+using nadena.dev.ndmf.fluent;
 using UnityEngine;
 
-namespace nadena.dev.ndmf
+namespace nadena.dev.ndmf.builtin
 {
     [NDMFInternalEarlyPass]
-    internal class RemoveEditorOnly : PluginPass
+    public class RemoveEditorOnlyPass : Pass<RemoveEditorOnlyPass>
     {
-        internal static RemoveEditorOnly Instance = new RemoveEditorOnly();
+        internal static RemoveEditorOnlyPass Instance = new RemoveEditorOnlyPass();
         public override string QualifiedName => "nadena.dev.ndmf.system.RemoveEditorOnly";
-        public override BuiltInPhase ExecutionPhase => BuiltInPhase.Resolving;
-        
-        public override void Process(BuildContext context)
+        public override string DisplayName => "Remove EditorOnly Objects";
+
+        protected override void Execute(BuildContext context)
         {
             foreach (Transform t in context.AvatarRootTransform.GetComponentsInChildren<Transform>(true))
             {

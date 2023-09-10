@@ -210,7 +210,7 @@ namespace nadena.dev.ndmf
 
             Stopwatch passTimer = new Stopwatch();
             passTimer.Start();
-            pass.Process(this);
+            pass.Execute(this);
             passTimer.Stop();
 
             BuildEvent.Dispatch(new BuildEvent.PassExecuted(

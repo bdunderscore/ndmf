@@ -1,33 +1,28 @@
-﻿using System.Collections.Immutable;
-using System.Collections.Generic;
-using nadena.dev.ndmf;
+﻿using nadena.dev.ndmf;
+using nadena.dev.ndmf.fluent;
 using nadena.dev.ndmf.runtime.samples;
-using nadena.dev.ndmf.samples;
+using nadena.dev.ndmf.sample;
 using UnityEngine;
 
 [assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
 
-namespace nadena.dev.ndmf.samples
+namespace nadena.dev.ndmf.sample
 {
-    public class SetViewpointPlugin : Plugin
+    public class SetViewpointPlugin : Plugin<SetViewpointPlugin>
     {
         public override string QualifiedName => "nadena.dev.av3-build-framework.sample.set-viewpoint";
-
-        public override ImmutableList<PluginPass> Passes
-            => new List<PluginPass> {new SetViewpointPass()}.ToImmutableList();
-    }
-
-    public class SetViewpointPass : PluginPass
-    {
-        public override void Process(BuildContext context)
+        protected override void Configure()
         {
-            var obj = context.AvatarRootObject.GetComponentInChildren<SetViewpoint>();
-            if (obj != null)
+            InPhase(BuildPhase.Transforming).Run("Set viewpoint", ctx =>
             {
-                context.AvatarDescriptor.ViewPosition =
-                    Quaternion.Inverse(context.AvatarRootTransform.rotation) * (
-                        obj.transform.position - context.AvatarRootTransform.position);
-            }
+                var obj = ctx.AvatarRootObject.GetComponentInChildren<SetViewpoint>();
+                if (obj != null)
+                {
+                    ctx.AvatarDescriptor.ViewPosition =
+                        Quaternion.Inverse(ctx.AvatarRootTransform.rotation) * (
+                            obj.transform.position - ctx.AvatarRootTransform.position);
+                }
+            });
         }
     }
 }
