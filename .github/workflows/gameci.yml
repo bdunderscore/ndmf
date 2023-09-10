@@ -65,14 +65,14 @@ jobs:
           key: Library-${{ matrix.projectPath }}
           restore-keys: Library-
 
-      - uses: game-ci/unity-builder@v3
-        id: docgen
-        with:
-          buildMethod: DocsBuilder.BuildDocs
-          allowDirtyBuild: true
-        env:
-          # meh, just a personal license...
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+#      - uses: game-ci/unity-builder@v3
+#        id: docgen
+#        with:
+#          buildMethod: DocsBuilder.BuildDocs
+#          allowDirtyBuild: true
+#        env:
+#          # meh, just a personal license...
+#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
