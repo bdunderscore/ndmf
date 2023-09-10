@@ -26,21 +26,11 @@ A minimal plugin definition looks a bit like this:
 
 namespace nadena.dev.ndmf.sample
 {
-    public class SetViewpointPlugin : Plugin<SetViewpointPlugin>
+    public class MyPlugin : Plugin<MyPlugin>
     {
-        public override string QualifiedName => "nadena.dev.av3-build-framework.sample.set-viewpoint";
         protected override void Configure()
         {
-            InPhase(BuildPhase.Transforming).Run("Set viewpoint", ctx =>
-            {
-                var obj = ctx.AvatarRootObject.GetComponentInChildren<SetViewpoint>();
-                if (obj != null)
-                {
-                    ctx.AvatarDescriptor.ViewPosition =
-                        Quaternion.Inverse(ctx.AvatarRootTransform.rotation) * (
-                            obj.transform.position - ctx.AvatarRootTransform.position);
-                }
-            });
+            InPhase(BuildPhase.Transforming).Run("Do something", ctx => { /* ... */ });
         }
     }
 }
