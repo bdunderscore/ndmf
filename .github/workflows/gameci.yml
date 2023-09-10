@@ -49,9 +49,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       
       - run: |
-          mkdir Packages/nadena.dev.ndmf -p
-          mv [^P]* Packages/nadena.dev.ndmf
-          mv .github/ProjectSettings .
+          mkdir .github/ProjectRoot/Packages/nadena.dev.ndmf -p
+          mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
+          mv .github/ProjectRoot/* .
       
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
 
