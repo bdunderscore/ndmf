@@ -58,7 +58,6 @@ jobs:
         
       - run: |
           ls -lR
-          rm -rf .git
 
       - uses: game-ci/unity-builder@v3
         id: docgen
