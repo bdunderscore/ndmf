@@ -8,7 +8,7 @@ apt-get -y install dotnet7
 ls -l /root/.dotnet/tools
 ls -l .
 
-grep ItemGroup -C3 nadena.dev.ndmf.runtime.csproj | head --lines=500
+cat nadena.dev.ndmf.runtime.csproj
 
 dotnet msbuild /t:restore nadena.dev.ndmf.runtime.csproj
 /root/.dotnet/tools/docfx Packages/nadena.dev.ndmf/docfx~/docfx.json
