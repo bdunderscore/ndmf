@@ -60,6 +60,7 @@ jobs:
         id: docgen
         with:
           buildMethod: DocsBuilder.BuildDocs
+          allowDirtyBuild: true
         env:
           # meh, just a personal license...
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
