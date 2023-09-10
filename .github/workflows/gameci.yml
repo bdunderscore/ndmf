@@ -56,6 +56,10 @@ jobs:
       
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
         
+      - run: |
+          ls -lR
+          rm -rf .git
+
       - uses: game-ci/unity-builder@v3
         id: docgen
         with:
