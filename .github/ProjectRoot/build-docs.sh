@@ -8,10 +8,5 @@ apt-get -y install dotnet7
 ls -l /root/.dotnet/tools
 ls -l .
 
-for csproj in *.csproj; do
-  echo "=== $csproj ==="
-  cat $csproj
-done
-
 /root/.dotnet/tools/docfx Packages/nadena.dev.ndmf/docfx~/docfx.json
 tar -C Packages/nadena.dev.ndmf/docfx~/_site -czf build/StandaloneWindows/docs.tgz .
