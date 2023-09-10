@@ -1,4 +1,4 @@
-# Avatar Build Plugin Framework (working title)
+# Non-Destructive Modular Framework ("なでもふ")
 
 This package is a framework for building non-destructive editor plugins for VRChat avatars. It provides the following facilities:
 
@@ -22,26 +22,33 @@ This project is currently in a pre-alpha state. Expect large-scale refactoring, 
 A minimal plugin definition looks a bit like this:
 
 ```csharp
-[assembly: ExportsPlugin(typeof MyPlugin)]
+[assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
 
-namespace com.mydomain {
-  class MyPlugin : Plugin {
-    public override string QualifiedName => "com.mydomain.myplugin";
-    public override ImmutableList<Pass> Passes => ImmutableList<PluginPass>.Empty
-      .Add(new MyPass());
-  }
-
-  class MyPass : PluginPass {
-    public override void Process(BuildContext context) {
-      // do something to the avatar at context.AvatarRootTransform
+namespace nadena.dev.ndmf.sample
+{
+    public class SetViewpointPlugin : Plugin<SetViewpointPlugin>
+    {
+        public override string QualifiedName => "nadena.dev.av3-build-framework.sample.set-viewpoint";
+        protected override void Configure()
+        {
+            InPhase(BuildPhase.Transforming).Run("Set viewpoint", ctx =>
+            {
+                var obj = ctx.AvatarRootObject.GetComponentInChildren<SetViewpoint>();
+                if (obj != null)
+                {
+                    ctx.AvatarDescriptor.ViewPosition =
+                        Quaternion.Inverse(ctx.AvatarRootTransform.rotation) * (
+                            obj.transform.position - ctx.AvatarRootTransform.position);
+                }
+            });
+        }
     }
-  }
 }
 ```
 
 ## Execution model
 
-ABPF models execution using "Plugins" and "Passes". A plugin is meant to be an end-user-visible extension, such as Modular Avatar or AAO, while a pass is an internal step in the execution of that plugin. Breaking your execution into smaller passes allows better control of the order of execution between passes.
+NDMF models execution using "Plugins" and "Passes". A plugin is meant to be an end-user-visible extension, such as Modular Avatar or AAO, while a pass is an internal step in the execution of that plugin. Breaking your execution into smaller passes allows better control of the order of execution between passes.
 
 Passes are grouped into execution phases, which execute in the following order:
 * Resolving - This is intended to run before any editor extensions modify the avatar, and is useful for rehydrating components with serialized state that need to refer to the pre-transformation avatar (e.g. if you have a path serialized to a string which you need to resolve to an object before objects start moving around)
@@ -51,16 +58,31 @@ Passes are grouped into execution phases, which execute in the following order:
 
 Within each phase, passes are always executed in the order in which they are declared in the plugin definition. However, depending on dependency declarations, passes from other plugins can be injected between your passes.
 
-Plugins and passes can both declare runs-before and runs-after dependencies on other plugins and passes. These dependencies are applied independently for each phase. For example, consider this example:
+### Dependency declarations
+
+Plugins and passes can both declare runs-before and runs-after dependencies on other plugins and passes. These ordering constraints can either be "weak" or "wait-for" dependencies.
+
+Each call to `InPhase` starts a new "Sequence" of passes that run in order. If you call `InPhase` multiple times, the passes you declare in each sequence do not depend on each other and might run in any order, unless you declare dependencies to prevent that.
+
+A typical dependency declaration might look a bit like this:
 
 ```
- Plugin A runs-before plugin B
- Plugin A passes: (Resolving:A1, Resolving:A2, Generating: A1)
- Plugin B passes: (Resolving:B1, Generating: B2)
- Resulting order: (Resolving:A1, Resolving:A2, Resolving:B1, Generating:A1, Generating:B2)
+        protected override void Configure()
+        {
+            InPhase(BuildPhase.Transforming)
+              .AfterPlugin("com.example.some-plugin")
+              .BeforePlugin(typeof(SomeMandatoryPlugin))
+              .AfterPass(typeof(SomePass))
+              .WaitFor(typeof(RunsJustBeforePass))
+              .Run(...)
+              .BeforePass(typeof(SomeSpecificPass));
+        }
 ```
 
-When you declare a runs-before or runs-after at the _pass_ level, you can insert a pass in between passes from another plugin. As such, generally you should define your passes in such a way that it's safe to inject additional transformations before or after. If it's not, consider merging passes, or not exposing the pass name.
+When using AfterPlugin and BeforePlugin, all passes in the sequence will run after or before the plugin in question. If the plugin is missing, this is not an error, and will be ignored.
+
+You can only declare ordering constraints on specific passes if you have access to their type. Anonymous passes (ones defined by passing a delegate) cannot be specified as a dependency.
+The difference between AfterPass and WaitFor is that NDMF will try to schedule your pass immediately after whatever it is `WaitFor`ing, while with AfterPass NDMF will prefer to let the plugin that declared the original pass run to completion first.
 
 ## Context data
 
