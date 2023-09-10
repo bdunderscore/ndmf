@@ -58,6 +58,8 @@ jobs:
         
       - run: |
           ls -lR
+      - run: |
+          ls -lR Packages/nadena*
 
       - uses: actions/cache@v3
         with:

@@ -32,7 +32,7 @@ public static class DocsBuilder
     private static void RunProcess(string command)
     {
         System.Console.Error.WriteLine("=== Running command: " + command + " ===");
-        var process = Process.Start("/bin/sh", command);
+        var process = Process.Start("/bin/bash", command);
         process.WaitForExit();
 
         if (process.ExitCode != 0)
