@@ -140,7 +140,7 @@ jobs:
           path: ${{ steps.gameci.outputs.coveragePath }}
 
   publish-docs:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.repository == 'bdunderscore/ndmf'
     permissions:
       contents: read
       pages: write
