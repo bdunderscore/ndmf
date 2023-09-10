@@ -9,14 +9,14 @@ public static class DocsBuilder
     public static void BuildDocs()
     {
         // Make sure the build directory exists (this keeps GameCI happy)
-        System.IO.Directory.CreateDirectory("build");
+        System.IO.Directory.CreateDirectory("build/StandaloneWindows");
         // Create a dummy file as well
-        System.IO.File.WriteAllText("build/dummy.txt", "");
+        System.IO.File.WriteAllText("build/StandaloneWindows/dummy.txt", "");
         
         ProjectGeneration projectGeneration = new ProjectGeneration();
         AssetDatabase.Refresh();
         projectGeneration.GenerateAndWriteSolutionAndProjects();
-
+        
         try
         {
             RunProcess("./build-docs.sh");
