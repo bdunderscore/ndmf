@@ -52,8 +52,17 @@ jobs:
           mkdir .github/ProjectRoot/Packages/nadena.dev.ndmf -p
           mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
           mv .github/ProjectRoot/* .
+          mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
       
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
+        
+      - uses: game-ci/unity-builder@v3
+        id: docgen
+        with:
+          buildMethod: DocsBuilder.BuildDocs
+        env:
+          # meh, just a personal license...
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
       - uses: game-ci/unity-test-runner@v3
         id: gameci
