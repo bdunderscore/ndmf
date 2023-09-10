@@ -83,7 +83,7 @@ jobs:
         if: always()
         with:
           name: docs
-          path: build/StandaloneWindows64/docs
+          path: build/StandaloneWindows/docs
 
   build-and-test:
     runs-on: ubuntu-latest
