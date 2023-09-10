@@ -49,7 +49,7 @@ public static class DocsBuilder
         doc.Load(file);
         
         var root = doc.DocumentElement;
-        var assemblyGroup = doc.CreateElement("ItemGroup");
+        var assemblyGroup = doc.CreateElement("ItemGroup", root.NamespaceURI);
 
         foreach (var possibleDll in
                  Directory.EnumerateFiles("/opt/unity/Editor/Data/MonoBleedingEdge/lib/mono/4.7-api"))
@@ -60,10 +60,10 @@ public static class DocsBuilder
                     possibleDll.LastIndexOf('/'));
                 assembly = possibleDll.Substring(possibleDll.Length - 4);
                 
-                var referenceNode = doc.CreateElement("Reference");
+                var referenceNode = doc.CreateElement("Reference", root.NamespaceURI);
                 referenceNode.SetAttribute("Include", assembly);
                 
-                var hintNode = doc.CreateElement("HintPath");
+                var hintNode = doc.CreateElement("HintPath", root.NamespaceURI);
                 hintNode.InnerText = possibleDll;
 
                 referenceNode.AppendChild(hintNode);
