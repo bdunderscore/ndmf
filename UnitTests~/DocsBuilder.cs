@@ -50,7 +50,7 @@ public static class DocsBuilder
         
         var root = doc.DocumentElement;
         var assemblyGroup = doc.CreateElement("ItemGroup", root.NamespaceURI);
-
+/*
         foreach (var possibleDll in
                  Directory.EnumerateFiles("/opt/unity/Editor/Data/MonoBleedingEdge/lib/mono/4.7-api"))
         {
@@ -73,7 +73,17 @@ public static class DocsBuilder
             root.AppendChild(assemblyGroup);
             
             doc.Save(file);
-        }
+        }*/
+
+        var itemgroup = doc.CreateElement("ItemGroup", root.NamespaceURI);
+        var packageReference = doc.CreateElement("PackageReference", root.NamespaceURI);
+        
+        packageReference.SetAttribute("Include", "Microsoft.NETFramework.ReferenceAssemblies");
+        packageReference.SetAttribute("Version", "1.0.0");
+        packageReference.SetAttribute("PrivateAssets", "all");
+        
+        itemgroup.AppendChild(packageReference);
+        root.AppendChild(itemgroup);
     }
 
     private static void RunProcess(string command)
