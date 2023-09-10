@@ -59,6 +59,12 @@ jobs:
       - run: |
           ls -lR
 
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.projectPath }}
+          restore-keys: Library-
+
       - uses: game-ci/unity-builder@v3
         id: docgen
         with:
