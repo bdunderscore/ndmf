@@ -59,6 +59,7 @@ MonoBehaviour:
   unityVersion: 
   portraitCameraPositionOffset: {x: 0, y: 0, z: 0}
   portraitCameraRotationOffset: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  networkIDs: []
   customExpressions: 0
   expressionsMenu: {fileID: 0}
   expressionParameters: {fileID: 0}
@@ -146,7 +147,7 @@ MonoBehaviour:
     isDefault: 1
   - isEnabled: 0
     type: 5
-    animatorController: {fileID: 9100000, guid: b1989794a49b3fa4298fe0bf3b25a4a5,
+    animatorController: {fileID: 9100000, guid: 3fabb6b36a3a1d84f9568e3fc9b9eb2a,
       type: 2}
     mask: {fileID: 0}
     isDefault: 0
@@ -310,7 +311,7 @@ Animator:
   m_GameObject: {fileID: 1779618317021452234}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: b1989794a49b3fa4298fe0bf3b25a4a5, type: 2}
+  m_Controller: {fileID: 0}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
