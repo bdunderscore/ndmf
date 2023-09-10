@@ -57,8 +57,8 @@ public static class DocsBuilder
             if (possibleDll.EndsWith(".dll"))
             {
                 var assembly = possibleDll.Substring(
-                    possibleDll.LastIndexOf('/'));
-                assembly = possibleDll.Substring(possibleDll.Length - 4);
+                    possibleDll.LastIndexOf('/') + 1);
+                assembly = assembly.Substring(0, assembly.Length - 4);
                 
                 var referenceNode = doc.CreateElement("Reference", root.NamespaceURI);
                 referenceNode.SetAttribute("Include", assembly);
