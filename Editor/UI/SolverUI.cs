@@ -7,7 +7,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace nadena.dev.ndmf.ui
 {
-    public class SolverWindow : EditorWindow
+    internal class SolverWindow : EditorWindow
     {
         [MenuItem("Tools/NDM Framework/Debug Tools/Plugin sequence display", false, 100)]
         public static void ShowWindow()
@@ -50,7 +50,7 @@ namespace nadena.dev.ndmf.ui
         public double? ExecutionTimeMS;
     }
 
-    public class SolverUI : TreeView
+    internal class SolverUI : TreeView
     {
         private static PluginResolver Resolver = new PluginResolver();
 

@@ -1,0 +1,4 @@
+﻿apiRules:
+  - exclude:
+      hasAttribute:
+        uid: nadena.dev.ndmf.ExcludeFromDocs

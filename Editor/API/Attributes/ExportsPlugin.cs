@@ -2,8 +2,15 @@
 
 namespace nadena.dev.ndmf
 {
+    /// <summary>
+    /// This attribute declares a plugin to be registered with NDMF.
+    /// 
+    /// <code>
+    /// [assembly: ExportsPlugin(typeof(MyPlugin))]
+    /// </code>
+    /// </summary>
     [AttributeUsage(AttributeTargets.Assembly)]
-    public class ExportsPlugin : Attribute
+    public sealed class ExportsPlugin : Attribute
     {
         public Type PluginType { get; }
         

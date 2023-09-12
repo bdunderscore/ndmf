@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
 
 namespace nadena.dev.ndmf.fluent
@@ -17,7 +18,7 @@ namespace nadena.dev.ndmf.fluent
             _pendingDependencies.Clear();
         }
         
-        public Sequence BeforePlugin(string QualifiedName, string sourceFile = "", int sourceLine = 0)
+        public Sequence BeforePlugin(string QualifiedName, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0)
         {
             _solverContext.Constraints.Add(new Constraint()
             {
@@ -31,12 +32,12 @@ namespace nadena.dev.ndmf.fluent
             return this;
         }
 
-        public Sequence BeforePlugin<T>(T plugin, string sourceFile = "", int sourceLine = 0) where T : fluent.Plugin<T>, new()
+        public Sequence BeforePlugin<T>(T plugin, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : fluent.Plugin<T>, new()
         {
             return BeforePlugin(plugin.QualifiedName, sourceFile, sourceLine);
         }
 
-        public Sequence AfterPlugin(string qualifiedName, string sourceFile = "", int sourceLine = 0)
+        public Sequence AfterPlugin(string qualifiedName, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0)
         {
             _solverContext.Constraints.Add(new Constraint()
             {
@@ -50,12 +51,12 @@ namespace nadena.dev.ndmf.fluent
             return this;
         }
 
-        public Sequence AfterPlugin<T>(T plugin, string sourceFile = "", int sourceLine = 0) where T : Plugin<T>, new()
+        public Sequence AfterPlugin<T>(T plugin, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : Plugin<T>, new()
         {
             return AfterPlugin(plugin.QualifiedName, sourceFile, sourceLine);
         }
         
-        public Sequence WaitFor<T>(T pass, string sourceFile = "", int sourceLine = 0) where T : fluent.Pass<T>, new()
+        public Sequence WaitFor<T>(T pass, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : fluent.Pass<T>, new()
         {
             _pendingDependencies.Add(nextPass =>
             {
@@ -72,7 +73,7 @@ namespace nadena.dev.ndmf.fluent
             return this;
         }
 
-        public Sequence AfterPass(string qualifiedName, string sourceFile = "", int sourceLine = 0)
+        public Sequence AfterPass(string qualifiedName, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0)
         {
             _pendingDependencies.Add(nextPass =>
             {
@@ -89,7 +90,7 @@ namespace nadena.dev.ndmf.fluent
             return this;
         }
 
-        public Sequence AfterPass<T>(T pass, string sourceFile = "", int sourceLine = 0) where T : Pass<T>, new()
+        public Sequence AfterPass<T>(T pass, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : Pass<T>, new()
         {
             return AfterPass(pass.QualifiedName, sourceFile, sourceLine);
         }

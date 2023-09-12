@@ -2,7 +2,7 @@
 
 namespace nadena.dev.ndmf.VRChat
 {
-    public class CleanupTemporaryAssets : IVRCSDKPostprocessAvatarCallback
+    internal class CleanupTemporaryAssets : IVRCSDKPostprocessAvatarCallback
     {
         public int callbackOrder => 0;
 
