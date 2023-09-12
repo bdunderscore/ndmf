@@ -1,0 +1,53 @@
+﻿name: Build documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+  
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+  
+      - uses: nikeee/docfx-action@v1.0.0
+        name: Build Documentation
+        with:
+          args: docfx~/docfx.json
+            
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: docs
+          path: docfx~/_site
+        
+  publish-docs:
+    if: github.ref == 'refs/heads/main' && github.repository == 'bdunderscore/ndmf'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: true
+    needs: build-docs
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: docs
+          path: docs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

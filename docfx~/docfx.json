@@ -3,10 +3,9 @@
     {
       "src": [
         {
-          "cwd": "../../..",
+          "cwd": "..",
           "files": [
-            "nadena.dev.ndmf.csproj",
-            "nadena.dev.ndmf.runtime.csproj"
+            "**/*.cs"
           ]
         }
       ],
@@ -18,10 +17,17 @@
       "namespaceLayout": "flattened",
       "memberLayout": "samePage",
       "EnumSortOrder": "alphabetic",
-      "allowCompilationErrors": false
+      "allowCompilationErrors": true
     }
   ],
   "build": {
+    "globalMetadata": {
+      "_appTitle": "NDM Framework documentation",
+      "_enableSearch": true
+    },
+    "sitemap": {
+      "baseUrl": "https://ndmf.nadena.dev"
+    },
     "content": [
       {
         "files": [
@@ -54,6 +60,12 @@
     ],
     "postProcessors": [],
     "keepFileLink": false,
-    "disableGitFeatures": false
+    "disableGitFeatures": false,
+    "xref": [
+      "https://normanderwan.github.io/UnityXrefMaps/2018.4/xrefmap.yml"
+    ],
+    "xrefService": [
+      "https://xref.docs.microsoft.com/query?uid={uid}"
+    ]
   }
 }
