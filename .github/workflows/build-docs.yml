@@ -12,10 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
   
-      - run: |
+      - name: Install docfx
+        run: |
           sudo apt-get -y update
           sudo apt-get -y install dotnet7
           dotnet tool update -g docfx
+          
+      - name: Build documentation
           docfx docfx~/docfx.json
             
       - uses: actions/upload-artifact@v3
