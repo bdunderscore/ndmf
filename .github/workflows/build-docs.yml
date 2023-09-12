@@ -19,6 +19,7 @@ jobs:
           dotnet tool update -g docfx
           
       - name: Build documentation
+        run: |
           docfx docfx~/docfx.json
             
       - uses: actions/upload-artifact@v3
