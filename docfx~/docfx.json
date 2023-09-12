@@ -6,6 +6,12 @@
           "cwd": "..",
           "files": [
             "**/*.cs"
+          ],
+          "exclude": [
+            "UnitTests/*.cs",
+            "UnitTests~/*.cs",
+            "UnitTests/**/*.cs",
+            "UnitTests~/**/*.cs"
           ]
         }
       ],
