@@ -22,8 +22,12 @@
  * SOFTWARE.
  */
 
+#region
+
 using System;
 using UnityEditor;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {

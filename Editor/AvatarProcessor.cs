@@ -1,15 +1,23 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿#region
+
+using System;
 using System.Diagnostics;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
-    using UnityObject = UnityEngine.Object;
+    #region
+
+    using UnityObject = Object;
+
+    #endregion
 
     internal class OverrideTemporaryDirectoryScope : IDisposable
     {
@@ -72,13 +80,13 @@ namespace nadena.dev.ndmf
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
                 var avatar = UnityObject.Instantiate(obj);
-                var buildContext = new BuildContext(avatar, AvatarProcessor.TemporaryAssetRoot);
+                var buildContext = new BuildContext(avatar, TemporaryAssetRoot);
 
                 avatar.transform.position += Vector3.forward * 2f;
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    AvatarProcessor.ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
+                    ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
 
                     buildContext.Finish();
 
@@ -120,7 +128,7 @@ namespace nadena.dev.ndmf
             {
                 if (firstPhase == phase) processing = true;
                 if (!processing) continue;
-                
+
                 Debug.Log($"=== Processing phase {phase} ===");
 
                 foreach (var pass in passes)
@@ -133,7 +141,7 @@ namespace nadena.dev.ndmf
                     }
                     catch (Exception e)
                     {
-                        UnityEngine.Debug.LogError("Error processing pass " + pass.Description);
+                        Debug.LogError("Error processing pass " + pass.Description);
                         Debug.LogException(e);
                         throw e;
                     }

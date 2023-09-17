@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+
+#endregion
 
 namespace nadena.dev.ndmf.util
 {

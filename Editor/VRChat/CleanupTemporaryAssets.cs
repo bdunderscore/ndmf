@@ -1,4 +1,8 @@
-﻿using VRC.SDKBase.Editor.BuildPipeline;
+﻿#region
+
+using VRC.SDKBase.Editor.BuildPipeline;
+
+#endregion
 
 namespace nadena.dev.ndmf.VRChat
 {

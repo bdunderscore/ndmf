@@ -1,7 +1,11 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.model;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -12,10 +16,12 @@ namespace nadena.dev.ndmf
     {
         internal T Pass { get; }
         internal int FallbackOrder;
-        
+
         private HashSet<TopoPass<T>> _predecessors = new HashSet<TopoPass<T>>();
         private HashSet<TopoPass<T>> _remainingPredecessors = new HashSet<TopoPass<T>>();
-        private Dictionary<TopoPass<T>, ConstraintType> _remainingSuccessors =  new Dictionary<TopoPass<T>, ConstraintType>();
+
+        private Dictionary<TopoPass<T>, ConstraintType> _remainingSuccessors =
+            new Dictionary<TopoPass<T>, ConstraintType>();
 
         internal bool IsReady => _remainingPredecessors.Count == 0;
         internal bool CanRetire => _remainingSuccessors.Values.All(ty => ty == ConstraintType.WeakOrder);
@@ -45,7 +51,7 @@ namespace nadena.dev.ndmf
             ConstraintType bestType = ConstraintType.WeakOrder;
             int bestFallback = Int32.MaxValue;
             ;
-            
+
             foreach (var kvp in _remainingSuccessors)
             {
                 if (kvp.Value != ConstraintType.WeakOrder && kvp.Key.IsReady)
@@ -75,7 +81,7 @@ namespace nadena.dev.ndmf
             {
                 predecessor._remainingSuccessors.Remove(this);
             }
-            
+
             foreach (var successor in _remainingSuccessors.Keys)
             {
                 var wasReady = successor.IsReady;

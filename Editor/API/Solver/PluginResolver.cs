@@ -1,12 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.ndmf;
-using nadena.dev.ndmf;
-using nadena.dev.ndmf.fluent;
 using nadena.dev.ndmf.model;
-using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -29,7 +29,7 @@ namespace nadena.dev.ndmf
         internal IPass InstantiatedPass { get; }
         internal ImmutableList<Type> DeactivatePlugins { get; }
         internal ImmutableList<Type> ActivatePlugins { get; }
-        
+
         public void Execute(BuildContext context)
         {
             InstantiatedPass.Execute(context);
@@ -48,7 +48,7 @@ namespace nadena.dev.ndmf
 
     internal class PluginResolver
     {
-        internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; } 
+        internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         public PluginResolver() : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
@@ -96,17 +96,17 @@ namespace nadena.dev.ndmf
                 {
                     throw new Exception("Duplicate pass with qualified name " + pass.PassKey.QualifiedName);
                 }
-                
+
                 passByName[pass.PassKey.QualifiedName] = pass;
             }
-            
+
             foreach (var constraint in solverContext.Constraints)
             {
                 if (!passByName.TryGetValue(constraint.First.QualifiedName, out var first))
                 {
                     continue; // optional dependency
                 }
-                
+
                 if (!passByName.TryGetValue(constraint.Second.QualifiedName, out var second))
                 {
                     continue; // optional dependency
@@ -122,13 +122,13 @@ namespace nadena.dev.ndmf
                     list = new List<(SolverPass, SolverPass, ConstraintType)>();
                     constraintsByPhase[first.Phase] = list;
                 }
-                
+
                 list.Add((first, second, constraint.Type));
             }
 
             ImmutableList<(BuildPhase, IList<ConcretePass>)> result =
                 ImmutableList<(BuildPhase, IList<ConcretePass>)>.Empty;
-            
+
             foreach (var phase in BuildPhase.BuiltInPhases)
             {
                 var passes = passesByPhase.TryGetValue(phase, out var list) ? list : null;
@@ -142,26 +142,26 @@ namespace nadena.dev.ndmf
                     constraintsByPhase.TryGetValue(phase, out var constraintList)
                         ? constraintList
                         : new List<(SolverPass, SolverPass, ConstraintType)>();
-                
+
                 var sorted = TopoSort.DoSort(passes, constraints);
 
                 var concrete = ToConcretePasses(phase, sorted);
 
                 result = result.Add((phase, concrete));
             }
-            
+
             Passes = result;
         }
 
         ImmutableList<ConcretePass> ToConcretePasses(BuildPhase phase, IEnumerable<SolverPass> sorted)
         {
             HashSet<Type> activeExtensions = new HashSet<Type>();
-            
+
             var concrete = new List<ConcretePass>();
             foreach (var pass in sorted)
             {
                 if (pass.IsPhantom) continue;
-                
+
                 var toDeactivate = new List<Type>();
                 var toActivate = new List<Type>();
                 activeExtensions.RemoveWhere(t =>
@@ -184,15 +184,16 @@ namespace nadena.dev.ndmf
                     }
                 }
 
-                concrete.Add(new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(), toActivate.ToImmutableList()));
+                concrete.Add(new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
+                    toActivate.ToImmutableList()));
             }
 
             if (activeExtensions.Count > 0)
             {
-                var cleanup = new AnonymousPass("nadena.dev.ndmf.internal.CleanupExtensions." + phase, 
+                var cleanup = new AnonymousPass("nadena.dev.ndmf.internal.CleanupExtensions." + phase,
                     "Close extensions",
                     ctx => { });
-                
+
                 concrete.Add(new ConcretePass(InternalPasses.Instance, cleanup,
                     activeExtensions.ToImmutableList(),
                     ImmutableList<Type>.Empty

@@ -1,5 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿#region
+
+using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
+
+#endregion
 
 namespace nadena.dev.ndmf.fluent
 {
@@ -21,20 +25,21 @@ namespace nadena.dev.ndmf.fluent
         private readonly SolverContext _solverContext;
         private readonly BuildPhase _phase;
         private readonly SolverPass _pass;
-        
+
         internal DeclaringPass(SolverPass pass, SolverContext solverContext, BuildPhase phase)
         {
             _pass = pass;
             _solverContext = solverContext;
             _phase = phase;
         }
-        
+
         /// <summary>
         /// Declares that the pass you just declared must run before a particular other plugin.
         /// </summary>
         /// <param name="QualifiedName">The qualified name of the other plugin</param>
         /// <returns>This DeclaringPass context</returns>
-        public DeclaringPass BeforePlugin(string QualifiedName, [CallerFilePath] string sourceFile = "",  [CallerLineNumber] int sourceLine = 0)
+        public DeclaringPass BeforePlugin(string QualifiedName, [CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0)
         {
             _solverContext.Constraints.Add(new Constraint()
             {
@@ -53,17 +58,18 @@ namespace nadena.dev.ndmf.fluent
         /// </summary>
         /// <param name="QualifiedName">The singleton of the other plugin</param>
         /// <returns>This DeclaringPass context</returns>
-        public DeclaringPass BeforePlugin<T>(T plugin, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : fluent.Plugin<T>, new()
+        public DeclaringPass BeforePlugin<T>(T plugin, [CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0) where T : Plugin<T>, new()
         {
             return BeforePlugin(plugin.QualifiedName, sourceFile, sourceLine);
         }
-        
-        
+
+
         private DeclaringPass BeforePass(string qualifiedName, string sourceFile = "", int sourceLine = 0)
         {
             _solverContext.Constraints.Add(new Constraint()
             {
-                First = _pass.PassKey, 
+                First = _pass.PassKey,
                 Second = new PassKey(qualifiedName),
                 Type = ConstraintType.WeakOrder,
                 DeclaredFile = sourceFile,
@@ -78,12 +84,13 @@ namespace nadena.dev.ndmf.fluent
         /// </summary>
         /// <param name="QualifiedName">The singleton of the other plugin</param>
         /// <returns>This DeclaringPass context</returns>
-        public DeclaringPass BeforePass<T>(T pass, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : Pass<T>, new()
+        public DeclaringPass BeforePass<T>(T pass, [CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0) where T : Pass<T>, new()
         {
             return BeforePass(pass.QualifiedName, sourceFile, sourceLine);
         }
-    } 
-    
+    }
+
     /// <summary>
     /// Represents a sequence of passes that will execute in order (but not necessarily directly after one another),
     /// and allows this sequence to be built up.
@@ -97,9 +104,9 @@ namespace nadena.dev.ndmf.fluent
         private readonly SolverPass _sequenceStart, _sequenceEnd;
 
         private SolverPass _priorPass = null;
-        
+
         private int inlinePassIndex = 0;
-        
+
         internal Sequence(BuildPhase phase, SolverContext solverContext, IPlugin plugin, string sequenceBaseName)
         {
             _phase = phase;
@@ -139,23 +146,26 @@ namespace nadena.dev.ndmf.fluent
             _solverContext.AddPass(_sequenceStart);
             _solverContext.AddPass(_sequenceEnd);
         }
-        
-        private SolverPass CreateSequencingPass(string displayName, InlinePass callback, string sourceFile, int sourceLine)
+
+        private SolverPass CreateSequencingPass(string displayName, InlinePass callback, string sourceFile,
+            int sourceLine)
         {
-            var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName, callback);
+            var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName,
+                callback);
             var pass = new SolverPass(_plugin, anonPass, _phase, _compatibleExtensions, _requiredExtensions);
             anonPass.IsPhantom = true;
-            
+
             return pass;
         }
-        
+
         /// <summary>
         /// Registers a pass to run in this sequence.
         /// </summary>
         /// <param name="pass">The pass to run</param>
         /// <typeparam name="T"></typeparam>
         /// <returns>A DeclaringPass object that can be used to set BeforePass/BeforePlugin constraints</returns>
-        public DeclaringPass Run<T>(T pass, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0) where T : fluent.Pass<T>, new()
+        public DeclaringPass Run<T>(T pass, [CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0) where T : Pass<T>, new()
         {
             return InternalRun(pass, sourceFile, sourceLine);
         }
@@ -164,7 +174,7 @@ namespace nadena.dev.ndmf.fluent
         {
             var solverPass = new SolverPass(_plugin, pass, _phase, _compatibleExtensions, _requiredExtensions);
             _solverContext.AddPass(solverPass);
-            
+
             _solverContext.Constraints.Add(
                 new Constraint()
                 {
@@ -173,7 +183,7 @@ namespace nadena.dev.ndmf.fluent
                     Type = ConstraintType.WeakOrder,
                 }
             );
-            
+
             _solverContext.Constraints.Add(
                 new Constraint()
                 {
@@ -197,7 +207,7 @@ namespace nadena.dev.ndmf.fluent
 
             _priorPass = solverPass;
             OnNewPass(solverPass);
-            
+
             return new DeclaringPass(solverPass, _solverContext, _phase);
         }
 
@@ -208,9 +218,11 @@ namespace nadena.dev.ndmf.fluent
         /// <param name="displayName">The name of the pass to show in debug output</param>
         /// <param name="inlinePass">A callback to invoke when the pass is executed</param>
         /// <returns></returns>
-        public DeclaringPass Run(string displayName, InlinePass inlinePass, [CallerFilePath] string sourceFile = "", [CallerLineNumber] int sourceLine = 0)
+        public DeclaringPass Run(string displayName, InlinePass inlinePass, [CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0)
         {
-            var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName, inlinePass);
+            var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName,
+                inlinePass);
             return InternalRun(anonPass, sourceFile, sourceLine);
         }
     }

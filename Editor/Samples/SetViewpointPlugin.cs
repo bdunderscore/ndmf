@@ -1,8 +1,11 @@
-﻿using nadena.dev.ndmf;
-using nadena.dev.ndmf.fluent;
+﻿#region
+
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.runtime.samples;
 using nadena.dev.ndmf.sample;
 using UnityEngine;
+
+#endregion
 
 [assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
 
@@ -15,7 +18,7 @@ namespace nadena.dev.ndmf.sample
         /// dependencies. If not set, the full type name will be used.
         /// </summary>
         public override string QualifiedName => "nadena.dev.av3-build-framework.sample.set-viewpoint";
-        
+
         /// <summary>
         /// The plugin name shown in debug UIs. If not set, the qualified name will be shown.
         /// </summary>

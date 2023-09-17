@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace nadena.dev.ndmf
+﻿namespace nadena.dev.ndmf
 {
     public interface IExtensionContext
     {

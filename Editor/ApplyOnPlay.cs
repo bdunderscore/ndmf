@@ -24,9 +24,13 @@
 
 #if UNITY_EDITOR // workaround issues with docfx
 
+#region
+
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {

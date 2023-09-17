@@ -1,8 +1,12 @@
-﻿using System;
-using System.Threading;
-using NUnit.Framework;
+﻿#region
 
-namespace nadena.dev.ndmf.fluent
+using System;
+using System.Threading;
+using nadena.dev.ndmf.fluent;
+
+#endregion
+
+namespace nadena.dev.ndmf
 {
     internal interface IPass
     {
@@ -25,29 +29,29 @@ namespace nadena.dev.ndmf.fluent
 
         internal bool IsPhantom { get; set; }
         bool IPass.IsPhantom => IsPhantom;
-        
+
         public AnonymousPass(string qualifiedName, string displayName, InlinePass execute)
         {
             QualifiedName = qualifiedName;
             DisplayName = displayName;
             _executor = execute;
         }
-        
+
         public void Execute(BuildContext context)
         {
             _executor(context);
         }
     }
-    
+
     public abstract class Pass<T> : IPass where T : Pass<T>, new()
     {
-        private static Lazy<T> _instance = new Lazy<T>(() => new T(), 
+        private static Lazy<T> _instance = new Lazy<T>(() => new T(),
             LazyThreadSafetyMode.ExecutionAndPublication);
 
         public static T Instance => _instance.Value;
-        
+
         PassKey IPass.PassKey => new PassKey(QualifiedName);
-        
+
         public virtual string QualifiedName => typeof(T).FullName;
         public virtual string DisplayName => typeof(T).Name;
         bool IPass.IsPhantom => false;

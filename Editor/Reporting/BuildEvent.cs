@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region
+
+using System;
 using System.Collections.Immutable;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf.reporting
 {

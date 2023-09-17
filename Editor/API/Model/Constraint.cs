@@ -1,6 +1,4 @@
-﻿using nadena.dev.ndmf.fluent;
-
-namespace nadena.dev.ndmf.model
+﻿namespace nadena.dev.ndmf.model
 {
     internal enum ConstraintType
     {
@@ -8,12 +6,12 @@ namespace nadena.dev.ndmf.model
         Sequence,
         WaitFor,
     }
-    
+
     internal struct Constraint
     {
         public string DeclaredFile;
         public int DeclaredLine;
         public PassKey First, Second;
-        public ConstraintType Type; 
+        public ConstraintType Type;
     }
 }

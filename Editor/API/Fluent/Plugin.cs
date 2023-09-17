@@ -1,8 +1,12 @@
-﻿using System;
-using System.Threading;
-using nadena.dev.ndmf;
+﻿#region
 
-namespace nadena.dev.ndmf.fluent
+using System;
+using System.Threading;
+using nadena.dev.ndmf.fluent;
+
+#endregion
+
+namespace nadena.dev.ndmf
 {
     internal interface IPlugin
     {
@@ -11,20 +15,21 @@ namespace nadena.dev.ndmf.fluent
 
         void Configure(PluginInfo info);
     }
-    
-    public abstract class Plugin<T> : IPlugin where T: Plugin<T>, new()
+
+    public abstract class Plugin<T> : IPlugin where T : Plugin<T>, new()
     {
         private static object _lock = new object();
-        private static Lazy<Plugin<T>> _instance = new Lazy<Plugin<T>>(() => new T(), 
+
+        private static Lazy<Plugin<T>> _instance = new Lazy<Plugin<T>>(() => new T(),
             LazyThreadSafetyMode.ExecutionAndPublication);
-        
+
         public static Plugin<T> Instance => _instance.Value;
 
         private PluginInfo _info;
-        
+
         public virtual string QualifiedName => typeof(T).FullName;
         public virtual string DisplayName => QualifiedName;
-        
+
         void IPlugin.Configure(PluginInfo info)
         {
             _info = info;
@@ -37,7 +42,7 @@ namespace nadena.dev.ndmf.fluent
                 _info = null;
             }
         }
-        
+
         protected abstract void Configure();
 
         protected Sequence InPhase(BuildPhase phase)

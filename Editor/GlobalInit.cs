@@ -1,5 +1,9 @@
-﻿using nadena.dev.ndmf.runtime;
+﻿#region
+
+using nadena.dev.ndmf.runtime;
 using UnityEditor;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {

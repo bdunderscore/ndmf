@@ -1,8 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using nadena.dev.ndmf;
-using nadena.dev.ndmf.fluent;
+
+#endregion
 
 namespace nadena.dev.ndmf.model
 {
@@ -21,20 +23,21 @@ namespace nadena.dev.ndmf.model
 
             startAnon.IsPhantom = true;
             endAnon.IsPhantom = true;
-            
-            PluginStart = new SolverPass(InternalPasses.Instance, startAnon, phase, 
+
+            PluginStart = new SolverPass(InternalPasses.Instance, startAnon, phase,
                 ImmutableHashSet<string>.Empty, ImmutableHashSet<Type>.Empty);
-            PluginEnd = new SolverPass(InternalPasses.Instance, endAnon, phase, 
+            PluginEnd = new SolverPass(InternalPasses.Instance, endAnon, phase,
                 ImmutableHashSet<string>.Empty, ImmutableHashSet<Type>.Empty);
         }
     }
-    
+
     internal class SolverContext
     {
         public List<SolverPass> Passes { get; } = new List<SolverPass>();
         public List<Constraint> Constraints { get; } = new List<Constraint>();
-        
-        private Dictionary<(string, BuildPhase), InnatePhases> _innatePhases = new Dictionary<(string, BuildPhase), InnatePhases>();
+
+        private Dictionary<(string, BuildPhase), InnatePhases> _innatePhases =
+            new Dictionary<(string, BuildPhase), InnatePhases>();
 
         public InnatePhases GetPluginPhases(BuildPhase phase, string pluginQualifiedName)
         {

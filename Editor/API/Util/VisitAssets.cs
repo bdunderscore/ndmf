@@ -1,16 +1,19 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿#region
+
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf.util
 {
     public static class VisitAssets
     {
-        public delegate bool AssetFilter(UnityEngine.Object obj);
+        public delegate bool AssetFilter(Object obj);
 
-        public static IEnumerable<UnityEngine.Object> ReferencedAssets(
-            this UnityEngine.Object root,
+        public static IEnumerable<Object> ReferencedAssets(
+            this Object root,
             bool traverseSaved = true,
             bool includeScene = true,
             AssetFilter traversalFilter = null
@@ -18,8 +21,8 @@ namespace nadena.dev.ndmf.util
         {
             int index = 0;
 
-            HashSet<UnityEngine.Object> visited = new HashSet<Object>();
-            Queue<(int, UnityEngine.Object)> queue = new Queue<(int, Object)>();
+            HashSet<Object> visited = new HashSet<Object>();
+            Queue<(int, Object)> queue = new Queue<(int, Object)>();
 
             if (traversalFilter == null)
             {

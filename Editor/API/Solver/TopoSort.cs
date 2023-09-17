@@ -1,8 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using nadena.dev.ndmf.model;
-using UnityEditor.Graphs;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -20,7 +22,7 @@ namespace nadena.dev.ndmf
             {
                 passes[value] = new TopoPass<T>(value, fallbackSort++);
             }
-            
+
             foreach (var (first, second, type) in OrderingConstraints)
             {
                 passes[first].AddConstraint(passes[second], type);
@@ -39,7 +41,7 @@ namespace nadena.dev.ndmf
             }
 
             var order = new List<T>();
-            
+
             while (ready.Count > 0)
             {
                 TopoPass<T> nextPass = null;
@@ -55,7 +57,7 @@ namespace nadena.dev.ndmf
                 }
 
                 nextPass = nextPass ?? ready.Min;
-                
+
                 ready.Remove(nextPass);
                 notExecuted.Remove(nextPass);
                 order.Add(nextPass.Pass);
@@ -64,7 +66,7 @@ namespace nadena.dev.ndmf
                 {
                     ready.Add(nowReady);
                 }
-                
+
                 priorityStack.Push(nextPass);
             }
 

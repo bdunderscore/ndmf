@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Linq;
-using nadena.dev.ndmf.fluent;
 using nadena.dev.ndmf.reporting;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf.ui
 {
@@ -40,7 +44,7 @@ namespace nadena.dev.ndmf.ui
         {
             if (_solverUI != null)
             {
-                _solverUI.OnGUI(new UnityEngine.Rect(0, 0, position.width, position.height));
+                _solverUI.OnGUI(new Rect(0, 0, position.width, position.height));
             }
         }
     }

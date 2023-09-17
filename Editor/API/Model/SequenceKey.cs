@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using JetBrains.Annotations;
+
+#endregion
 
 namespace nadena.dev.ndmf.model
 {
@@ -11,7 +15,7 @@ namespace nadena.dev.ndmf.model
     internal sealed class SequenceKey
     {
         public readonly string QualifiedName;
-        
+
         public SequenceKey(string qualifiedName)
         {
             QualifiedName = qualifiedName ?? Guid.NewGuid().ToString();
@@ -21,17 +25,17 @@ namespace nadena.dev.ndmf.model
         {
             return new SequenceKey(t.FullName);
         }
-        
+
         public static SequenceKey BeforePlugin(string qualifiedName)
         {
             return new SequenceKey(qualifiedName + "$BeforePlugin");
         }
-        
+
         public static SequenceKey AfterPlugin(string qualifiedName)
         {
             return new SequenceKey(qualifiedName + "$AfterPlugin");
         }
-        
+
         public override string ToString()
         {
             return QualifiedName;

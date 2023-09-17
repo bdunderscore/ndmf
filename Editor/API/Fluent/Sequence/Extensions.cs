@@ -1,12 +1,16 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
+#endregion
+
 namespace nadena.dev.ndmf.fluent
 {
     public sealed partial class Sequence
-    {        
+    {
         private ImmutableHashSet<Type> _requiredExtensions = ImmutableHashSet<Type>.Empty;
         private ImmutableHashSet<string> _compatibleExtensions = ImmutableHashSet<string>.Empty;
 
@@ -18,13 +22,13 @@ namespace nadena.dev.ndmf.fluent
             {
                 _action = action;
             }
-            
+
             public void Dispose()
             {
                 _action();
             }
         }
-        
+
         /// <summary>
         /// Declares that a group of passes are compatible with a given set of extensions - that is, they will not deactivate
         /// the extensions if already active.
@@ -52,7 +56,7 @@ namespace nadena.dev.ndmf.fluent
                 _compatibleExtensions = prior;
             }
         }
-        
+
         /// <summary>
         /// Declares that a group of passes are compatible with given extensions - that is, they will not deactivate
         /// the extensions if already active.
@@ -69,8 +73,8 @@ namespace nadena.dev.ndmf.fluent
         public void WithCompatibleExtensions(IEnumerable<Type> extensions, Action<Sequence> action)
         {
             WithCompatibleExtensions(extensions.Select(t => t.FullName), action);
-        } 
-        
+        }
+
         /// <summary>
         /// Declares that a group of passes are compatible with a given extension - that is, they will not deactivate
         /// the extension if it is already active.
@@ -88,7 +92,7 @@ namespace nadena.dev.ndmf.fluent
         {
             WithCompatibleExtensions(new[] {extension}, action);
         }
-        
+
         /// <summary>
         /// Declares that a group of passes are compatible with a given extension - that is, they will not deactivate
         /// the extension if it is already active.
@@ -122,7 +126,7 @@ namespace nadena.dev.ndmf.fluent
         {
             var prior = _requiredExtensions;
             _requiredExtensions = _requiredExtensions.Union(extensions);
-            
+
             try
             {
                 action(this);
@@ -132,6 +136,7 @@ namespace nadena.dev.ndmf.fluent
                 _requiredExtensions = prior;
             }
         }
+
         /// <summary>
         /// Declares that a group of passes require a given extension - that is, they will activate the extension
         /// before executing.

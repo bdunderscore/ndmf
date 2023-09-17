@@ -1,10 +1,15 @@
-﻿using System.Collections.Immutable;
+﻿#region
+
+using System.Collections.Immutable;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
     public class BuildPhase
     {
         public string Name { get; }
+
         // Prevent extension for now
         internal BuildPhase(string name)
         {
@@ -15,7 +20,7 @@ namespace nadena.dev.ndmf
         public static readonly BuildPhase Generating = new BuildPhase("Generating");
         public static readonly BuildPhase Transforming = new BuildPhase("Transforming");
         public static readonly BuildPhase Optimizing = new BuildPhase("Optimizing");
-        
+
         public static readonly ImmutableList<BuildPhase> BuiltInPhases
             = ImmutableList.Create(Resolving, Generating, Transforming, Optimizing);
 

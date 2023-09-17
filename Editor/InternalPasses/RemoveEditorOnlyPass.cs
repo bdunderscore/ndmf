@@ -1,6 +1,8 @@
-﻿using nadena.dev.ndmf;
-using nadena.dev.ndmf.fluent;
+﻿#region
+
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf.builtin
 {
@@ -22,7 +24,7 @@ namespace nadena.dev.ndmf.builtin
             {
                 if (t != null && t.gameObject.CompareTag("EditorOnly"))
                 {
-                    UnityEngine.Object.DestroyImmediate(t.gameObject);
+                    Object.DestroyImmediate(t.gameObject);
                 }
             }
         }

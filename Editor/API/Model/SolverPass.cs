@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region
+
+using System;
 using System.Collections.Immutable;
-using BestHTTP.SecureProtocol.Org.BouncyCastle.Ocsp;
-using nadena.dev.ndmf.fluent;
+
+#endregion
 
 namespace nadena.dev.ndmf.model
 {
@@ -14,11 +15,11 @@ namespace nadena.dev.ndmf.model
     {
         internal IPass Pass { get; }
         internal BuildPhase Phase { get; }
-        
-        internal IPlugin Plugin { get;  }
+
+        internal IPlugin Plugin { get; }
         internal PassKey PassKey => Pass.PassKey;
         internal bool IsPhantom => Pass.IsPhantom;
-        
+
         internal IImmutableSet<Type> RequiredExtensions { get; set; }
         internal IImmutableSet<string> CompatibleExtensions { get; set; }
 
@@ -26,8 +27,9 @@ namespace nadena.dev.ndmf.model
         {
             return IsPhantom || RequiredExtensions.Contains(ty) || CompatibleExtensions.Contains(ty.FullName);
         }
-        
-        internal SolverPass(IPlugin plugin, IPass pass, BuildPhase phase, IImmutableSet<string> compatibleExtensions, IImmutableSet<Type> requiredExtensions)
+
+        internal SolverPass(IPlugin plugin, IPass pass, BuildPhase phase, IImmutableSet<string> compatibleExtensions,
+            IImmutableSet<Type> requiredExtensions)
         {
             Plugin = plugin;
             Pass = pass;

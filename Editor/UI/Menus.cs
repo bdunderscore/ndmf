@@ -1,7 +1,9 @@
-﻿using UnityEditor;
-using UnityEngine;
-using VRC.SDK3.Avatars.Components;
+﻿#region
+
+using UnityEditor;
 using UnityObject = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.ndmf.ui
 {

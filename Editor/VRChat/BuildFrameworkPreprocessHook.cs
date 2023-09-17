@@ -1,9 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Diagnostics;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.ndmf.VRChat
 {
@@ -57,7 +62,7 @@ namespace nadena.dev.ndmf.VRChat
                 holder.context.Finish();
                 sw.Stop();
                 Debug.Log($"Build Framework: Saved assets in {sw.ElapsedMilliseconds}ms");
-                UnityEngine.Object.DestroyImmediate(holder);
+                Object.DestroyImmediate(holder);
 
                 return true;
             }

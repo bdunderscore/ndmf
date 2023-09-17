@@ -1,7 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
@@ -11,6 +14,8 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using UnityObject = UnityEngine.Object;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -46,7 +51,7 @@ namespace nadena.dev.ndmf
         /// referenced by the avatar to this container when the build completes, but in some cases it can be necessary
         /// to manually save assets (e.g. when using AnimatorController builtins).
         /// </summary>
-        public UnityEngine.Object AssetContainer { get; private set; }
+        public UnityObject AssetContainer { get; private set; }
 
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
@@ -96,8 +101,8 @@ namespace nadena.dev.ndmf
             if (assetRootPath != null)
             {
                 // Ensure the target directory exists
-                System.IO.Directory.CreateDirectory(assetRootPath);
-                var avatarPath = System.IO.Path.Combine(assetRootPath, avatarName) + ".asset";
+                Directory.CreateDirectory(assetRootPath);
+                var avatarPath = Path.Combine(assetRootPath, avatarName) + ".asset";
                 AssetDatabase.GenerateUniqueAssetPath(avatarPath);
                 AssetDatabase.CreateAsset(AssetContainer, avatarPath);
                 if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
@@ -118,7 +123,7 @@ namespace nadena.dev.ndmf
             sw.Stop();
         }
 
-        public bool IsTemporaryAsset(UnityEngine.Object obj)
+        public bool IsTemporaryAsset(UnityObject obj)
         {
             return !EditorUtility.IsPersistent(obj)
                    || AssetDatabase.GetAssetPath(obj) == AssetDatabase.GetAssetPath(AssetContainer);

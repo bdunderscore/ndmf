@@ -1,5 +1,8 @@
-﻿using nadena.dev.ndmf.builtin;
-using nadena.dev.ndmf.fluent;
+﻿#region
+
+using nadena.dev.ndmf.builtin;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -7,7 +10,7 @@ namespace nadena.dev.ndmf
     {
         public override string QualifiedName => "nadena.dev.ndmf.InternalPasses";
         public override string DisplayName => "NDM Framework";
-        
+
         protected override void Configure()
         {
             InPhase(BuildPhase.Resolving)

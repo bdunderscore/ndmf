@@ -1,4 +1,8 @@
-﻿using System;
+﻿#region
+
+using System;
+
+#endregion
 
 namespace nadena.dev.ndmf
 {
@@ -13,7 +17,7 @@ namespace nadena.dev.ndmf
     public sealed class ExportsPlugin : Attribute
     {
         public Type PluginType { get; }
-        
+
         public ExportsPlugin(Type pluginType)
         {
             PluginType = pluginType;
