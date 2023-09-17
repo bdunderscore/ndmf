@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using nadena.dev.ndmf.animation;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.util;
@@ -31,14 +30,17 @@ namespace nadena.dev.ndmf
         /// The VRChat avatar descriptor for the avatar being built.
         /// </summary>
         public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
+
         /// <summary>
         /// The root GameObject of the avatar being built.
         /// </summary>
         public GameObject AvatarRootObject => _avatarRootObject;
+
         /// <summary>
         /// The root Transform of the avatar being built.
         /// </summary>
         public Transform AvatarRootTransform => _avatarRootTransform;
+
         /// <summary>
         /// An asset container that can be used to store generated assets. NDMF will automatically add any objects
         /// referenced by the avatar to this container when the build completes, but in some cases it can be necessary
@@ -83,7 +85,7 @@ namespace nadena.dev.ndmf
 
             Debug.Log("Starting processing for avatar: " + avatarDescriptor.gameObject.name);
             sw.Start();
-            
+
             _avatarDescriptor = avatarDescriptor;
             _avatarRootObject = avatarDescriptor.gameObject;
             _avatarRootTransform = avatarDescriptor.transform;
@@ -104,8 +106,6 @@ namespace nadena.dev.ndmf
                 }
             }
 
-            AnimationUtil.CloneAllControllers(this);
-            
             // Ensure that no prefab instances remain somehow
             foreach (Transform t in _avatarRootTransform.GetComponentsInChildren<Transform>(true))
             {
