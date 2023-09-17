@@ -26,6 +26,7 @@
 
 #region
 
+using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace nadena.dev.ndmf
         private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source,
             MonoBehaviour component)
         {
-            if (Settings.ApplyOnPlay && source == armedSource && component != null)
+            if (Config.ApplyOnPlay && source == armedSource && component != null)
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;

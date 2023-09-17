@@ -1,5 +1,6 @@
 ﻿#region
 
+using nadena.dev.ndmf.config;
 using UnityEditor;
 using UnityObject = UnityEngine.Object;
 
@@ -16,7 +17,7 @@ namespace nadena.dev.ndmf.ui
         static void Init()
         {
             EditorApplication.delayCall += OnSettingsChanged;
-            Settings.OnChange += OnSettingsChanged;
+            Config.OnChange += OnSettingsChanged;
         }
 
         // Avoid cluttering the GameObject context menu with duplicate entries. Users are more familiar with MA anyway,
@@ -38,12 +39,12 @@ namespace nadena.dev.ndmf.ui
         [MenuItem(APPLY_ON_PLAY_MENU_NAME, false, APPLY_ON_PLAY_PRIO)]
         private static void ApplyOnPlay()
         {
-            Settings.ApplyOnPlay = !Settings.ApplyOnPlay;
+            Config.ApplyOnPlay = !Config.ApplyOnPlay;
         }
 
         private static void OnSettingsChanged()
         {
-            Menu.SetChecked(APPLY_ON_PLAY_MENU_NAME, Settings.ApplyOnPlay);
+            Menu.SetChecked(APPLY_ON_PLAY_MENU_NAME, Config.ApplyOnPlay);
         }
     }
 }

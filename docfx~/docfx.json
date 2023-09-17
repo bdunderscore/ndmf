@@ -20,10 +20,10 @@
       "includePrivateMembers": false,
       "disableGitFeatures": false,
       "disableDefaultFilter": false,
-      "noRestore": false,
-      "namespaceLayout": "flattened",
+      "noRestore": true,
+      "namespaceLayout": "nested",
       "memberLayout": "samePage",
-      "EnumSortOrder": "alphabetic",
+      "EnumSortOrder": "declaringOrder",
       "allowCompilationErrors": true
     }
   ],

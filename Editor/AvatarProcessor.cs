@@ -113,7 +113,7 @@ namespace nadena.dev.ndmf
             ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
             buildContext.Finish();
 
-            if (RuntimeUtil.isPlaying)
+            if (RuntimeUtil.IsPlaying)
             {
                 root.AddComponent<AlreadyProcessedTag>();
             }

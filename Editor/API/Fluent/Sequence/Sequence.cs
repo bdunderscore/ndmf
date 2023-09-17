@@ -1,5 +1,6 @@
 ﻿#region
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
 
@@ -18,6 +19,7 @@ namespace nadena.dev.ndmf.fluent
     /// <code>
     /// sequence.Run(typeof(MyPass))      // returns DeclaringPass
     ///   .BeforePass(typeof(OtherPass)); // valid only on DeclaringPass
+    ///   .Then.Run(typeof(OtherPass));
     /// </code>
     /// </summary>
     public sealed class DeclaringPass
@@ -25,12 +27,27 @@ namespace nadena.dev.ndmf.fluent
         private readonly SolverContext _solverContext;
         private readonly BuildPhase _phase;
         private readonly SolverPass _pass;
+        private readonly Sequence _seq;
 
-        internal DeclaringPass(SolverPass pass, SolverContext solverContext, BuildPhase phase)
+        /// <summary>
+        /// Returns the original sequence that returned this DeclaringPass. This is useful for chaining multiple
+        /// pass declarations, like so:
+        ///
+        /// <code>
+        /// InPhase(Generating)
+        ///   .Run(typeof(PassOne))
+        ///   .Then.Run(typeof(PassTwo));
+        /// </code>
+        /// </summary>
+        [SuppressMessage("ReSharper", "ConvertToAutoProperty")]
+        public Sequence Then => _seq;
+
+        internal DeclaringPass(SolverPass pass, SolverContext solverContext, BuildPhase phase, Sequence seq)
         {
             _pass = pass;
             _solverContext = solverContext;
             _phase = phase;
+            _seq = seq;
         }
 
         /// <summary>
@@ -208,7 +225,7 @@ namespace nadena.dev.ndmf.fluent
             _priorPass = solverPass;
             OnNewPass(solverPass);
 
-            return new DeclaringPass(solverPass, _solverContext, _phase);
+            return new DeclaringPass(solverPass, _solverContext, _phase, this);
         }
 
         /// <summary>

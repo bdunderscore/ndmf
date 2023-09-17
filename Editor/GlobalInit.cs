@@ -12,7 +12,7 @@ namespace nadena.dev.ndmf
     {
         static GlobalInit()
         {
-            RuntimeUtil.delayCall = call => { EditorApplication.delayCall += () => call(); };
+            RuntimeUtil.DelayCall = call => { EditorApplication.delayCall += () => call(); };
         }
     }
 }

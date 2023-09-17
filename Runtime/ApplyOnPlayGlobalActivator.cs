@@ -48,7 +48,7 @@ namespace nadena.dev.ndmf.runtime
 
         private void Awake()
         {
-            if (!RuntimeUtil.isPlaying || this == null) return;
+            if (!RuntimeUtil.IsPlaying || this == null) return;
 
             var scene = gameObject.scene;
             foreach (var root in scene.GetRootGameObjects())
@@ -117,13 +117,13 @@ namespace nadena.dev.ndmf.runtime
     {
         private void Awake()
         {
-            if (!RuntimeUtil.isPlaying || this == null) return;
+            if (!RuntimeUtil.IsPlaying || this == null) return;
             ApplyOnPlayGlobalActivator.OnDemandProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource.Awake, this);
         }
 
         private void Start()
         {
-            if (!RuntimeUtil.isPlaying || this == null) return;
+            if (!RuntimeUtil.IsPlaying || this == null) return;
             ApplyOnPlayGlobalActivator.OnDemandProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource.Start, this);
         }
 

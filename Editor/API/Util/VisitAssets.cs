@@ -8,10 +8,22 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.util
 {
+    /// <summary>
+    /// This class provides helpers to traverse assets or asset properties referenced from a given root object.
+    /// </summary>
     public static class VisitAssets
     {
         public delegate bool AssetFilter(Object obj);
 
+        /// <summary>
+        /// Returns an enumerable of all assets referenced by the given root object.
+        /// </summary>
+        /// <param name="root">The asset to start traversal from</param>
+        /// <param name="traverseSaved">If false, traversal will not return assets that are saved</param>
+        /// <param name="includeScene">If false, scene assets will not be returned</param>
+        /// <param name="traversalFilter">If provided, this filter will be queried for each object encountered; if it
+        /// returns false, the selected object and all objects referenced from it will be ignored.</param>
+        /// <returns>An enumerable of objects found</returns>
         public static IEnumerable<Object> ReferencedAssets(
             this Object root,
             bool traverseSaved = true,
@@ -101,8 +113,18 @@ namespace nadena.dev.ndmf.util
         }
     }
 
+    /// <summary>
+    /// Provides helpers to walk the properties of a SerializedObject
+    /// </summary>
     public static class WalkObjectProps
     {
+        /// <summary>
+        /// Returns an enumerable that will return _most_ of the properties of a SerializedObject. In particular, this
+        /// skips the contents of certain large arrays (e.g. the character contents of strings and the contents of
+        /// AnimationClip curves).
+        /// </summary>
+        /// <param name="obj">The SerializedObject to traverse</param>
+        /// <returns>The SerializedProperties found</returns>
         public static IEnumerable<SerializedProperty> AllProperties(this SerializedObject obj)
         {
             var target = obj.targetObject;
@@ -144,6 +166,11 @@ namespace nadena.dev.ndmf.util
             }
         }
 
+        /// <summary>
+        /// Returns all ObjectReference properties of a SerializedObject
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static IEnumerable<SerializedProperty> ObjectProperties(this SerializedObject obj)
         {
             foreach (var prop in obj.AllProperties())

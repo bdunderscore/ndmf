@@ -119,6 +119,7 @@ namespace nadena.dev.ndmf.fluent
         ///   sequence.WithRequiredExtensions(new[] {typeof(foo.bar.MyExtension)}, s => {
         ///     s.Run(typeof(MyPass));
         ///   });
+        /// </code>
         /// </summary>
         /// <param name="extension">The extension to request</param>
         /// <param name="action">An action that will be invoked with the extensions marked required</param>
@@ -145,6 +146,7 @@ namespace nadena.dev.ndmf.fluent
         ///   sequence.WithRequiredExtension(typeof(foo.bar.MyExtension), s => {
         ///     s.Run(typeof(MyPass));
         ///   });
+        /// </code>
         /// </summary>
         /// <param name="extension">The extension to request</param>
         /// <param name="action">An action that will be invoked with the extensions marked required</param>

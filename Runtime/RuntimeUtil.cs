@@ -15,11 +15,11 @@ namespace nadena.dev.ndmf.runtime
         /// Invoke this function to register a callback with EditorApplication.delayCall from a context that cannot
         /// access EditorApplication.
         /// </summary>
-        public static Action<Action> delayCall { get; internal set; }
+        public static Action<Action> DelayCall { get; internal set; }
 
         static RuntimeUtil()
         {
-            delayCall = action => { throw new Exception("delayCall() cannot be called during static initialization"); };
+            DelayCall = action => { throw new Exception("delayCall() cannot be called during static initialization"); };
         }
 
         // Shadow the VRC-provided methods to avoid deprecation warnings
@@ -39,9 +39,9 @@ namespace nadena.dev.ndmf.runtime
         /// Returns whether the editor is in play mode.
         /// </summary>
 #if UNITY_EDITOR
-        public static bool isPlaying => UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
+        public static bool IsPlaying => UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
 #else
-        public static bool isPlaying => true;
+        public static bool IsPlaying => true;
 #endif
 
         /// <summary>

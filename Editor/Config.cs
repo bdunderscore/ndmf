@@ -29,12 +29,16 @@ using UnityEditor;
 
 #endregion
 
-namespace nadena.dev.ndmf
+namespace nadena.dev.ndmf.config
 {
-    public static class Settings
+    public static class Config
     {
+        // Preserve apply-on-play config from pre-1.8 versions of Modular Avatar
         private const string PREFKEY_APPLY_ON_PLAY = "nadena.dev.modular-avatar.applyOnPlay";
 
+        /// <summary>
+        /// Controls whether NDMF transformations will be applied at play time.
+        /// </summary>
         public static bool ApplyOnPlay
         {
             get => EditorPrefs.GetBool(PREFKEY_APPLY_ON_PLAY, true);
@@ -45,7 +49,11 @@ namespace nadena.dev.ndmf
             }
         }
 
+        /// <summary>
+        /// This event will be invoked when any config value changes.
+        /// </summary>
         public static event Action OnChange;
+
         private static void NotifyChange() => OnChange?.Invoke();
     }
 }
