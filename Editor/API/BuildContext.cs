@@ -11,6 +11,7 @@ using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using UnityObject = UnityEngine.Object;
@@ -203,7 +204,15 @@ namespace nadena.dev.ndmf
             if (_activeExtensions.ContainsKey(t))
             {
                 var ctx = _activeExtensions[t];
-                ctx.OnDeactivate(this);
+                Profiler.BeginSample("NDMF Deactivate: " + t);
+                try
+                {
+                    ctx.OnDeactivate(this);
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
                 _activeExtensions.Remove(t);
             }
         }
@@ -233,9 +242,17 @@ namespace nadena.dev.ndmf
 
             Stopwatch passTimer = new Stopwatch();
             passTimer.Start();
-            pass.Execute(this);
-            passTimer.Stop();
-
+            Profiler.BeginSample(pass.Description);
+            try
+            {
+                pass.Execute(this);
+            }
+            finally
+            {
+                Profiler.EndSample();
+                passTimer.Stop();
+            }
+            
             BuildEvent.Dispatch(new BuildEvent.PassExecuted(
                 pass.InstantiatedPass.QualifiedName,
                 passTimer.ElapsedMilliseconds,
@@ -260,7 +277,16 @@ namespace nadena.dev.ndmf
 
             if (!_activeExtensions.ContainsKey(ty))
             {
-                ctx.OnActivate(this);
+                Profiler.BeginSample("NDMF Activate: " + ty);
+                try
+                {
+                    ctx.OnActivate(this);
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
+
                 _activeExtensions.Add(ty, ctx);
             }
 
