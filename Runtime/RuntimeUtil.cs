@@ -90,12 +90,12 @@ namespace nadena.dev.ndmf.runtime
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        internal static VRCAvatarDescriptor FindAvatarInParents(Transform target)
+        internal static Transform FindAvatarInParents(Transform target)
         {
             while (target != null)
             {
                 var av = target.GetComponent<VRCAvatarDescriptor>();
-                if (av != null) return av;
+                if (av != null) return av.transform;
                 target = target.parent;
             }
 

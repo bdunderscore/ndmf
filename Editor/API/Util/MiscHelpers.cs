@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 #endregion
 
@@ -34,7 +33,7 @@ namespace nadena.dev.ndmf.util
         public static string AvatarRootPath(this GameObject child)
         {
             if (child == null) return null;
-            var avatar = FindAvatarInParents(child.transform);
+            var avatar = PlatformExtensions.FindAvatarInParents(child.transform);
             if (avatar == null) return null;
             return RelativePath(avatar.gameObject, child);
         }
@@ -43,18 +42,6 @@ namespace nadena.dev.ndmf.util
         public static string AvatarRootPath(this Component child)
         {
             return child.gameObject.AvatarRootPath();
-        }
-
-        public static VRCAvatarDescriptor FindAvatarInParents(Transform target)
-        {
-            while (target != null)
-            {
-                var av = target.GetComponent<VRCAvatarDescriptor>();
-                if (av != null) return av;
-                target = target.parent;
-            }
-
-            return null;
         }
     }
 }

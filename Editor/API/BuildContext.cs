@@ -12,7 +12,6 @@ using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
-using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using UnityObject = UnityEngine.Object;
 
@@ -24,18 +23,13 @@ namespace nadena.dev.ndmf
     /// The BuildContext is passed to all plugins during the build process. It provides access to the avatar being
     /// built, as well as various other context information.
     /// </summary>
-    public sealed class BuildContext
+    public sealed partial class BuildContext
     {
-        private readonly VRCAvatarDescriptor _avatarDescriptor;
         private readonly GameObject _avatarRootObject;
         private readonly Transform _avatarRootTransform;
 
         private Stopwatch sw = new Stopwatch();
 
-        /// <summary>
-        /// The VRChat avatar descriptor for the avatar being built.
-        /// </summary>
-        public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
 
         /// <summary>
         /// The root GameObject of the avatar being built.
@@ -81,20 +75,16 @@ namespace nadena.dev.ndmf
         }
 
         public BuildContext(GameObject obj, string assetRootPath)
-            : this(obj.GetComponent<VRCAvatarDescriptor>(), assetRootPath)
         {
-        }
+            BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
 
-        public BuildContext(VRCAvatarDescriptor avatarDescriptor, string assetRootPath)
-        {
-            BuildEvent.Dispatch(new BuildEvent.BuildStarted(avatarDescriptor.gameObject));
-
-            Debug.Log("Starting processing for avatar: " + avatarDescriptor.gameObject.name);
+            Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
-
-            _avatarDescriptor = avatarDescriptor;
-            _avatarRootObject = avatarDescriptor.gameObject;
-            _avatarRootTransform = avatarDescriptor.transform;
+            
+            _avatarRootObject = obj;
+            _avatarRootTransform = obj.transform;
+            
+            PlatformInit();
 
             var avatarName = _avatarRootObject.name;
 

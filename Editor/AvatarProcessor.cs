@@ -5,7 +5,6 @@ using System.Diagnostics;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -66,7 +65,7 @@ namespace nadena.dev.ndmf
         /// <returns></returns>
         public static bool CanProcessObject(GameObject avatar)
         {
-            return (avatar != null && avatar.GetComponent<VRCAvatarDescriptor>() != null);
+            return PlatformExtensions.CanProcessObject(avatar);
         }
 
         /// <summary>
