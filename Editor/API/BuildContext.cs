@@ -237,6 +237,10 @@ namespace nadena.dev.ndmf
             {
                 pass.Execute(this);
             }
+            catch (Exception e)
+            {
+                pass.Plugin.OnUnhandledException(e);
+            }
             finally
             {
                 Profiler.EndSample();

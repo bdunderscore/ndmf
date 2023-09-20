@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using nadena.dev.ndmf.fluent;
+using UnityEngine;
 
 #endregion
 
@@ -14,6 +15,8 @@ namespace nadena.dev.ndmf
         string DisplayName { get; }
 
         void Configure(PluginInfo info);
+
+        void OnUnhandledException(Exception e);
     }
 
     public abstract class Plugin<T> : IPlugin where T : Plugin<T>, new()
@@ -53,6 +56,23 @@ namespace nadena.dev.ndmf
             }
 
             return _info.NewSequence(phase);
+        }
+
+        /// <summary>
+        /// Invoked when a pass in this plugin throws an exception. This exception can be passed to a plugin's own error
+        /// handling UI.
+        ///
+        /// This API will likely be deprecated once a native error-reporting system is available.
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnUnhandledException(Exception e)
+        {
+            Debug.LogException(e);
+        }
+
+        void IPlugin.OnUnhandledException(Exception e)
+        {
+            OnUnhandledException(e);
         }
     }
 }
