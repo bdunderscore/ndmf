@@ -2,7 +2,6 @@ name: Build Release
 
 on:
   workflow_dispatch:
-  pull_request:
   push:
     branches:
       - main
@@ -12,33 +11,57 @@ on:
 env:
   packageName: "nadena.dev.ndmf"
 
-permissions:
-  contents: write
 
 jobs:
-  build:
+  run-tests:
+    needs: [prechecks]
+    if: needs.prechecks.outputs.need-new-tag == 'true'
+    uses: bdunderscore/ndmf/.github/workflows/gameci.yml@main
+    permissions:
+      checks: write
+      contents: read
+    secrets: inherit
+  prechecks:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.prop }}
+      need-new-tag: ${{ steps.check-tag.outputs.need-new-tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Check semver syntax
-        id: semver-check
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          REF_NAME: ${{ github.ref }}
+      - name: get version
         run: |
-          if echo $REF_NAME | grep '[a-z]-[0-9]' && ! echo $REF_NAME | grep '^refs/tags/1\.5\.0-'; then
-            echo "Tag name does not follow semver prerelease syntax: $REF_NAME"
-            exit 1
+          echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
+          echo current_version=$(jq -r .version package.json) >> $GITHUB_ENV
+
+      - name: Check if version is tagged
+        id: check-tag
+        run: |
+          if git fetch origin $current_version --depth=1; then
+            echo "Version $current_version is already tagged"
+            echo "need-new-tag=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $current_version is not tagged"
+            echo "need-new-tag=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: get version
-        id: version
-        uses: notiz-dev/github-action-json-property@a5a9c668b16513c737c3e1f8956772c99c73f6e8
-        with:
-          path: "package.json"
-          prop_path: "version"
+      - name: Verify that this is the first revision with this version
+        if: steps.check-tag.outputs.need-new-tag == 'true'
+        run: |
+          git fetch --unshallow
+          git checkout HEAD~ package.json
+          if [ "$(jq -r .version package.json)" == "$current_version" ]; then
+              echo "Error: Looks like we skipped the version bump commit."
+              exit 1
+          fi
+
+      - name: Check semver syntax
+        if: steps.check-tag.outputs.need-new-tag == 'true'
+        id: semver-check
+        run: |
+          chmod +x .github/workflows/*.sh
+          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.prop }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
@@ -48,7 +71,36 @@ jobs:
             exit 1
           fi
 
-      - run: echo ${{steps.version.outputs.prop}}
+  create-release:
+    needs: [prechecks, run-tests]
+    runs-on: ubuntu-latest
+    if: needs.prechecks.outputs.need-new-tag == 'true' || startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Reexport version
+        id: version
+        run: |
+          echo "version=${{ needs.prechecks.outputs.version }}" >> $GITHUB_ENV
+
+      # Re-check semver syntax in case this is being triggered by a manual tag push
+      - name: Check semver syntax
+        if: steps.check_tagged.outputs.need_tag == 'true'
+        id: semver-check
+        run: |
+          chmod +x .github/scripts/*.sh
+          .github/scripts/check-semver.sh ${{ steps.version.outputs.prop }}
+
+      - name: Check tag consistency
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [ "${{ steps.version.outputs.prop }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.prop }} != ${GITHUB_REF##*/}"
+            exit 1
+          fi
 
       - name: Set Environment Variables
         run: |
@@ -71,14 +123,23 @@ jobs:
         with:
           name: package-zip
           path: ${{ env.zipFile }}
+          
+      - name: Create tag
+        if: needs.prechecks.outputs.need-new-tag == 'true'
+        run: |
+          git config user.name "Github Actions"
+          git config user.email "github-actions@nadena.dev"
+          git tag ${{ steps.version.outputs.prop }}
+          git push origin ${{ steps.version.outputs.prop }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
-        if: startsWith(github.ref, 'refs/tags/')
+        if: needs.prechecks.outputs.need-new-tag == 'true' || startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
           generate_release_notes: true
           tag_name: ${{ steps.version.outputs.prop }}
+          name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
             package.json
