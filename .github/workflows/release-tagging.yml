@@ -1,0 +1,35 @@
+﻿name: Tag releases
+on:
+  push:
+    branches:
+      - main
+        
+permissions:
+  contents: write
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get current version
+        run: |
+          echo current_version=$(jq -r .version package.json) >> $GITHUB_ENV
+      - name: Check if version is tagged
+        id: check_tagged
+        run: |
+          if git tag -l $current_version; then
+            echo "Version $current_version is already tagged"
+            echo "need_tag=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $current_version is not tagged"
+            echo "need_tag=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Tag version
+        if: steps.check_tagged.outputs.need_tag == 'true'
+        run: |
+          git config user.name "Github Actions"
+          git config user.email "github-actions@nadena.dev"
+          git tag $current_version
+          git push origin $current_version
