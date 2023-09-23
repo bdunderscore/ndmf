@@ -1,8 +1,6 @@
 ﻿name: Tag releases
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
         
 permissions:
   contents: write
@@ -19,12 +17,20 @@ jobs:
       - name: Check if version is tagged
         id: check_tagged
         run: |
-          if git tag -l $current_version; then
+          if git tag -l $current_version | grep .; then
             echo "Version $current_version is already tagged"
             echo "need_tag=false" >> $GITHUB_OUTPUT
           else
             echo "Version $current_version is not tagged"
             echo "need_tag=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Verify that this is the first revision with this version
+        if: steps.check_tagged.outputs.need_tag == 'true'
+        run: |
+          git checkout HEAD~ package.json
+          if [ "$(jq -r .version package.json)" == "$current_version" ]; then
+              echo "Error: Looks like we skipped the version bump commit."
+              exit 1
           fi
       - name: Tag version
         if: steps.check_tagged.outputs.need_tag == 'true'

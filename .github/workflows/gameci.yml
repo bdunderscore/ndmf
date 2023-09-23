@@ -95,3 +95,8 @@ jobs:
         with:
           name: Coverage results
           path: ${{ steps.gameci.outputs.coveragePath }}
+  tag-release:
+    if: github.ref == 'refs/heads/main' && github.repository == 'bdunderscore/ndmf'
+    permissions:
+      contents: write
+    uses: bdunderscore/ndmf/.github/workflows/release-tagging.yml@main
