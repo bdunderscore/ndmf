@@ -17,8 +17,7 @@ jobs:
       - name: Check if version is tagged
         id: check_tagged
         run: |
-          git fetch origin $current_version --depth=1
-          if git tag -l $current_version | grep .; then
+          if git fetch origin $current_version --depth=1; then
             echo "Version $current_version is already tagged"
             echo "need_tag=false" >> $GITHUB_OUTPUT
           else
