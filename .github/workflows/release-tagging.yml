@@ -27,6 +27,7 @@ jobs:
       - name: Verify that this is the first revision with this version
         if: steps.check_tagged.outputs.need_tag == 'true'
         run: |
+          git fetch --unshallow
           git checkout HEAD~ package.json
           if [ "$(jq -r .version package.json)" == "$current_version" ]; then
               echo "Error: Looks like we skipped the version bump commit."
