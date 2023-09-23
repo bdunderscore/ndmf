@@ -36,7 +36,7 @@ namespace nadena.dev.ndmf.sample
 }
 ```
 
-You can see a functional example here: https://github.com/bdunderscore/ndmf/blob/main/Editor/Samples/SetViewpointPlugin.cs
+You can see a functional example here: https://github.com/bdunderscore/ndmf/blob/main/Editor/Samples~/SetViewpointPlugin.cs
 
 ## Execution model
 
