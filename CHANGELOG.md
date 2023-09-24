@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+* Fixed build failures when avatar names contained non-path-safe characters (#18)
+
 ### Changed
 
 ### Removed
