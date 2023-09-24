@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Move optimization passes to -1025 to ensure it runs before VRChat destroys IEditorOnly components.
+
 ### Changed
 
 ### Removed

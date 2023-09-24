@@ -45,7 +45,7 @@ namespace nadena.dev.ndmf.VRChat
 
     internal class BuildFrameworkOptimizeHook : IVRCSDKPreprocessAvatarCallback
     {
-        public int callbackOrder => 0;
+        public int callbackOrder => -1025; // just before RemoveAvatarEditorOnly
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
