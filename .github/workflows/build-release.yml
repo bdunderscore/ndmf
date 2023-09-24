@@ -24,7 +24,7 @@ jobs:
   prechecks:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ needs.prechecks.outputs.verrsion }}
+      version: ${{ needs.prechecks.outputs.version }}
       need-new-tag: ${{ steps.check-tag.outputs.need-new-tag }}
     steps:
       - name: Checkout
@@ -68,13 +68,13 @@ jobs:
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ needs.prechecks.outputs.verrsion }}
+          .github/workflows/check-semver-syntax.sh ${{ needs.prechecks.outputs.version }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          if [ "${{ needs.prechecks.outputs.verrsion }}" != "${GITHUB_REF##*/}" ]; then
-            echo "Version in package.json does not match tag name: ${{ needs.prechecks.outputs.verrsion }} != ${GITHUB_REF##*/}"
+          if [ "${{ needs.prechecks.outputs.version }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ needs.prechecks.outputs.version }} != ${GITHUB_REF##*/}"
             exit 1
           fi
 
@@ -103,20 +103,20 @@ jobs:
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ needs.prechecks.outputs.verrsion }}
+          .github/workflows/check-semver-syntax.sh ${{ needs.prechecks.outputs.version }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          if [ "${{ needs.prechecks.outputs.verrsion }}" != "${GITHUB_REF##*/}" ]; then
-            echo "Version in package.json does not match tag name: ${{ needs.prechecks.outputs.verrsion }} != ${GITHUB_REF##*/}"
+          if [ "${{ needs.prechecks.outputs.version }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ needs.prechecks.outputs.version }} != ${GITHUB_REF##*/}"
             exit 1
           fi
 
       - name: Set Environment Variables
         run: |
-          echo "zipFile=${{ env.packageName }}-${{ needs.prechecks.outputs.verrsion }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ env.packageName }}-${{ needs.prechecks.outputs.verrsion }}.unitypackage" >> $GITHUB_ENV
+          echo "zipFile=${{ env.packageName }}-${{ needs.prechecks.outputs.version }}".zip >> $GITHUB_ENV
+          echo "unityPackage=${{ env.packageName }}-${{ needs.prechecks.outputs.version }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
         uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
@@ -140,8 +140,8 @@ jobs:
         run: |
           git config user.name "Github Actions"
           git config user.email "github-actions@nadena.dev"
-          git tag ${{ needs.prechecks.outputs.verrsion }}
-          git push origin ${{ needs.prechecks.outputs.verrsion }}
+          git tag ${{ needs.prechecks.outputs.version }}
+          git push origin ${{ needs.prechecks.outputs.version }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
@@ -149,8 +149,8 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          tag_name: ${{ needs.prechecks.outputs.verrsion }}
-          name: ${{ needs.prechecks.outputs.verrsion }}
+          tag_name: ${{ needs.prechecks.outputs.version }}
+          name: ${{ needs.prechecks.outputs.version }}
           files: |
             ${{ env.zipFile }}
             package.json
