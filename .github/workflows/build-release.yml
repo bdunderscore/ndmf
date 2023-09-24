@@ -68,13 +68,13 @@ jobs:
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.prop }}
+          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.version }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          if [ "${{ steps.version.outputs.prop }}" != "${GITHUB_REF##*/}" ]; then
-            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.prop }} != ${GITHUB_REF##*/}"
+          if [ "${{ steps.version.outputs.version }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.version }} != ${GITHUB_REF##*/}"
             exit 1
           fi
 
@@ -103,20 +103,20 @@ jobs:
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
-          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.prop }}
+          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.version }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          if [ "${{ steps.version.outputs.prop }}" != "${GITHUB_REF##*/}" ]; then
-            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.prop }} != ${GITHUB_REF##*/}"
+          if [ "${{ steps.version.outputs.version }}" != "${GITHUB_REF##*/}" ]; then
+            echo "Version in package.json does not match tag name: ${{ steps.version.outputs.version }} != ${GITHUB_REF##*/}"
             exit 1
           fi
 
       - name: Set Environment Variables
         run: |
-          echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
+          echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.version }}".zip >> $GITHUB_ENV
+          echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.version }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
         uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
@@ -140,8 +140,8 @@ jobs:
         run: |
           git config user.name "Github Actions"
           git config user.email "github-actions@nadena.dev"
-          git tag ${{ steps.version.outputs.prop }}
-          git push origin ${{ steps.version.outputs.prop }}
+          git tag ${{ steps.version.outputs.version }}
+          git push origin ${{ steps.version.outputs.version }}
 
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
@@ -149,8 +149,8 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          tag_name: ${{ steps.version.outputs.prop }}
-          name: ${{ steps.version.outputs.prop }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
           files: |
             ${{ env.zipFile }}
             package.json
