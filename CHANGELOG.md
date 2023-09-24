@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remove missing script components from the avatar at the start of the build.
+- Fixed build failures when avatar names contained non-path-safe characters (#18)
 - Suppress apply-on-play when Lyuma's Av3Emulator is active (improves compatibility) (#16)
 
 ### Changed

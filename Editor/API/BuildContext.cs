@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.util;
@@ -93,6 +94,9 @@ namespace nadena.dev.ndmf
             {
                 // Ensure the target directory exists
                 Directory.CreateDirectory(assetRootPath);
+
+                var pathAvatarName = FilterAvatarName(avatarName);
+                
                 var avatarPath = Path.Combine(assetRootPath, avatarName) + ".asset";
                 AssetDatabase.GenerateUniqueAssetPath(avatarPath);
                 AssetDatabase.CreateAsset(AssetContainer, avatarPath);
@@ -112,6 +116,33 @@ namespace nadena.dev.ndmf
             }
 
             sw.Stop();
+        }
+
+        private static readonly Regex WindowsReservedFileNames = new Regex(
+            "(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])([.].*)?",
+            RegexOptions.IgnoreCase
+        );
+        
+        private static readonly Regex WindowsReservedFileCharacters = new Regex(
+            "[<>:\"/\\\\|?*\x00-\x1f]",
+            RegexOptions.IgnoreCase
+        );
+        
+        internal static string FilterAvatarName(string avatarName)
+        {
+            avatarName = WindowsReservedFileCharacters.Replace(avatarName, "_");
+
+            if (WindowsReservedFileNames.IsMatch(avatarName))
+            {
+                avatarName = "_" + avatarName;
+            }
+
+            if (string.IsNullOrEmpty(avatarName))
+            {
+                avatarName = Guid.NewGuid().ToString();
+            }
+
+            return avatarName;
         }
 
         public bool IsTemporaryAsset(UnityObject obj)
