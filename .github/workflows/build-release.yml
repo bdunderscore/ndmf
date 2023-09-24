@@ -32,6 +32,12 @@ jobs:
 
       - name: get version
         run: |
+          sudo apt-get -y install jq
+          version=$(jq -r .version package.json)
+          if [ x$version == x ]; then
+            echo "Unable to extract version"
+            exit 1
+          fi
           echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
           echo current_version=$(jq -r .version package.json) >> $GITHUB_ENV
 
