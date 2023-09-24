@@ -13,7 +13,6 @@ namespace nadena.dev.ndmf.builtin
     [NDMFInternalEarlyPass]
     public sealed class RemoveEditorOnlyPass : Pass<RemoveEditorOnlyPass>
     {
-        internal static RemoveEditorOnlyPass Instance = new RemoveEditorOnlyPass();
         public override string QualifiedName => "nadena.dev.ndmf.system.RemoveEditorOnly";
         public override string DisplayName => "Remove EditorOnly Objects";
 
