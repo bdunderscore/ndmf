@@ -24,7 +24,7 @@ jobs:
   prechecks:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.prop }}
+      version: ${{ steps.version.outputs.version }}
       need-new-tag: ${{ steps.check-tag.outputs.need-new-tag }}
     steps:
       - name: Checkout
@@ -92,14 +92,18 @@ jobs:
         id: version
         run: |
           echo "version=${{ needs.prechecks.outputs.version }}" >> $GITHUB_ENV
+          if [ "x${{ needs.prechecks.outputs.version }}" == "x" ]; then
+            echo "Unable to extract version"
+            exit 1
+          fi
 
       # Re-check semver syntax in case this is being triggered by a manual tag push
       - name: Check semver syntax
         if: steps.check_tagged.outputs.need_tag == 'true'
         id: semver-check
         run: |
-          chmod +x .github/scripts/*.sh
-          .github/scripts/check-semver.sh ${{ steps.version.outputs.prop }}
+          chmod +x .github/workflows/*.sh
+          .github/workflows/check-semver-syntax.sh ${{ steps.version.outputs.prop }}
 
       - name: Check tag consistency
         if: startsWith(github.ref, 'refs/tags/')
