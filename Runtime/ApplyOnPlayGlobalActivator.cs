@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -51,8 +52,6 @@ namespace nadena.dev.ndmf.runtime
         {
             if (!RuntimeUtil.IsPlaying || this == null) return;
 
-            var scene = gameObject.scene;
-
             // Check if Lyuma's Av3Emulator is present and enabled; if so, we leave preprocessing up to it.
             // First, find the type...
 
@@ -65,6 +64,8 @@ namespace nadena.dev.ndmf.runtime
 
             if (ty_av3emu != null)
             {
+                // find Av3Emulator for all scenes
+                foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt))
                 foreach (var root in scene.GetRootGameObjects())
                 {
                     if (root.GetComponentInChildren(ty_av3emu) != null)
@@ -74,7 +75,7 @@ namespace nadena.dev.ndmf.runtime
                 }
             }
 
-            foreach (var root in scene.GetRootGameObjects())
+            foreach (var root in gameObject.scene.GetRootGameObjects())
             {
                 foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
                 {
