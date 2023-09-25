@@ -97,7 +97,7 @@ namespace nadena.dev.ndmf
 
                 var pathAvatarName = FilterAvatarName(avatarName);
                 
-                var avatarPath = Path.Combine(assetRootPath, avatarName) + ".asset";
+                var avatarPath = Path.Combine(assetRootPath, pathAvatarName) + ".asset";
                 AssetDatabase.GenerateUniqueAssetPath(avatarPath);
                 AssetDatabase.CreateAsset(AssetContainer, avatarPath);
                 if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
