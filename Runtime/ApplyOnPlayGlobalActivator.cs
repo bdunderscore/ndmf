@@ -67,8 +67,9 @@ namespace nadena.dev.ndmf.runtime
                 // find Av3Emulator for all scenes
                 foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt))
                 foreach (var root in scene.GetRootGameObjects())
+                foreach (var emulator in root.GetComponentsInChildren(ty_av3emu))
                 {
-                    if (root.GetComponentInChildren(ty_av3emu) != null)
+                    if (emulator.gameObject.activeInHierarchy)
                     {
                         return;
                     }
