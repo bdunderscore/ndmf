@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Generated assets are not visible on the Project window (#26)
 - Apply on play is not disabled if av3emulator is active on other scene
+- Avatar names with non-path-safe characters break builds (again) (#18)
 
 ### Changed
 
