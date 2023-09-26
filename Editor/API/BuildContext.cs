@@ -213,6 +213,9 @@ namespace nadena.dev.ndmf
 
                 AssetDatabase.RemoveObjectFromAsset(asset);
             }
+
+            // SaveAssets to make sub-assets visible on the Project window
+            AssetDatabase.SaveAssets();
         }
 
         public void DeactivateExtensionContext<T>() where T : IExtensionContext

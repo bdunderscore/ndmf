@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added missing license declaration
 
 ### Fixed
+- Generated assets are not visible on the Project window (#26)
 - Apply on play is not disabled if av3emulator is active on other scene
 
 ### Changed
