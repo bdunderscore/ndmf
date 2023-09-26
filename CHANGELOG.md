@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Avatar names with non-path-safe characters break builds (again) (#18)
 
 ### Changed
 
