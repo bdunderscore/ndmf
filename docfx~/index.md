@@ -1,6 +1,6 @@
 # NDM Framework
 
-NFM Framework ("Nademof" for short) is a framework for running non-destructive build plugins when building avatars for
+NDM Framework ("Nademof" for short) is a framework for running non-destructive build plugins when building avatars for
 VRChat (and, eventually, for other VRSNS platforms).
 
 ## Why is this needed?
