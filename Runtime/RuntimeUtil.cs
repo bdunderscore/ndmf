@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -91,8 +90,14 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         public static bool IsAvatarRoot(Transform target)
         {
-            // TODO: refactor this to be less VRChat-specific.
-            return target.GetComponent<VRCAvatarDescriptor>();
+#if VRC_SDK_VRCSDK3
+            return target.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+#else            
+            var an = target.GetComponent<Animator>();
+            if (!an) return false;
+            var parent = target.transform.parent;
+            return !(parent && parent.GetComponentInParent<Animator>());
+#endif
         }
 
         /// <summary>
@@ -113,8 +118,6 @@ namespace nadena.dev.ndmf.runtime
         
         /// <summary>
         /// Returns the component marking the root of the avatar.
-        ///
-        /// Internal for now as we need to refactor this to be less VRChat-specific.
         /// </summary>
         /// <param name="scene"></param>
         /// <returns></returns>
