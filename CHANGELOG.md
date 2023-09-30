@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added toplevel menu for manual bake avatar, even when MA is also installed (#35)
 
 ### Fixed
 - Create ApplyOnPlayGlobalActivator correctly when creating and opening scenes (#31)
