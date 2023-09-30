@@ -85,9 +85,18 @@ namespace nadena.dev.ndmf.runtime
         }
 
         /// <summary>
+        /// Check whether the target component is the root of the avatar.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static bool IsAvatarRoot(Transform target)
+        {
+            // TODO: refactor this to be less VRChat-specific.
+            return target.GetComponent<VRCAvatarDescriptor>();
+        }
+
+        /// <summary>
         /// Returns the component marking the root of the avatar.
-        ///
-        /// Internal for now as we need to refactor this to be less VRChat-specific.
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
@@ -95,8 +104,7 @@ namespace nadena.dev.ndmf.runtime
         {
             while (target != null)
             {
-                var av = target.GetComponent<VRCAvatarDescriptor>();
-                if (av != null) return av.transform;
+                if (IsAvatarRoot(target)) return target;
                 target = target.parent;
             }
 
@@ -114,9 +122,9 @@ namespace nadena.dev.ndmf.runtime
         {
             foreach (var root in scene.GetRootGameObjects())
             {
-                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
+                foreach (var avatar in root.GetComponentsInChildren<Animator>())
                 {
-                    yield return avatar.transform;
+                    if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
                 }
             }
         }
