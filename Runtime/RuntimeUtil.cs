@@ -105,7 +105,7 @@ namespace nadena.dev.ndmf.runtime
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        internal static Transform FindAvatarInParents(Transform target)
+        public static Transform FindAvatarInParents(Transform target)
         {
             while (target != null)
             {
