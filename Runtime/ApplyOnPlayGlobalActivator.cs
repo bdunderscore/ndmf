@@ -6,7 +6,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -76,13 +75,10 @@ namespace nadena.dev.ndmf.runtime
                 }
             }
 
-            foreach (var root in gameObject.scene.GetRootGameObjects())
+            foreach (var avatar in RuntimeUtil.FindAvatarsInScene(gameObject.scene))
             {
-                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
-                {
-                    // TODO: Check whether each avatar needs processing (activation components)
-                    avatar.gameObject.GetOrAddComponent<AvatarActivator>().hideFlags = HideFlags.HideInInspector;
-                }
+                // TODO: Check whether each avatar needs processing (activation components)
+                avatar.gameObject.GetOrAddComponent<AvatarActivator>().hideFlags = HideFlags.HideInInspector;
             }
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VRC.SDK3.Avatars.Components;
 
 namespace nadena.dev.ndmf.runtime
@@ -100,6 +101,24 @@ namespace nadena.dev.ndmf.runtime
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// Returns the component marking the root of the avatar.
+        ///
+        /// Internal for now as we need to refactor this to be less VRChat-specific.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        internal static IEnumerable<Transform> FindAvatarsInScene(Scene scene)
+        {
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
+                {
+                    yield return avatar.transform;
+                }
+            }
         }
     }
 }
