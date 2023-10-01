@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-#if VRC_SDK_VRCSDK3
+#if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
 
@@ -94,7 +94,7 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         public static bool IsAvatarRoot(Transform target)
         {
-#if VRC_SDK_VRCSDK3
+#if NDMF_VRCSDK3_AVATARS
             return target.GetComponent<VRCAvatarDescriptor>();
 #else            
             var an = target.GetComponent<Animator>();
@@ -129,7 +129,7 @@ namespace nadena.dev.ndmf.runtime
         {
             foreach (var root in scene.GetRootGameObjects())
             {
-#if VRC_SDK_VRCSDK3
+#if NDMF_VRCSDK3_AVATARS
                 foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
 #else            
                 foreach (var avatar in root.GetComponentsInChildren<Animator>())
