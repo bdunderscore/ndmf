@@ -17,7 +17,7 @@ namespace nadena.dev.ndmf
     /// }
     /// </code>
     /// </summary>
-    [AttributeUsage(AttributeTargets.Assembly)]
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class ExportsPlugin : Attribute
     {
         public Type PluginType { get; }
