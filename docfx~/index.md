@@ -41,4 +41,4 @@ For more information, see the [API documentation](api/index.html) or the other a
 
 ## Support model
 
-NDMF is currently in an alpha state. The API is not fully stable yet - hopefully soon, though!
+See the [Versioning policy](versioning-policy.html) for more information.
