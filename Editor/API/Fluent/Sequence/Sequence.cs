@@ -167,7 +167,7 @@ namespace nadena.dev.ndmf.fluent
         private SolverPass CreateSequencingPass(string displayName, InlinePass callback, string sourceFile,
             int sourceLine)
         {
-            var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName,
+            var anonPass = new AnonymousPass(_sequenceBaseName + "/" + displayName + "#" + inlinePassIndex++, displayName,
                 callback);
             var pass = new SolverPass(_plugin, anonPass, _phase, _compatibleExtensions, _requiredExtensions);
             anonPass.IsPhantom = true;
