@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.model;
+using UnityEngine;
 
 #endregion
 
@@ -142,7 +143,15 @@ namespace nadena.dev.ndmf
                     constraintsByPhase.TryGetValue(phase, out var constraintList)
                         ? constraintList
                         : new List<(SolverPass, SolverPass, ConstraintType)>();
-
+#if NDMF_INTERNAL_DEBUG
+                var dumpString = "";
+                foreach (var constraint in constraints)
+                {
+                    dumpString += $"\"{constraint.Item1.PassKey.QualifiedName}\" -> \"{constraint.Item2.PassKey.QualifiedName}\" [label=\"{constraint.Item3}\"];\n";
+                }
+                Debug.Log(dumpString);
+#endif
+                
                 var sorted = TopoSort.DoSort(passes, constraints);
 
                 var concrete = ToConcretePasses(phase, sorted);

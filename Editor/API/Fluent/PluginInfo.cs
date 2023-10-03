@@ -1,5 +1,6 @@
 ﻿#region
 
+using System.Collections.Generic;
 using nadena.dev.ndmf.fluent;
 using nadena.dev.ndmf.model;
 
@@ -12,6 +13,7 @@ namespace nadena.dev.ndmf
         private readonly SolverContext _solverContext;
         private readonly IPlugin _plugin;
         private int sequenceIndex = 0;
+        private HashSet<BuildPhase> _createdInnatePhases = new HashSet<BuildPhase>();
 
         public PluginInfo(SolverContext solverContext, IPlugin plugin)
         {

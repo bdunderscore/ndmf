@@ -43,6 +43,12 @@ namespace nadena.dev.ndmf.fluent
         {
             return BeforePlugin(plugin.QualifiedName, sourceFile, sourceLine);
         }
+        
+        public Sequence BeforePlugin<T>([CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0) where T : Plugin<T>, new()
+        {
+            return BeforePlugin(Plugin<T>.Instance.QualifiedName, sourceFile, sourceLine);
+        }
 
         public Sequence AfterPlugin(string qualifiedName, [CallerFilePath] string sourceFile = "",
             [CallerLineNumber] int sourceLine = 0)
@@ -63,6 +69,12 @@ namespace nadena.dev.ndmf.fluent
             [CallerLineNumber] int sourceLine = 0) where T : Plugin<T>, new()
         {
             return AfterPlugin(plugin.QualifiedName, sourceFile, sourceLine);
+        }
+        
+        public Sequence AfterPlugin<T>([CallerFilePath] string sourceFile = "",
+            [CallerLineNumber] int sourceLine = 0) where T : Plugin<T>, new()
+        {
+            return AfterPlugin(Plugin<T>.Instance.QualifiedName, sourceFile, sourceLine);
         }
 
         public Sequence WaitFor<T>(T pass, [CallerFilePath] string sourceFile = "",
