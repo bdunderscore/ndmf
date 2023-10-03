@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Create ApplyOnPlayGlobalActivator correctly when creating and opening scenes (#31)
 
 ### Changed
-- Posision of Plugin Ordering Window are now preserved after restarting UnityEditor (#42)
+- Posision of Plugin sequence display are now preserved after restarting UnityEditor (#42)
 
 ### Removed
 
