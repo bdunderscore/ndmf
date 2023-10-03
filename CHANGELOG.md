@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Time resolution on the plugin sequence display is milliseconds, not 0.01 ms (#43)
 
 ### Changed
+- Position of the Plugin sequence display window is now preserved after restarting the Unity Editor (#42)
 
 ### Removed
 
