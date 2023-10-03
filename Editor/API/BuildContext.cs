@@ -252,7 +252,7 @@ namespace nadena.dev.ndmf
                 Stopwatch sw2 = new Stopwatch();
                 sw2.Start();
                 DeactivateExtensionContext(ty);
-                deactivationTimes = deactivationTimes.Add(ty, sw2.ElapsedMilliseconds);
+                deactivationTimes = deactivationTimes.Add(ty, sw2.Elapsed.TotalMilliseconds);
             }
 
             ImmutableDictionary<Type, double> activationTimes = ImmutableDictionary<Type, double>.Empty;
@@ -261,7 +261,7 @@ namespace nadena.dev.ndmf
                 Stopwatch sw2 = new Stopwatch();
                 sw2.Start();
                 ActivateExtensionContext(ty);
-                activationTimes = activationTimes.Add(ty, sw2.ElapsedMilliseconds);
+                activationTimes = activationTimes.Add(ty, sw2.Elapsed.TotalMilliseconds);
             }
 
             Stopwatch passTimer = new Stopwatch();
@@ -283,7 +283,7 @@ namespace nadena.dev.ndmf
             
             BuildEvent.Dispatch(new BuildEvent.PassExecuted(
                 pass.InstantiatedPass.QualifiedName,
-                passTimer.ElapsedMilliseconds,
+                passTimer.Elapsed.TotalMilliseconds,
                 activationTimes,
                 deactivationTimes
             ));
