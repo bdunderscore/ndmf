@@ -26,13 +26,9 @@ namespace nadena.dev.ndmf.runtime
 
         static ApplyOnPlayGlobalActivator()
         {
-            SceneManager.sceneLoaded += (scene, mode) =>
-            {
-                if (scene.IsValid())
-                {
-                    EditorApplication.delayCall += () => CreateIfNotPresent(scene);
-                }
-            };
+            void DelayCreateIfNotPresent(Scene scene) => EditorApplication.delayCall += () => CreateIfNotPresent(scene);
+            EditorSceneManager.newSceneCreated += (scene, setup, mode) => DelayCreateIfNotPresent(scene);
+            EditorSceneManager.sceneOpened += (scene, mode) => DelayCreateIfNotPresent(scene);
 
             EditorApplication.delayCall += () => CreateIfNotPresent(SceneManager.GetActiveScene());
         }

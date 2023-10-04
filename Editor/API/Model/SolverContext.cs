@@ -45,6 +45,8 @@ namespace nadena.dev.ndmf.model
             {
                 phases = new InnatePhases(phase, pluginQualifiedName);
                 _innatePhases[(pluginQualifiedName, phase)] = phases;
+                Passes.Add(phases.PluginStart);
+                Passes.Add(phases.PluginEnd);
             }
 
             return phases;

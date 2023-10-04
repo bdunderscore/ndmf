@@ -8,10 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added toplevel menu for manual bake avatar, even when MA is also installed (#35)
+- Added support for multiple ExportsPlugin declarations (#40)
+- Added additional convenience overloads for BeforePlugin and AfterPlugin
 
 ### Fixed
+- Create ApplyOnPlayGlobalActivator correctly when creating and opening scenes (#31)
+- Time resolution on the plugin sequence display is milliseconds, not 0.01 ms (#43)
+- BeforePlugin/AfterPlugin declarations don't work (#44)
 
 ### Changed
+- Position of the Plugin sequence display window is now preserved after restarting the Unity Editor (#42)
 
 ### Removed
 

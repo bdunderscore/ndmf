@@ -15,7 +15,7 @@ Future plans include:
 
 ## Project status
 
-This project is currently in a pre-alpha state. Expect large-scale refactoring, including renaming of the project itself, in the coming weeks. The framework is however functional, and you can take a look at the draft PRs for [Modular Avatar](https://github.com/bdunderscore/modular-avatar/pull/406) and [AAO](https://github.com/anatawa12/AvatarOptimizer/pull/375) to see examples of usage.
+This project is currently considered API-stable, but is still very new. Please report any bugs you run into! 
 
 ## Getting started
 

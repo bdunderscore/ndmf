@@ -37,5 +37,10 @@ namespace nadena.dev.ndmf.model
             RequiredExtensions = requiredExtensions;
             CompatibleExtensions = compatibleExtensions;
         }
+
+        public override string ToString()
+        {
+            return Pass.DisplayName;
+        }
     }
 }

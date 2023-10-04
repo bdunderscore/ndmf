@@ -16,6 +16,3 @@ are declared, the order of execution of the two passes is not fully determined. 
 to determine the order of execution. NDMF will strive not to change this heuristic between patch releases, but it may
 change on minor releases. If you run into problems with changes in a heuristic, please constrain the order of execution
 of your passes explicitly.
-
-**Versions before 1.0.0**: Versions starting with 0.x.y are considered to be unstable and do not guarantee API stability.
-We will make a best-effort attempt to increment the "x" version when making incompatible changes.

@@ -11,7 +11,9 @@ namespace nadena.dev.ndmf.ui
     internal static class Menus
     {
         private const string APPLY_ON_PLAY_MENU_NAME = "Tools/NDM Framework/Apply on Play";
+        private const string TOPLEVEL_MANUAL_BAKE_MENU_NAME = "Tools/NDM Framework/Manual bake avatar";
         private const int APPLY_ON_PLAY_PRIO = 1;
+        private const int TOPLEVEL_MANUAL_BAKE_PRIO = 2;
 
         [InitializeOnLoadMethod]
         static void Init()
@@ -24,17 +26,29 @@ namespace nadena.dev.ndmf.ui
         // so we'll keep that entry.
 #if !MODULAR_AVATAR
         [MenuItem("GameObject/[NDMF] Manual bake avatar", true, 49)]
-        internal static bool ValidateApplyToCurrentAvatarGameobject()
+        private static bool ValidateManualBakeGameObject()
         {
             return AvatarProcessor.CanProcessObject(Selection.activeGameObject);
         }
 
         [MenuItem("GameObject/[NDMF] Manual bake avatar", false, 49)]
-        public static void ApplyToCurrentAvatarGameobject()
+        private static void ManualBakeGameObject()
         {
             AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
         }
 #endif
+
+        [MenuItem(TOPLEVEL_MANUAL_BAKE_MENU_NAME, true, TOPLEVEL_MANUAL_BAKE_PRIO)]
+        private static bool ValidateManualBakeToplevel()
+        {
+            return AvatarProcessor.CanProcessObject(Selection.activeGameObject);
+        }
+
+        [MenuItem(TOPLEVEL_MANUAL_BAKE_MENU_NAME, false, TOPLEVEL_MANUAL_BAKE_PRIO)]
+        private static void ManualBakeToplevel()
+        {
+            AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
+        }
 
         [MenuItem(APPLY_ON_PLAY_MENU_NAME, false, APPLY_ON_PLAY_PRIO)]
         private static void ApplyOnPlay()
