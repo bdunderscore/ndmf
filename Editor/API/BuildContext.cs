@@ -85,7 +85,9 @@ namespace nadena.dev.ndmf
             _avatarRootObject = obj;
             _avatarRootTransform = obj.transform;
             
+#if NDMF_VRCSDK3_AVATARS
             PlatformInit();
+#endif
 
             var avatarName = _avatarRootObject.name;
 
