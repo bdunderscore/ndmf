@@ -84,6 +84,7 @@ namespace nadena.dev.ndmf.ui
                     case Mesh _:
                     case AnimationClip _:
 #if NDMF_VRCSDK3_AVATARS
+                    case VRCExpressionParameters _:
                     case VRCExpressionsMenu _:
 #endif
                         return; // No child objects
