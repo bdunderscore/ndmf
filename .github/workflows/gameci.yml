@@ -110,7 +110,7 @@ jobs:
           mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
       
       - id: symlink-deps
-        if: ${{ steps.setup.outputs.should_test == 'true' && steps.setup.outputs.sdk != 'vrcsdk' }}
+        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk != 'vrcsdk' }}
         name: Symlink dependencies
         run: |
           cd Packages/nadena.dev.ndmf
