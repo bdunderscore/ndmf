@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Exposed APIs for finding avatar roots in RuntimeUtil (#34)
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+## [1.1.0] - [2023-10-05]
+
+### Added
 - Added toplevel menu for manual bake avatar, even when MA is also installed (#35)
 - Added support for multiple ExportsPlugin declarations (#40)
 - Added additional convenience overloads for BeforePlugin and AfterPlugin
