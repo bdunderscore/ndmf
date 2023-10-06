@@ -108,6 +108,9 @@ jobs:
           mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
+          if [ -e "packages-lock-${{ matrix.unity_version }}.json" ]; then
+            mv "packages-lock-${{ matrix.unity_version }}.json" Packages/manifest.json
+          fi
       
       - id: symlink-deps
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk != 'vrcsdk' }}
