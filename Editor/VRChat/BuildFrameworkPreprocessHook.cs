@@ -1,4 +1,6 @@
-﻿#region
+﻿#if NDMF_VRCSDK3_AVATARS
+
+#region
 
 using System;
 using System.Diagnostics;
@@ -74,3 +76,5 @@ namespace nadena.dev.ndmf.VRChat
         }
     }
 }
+
+#endif

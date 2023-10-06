@@ -1,4 +1,6 @@
-﻿#region
+﻿#if NDMF_VRCSDK3_AVATARS
+
+#region
 
 using VRC.SDKBase.Editor.BuildPipeline;
 
@@ -16,3 +18,5 @@ namespace nadena.dev.ndmf.VRChat
         }
     }
 }
+
+#endif

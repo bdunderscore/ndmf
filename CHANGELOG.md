@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Exposed APIs for finding avatar roots in RuntimeUtil (#34)
+- Support Unity projects without VRCSDK (#50)
 
 ### Fixed
 
