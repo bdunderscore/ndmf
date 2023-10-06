@@ -1,0 +1,1 @@
+﻿ new-item -itemtype symboliclink -value Dependencies~ -Path Dependencies
