@@ -108,6 +108,13 @@ jobs:
           mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
+      
+      - id: symlink-deps
+        if: ${{ steps.setup.outputs.should_test == 'true' && steps.setup.outputs.sdk != 'vrcsdk' }}
+        name: Symlink dependencies
+        run: |
+          cd Packages/nadena.dev.ndmf
+          ln -s 'Dependencies~' Dependencies
 
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
         name: Resolve VPM packages
