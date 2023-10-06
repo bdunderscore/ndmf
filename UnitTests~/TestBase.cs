@@ -7,8 +7,10 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+#if NDMF_VRCSDK3_AVATARS
 using VRC.Core;
 using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace UnitTests
 {
@@ -63,8 +65,10 @@ namespace UnitTests
             var go = new GameObject();
             go.name = name;
             go.AddComponent<Animator>();
+#if NDMF_VRCSDK3_AVATARS
             go.AddComponent<VRCAvatarDescriptor>();
             go.AddComponent<PipelineManager>();
+#endif
 
             objects.Add(go);
             return go;
@@ -98,7 +102,16 @@ namespace UnitTests
             return obj;
         }
 
+        protected static AnimatorState FindStateInLayer(AnimatorControllerLayer layer, string stateName)
+        {
+            foreach (var state in layer.stateMachine.states)
+            {
+                if (state.state.name == stateName) return state.state;
+            }
 
+            return null;
+        }
+#if NDMF_VRCSDK3_AVATARS
         protected static AnimationClip findFxClip(GameObject prefab, string layerName)
         {
             var motion = findFxMotion(prefab, layerName) as AnimationClip;
@@ -115,16 +128,6 @@ namespace UnitTests
             return state.motion;
         }
 
-        protected static AnimatorState FindStateInLayer(AnimatorControllerLayer layer, string stateName)
-        {
-            foreach (var state in layer.stateMachine.states)
-            {
-                if (state.state.name == stateName) return state.state;
-            }
-
-            return null;
-        }
-
         protected static AnimatorControllerLayer findFxLayer(GameObject prefab, string layerName)
         {
             var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
@@ -139,5 +142,6 @@ namespace UnitTests
             Assert.NotNull(layer);
             return layer;
         }
+#endif
     }
 }
