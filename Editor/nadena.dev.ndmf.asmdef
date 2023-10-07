@@ -18,8 +18,13 @@
     "versionDefines": [
         {
             "name": "nadena.dev.modular-avatar",
-            "expression": "[1.7.0,99999.0.0]",
+            "expression": "(1.8.0-a,)",
             "define": "MODULAR_AVATAR"
+        },
+        {
+            "name": "nadena.dev.modular-avatar",
+            "expression": "(,1.8.0-a)",
+            "define": "LEGACY_MODULAR_AVATAR"
         },
         {
             "name": "com.vrchat.avatars",
