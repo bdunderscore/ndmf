@@ -206,7 +206,8 @@ jobs:
       - if: ${{ steps.setup.outputs.should_test == 'true' }}
         name: "Rename results file"
         run: |
-          mv ${{ steps.gameci.outputs.artifactsPath }} testresults-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
+          mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
+            ${{ steps.gameci.outputs.artifactsPath }}/editmode-results-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
 
       - uses: actions/upload-artifact@v3
         if: ${{ steps.setup.outputs.should_test == 'true' }}
