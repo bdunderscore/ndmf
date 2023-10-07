@@ -188,7 +188,7 @@ jobs:
             output="{ \"summary\": \"Result: $outcome ($test_count tests)\" }"
           fi
           
-          if [ "$gameci_outcome" == "failure" ] && $can_fail; then
+          if [ "$outcome" == "failure" ] && $can_fail; then
             outcome=neutral
           fi
           echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
