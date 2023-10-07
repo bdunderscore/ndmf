@@ -209,7 +209,7 @@ jobs:
         run: |
           ls -ld ${{ steps.gameci.outputs.artifactsPath }}
           ls -lR ${{ steps.gameci.outputs.artifactsPath }}
-          mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
+          sudo mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
           ${{ steps.gameci.outputs.artifactsPath }}/editmode-results-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
 
       - uses: actions/upload-artifact@v3
