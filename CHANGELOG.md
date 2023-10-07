@@ -17,20 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [1.1.1] - [2023-10-05]
+## [1.2.0] - [2023-10-07]
+
+### Fixed
+- Re-released 1.1.1 as 1.2.0 as it contained new APIs (#34). Please use 1.2.0 for version declarations if these new APIs
+  are needed.
+
+## [1.1.1] - [2023-10-07]
 
 ### Added
 - Exposed APIs for finding avatar roots in RuntimeUtil (#34)
 - Support Unity projects without VRCSDK (#50)
 - Add warning when an outdated version of Modular Avatar is installed (#54)
-
-### Fixed
-
-### Changed
-
-### Removed
-
-### Security
 
 ## [1.1.0] - [2023-10-05]
 
