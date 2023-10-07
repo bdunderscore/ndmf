@@ -75,7 +75,11 @@ jobs:
           fi
           echo can_fail=$can_fail >> $GITHUB_OUTPUT
           
-          check_name="Unsupported platform result ($unity_version, $sdk)"
+          if $can_fail; then
+            check_name="Unsupported test result ($unity_version, $sdk)"
+          else
+            check_name="Test result ($unity_version, $sdk)"
+          fi
           echo check_name=$check_name >> $GITHUB_OUTPUT
 
       - uses: LouisBrunner/checks-action@v1.6.2
@@ -154,6 +158,7 @@ jobs:
           githubToken: ${{ github.token }}
           coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*
           customParameters: -nographics -assemblyNames nadena.dev.ndmf.UnitTests
+          checkName: ${{ steps.setup.outputs.check_name }}
 
       # For our main "supported" platforms, we report the conclusion of gameci as-is. However, for standalone, we report
       # neutral if it failed.
@@ -203,23 +208,9 @@ jobs:
           conclusion: ${{ steps.determine_conclusion.outputs.matrix_outcome }}
           output: ${{ steps.determine_conclusion.outputs.matrix_output }}
 
-      - if: ${{ steps.setup.outputs.should_test == 'true' }}
-        name: "Rename results file"
-        continue-on-error: true
-        run: |
-          ls -ld ${{ steps.gameci.outputs.artifactsPath }}
-          ls -lR ${{ steps.gameci.outputs.artifactsPath }}
-          sudo mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
-          ${{ steps.gameci.outputs.artifactsPath }}/editmode-results-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
-        with:
-          name: Test results ${{ matrix.unity_version }} ${{ matrix.sdk }}
-          path: ${{ steps.gameci.outputs.artifactsPath }}
-
       - uses: actions/upload-artifact@v3
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' && matrix.unity_version == 'auto' }}
+        continue-on-error: true
         with:
           name: Coverage results ${{ matrix.unity_version }} ${{ matrix.sdk }}
           path: ${{ steps.gameci.outputs.coveragePath }}
