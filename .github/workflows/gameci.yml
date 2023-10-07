@@ -214,7 +214,7 @@ jobs:
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           name: Test results ${{ matrix.unity_version }} ${{ matrix.sdk }}
-          path: testresults-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
+          path: ${{ steps.gameci.outputs.artifactsPath }}
 
       - uses: actions/upload-artifact@v3
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' && matrix.unity_version == 'auto' }}
