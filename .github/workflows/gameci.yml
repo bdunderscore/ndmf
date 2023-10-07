@@ -207,7 +207,7 @@ jobs:
         name: "Rename results file"
         run: |
           [ -e ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml ] && \
-            mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
+            sudo mv -v ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml \
             ${{ steps.gameci.outputs.artifactsPath }}/editmode-results-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
 
       - uses: actions/upload-artifact@v3
