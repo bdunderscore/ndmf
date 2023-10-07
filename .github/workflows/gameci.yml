@@ -26,7 +26,7 @@ name: GameCI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, ci]
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
@@ -60,6 +60,9 @@ jobs:
           sdk: ${{ matrix.sdk }}
         run: |
           set -x
+          
+          apt-get install xmlstarlet -y
+          
           should_test=true
           if [ $sdk == vrcsdk ] && [ $unity_version != auto ]; then
             should_test=false
@@ -163,8 +166,23 @@ jobs:
           gameci_outcome: ${{ steps.gameci.outcome }}
           can_fail: ${{ steps.setup.outputs.can_fail }}
         run: |
-          outcome=$gameci_outcome
+          outcome=$gameci_outcome          
           output="{ \"summary\": \"Result: $outcome\" }"
+          
+          # Check whether any tests actually ran
+          test_count=$(
+              cat ${{ steps.gameci.outputs.artifactsPath }} | xmlstarlet sel -t -v "/test-run/@total"
+          )
+          
+          if [ $test_count -eq 0 ] || [ x$test_count == x ]; then
+            outcome=failure
+            output="{ \"summary\": \"No tests ran\" }"
+          
+            if ! $can_fail; then
+              exit 1
+            fi
+          fi
+          
           if [ "$gameci_outcome" == "failure" ] && $can_fail; then
             outcome=neutral
           fi
