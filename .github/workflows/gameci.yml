@@ -61,7 +61,7 @@ jobs:
         run: |
           set -x
           
-          apt-get install xmlstarlet -y
+          sudo apt-get install xmlstarlet -y
           
           should_test=true
           if [ $sdk == vrcsdk ] && [ $unity_version != auto ]; then
