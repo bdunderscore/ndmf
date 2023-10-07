@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
+#if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -84,22 +88,56 @@ namespace nadena.dev.ndmf.runtime
         }
 
         /// <summary>
-        /// Returns the component marking the root of the avatar.
-        ///
-        /// Internal for now as we need to refactor this to be less VRChat-specific.
+        /// Check whether the target component is the root of the avatar.
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        internal static Transform FindAvatarInParents(Transform target)
+        public static bool IsAvatarRoot(Transform target)
+        {
+#if NDMF_VRCSDK3_AVATARS
+            return target.GetComponent<VRCAvatarDescriptor>();
+#else            
+            var an = target.GetComponent<Animator>();
+            if (!an) return false;
+            var parent = target.transform.parent;
+            return !(parent && parent.GetComponentInParent<Animator>());
+#endif
+        }
+
+        /// <summary>
+        /// Returns the component marking the root of the avatar.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static Transform FindAvatarInParents(Transform target)
         {
             while (target != null)
             {
-                var av = target.GetComponent<VRCAvatarDescriptor>();
-                if (av != null) return av.transform;
+                if (IsAvatarRoot(target)) return target;
                 target = target.parent;
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// Returns the component marking the root of the avatar.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        internal static IEnumerable<Transform> FindAvatarsInScene(Scene scene)
+        {
+            foreach (var root in scene.GetRootGameObjects())
+            {
+#if NDMF_VRCSDK3_AVATARS
+                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
+#else            
+                foreach (var avatar in root.GetComponentsInChildren<Animator>())
+#endif
+                {
+                    if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
+                }
+            }
         }
     }
 }

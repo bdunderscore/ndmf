@@ -25,6 +25,11 @@
             "name": "nadena.dev.modular-avatar",
             "expression": "(,1.8.0-a)",
             "define": "LEGACY_MODULAR_AVATAR"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "NDMF_VRCSDK3_AVATARS"
         }
     ],
     "noEngineReferences": false

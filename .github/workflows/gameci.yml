@@ -108,6 +108,18 @@ jobs:
           mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
+          for i in packages-lock manifest; do
+            if [ -e "$i-${{ matrix.unity_version }}.json" ]; then
+              mv "$i-${{ matrix.unity_version }}.json" Packages/$i.json -v
+            fi
+          done
+      
+      - id: symlink-deps
+        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk != 'vrcsdk' }}
+        name: Symlink dependencies
+        run: |
+          cd Packages/nadena.dev.ndmf
+          ln -s 'Dependencies~' Dependencies
 
       - uses: anatawa12/sh-actions/resolve-vpm-packages@master
         name: Resolve VPM packages
@@ -168,14 +180,19 @@ jobs:
           conclusion: ${{ steps.determine_conclusion.outputs.matrix_outcome }}
           output: ${{ steps.determine_conclusion.outputs.matrix_output }}
 
+      - if: ${{ steps.setup.outputs.should_test == 'true' }}
+        name: "Rename results file"
+        run: |
+          mv ${{ steps.gameci.outputs.artifactsPath }} testresults-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
+
       - uses: actions/upload-artifact@v3
         if: ${{ steps.setup.outputs.should_test == 'true' }}
         with:
           name: Test results ${{ matrix.unity_version }} ${{ matrix.sdk }}
-          path: ${{ steps.gameci.outputs.artifactsPath }}
+          path: testresults-${{ matrix.unity_version }}-${{ matrix.sdk }}.xml
 
       - uses: actions/upload-artifact@v3
-        if: ${{ steps.setup.outputs.should_test == 'true' }}
+        if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' && matrix.unity_version == 'auto' }}
         with:
           name: Coverage results ${{ matrix.unity_version }} ${{ matrix.sdk }}
           path: ${{ steps.gameci.outputs.coveragePath }}
