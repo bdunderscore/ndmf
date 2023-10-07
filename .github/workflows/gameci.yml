@@ -166,8 +166,8 @@ jobs:
           gameci_outcome: ${{ steps.gameci.outcome }}
           can_fail: ${{ steps.setup.outputs.can_fail }}
         run: |
+          set -x
           outcome=$gameci_outcome          
-          output="{ \"summary\": \"Result: $outcome\" }"
           
           # Check whether any tests actually ran
           test_count=$(
@@ -184,6 +184,8 @@ jobs:
             if ! $can_fail; then
               exit 1
             fi
+          else
+            output="{ \"summary\": \"Result: $outcome ($test_count tests)\" }"
           fi
           
           if [ "$gameci_outcome" == "failure" ] && $can_fail; then
