@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 namespace UnitTests
 {
