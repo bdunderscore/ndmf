@@ -1,4 +1,6 @@
-![GitHub release (with filter)](https://img.shields.io/github/v/release/bdunderscore/ndmf) ![GitHub release (by tag)](https://img.shields.io/github/downloads/bdunderscore/ndmf/latest/total)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/bdunderscore/ndmf)
+![GitHub release (by tag)](https://img.shields.io/github/downloads/bdunderscore/ndmf/latest/total)
+![GitHub all releases](https://img.shields.io/github/downloads/bdunderscore/ndmf/total?label=total%20downloads)
 
 # Non-Destructive Modular Framework ("なでもふ")
 
