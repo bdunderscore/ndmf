@@ -1,3 +1,5 @@
+![GitHub release (with filter)](https://img.shields.io/github/v/release/bdunderscore/ndmf) ![GitHub release (by tag)](https://img.shields.io/github/downloads/bdunderscore/ndmf/latest/total)
+
 # Non-Destructive Modular Framework ("なでもふ")
 
 This package is a framework for building non-destructive editor plugins for VRChat avatars. It provides the following facilities:
