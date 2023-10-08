@@ -120,7 +120,7 @@ jobs:
 
       - name: Create Zip
         run: |
-          zip ".github/${{env.zipFile}}" ./* -x .github .git '.git/*' '*~/*' '*.ps1*'
+          zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
 
       - name: Move zipfile
         run: |
