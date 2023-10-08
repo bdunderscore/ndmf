@@ -119,12 +119,8 @@ jobs:
           echo "unityPackage=${{ env.packageName }}-${{ needs.prechecks.outputs.version }}.unitypackage" >> $GITHUB_ENV
 
       - name: Create Zip
-        uses: thedoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
-        with:
-          type: "zip"
-          directory: "."
-          filename: ".github/${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
-          exclusions: '.github .git* *~ .gitignore *.ps1*'
+        run: |
+          zip ".github/${{env.zipFile}}" ./* -x .github .git '.git/*' '*~/*' '*.ps1*'
 
       - name: Move zipfile
         run: |
