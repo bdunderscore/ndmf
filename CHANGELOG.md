@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Fixed an issue where apply on play might not work when multiple scenes are open (#61)
 
 ### Changed
 
