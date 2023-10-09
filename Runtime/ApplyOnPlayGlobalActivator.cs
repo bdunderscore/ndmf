@@ -20,6 +20,7 @@ namespace nadena.dev.ndmf.runtime
     /// scene).
     /// </summary>
     [InitializeOnLoad]
+    [AddComponentMenu("")]
     class ApplyOnPlayGlobalActivator : MonoBehaviour
     {
         private const string TAG_OBJECT_NAME = "nadena.dev.ndmf__Activator";
@@ -29,10 +30,30 @@ namespace nadena.dev.ndmf.runtime
             void DelayCreateIfNotPresent(Scene scene) => EditorApplication.delayCall += () => CreateIfNotPresent(scene);
             EditorSceneManager.newSceneCreated += (scene, setup, mode) => DelayCreateIfNotPresent(scene);
             EditorSceneManager.sceneOpened += (scene, mode) => DelayCreateIfNotPresent(scene);
+            
+            EditorApplication.delayCall += CreateActivatorsIfNeeded;
 
-            EditorApplication.delayCall += () => CreateIfNotPresent(SceneManager.GetActiveScene());
+            EditorApplication.playModeStateChanged += change =>
+            {
+                if (change == PlayModeStateChange.ExitingEditMode || change == PlayModeStateChange.EnteredEditMode)
+                {
+                    CreateActivatorsIfNeeded();
+                }
+            };
         }
 
+        private static void CreateActivatorsIfNeeded()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.IsValid() && scene.isLoaded)
+                {
+                    CreateIfNotPresent(scene);                        
+                }
+            }
+        }
+        
         internal enum OnDemandSource
         {
             Awake,
@@ -93,7 +114,7 @@ namespace nadena.dev.ndmf.runtime
         internal static void CreateIfNotPresent(Scene scene)
         {
             if (!scene.IsValid() || EditorSceneManager.IsPreviewScene(scene)) return;
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (EditorApplication.isPlaying) return;
 
             bool rootPresent = false;
             foreach (var root in scene.GetRootGameObjects())
@@ -105,7 +126,7 @@ namespace nadena.dev.ndmf.runtime
                     rootPresent = true;
                 }
             }
-
+            
             if (rootPresent) return;
 
             var oldActiveScene = SceneManager.GetActiveScene();
