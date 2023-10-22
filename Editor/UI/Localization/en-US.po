@@ -1,0 +1,9 @@
+msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "ErrorReport:Title"
+msgstr "Error Report"
+
+msgid "ErrorReport:Title:tooltip"
+msgstr "test tooltip - en"
