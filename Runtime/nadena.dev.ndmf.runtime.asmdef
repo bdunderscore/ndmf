@@ -1,7 +1,9 @@
 {
     "name": "nadena.dev.ndmf.runtime",
     "references": [
-        "lyuma.av3emulator"
+        "lyuma.av3emulator",
+        "VRM",
+        "VRM10"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -20,6 +22,16 @@
             "name": "lyuma.av3emulator",
             "expression": "",
             "define": "NDMF_LYUMA_AV3EMU"
+        },
+        {
+          "name": "com.vrmc.univrm",
+          "expression": "",
+          "define": "NDMF_VRM0"
+        },
+        {
+          "name": "com.vrmc.vrm",
+          "expression": "",
+          "define": "NDMF_VRM1"
         }
     ],
     "noEngineReferences": false
