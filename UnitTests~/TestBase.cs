@@ -12,6 +12,15 @@ using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 #endif
 
+#if NDMF_VRM0
+using VRM;
+#endif
+
+#if NDMF_VRM1
+using UniVRM10;
+using UniHumanoid;
+#endif
+
 namespace UnitTests
 {
     public class TestBase
@@ -58,7 +67,9 @@ namespace UnitTests
             return new BuildContext(root, TEMP_ASSET_PATH); // TODO - cleanup
         }
 
-        protected GameObject CreateRoot(string name)
+        protected GameObject CreateRoot(string name) => CreatePlatformRoot(name, isVRC: true, isVRM0: true, isVRM1: true);
+
+        protected GameObject CreatePlatformRoot(string name, bool isVRC, bool isVRM0, bool isVRM1)
         {
             //var path = AssetDatabase.GUIDToAssetPath(MinimalAvatarGuid);
             //var go = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
@@ -66,8 +77,24 @@ namespace UnitTests
             go.name = name;
             go.AddComponent<Animator>();
 #if NDMF_VRCSDK3_AVATARS
-            go.AddComponent<VRCAvatarDescriptor>();
-            go.AddComponent<PipelineManager>();
+            if (isVRC)
+            {
+                go.AddComponent<VRCAvatarDescriptor>();
+                go.AddComponent<PipelineManager>();
+            }
+#endif
+#if NDMF_VRM0
+            if (isVRM0)
+            {
+                go.AddComponent<VRMMeta>();
+            }
+#endif
+#if NDMF_VRM1
+            if (isVRM1)
+            {
+                go.AddComponent<Vrm10Instance>();
+                go.AddComponent<Humanoid>();
+            }
 #endif
 
             objects.Add(go);

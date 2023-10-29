@@ -7,6 +7,12 @@ using UnityEngine.SceneManagement;
 #if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
+#if NDMF_VRM0
+using VRM;
+#endif
+#if NDMF_VRM1
+using UniVRM10;
+#endif
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -95,8 +101,17 @@ namespace nadena.dev.ndmf.runtime
         public static bool IsAvatarRoot(Transform target)
         {
 #if NDMF_VRCSDK3_AVATARS
-            return target.GetComponent<VRCAvatarDescriptor>();
-#else            
+            if (target.GetComponent<VRCAvatarDescriptor>()) return true;
+#endif
+#if NDMF_VRM0
+            if (target.GetComponent<VRMMeta>()) return true;
+#endif
+#if NDMF_VRM1
+            if (target.GetComponent<Vrm10Instance>()) return true;
+#endif
+#if NDMF_VRCSDK3_AVATARS || NDMF_VRM0 || NDMF_VRM1
+            return false;
+#else
             var an = target.GetComponent<Animator>();
             if (!an) return false;
             var parent = target.transform.parent;
@@ -173,11 +188,7 @@ namespace nadena.dev.ndmf.runtime
         {
             foreach (var root in scene.GetRootGameObjects())
             {
-#if NDMF_VRCSDK3_AVATARS
-                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
-#else            
                 foreach (var avatar in root.GetComponentsInChildren<Animator>())
-#endif
                 {
                     if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
                 }
