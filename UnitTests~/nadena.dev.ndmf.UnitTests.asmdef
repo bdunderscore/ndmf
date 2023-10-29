@@ -1,8 +1,11 @@
 {
     "name": "nadena.dev.ndmf.UnitTests",
     "references": [
-        "GUID:62ced99b048af7f4d8dfe4bed8373d76",
-        "GUID:b93f844d45cfcc44fa2b0eed5c9ec6bb"
+        "nadena.dev.ndmf",
+        "VRM",
+        "VRM10",
+        "UniHumanoid",
+        "nadena.dev.ndmf.runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -13,6 +16,22 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "NDMF_VRCSDK3_AVATARS"
+        },
+        {
+            "name": "com.vrmc.univrm",
+            "expression": "",
+            "define": "NDMF_VRM0"
+        },
+        {
+            "name": "com.vrmc.vrm",
+            "expression": "",
+            "define": "NDMF_VRM1"
+        }
+    ],
     "noEngineReferences": false
 }
