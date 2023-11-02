@@ -19,17 +19,12 @@ namespace nadena.dev.ndmf.util
         }
 
         [CanBeNull]
-        [Obsolete("Please use RuntimeUtil.AvatarRootPath() instead.")]
         public static string AvatarRootPath(this GameObject child)
         {
-            if (child == null) return null;
-            var avatar = PlatformExtensions.FindAvatarInParents(child.transform);
-            if (avatar == null) return null;
-            return RelativePath(avatar.gameObject, child);
+            return RuntimeUtil.AvatarRootPath(child);
         }
 
         [CanBeNull]
-        [Obsolete("Please use RuntimeUtil.AvatarRootPath() instead.")]
         public static string AvatarRootPath(this Component child)
         {
             return child.gameObject.AvatarRootPath();
