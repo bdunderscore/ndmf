@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+### Deprecated
+- Deprecated APIs for finding avatar roots defined outside RuntimeUtil (#73)
+
 ## [1.2.2] - [2023-10-09]
 
 ### Fixed
