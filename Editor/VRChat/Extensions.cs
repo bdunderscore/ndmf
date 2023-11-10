@@ -1,3 +1,4 @@
+using System;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
 
@@ -35,6 +36,7 @@ namespace nadena.dev.ndmf
 
     internal static class PlatformExtensions
     {
+        [Obsolete("Please use RuntimeUtil.FindAvatarInParents() instead.")]
         public static Transform FindAvatarInParents(Transform target)
         {
             return RuntimeUtil.FindAvatarInParents(target);

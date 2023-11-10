@@ -26,25 +26,29 @@
 
 using System;
 using UnityEditor;
+using UnityEngine;
 
 #endregion
 
 namespace nadena.dev.ndmf.config
 {
+    internal class NonPersistentConfig : ScriptableSingleton<NonPersistentConfig>
+    {
+        [SerializeField] public bool applyOnPlay = true;
+    }
+
+
     public static class Config
     {
-        // Preserve apply-on-play config from pre-1.8 versions of Modular Avatar
-        private const string PREFKEY_APPLY_ON_PLAY = "nadena.dev.modular-avatar.applyOnPlay";
-
         /// <summary>
         /// Controls whether NDMF transformations will be applied at play time.
         /// </summary>
         public static bool ApplyOnPlay
         {
-            get => EditorPrefs.GetBool(PREFKEY_APPLY_ON_PLAY, true);
+            get => NonPersistentConfig.instance.applyOnPlay;
             set
             {
-                EditorPrefs.SetBool(PREFKEY_APPLY_ON_PLAY, value);
+                NonPersistentConfig.instance.applyOnPlay = value;
                 NotifyChange();
             }
         }

@@ -16,9 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make Apply on Play non-persistent, as users seem to frequently have issues with it left turned off.
+
 ### Removed
+- Removed a vestigial "Avatar Toolkit -> Apply on Play" menu item, which didn't do anything when selected. (#70)
 
 ### Security
+
+### Deprecated
+- Deprecated APIs for finding avatar roots defined outside RuntimeUtil (#73)
 
 ## [1.2.2] - [2023-10-09]
 
