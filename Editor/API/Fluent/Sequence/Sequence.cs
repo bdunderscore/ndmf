@@ -1,5 +1,7 @@
 ﻿#region
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
@@ -241,6 +243,55 @@ namespace nadena.dev.ndmf.fluent
             var anonPass = new AnonymousPass(_sequenceBaseName + "/anonymous#" + inlinePassIndex++, displayName,
                 inlinePass);
             return InternalRun(anonPass, sourceFile, sourceLine);
+        }
+        
+        /// <summary>
+        /// Declares that subsequent pass declarations will run only on the specific platforms named.
+        /// <code>
+        /// sequence.OnPlatforms(AvatarPlatform.VRChat)
+        ///   .Run(VRChatSpecificMethod)
+        ///   .OnAllPlatforms()
+        ///   .Run(GenericMethod);
+        /// </code>
+        /// </summary>
+        /// <param name="platforms">The platforms to support</param>
+        /// <returns>this sequence</returns>
+        public Sequence OnPlatforms(params AvatarPlatform[] platforms)
+        {
+            var platformSeq = ImmutableHashSet.CreateRange(platforms);
+            if (platformSeq.Count == 0)
+            {
+                throw new ArgumentException("Must specify at least one platform");
+            }
+
+            if (platformSeq.Count != 1 && platformSeq.Contains(AvatarPlatform.Generic))
+            {
+                throw new ArgumentException("Cannot mix Generic with other platforms");
+            }
+
+            if (platformSeq.Count != platforms.Length)
+            {
+                throw new ArgumentException("Duplicate platforms specified");
+            }
+            
+            // TODO: actually record this somewhere
+            
+            return this;
+        }
+        
+        /// <summary>
+        /// Declares that subsequent pass declarations will run on all platforms.
+        /// <code>
+        /// sequence.OnPlatforms(AvatarPlatform.VRChat)
+        ///   .Run(VRChatSpecificMethod)
+        ///   .OnAllPlatforms()
+        ///   .Run(GenericMethod);
+        /// </code>
+        /// </summary>
+        /// <returns>this sequence</returns>
+        public Sequence OnAllPlatforms(params AvatarPlatform[] platforms)
+        {
+            return OnPlatforms(AvatarPlatform.Generic);
         }
     }
 }
