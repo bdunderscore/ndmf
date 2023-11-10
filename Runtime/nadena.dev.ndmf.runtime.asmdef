@@ -1,19 +1,26 @@
 {
-  "name": "nadena.dev.ndmf.runtime",
-  "references": [],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [
-    {
-      "name": "com.vrchat.avatars",
-      "expression": "",
-      "define": "NDMF_VRCSDK3_AVATARS"
-    }
-  ],
-  "noEngineReferences": false
+    "name": "nadena.dev.ndmf.runtime",
+    "references": [
+        "GUID:ad78a2bc77b7491eb34cece69bb8f0e6"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "",
+            "define": "NDMF_VRCSDK3_AVATARS"
+        },
+        {
+            "name": "lyuma.av3emulator",
+            "expression": "",
+            "define": "NDMF_LYUMA_AV3EMU"
+        }
+    ],
+    "noEngineReferences": false
 }
