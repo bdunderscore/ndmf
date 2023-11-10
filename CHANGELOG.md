@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make Apply on Play non-persistent, as users seem to frequently have issues with it left turned off.
 
 ### Removed
+- Removed a vestigial "Avatar Toolkit -> Apply on Play" menu item, which didn't do anything when selected. (#70)
 
 ### Security
 

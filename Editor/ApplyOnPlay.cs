@@ -38,8 +38,6 @@ namespace nadena.dev.ndmf
     [InitializeOnLoad]
     internal static class ApplyOnPlay
     {
-        private const string MENU_NAME = "Tools/Avatar Toolkit/Apply on Play";
-
         /**
          * We need to process avatars before lyuma's av3 emulator wakes up and processes avatars; it does this in Awake,
          * so we have to do our processing in Awake as well. This seems to work fine when first entering play mode, but
@@ -55,7 +53,6 @@ namespace nadena.dev.ndmf
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             ApplyOnPlayGlobalActivator.OnDemandProcessAvatar = MaybeProcessAvatar;
-            //EditorApplication.delayCall += () => Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
         }
 
         private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source,
@@ -67,13 +64,6 @@ namespace nadena.dev.ndmf
                 if (avatar == null) return;
                 AvatarProcessor.ProcessAvatar(avatar.gameObject);
             }
-        }
-
-        [MenuItem(MENU_NAME)]
-        private static void ToggleApplyOnPlay()
-        {
-            //ModularAvatarSettings.applyOnPlay = !ModularAvatarSettings.applyOnPlay;
-            //Menu.SetChecked(MENU_NAME, ModularAvatarSettings.applyOnPlay);
         }
 
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
