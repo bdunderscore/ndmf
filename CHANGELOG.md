@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.2.3] - [2023-11-11]
+
+### Added
+
+### Fixed
 - Fixed an issue where apply on play might not work when multiple scenes are open (#61)
 - Fixed an issue where Apply on Play would not work properly when Lyuma's Av3Emulator had preprocess hooks disabled
   (bdunderscore/modular-avatar#516) (#64)
