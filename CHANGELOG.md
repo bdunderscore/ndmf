@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Assembly has duplicate references error may happens due to Unity bug (#80)
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.2.4] - [2023-11-12]
+
+### Fixed
+- Duplicate references error when Lyuma's Av3emulator is installed due to Unity bug (#80)
 
 ## [1.2.3] - [2023-11-11]
 
