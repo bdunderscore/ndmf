@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Assembly has duplicate references error may happens due to Unity bug (#80)
 
 ### Changed
 
