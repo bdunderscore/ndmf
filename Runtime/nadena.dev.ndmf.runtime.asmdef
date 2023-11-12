@@ -1,7 +1,7 @@
 {
     "name": "nadena.dev.ndmf.runtime",
     "references": [
-        "GUID:ad78a2bc77b7491eb34cece69bb8f0e6"
+        "lyuma.av3emulator"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
