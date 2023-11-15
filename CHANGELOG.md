@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- GUID collisions with packages derived from the VRChat template package (#84)
-
 ### Changed
 
 ### Removed
@@ -20,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.2.5] - [2023-11-15]
+
+### Fixed
+- GUID collisions with packages derived from the VRChat template package (#84)
 
 ## [1.2.4] - [2023-11-12]
 
