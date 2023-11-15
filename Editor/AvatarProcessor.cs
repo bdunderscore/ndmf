@@ -43,7 +43,40 @@ namespace nadena.dev.ndmf
     /// </summary>
     public static class AvatarProcessor
     {
-        internal static string TemporaryAssetRoot = "Packages/nadena.dev.ndmf/__Generated";
+        internal static string asset = "Packages/nadena.dev.ndmf/__Generated";
+        internal static string key = "nadena.dev.ndmf.path";
+
+        internal static string TemporaryAssetRoot
+        {
+            set
+            {
+                EditorPrefs.SetString(key, value);
+                Debug.Log($"Temporary Directory : Change Into \"{value}\"");
+            }
+            get => EditorPrefs.GetString(key);
+        }
+
+        [MenuItem("Tools/NDM Framework/Temporary Directory/Set")]
+        internal static void SetTemporaryDirectory()
+        {
+            string curPath = (System.IO.Directory.Exists($"{Application.dataPath}/../{TemporaryAssetRoot}")) ? $"{Application.dataPath}/../{TemporaryAssetRoot}" : Application.dataPath;
+            string newPath = EditorUtility.SaveFolderPanel("Set Temporary Directory", curPath.Substring(Application.dataPath.Length - "Assets".Length), string.Empty);
+
+            if (!newPath.StartsWith(Application.dataPath))
+            {
+                EditorUtility.DisplayDialog("Temporary Path Error", "Please select a directory in Assets.", "OK");
+            }
+            else
+            {
+                TemporaryAssetRoot = newPath.Substring(Application.dataPath.Length - "Assets".Length);
+            }
+        }
+
+        [MenuItem("Tools/NDM Framework/Temporary Directory/Reset")]
+        internal static void ResetTemporaryDirectory()
+        {
+            TemporaryAssetRoot = asset;
+        }
 
         /// <summary>
         /// Deletes all temporary assets after a build.
