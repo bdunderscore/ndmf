@@ -186,13 +186,15 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         internal static IEnumerable<Transform> FindAvatarsInScene(Scene scene)
         {
+            var list = new List<Transform>();
             foreach (var root in scene.GetRootGameObjects())
             {
                 foreach (var avatar in root.GetComponentsInChildren<Animator>())
                 {
-                    if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
+                    if (IsAvatarRoot(avatar.transform)) list.Add(avatar.transform);
                 }
             }
+            return list;
         }
     }
 }
