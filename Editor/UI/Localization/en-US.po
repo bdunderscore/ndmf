@@ -5,5 +5,11 @@ msgstr ""
 msgid "ErrorReport:Title"
 msgstr "Error Report"
 
-msgid "ErrorReport:Title:tooltip"
-msgstr "test tooltip - en"
+msgid "ErrorReport:HintFoldout"
+msgstr "Help me fix it!"
+
+msgid "ErrorReport:TestBuild"
+msgstr "Test Build"
+
+msgid "ErrorReport:NoErrors"
+msgstr "No errors to report!"

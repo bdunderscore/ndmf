@@ -14,6 +14,10 @@ VisualElement {
     height: 100%;
 }
 
+#topHeader {
+    font-size: 300%;
+}
+
 #avatarHeader {
     display: flex;
     flex-direction: row;
@@ -29,7 +33,7 @@ VisualElement {
 
 #error-list {
     height: 100%;
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .error-list-element {
@@ -37,6 +41,7 @@ VisualElement {
     margin: 2px;
     border-color: black;
     border-width: 1px;
+    flex-direction: row;
 }
 
 .ErrorElement {
@@ -112,4 +117,22 @@ VisualElement {
     border-width: 0;
     width: 100%;
     height: 100%;
+}
+
+#footer {
+    flex-direction: row;
+}
+
+#footer LanguageSwitcher {
+    flex-grow: 1;
+}
+
+#footer #test-build-button {
+    flex-grow: 0;
+}
+
+#no-errors-label {
+    align-self: center;
+    margin-top: 10px;
+    font-size: 150%;
 }

@@ -11,67 +11,11 @@ namespace nadena.dev.ndmf.localization
         private static Dictionary<Type, Func<VisualElement, Action>> _localizers =
             new Dictionary<Type, Func<VisualElement, Action>>();
 
-        // TODO: Move to a single ConditionalWeakTable once we can use .NET 7 (which allows us to iterate this)
-
-        private static HashSet<Action> _onLanguageChangeCallbacks = new HashSet<Action>();
-        
-        private sealed class ElementFinalizer
-        {
-            internal readonly Action theAction;
-
-            public ElementFinalizer(Action theAction)
-            {
-                this.theAction = theAction;
-            }
-
-            ~ElementFinalizer()
-            {
-                lock (_onLanguageChangeCallbacks)
-                {
-                    _onLanguageChangeCallbacks.Remove(theAction);
-                }
-            }
-        }
-        
-        private static ConditionalWeakTable<VisualElement, ElementFinalizer> _visualElementRefs
-            = new ConditionalWeakTable<VisualElement, ElementFinalizer>();
-
-        static UIElementLocalizer()
-        {
-            LanguagePrefs.OnLanguageChanged += OnLanguageChanged;
-        }
-
-        private static void OnLanguageChanged()
-        {
-            lock (_onLanguageChangeCallbacks)
-            {
-                foreach (var cb in _onLanguageChangeCallbacks)
-                {
-                    cb();
-                }
-            }
-        }
-
         private readonly Localizer _localizer;
 
         public UIElementLocalizer(Localizer localizer)
         {
             _localizer = localizer;
-        }
-        
-        private static void RegisterCallback(VisualElement elem, Action updater)
-        {
-            lock (_onLanguageChangeCallbacks)
-            {
-                if (_visualElementRefs.TryGetValue(elem, out var oldUpdater))
-                {
-                    _onLanguageChangeCallbacks.Remove(oldUpdater.theAction);
-                }
-                
-                _onLanguageChangeCallbacks.Add(updater);
-                ElementFinalizer ef = new ElementFinalizer(updater);
-                _visualElementRefs.Add(elem, ef);
-            }
         }
 
         internal void Localize(VisualElement elem)
@@ -88,9 +32,9 @@ namespace nadena.dev.ndmf.localization
                 var op = GetLocalizationOperation(ty);
                 if (op != null)
                 {
-                    var cb = op(elem);
-                    RegisterCallback(elem, cb);
-                    cb();
+                    var action = op(elem);
+                    LanguagePrefs.RegisterLanguageChangeCallback(elem, _elem => action());
+                    action();
                 }
             }
 
@@ -105,7 +49,7 @@ namespace nadena.dev.ndmf.localization
             if (!_localizers.TryGetValue(ty, out var action))
             {
                 PropertyInfo m_label;
-                if (ty == typeof(Label))
+                if (ty == typeof(Label) || ty == typeof(Button))
                 {
                     m_label = ty.GetProperty("text");
                 }

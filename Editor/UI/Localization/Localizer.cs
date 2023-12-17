@@ -88,7 +88,7 @@ namespace nadena.dev.ndmf.localization
             }
             
             value = _lookupCache(key);
-            return value != null;
+            return value != null && value != key;
         }
 
         public string GetLocalizedString(string key)
