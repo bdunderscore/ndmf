@@ -2,6 +2,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +14,8 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf
 {
+    using UPMClient = UnityEditor.PackageManager.Client;
+    using UPM = UnityEditor.PackageManager.Requests;
     #region
 
     using UnityObject = Object;
@@ -20,16 +24,16 @@ namespace nadena.dev.ndmf
 
     internal class OverrideTemporaryDirectoryScope : IDisposable
     {
-        private string priorDirectory = AvatarProcessor.TemporaryAssetRoot;
+        private string priorDirectory = AvatarProcessor.OverrideAssetRoot;
 
         public OverrideTemporaryDirectoryScope(string path)
         {
-            AvatarProcessor.TemporaryAssetRoot = path;
+            AvatarProcessor.OverrideAssetRoot = path;
         }
 
         public void Dispose()
         {
-            AvatarProcessor.TemporaryAssetRoot = priorDirectory;
+            AvatarProcessor.OverrideAssetRoot = priorDirectory;
         }
     }
 
@@ -43,7 +47,59 @@ namespace nadena.dev.ndmf
     /// </summary>
     public static class AvatarProcessor
     {
-        internal static string TemporaryAssetRoot = "Packages/nadena.dev.ndmf/__Generated";
+        private static UPM.ListRequest _listRequest;
+        
+        [InitializeOnLoadMethod]
+        static void GetPackageInfo()
+        {
+            _listRequest = UPMClient.List();
+        }
+
+        internal static string DefaultAssetRoot = null;
+        internal static string OverrideAssetRoot = null;
+
+        internal static string TemporaryAssetRoot
+        {
+            get
+            {
+                if (OverrideAssetRoot != null) return OverrideAssetRoot;
+                if (DefaultAssetRoot == null)
+                {
+                    Stopwatch timer = new Stopwatch();
+                    timer.Start();
+                    while (!_listRequest.IsCompleted && timer.ElapsedMilliseconds < 10000)
+                    {
+                        Thread.Sleep(100);
+                        // spin-wait - this is important in play mode as the UPM operation won't finish by the time we
+                        // need to start processing the avatar.
+                    }
+
+                    if (!_listRequest.IsCompleted)
+                    {
+                        throw new Exception("UPM processing timed out");
+                    }
+
+                    var embeddedPkg = _listRequest.Result.FirstOrDefault(pkg =>
+                    {
+                        if (pkg.name != "nadena.dev.ndmf") return false;
+                        return pkg.source == UnityEditor.PackageManager.PackageSource.Embedded;
+                    });
+                    
+                    if (embeddedPkg != null)
+                    {
+                        DefaultAssetRoot = embeddedPkg.assetPath + "/GeneratedAssets";
+                    }
+                    else
+                    {
+                        DefaultAssetRoot = "Assets/ZZZ_GeneratedAssets";
+                    }
+                    
+                    Debug.Log("NDMF: Using path " + DefaultAssetRoot + " for temporary assets");
+                }
+
+                return DefaultAssetRoot;
+            }
+        }
 
         /// <summary>
         /// Deletes all temporary assets after a build.
