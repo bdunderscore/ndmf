@@ -42,12 +42,12 @@ namespace nadena.dev.ndmf
 
         public abstract ErrorCategory Category { get; }
 
-        public VisualElement CreateVisualElement(ErrorReport report)
+        public virtual VisualElement CreateVisualElement(ErrorReport report)
         {
             return new SimpleErrorUI(report, this);
         }
 
-        public string ToMessage()
+        public virtual string ToMessage()
         {
             var title = FormatTitle();
             var details = FormatDetails();

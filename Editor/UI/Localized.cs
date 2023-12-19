@@ -65,15 +65,7 @@ namespace nadena.dev.ndmf.ui
         {
             if (!_localizers.TryGetValue(ty, out var action))
             {
-                PropertyInfo m_label;
-                if (ty == typeof(Label))
-                {
-                    m_label = ty.GetProperty("text");
-                }
-                else
-                {
-                    m_label = ty.GetProperty("label");
-                }
+                PropertyInfo m_label = ty.GetProperty("text") ?? ty.GetProperty("label");
 
                 if (m_label == null)
                 {

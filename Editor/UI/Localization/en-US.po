@@ -13,3 +13,12 @@ msgstr "Test Build"
 
 msgid "ErrorReport:NoErrors"
 msgstr "No errors to report!"
+
+msgid "Errors:InternalError"
+msgstr "An internal error has occurred."
+
+msgid "Errors:InternalError:description"
+msgstr "A plugin has thrown an exception of type {0}. Please report this to the plugin author."
+
+msgid "InternalError:StackTraceFoldout"
+msgstr "Show Stack Trace (please include with bug reports!)"

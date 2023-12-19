@@ -401,6 +401,7 @@ namespace nadena.dev.ndmf
                         {
                             kvp.Value.OnDeactivate(this);
                             
+                            // ReSharper disable once SuspiciousTypeConversion.Global
                             if (kvp.Value is IDisposable d)
                             {
                                 d.Dispose();
@@ -419,11 +420,6 @@ namespace nadena.dev.ndmf
                 sw.Stop();
 
                 BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
-                
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Information, "ndmf.test1", AvatarRootObject);
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.NonFatal, "ndmf.test2", AvatarRootTransform);
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Error, "ndmf.test3", AvatarDescriptor);
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.InternalError, "ndmf.test4", AvatarRootObject.GetComponent<Animator>().avatar);
                 
                 if (!Application.isBatchMode && _report.Errors.Count > 0)
                 {

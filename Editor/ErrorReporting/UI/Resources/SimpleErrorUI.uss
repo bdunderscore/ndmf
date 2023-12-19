@@ -43,3 +43,7 @@
 #hint-foldout {
     margin-top: 10px;
 }
+
+#stack-trace-foldout {
+    display: none;
+}

@@ -16,6 +16,9 @@
             <engine:Foldout class="error-hint" name="hint-foldout" text="Error hint popout title" value="false">
                 <engine:Label name="hint" text="Error hint"/>
             </engine:Foldout>
+            <engine:Foldout class="error-stacktrace ndmf-tr" name="stack-trace-foldout" text="InternalError:StackTraceFoldout" value="false">
+                <engine:TextField name="stack-trace" text="Error stacktrace" multiline="true" readonly="true"/>
+            </engine:Foldout>
         </engine:VisualElement>
 
     </engine:VisualElement>

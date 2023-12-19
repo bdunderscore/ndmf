@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using nadena.dev.ndmf.localization;
+using nadena.dev.ndmf.ui;
 using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf
 {
-    public class StackTraceError : IError
+    public class StackTraceError : SimpleError
     {
         private Exception _e;
         
@@ -12,15 +15,33 @@ namespace nadena.dev.ndmf
             this._e = e;
         }
 
-        public ErrorCategory Category => ErrorCategory.InternalError;
-        public VisualElement CreateVisualElement(ErrorReport report)
+        protected override Localizer Localizer => NDMFLocales.L;
+        protected override string TitleKey => "Errors:InternalError";
+        public override ErrorCategory Category => ErrorCategory.InternalError;
+
+        protected override string[] DetailsSubst => new []
         {
-            throw new NotImplementedException();
+            _e.GetType().Name
+        };
+
+        public override VisualElement CreateVisualElement(ErrorReport report)
+        {
+            SimpleErrorUI ui = (SimpleErrorUI) base.CreateVisualElement(report);
+            if (_e.StackTrace != null) ui.AddStackTrace(_e + "\n" + _e.StackTrace);
+            else ui.AddStackTrace(_e.ToString());
+            return ui;
         }
 
-        public string ToMessage()
+        public override string ToMessage()
         {
-            return "Internal error: " + _e.Message + "\n\n" + _e.StackTrace;
+            if (_e.StackTrace != null)
+            {
+                return base.ToMessage() + "\n\n" + _e + "\n" + _e.StackTrace;
+            }
+            else
+            {
+                return base.ToMessage() + "\n\n" + _e;
+            }
         }
     }
 }

@@ -23,6 +23,14 @@ namespace nadena.dev.ndmf.ui
             RenderContent();
         }
 
+        internal void AddStackTrace(string trace)
+        {
+            var traceFoldout = this.Q<Foldout>("stack-trace-foldout");
+            var traceElem = this.Q<TextField>("stack-trace");
+            traceFoldout.style.display = DisplayStyle.Flex;
+            traceElem.value = trace;
+        }
+
         private void RenderContent()
         {
             Clear();
@@ -37,6 +45,8 @@ namespace nadena.dev.ndmf.ui
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(
                     "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/Resources/SimpleErrorUI.uss");
             styleSheets.Add(styleSheet);
+            
+            NDMFLocales.L.LocalizeUIElements(this);
 
             var titleElem = this.Q<Label>("title");
             titleElem.text = _error.FormatTitle();
