@@ -52,6 +52,9 @@ namespace nadena.dev.ndmf
         private Stopwatch sw = new Stopwatch();
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
+
+        public ObjectRegistry ObjectRegistry => _registry;
+        public ErrorReport ErrorReport => _report;
         
         /// <summary>
         /// The root GameObject of the avatar being built.
