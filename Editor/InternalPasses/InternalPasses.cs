@@ -17,9 +17,7 @@ namespace nadena.dev.ndmf
         {
             InPhase(BuildPhase.Resolving)
                 .Run(RemoveMissingScriptComponents.Instance)
-                .Then.Run(RemoveEditorOnlyPass.Instance)
-                .Then.Run("Test Pass", _ctx => ErrorReport.ReportError(
-                    NDMFLocales.L, ErrorCategory.Information, "internal.test"));
+                .Then.Run(RemoveEditorOnlyPass.Instance);
         }
     }
 }
