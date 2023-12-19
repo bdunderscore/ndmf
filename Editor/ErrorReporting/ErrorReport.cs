@@ -268,5 +268,36 @@ namespace nadena.dev.ndmf
             CurrentContext.ExtensionContext = extensionContext;
             return scope;
         }
+
+        /// <summary>
+        /// Runs the given action, capturing all errors and returning any errors generated.
+        /// Intended for unit testing only.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static List<ErrorContext> CaptureErrors(Action action)
+        {
+            var report = new ErrorReport("test avatar", "test avatar");
+            
+            using (new ErrorReportScope(report))
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    ReportException(e);
+                }
+            }
+            
+            return report.Errors.ToList();
+        }
+
+        public static void Clear()
+        {
+            Reports.Clear();
+            CurrentReport = null;
+        }
     }
 }
