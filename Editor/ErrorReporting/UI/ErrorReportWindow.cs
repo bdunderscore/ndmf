@@ -111,7 +111,7 @@ namespace nadena.dev.ndmf.ui
                 {
                     var elem = new VisualElement();
                     elem.AddToClassList("error-list-element");
-                    elem.Add(error.CreateVisualElement(_report));
+                    elem.Add(error.TheError.CreateVisualElement(_report));
                     _errorList.Add(elem);
                 }
 

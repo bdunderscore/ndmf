@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf
 {
-    internal interface IPlugin
+    internal interface IPluginInternal
     {
         string QualifiedName { get; }
         string DisplayName { get; }
@@ -19,7 +19,17 @@ namespace nadena.dev.ndmf
         void OnUnhandledException(Exception e);
     }
 
-    public abstract class Plugin<T> : IPlugin where T : Plugin<T>, new()
+    public abstract class PluginBase
+    {
+        public abstract string QualifiedName { get; }
+        public abstract string DisplayName { get; } 
+        
+        internal PluginBase()
+        {
+        }
+    }
+
+    public abstract class Plugin<T> : PluginBase, IPluginInternal where T : Plugin<T>, new()
     {
         private static object _lock = new object();
 
@@ -30,10 +40,10 @@ namespace nadena.dev.ndmf
 
         private PluginInfo _info;
 
-        public virtual string QualifiedName => typeof(T).FullName;
-        public virtual string DisplayName => QualifiedName;
+        public override string QualifiedName => typeof(T).FullName;
+        public override string DisplayName => QualifiedName;
 
-        void IPlugin.Configure(PluginInfo info)
+        void IPluginInternal.Configure(PluginInfo info)
         {
             _info = info;
             try
@@ -70,7 +80,7 @@ namespace nadena.dev.ndmf
             Debug.LogException(e);
         }
 
-        void IPlugin.OnUnhandledException(Exception e)
+        void IPluginInternal.OnUnhandledException(Exception e)
         {
             OnUnhandledException(e);
         }

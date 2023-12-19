@@ -70,6 +70,8 @@ namespace nadena.dev.ndmf
         /// </summary>
         public UnityObject AssetContainer { get; private set; }
 
+        public bool Successful => !_report.Errors.Any(e => e.TheError.Category >= ErrorCategory.Error);
+        
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
         private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
@@ -265,28 +267,36 @@ namespace nadena.dev.ndmf
         public void DeactivateExtensionContext(Type t)
         {
             using (new ExecutionScope(this))
-            {
-                if (_activeExtensions.ContainsKey(t))
+            using (_report.WithExtensionContextTrace(t))
+                try
                 {
-                    var ctx = _activeExtensions[t];
-                    Profiler.BeginSample("NDMF Deactivate: " + t);
-                    try
+                    if (_activeExtensions.ContainsKey(t))
                     {
-                        ctx.OnDeactivate(this);
-                    }
-                    finally
-                    {
-                        Profiler.EndSample();
-                    }
+                        var ctx = _activeExtensions[t];
+                        Profiler.BeginSample("NDMF Deactivate: " + t);
+                        try
+                        {
+                            ctx.OnDeactivate(this);
+                        }
+                        finally
+                        {
+                            Profiler.EndSample();
+                        }
 
-                    _activeExtensions.Remove(t);
+                        _activeExtensions.Remove(t);
+                    }
                 }
-            }
+                catch (Exception e)
+                {
+                    ErrorReport.ReportException(e);
+                }
         }
 
         internal void RunPass(ConcretePass pass)
         {
             using (new ExecutionScope(this))
+            using (_report.WithContext(pass.Plugin as PluginBase))
+            using (_report.WithContextPassName(pass.Description))
             {
                 sw.Start();
 
@@ -319,6 +329,7 @@ namespace nadena.dev.ndmf
                 catch (Exception e)
                 {
                     pass.Plugin.OnUnhandledException(e);
+                    ErrorReport.ReportException(e);
                 }
                 finally
                 {
@@ -345,29 +356,36 @@ namespace nadena.dev.ndmf
         public IExtensionContext ActivateExtensionContext(Type ty)
         {
             using (new ExecutionScope(this))
-            {
-                if (!_extensions.TryGetValue(ty, out var ctx))
+            using (_report.WithExtensionContextTrace(ty))
+                try
                 {
-                    ctx = (IExtensionContext)ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
-                }
-
-                if (!_activeExtensions.ContainsKey(ty))
-                {
-                    Profiler.BeginSample("NDMF Activate: " + ty);
-                    try
+                    if (!_extensions.TryGetValue(ty, out var ctx))
                     {
-                        ctx.OnActivate(this);
-                    }
-                    finally
-                    {
-                        Profiler.EndSample();
+                        ctx = (IExtensionContext)ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
                     }
 
-                    _activeExtensions.Add(ty, ctx);
-                }
+                    if (!_activeExtensions.ContainsKey(ty))
+                    {
+                        Profiler.BeginSample("NDMF Activate: " + ty);
+                        try
+                        {
+                            ctx.OnActivate(this);
+                        }
+                        finally
+                        {
+                            Profiler.EndSample();
+                        }
 
-                return _activeExtensions[ty];
-            }
+                        _activeExtensions.Add(ty, ctx);
+                    }
+
+                    return _activeExtensions[ty];
+                }
+                catch (Exception e)
+                {
+                    ErrorReport.ReportException(e);
+                    return null;
+                }
         }
 
         internal void Finish()
@@ -377,12 +395,23 @@ namespace nadena.dev.ndmf
                 sw.Start();
                 foreach (var kvp in _activeExtensions.ToList())
                 {
-                    kvp.Value.OnDeactivate(this);
-                    if (kvp.Value is IDisposable d)
+                    using (_report.WithExtensionContextTrace(kvp.Key))
                     {
-                        d.Dispose();
+                        try
+                        {
+                            kvp.Value.OnDeactivate(this);
+                            
+                            if (kvp.Value is IDisposable d)
+                            {
+                                d.Dispose();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            ErrorReport.ReportException(e);
+                        }
                     }
-
+                    
                     _activeExtensions.Remove(kvp.Key);
                 }
 

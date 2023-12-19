@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using nadena.dev.ndmf.localization;
@@ -11,11 +12,17 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf
 {
+    using UnityObject = UnityEngine.Object;
+    
     public interface IError
     {
         ErrorCategory Category { get; }
         VisualElement CreateVisualElement(ErrorReport report);
         string ToMessage();
+
+        void AddReference(ObjectReference obj)
+        {
+        }
     }
 
     public abstract class SimpleError : IError
@@ -29,8 +36,9 @@ namespace nadena.dev.ndmf
         protected virtual string[] DetailsSubst => Array.Empty<string>();
         protected virtual string HintKey => TitleKey + ":hint";
         protected virtual string[] HintSubst => Array.Empty<string>();
-
-        public virtual ObjectReference[] References => Array.Empty<ObjectReference>();
+        
+        protected List<ObjectReference> _references = new List<ObjectReference>();
+        public virtual ObjectReference[] References => _references.ToArray();
 
         public abstract ErrorCategory Category { get; }
 
@@ -97,6 +105,11 @@ namespace nadena.dev.ndmf
             sb.Append(value.Substring(consumedUpTo));
 
             return sb.ToString();
+        }
+        
+        public void AddReference(UnityObject obj)
+        {
+            _references.Add(ObjectRegistry.GetReference(obj));
         }
     }
 }
