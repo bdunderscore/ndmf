@@ -10,10 +10,12 @@ namespace nadena.dev.ndmf.ui
 {
     internal class SimpleErrorUI : VisualElement
     {
+        private readonly ErrorReport _report;
         private readonly SimpleError _error;
 
-        public SimpleErrorUI(SimpleError error)
+        public SimpleErrorUI(ErrorReport report, SimpleError error)
         {
+            this._report = report;
             this._error = error;
 
             LanguagePrefs.RegisterLanguageChangeCallback(this, ui => ui.RenderContent());
@@ -27,13 +29,13 @@ namespace nadena.dev.ndmf.ui
 
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/SimpleErrorUI.uxml");
+                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/Resources/SimpleErrorUI.uxml");
             VisualElement labelFromUXML = visualTree.CloneTree();
             Add(labelFromUXML);
 
             var styleSheet =
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/SimpleErrorUI.uss");
+                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/Resources/SimpleErrorUI.uss");
             styleSheets.Add(styleSheet);
 
             var titleElem = this.Q<Label>("title");
@@ -68,6 +70,22 @@ namespace nadena.dev.ndmf.ui
 
             var icon = this.Q<ErrorIcon>("icon");
             icon.Category = _error.Category;
+            
+            var objRefs = this.Q<VisualElement>("object-references");
+            if (_error.References.Length == 0)
+            {
+                objRefs.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                foreach (var objRef in _error.References)
+                {
+                    if (ObjectSelector.TryCreate(_report, objRef, out var selector))
+                    {
+                        objRefs.Add(selector);
+                    }
+                }
+            }
         }
     }
 }

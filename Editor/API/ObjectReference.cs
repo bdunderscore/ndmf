@@ -2,6 +2,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -43,5 +45,34 @@ namespace nadena.dev.ndmf
         {
             return RuntimeHelpers.GetHashCode(_obj);
         }
+
+        public bool TryResolve(ErrorReport report, out Object obj)
+        {
+            obj = null;
+
+            if (_obj != null && EditorUtility.IsPersistent(_obj))
+            {
+                // We're referencing an asset.
+                obj = _obj;
+                return true;
+            }
+
+            if (!report.TryResolveAvatar(out var av))
+            {
+                return false;
+            }
+
+            GameObject go = av.transform.Find(_path)?.gameObject;
+
+            if (go == null) return false;
+            if (Type == typeof(GameObject))
+            {
+                obj = go;
+            } else {
+                obj = go.GetComponent(Type);
+            }
+
+            return obj != null;
+        } 
     }
 }

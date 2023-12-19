@@ -47,13 +47,13 @@ namespace nadena.dev.ndmf.ui
             // Import UXML
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/ErrorReportWindow.uxml");
+                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/Resources/ErrorReportWindow.uxml");
             VisualElement labelFromUXML = visualTree.CloneTree();
             root.Add(labelFromUXML);
 
             var styleSheet =
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/ErrorReportWindow.uss");
+                    "Packages/nadena.dev.ndmf/Editor/ErrorReporting/UI/Resources/ErrorReportWindow.uss");
             root.styleSheets.Add(styleSheet);
 
             NDMFLocales.L.LocalizeUIElements(root);
@@ -64,6 +64,7 @@ namespace nadena.dev.ndmf.ui
             _avatarHeader = root.Q<Label>("avatar-header-placeholder-label");
             _testBuild = root.Q<Button>("test-build-button");
             _testBuild.clicked += TestBuild;
+            _testBuild.SetEnabled(_report != null && _report.TryResolveAvatar(out _));
             _noErrorLabel = root.Q<VisualElement>("no-errors-label");
         }
 
@@ -80,9 +81,8 @@ namespace nadena.dev.ndmf.ui
             Debug.Log("TestBuild");
             if (_report == null) return;
 
-            var originalRoot = FindAvatarRoot(_report);
+            if (!_report.TryResolveAvatar(out var originalRoot)) return;
             Debug.Log("Report OK, root=" + originalRoot);
-            if (originalRoot == null) return;
 
             var clone = Instantiate(originalRoot);
 
@@ -111,7 +111,7 @@ namespace nadena.dev.ndmf.ui
                 {
                     var elem = new VisualElement();
                     elem.AddToClassList("error-list-element");
-                    elem.Add(error.CreateVisualElement());
+                    elem.Add(error.CreateVisualElement(_report));
                     _errorList.Add(elem);
                 }
 

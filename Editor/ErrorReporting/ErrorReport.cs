@@ -7,6 +7,7 @@ using System.Linq;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -95,6 +96,34 @@ namespace nadena.dev.ndmf
         {
             ReportError(new InlineError(localizer, errorCategory, key, args));
         }
+
+        public bool TryResolveAvatar(out GameObject av)
+        {
+            var scene = SceneManager.GetActiveScene();
+
+            var firstPathElement = AvatarRootPath.Split('/')[0];
+            var remaining = firstPathElement == AvatarRootPath ? null : AvatarRootPath.Substring(firstPathElement.Length + 1);
+            
+            foreach (var obj in scene.GetRootGameObjects())
+            {
+                if (obj.name == firstPathElement)
+                {
+                    if (remaining == null)
+                    {
+                        av = obj;
+                        return true;
+                    }
+                    else
+                    {
+                        av = obj.transform.Find(remaining)?.gameObject;
+                        return av != null;
+                    }
+                }
+            }
+
+            av = null;
+            return false;
+        }
     }
 
     internal class InlineError : SimpleError
@@ -133,6 +162,6 @@ namespace nadena.dev.ndmf
 
         protected override string[] DetailsSubst => _subst;
         protected override string[] HintSubst => _subst;
-        protected override ObjectReference[] References => _references;
+        public override ObjectReference[] References => _references;
     }
 }

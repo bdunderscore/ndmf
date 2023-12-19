@@ -391,10 +391,10 @@ namespace nadena.dev.ndmf
 
                 BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
                 
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Information, "ndmf.test1");
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.NonFatal, "ndmf.test2");
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Error, "ndmf.test3");
-                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.InternalError, "ndmf.test4");
+                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Information, "ndmf.test1", AvatarRootObject);
+                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.NonFatal, "ndmf.test2", AvatarRootTransform);
+                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.Error, "ndmf.test3", AvatarDescriptor);
+                ErrorReport.ReportError(NDMFLocales.L, ErrorCategory.InternalError, "ndmf.test4", AvatarRootObject.GetComponent<Animator>().avatar);
                 
                 if (!Application.isBatchMode && _report.Errors.Count > 0)
                 {

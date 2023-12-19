@@ -14,7 +14,7 @@ namespace nadena.dev.ndmf
     public interface IError
     {
         ErrorCategory Category { get; }
-        VisualElement CreateVisualElement();
+        VisualElement CreateVisualElement(ErrorReport report);
         string ToMessage();
     }
 
@@ -30,13 +30,13 @@ namespace nadena.dev.ndmf
         protected virtual string HintKey => TitleKey + ":hint";
         protected virtual string[] HintSubst => Array.Empty<string>();
 
-        protected virtual ObjectReference[] References => Array.Empty<ObjectReference>();
+        public virtual ObjectReference[] References => Array.Empty<ObjectReference>();
 
         public abstract ErrorCategory Category { get; }
 
-        public VisualElement CreateVisualElement()
+        public VisualElement CreateVisualElement(ErrorReport report)
         {
-            return new SimpleErrorUI(this);
+            return new SimpleErrorUI(report, this);
         }
 
         public string ToMessage()

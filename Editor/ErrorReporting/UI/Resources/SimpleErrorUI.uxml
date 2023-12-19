@@ -12,6 +12,7 @@
         <engine:VisualElement class="error-list-main">
             <engine:Label class="error-title" name="title" text="Error message"/>
             <engine:Label class="error-description" name="description" text="Error description"/>
+            <engine:VisualElement name="object-references"/>
             <engine:Foldout class="error-hint" name="hint-foldout" text="Error hint popout title" value="false">
                 <engine:Label name="hint" text="Error hint"/>
             </engine:Foldout>
