@@ -7,7 +7,7 @@ namespace nadena.dev.ndmf.localization
 {
     public static class LanguagePrefs
     {
-        private static string _curLanguage = "en-US";
+        private static string _curLanguage = "en-us";
 
         public static string Language
         {

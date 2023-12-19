@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf.ui
 {
-    public class LanguageSwitcher : VisualElement
+    public sealed class LanguageSwitcher : VisualElement
     {
         public new class UxmlFactory : UxmlFactory<LanguageSwitcher, UxmlTraits>
         {
@@ -20,33 +20,35 @@ namespace nadena.dev.ndmf.ui
         public LanguageSwitcher()
         {
             // DropdownField is not supported in 2019...
-            var imgui = new IMGUIContainer(() =>
-            {
-                var curLang = LanguagePrefs.Language;
-
-                var curIndex = LanguagePrefs.RegisteredLanguages.IndexOf(curLang);
-                var DisplayNames = LanguagePrefs.RegisteredLanguages.Select(
-                        lang =>
-                        {
-                            try
-                            {
-                                return CultureInfo.GetCultureInfo(lang).DisplayName;
-                            }
-                            catch (Exception e)
-                            {
-                                return lang;
-                            }
-                        })
-                    .ToArray();
-
-                var newIndex = EditorGUILayout.Popup("Editor Language", curIndex, DisplayNames);
-
-                if (newIndex != curIndex)
-                {
-                    LanguagePrefs.Language = LanguagePrefs.RegisteredLanguages[newIndex];
-                }
-            });
+            var imgui = new IMGUIContainer(() => { DrawImmediate(); });
             Add(imgui);
+        }
+
+        public static void DrawImmediate()
+        {
+            var curLang = LanguagePrefs.Language;
+
+            var curIndex = LanguagePrefs.RegisteredLanguages.IndexOf(curLang);
+            var DisplayNames = LanguagePrefs.RegisteredLanguages.Select(
+                    lang =>
+                    {
+                        try
+                        {
+                            return CultureInfo.GetCultureInfo(lang).NativeName;
+                        }
+                        catch (Exception e)
+                        {
+                            return lang;
+                        }
+                    })
+                .ToArray();
+
+            var newIndex = EditorGUILayout.Popup("Editor Language", curIndex, DisplayNames);
+
+            if (newIndex != curIndex)
+            {
+                LanguagePrefs.Language = LanguagePrefs.RegisteredLanguages[newIndex];
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -89,8 +90,9 @@ namespace nadena.dev.ndmf.localization
             var newLanguages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
             foreach (var (lang, lookup) in _localizationLoader())
             {
-                LanguagePrefs.RegisterLanguage(lang);
-                newLanguages = newLanguages.Add(lang, lookup);
+                var normalizedLang = CultureInfo.GetCultureInfo(lang).Name;
+                LanguagePrefs.RegisterLanguage(normalizedLang);
+                newLanguages = newLanguages.Add(normalizedLang, lookup);
             }
 
             languages = newLanguages;
