@@ -53,7 +53,9 @@ namespace nadena.dev.ndmf
 
         public static ObjectReference GetReference(UnityObject obj)
         {
-            return ActiveRegistry._GetReference(obj);
+            if (obj == null) return null;
+            
+            return ActiveRegistry?._GetReference(obj) ?? new ObjectReference(obj, null);
         }
 
         private ObjectReference _GetReference(UnityObject obj)

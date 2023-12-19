@@ -1,30 +1,14 @@
-﻿#region
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.ui;
 using UnityEngine.UIElements;
-
-#endregion
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf
 {
-    using UnityObject = UnityEngine.Object;
-    
-    public interface IError
-    {
-        ErrorCategory Category { get; }
-        VisualElement CreateVisualElement(ErrorReport report);
-        string ToMessage();
-
-        void AddReference(ObjectReference obj)
-        {
-        }
-    }
-
     public abstract class SimpleError : IError
     {
         private static readonly Regex Pattern = new Regex("\\{([0-9])\\}");
@@ -107,7 +91,7 @@ namespace nadena.dev.ndmf
             return sb.ToString();
         }
         
-        public void AddReference(UnityObject obj)
+        public void AddReference(Object obj)
         {
             _references.Add(ObjectRegistry.GetReference(obj));
         }

@@ -68,13 +68,13 @@ namespace nadena.dev.ndmf.ui
             _noErrorLabel = root.Q<VisualElement>("no-errors-label");
         }
 
-#if NDMF_DEBUG
-        [MenuItem("Window/UIElements/ErrorReportWindow")]
-        public static void ShowExample()
+        [MenuItem("Tools/NDM Framework/Show Error Report")]
+        public static void ShowErrorReportWindow()
         {
-            ShowReport(null);
+            if (Application.isBatchMode) return; // headless unit tests
+
+            ShowReport(ErrorReport.Reports.LastOrDefault());
         }
-#endif
 
         private void TestBuild()
         {
@@ -107,8 +107,17 @@ namespace nadena.dev.ndmf.ui
 
             if (_report != null)
             {
-                foreach (var error in _report.Errors)
+                var errors = _report.Errors.OrderBy(e => e.Plugin.DisplayName).ToList();
+                PluginBase lastPlugin = null;
+                
+                foreach (var error in errors)
                 {
+                    if (error.Plugin != lastPlugin)
+                    {
+                        _errorList.Add(new GroupHeader(error.Plugin));
+                        lastPlugin = error.Plugin;
+                    }
+
                     var elem = new VisualElement();
                     elem.AddToClassList("error-list-element");
                     elem.Add(error.TheError.CreateVisualElement(_report));
@@ -150,6 +159,8 @@ namespace nadena.dev.ndmf.ui
 
         public static void ShowReport(ErrorReport report)
         {
+            if (Application.isBatchMode) return; // headless unit tests
+
             ErrorReportWindow wnd = GetWindow<ErrorReportWindow>();
             wnd.titleContent = new GUIContent("NDMF Error Report");
             wnd.CurrentReport = report;

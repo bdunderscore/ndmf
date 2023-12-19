@@ -22,7 +22,8 @@ namespace nadena.dev.ndmf
     public abstract class PluginBase
     {
         public abstract string QualifiedName { get; }
-        public abstract string DisplayName { get; } 
+        public abstract string DisplayName { get; }
+        public virtual Texture2D LogoTexture => null;
         
         internal PluginBase()
         {

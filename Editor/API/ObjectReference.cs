@@ -24,7 +24,7 @@ namespace nadena.dev.ndmf
         {
             _obj = obj;
             _path = path;
-            _type = obj.GetType();
+            _type = obj?.GetType();
         }
 
         public Object Object => _obj;

@@ -9,10 +9,20 @@ namespace nadena.dev.ndmf
     public class StackTraceError : SimpleError
     {
         private Exception _e;
+        private string _stackTrace;
         
-        public StackTraceError(Exception e)
+        public Exception Exception => _e;
+        
+        public StackTraceError(Exception e, string additionalStackTrace = null)
         {
             this._e = e;
+
+            this._stackTrace = _e.StackTrace != null ? ("\n" + _e.StackTrace) : "";
+
+            if (additionalStackTrace != null)
+            {
+                this._stackTrace += "\n" + additionalStackTrace;
+            }
         }
 
         protected override Localizer Localizer => NDMFLocales.L;
@@ -27,21 +37,15 @@ namespace nadena.dev.ndmf
         public override VisualElement CreateVisualElement(ErrorReport report)
         {
             SimpleErrorUI ui = (SimpleErrorUI) base.CreateVisualElement(report);
-            if (_e.StackTrace != null) ui.AddStackTrace(_e + "\n" + _e.StackTrace);
+            if (_e.StackTrace != null) ui.AddStackTrace(_e + _stackTrace);
             else ui.AddStackTrace(_e.ToString());
             return ui;
         }
 
         public override string ToMessage()
         {
-            if (_e.StackTrace != null)
-            {
-                return base.ToMessage() + "\n\n" + _e + "\n" + _e.StackTrace;
-            }
-            else
-            {
-                return base.ToMessage() + "\n\n" + _e;
-            }
+            return base.ToMessage() + "\n\n" + _e + _stackTrace;
+            
         }
     }
 }

@@ -23,6 +23,10 @@
     border-width: 0 0 0 0;
 }
 
+Label {
+    white-space: normal; /* word wrap */
+}
+
 #icon-container {
     flex-direction: column;
     justify-content: flex-start;

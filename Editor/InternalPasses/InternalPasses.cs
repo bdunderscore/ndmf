@@ -1,6 +1,8 @@
 ﻿#region
 
+using BestHTTP.SecureProtocol.Org.BouncyCastle.Crypto.Engines;
 using nadena.dev.ndmf.builtin;
+using nadena.dev.ndmf.localization;
 
 #endregion
 
@@ -15,7 +17,9 @@ namespace nadena.dev.ndmf
         {
             InPhase(BuildPhase.Resolving)
                 .Run(RemoveMissingScriptComponents.Instance)
-                .Then.Run(RemoveEditorOnlyPass.Instance);
+                .Then.Run(RemoveEditorOnlyPass.Instance)
+                .Then.Run("Test Pass", _ctx => ErrorReport.ReportError(
+                    NDMFLocales.L, ErrorCategory.Information, "internal.test"));
         }
     }
 }

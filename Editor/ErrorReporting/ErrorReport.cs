@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
@@ -19,6 +20,13 @@ namespace nadena.dev.ndmf
     using UnityObject = Object;
 
     #endregion
+
+    internal class NullScope : IDisposable
+    {
+        public void Dispose()
+        {
+        }
+    }
 
     internal class ErrorReportScope : IDisposable
     {
@@ -130,7 +138,14 @@ namespace nadena.dev.ndmf
 
         public static void ReportError(IError error)
         {
-            Debug.LogWarning("[NDMF] Error Reported: " + error.ToMessage());
+            if (error is StackTraceError e)
+            {
+                Debug.LogException(e.Exception);
+            }
+            else
+            {
+                Debug.LogWarning("[NDMF] Error Reported: " + error.ToMessage());
+            }
 
             var contextObjs = ReferenceStack.ToList();
             contextObjs.Reverse();
@@ -148,19 +163,19 @@ namespace nadena.dev.ndmf
             ReportError(new InlineError(localizer, errorCategory, key, args));
         }
 
-        public static void ReportException(Exception e)
+        public static void ReportException(Exception e, string additionalStackTrace = null)
         {
             var report = CurrentReport;
 
             Exception e_ = e;
-            while (e_ != null)
+            while (e_ != null && report != null)
             {
                 if (report.ReportedExceptions.Contains(e_)) return;
                 e_ = e_.InnerException;
             }
             
-            ReportError(new StackTraceError(e));
-            report.ReportedExceptions.Add(e);
+            ReportError(new StackTraceError(e, additionalStackTrace));
+            report?.ReportedExceptions?.Add(e);
         }
 
         public bool TryResolveAvatar(out GameObject av)
@@ -191,15 +206,17 @@ namespace nadena.dev.ndmf
             return false;
         }
 
-        public IDisposable WithContextObject(UnityObject obj)
+        public static IDisposable WithContextObject(UnityObject obj)
         {
-            var scope = new ReferenceStackScope(this);
+            if (obj == null || CurrentReport == null) return new NullScope();
+            
+            var scope = new ReferenceStackScope(CurrentReport);
             ReferenceStack.Add(ObjectRegistry.GetReference(obj));
 
             return scope;
         }
         
-        public T WithContextObject<T>(UnityObject obj, Func<T> func)
+        public static T WithContextObject<T>(UnityObject obj, Func<T> func)
         {
             using (WithContextObject(obj))
             {
@@ -215,7 +232,7 @@ namespace nadena.dev.ndmf
             }
         }
         
-        public void WithContextObject(UnityObject obj, Action action)
+        public static void WithContextObject(UnityObject obj, Action action)
         {
             using (WithContextObject(obj))
             {
@@ -226,7 +243,7 @@ namespace nadena.dev.ndmf
                 catch (Exception e)
                 {
                     ReportException(e);
-                    throw e;
+                    ExceptionDispatchInfo.Capture(e).Throw();
                 }
             }
         }
@@ -251,41 +268,5 @@ namespace nadena.dev.ndmf
             CurrentContext.ExtensionContext = extensionContext;
             return scope;
         }
-    }
-
-    internal class InlineError : SimpleError
-    {
-        private readonly string[] _subst;
-
-        public InlineError(Localizer localizer, ErrorCategory errorCategory, string key, params object[] args)
-        {
-            Localizer = localizer;
-            Category = errorCategory;
-            TitleKey = key;
-
-            _subst = Array.ConvertAll(args, o => o.ToString());
-            _references = args.Select(r =>
-            {
-                if (r is ObjectReference or)
-                {
-                    return or;
-                }
-                else if (r is UnityObject uo)
-                {
-                    return ObjectRegistry.GetReference(uo);
-                }
-                else
-                {
-                    return null;
-                }
-            }).Where(r => r != null).ToList();
-        }
-
-        protected override Localizer Localizer { get; }
-        public override ErrorCategory Category { get; }
-        protected override string TitleKey { get; }
-
-        protected override string[] DetailsSubst => _subst;
-        protected override string[] HintSubst => _subst;
     }
 }
