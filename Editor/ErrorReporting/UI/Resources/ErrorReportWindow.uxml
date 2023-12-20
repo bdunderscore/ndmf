@@ -10,16 +10,26 @@
     </engine:VisualElement>
 
     <engine:VisualElement name="avatarHeader">
-        <engine:Label text="Avatar: ???" class="ndmf-tr" name="avatar-header-placeholder-label"/>
+        <!-- TODO translate -->
+        <engine:Label text="Avatar: ???" name="avatar-header-placeholder-label"/>
+        <engine:VisualElement name="avatar-selector-container">
+            <engine:Label text="ErrorReport:AvatarPrefix" class="ndmf-tr"/>
+        </engine:VisualElement>
     </engine:VisualElement>
 
     <engine:ScrollView name="error-list" show-vertical-scroller="true" show-horizontal-scroller="false">
+        <engine:Label text="ErrorReport:NoAvatarSelected" class="ndmf-tr" name="no-avatar-label"/>
         <engine:Label text="ErrorReport:NoErrors" class="ndmf-tr" name="no-errors-label"/>
+        <engine:VisualElement name="unbuilt-container">
+            <engine:Label text="ErrorReport:Unbuilt" class="ndmf-tr"/>
+            <engine:Button text="ErrorReport:TestBuild" class="ndmf-tr test-build-button big-button"/>
+        </engine:VisualElement>
+        <engine:VisualElement name="error-list-container"/>
     </engine:ScrollView>
 
     <engine:VisualElement name="footer">
         <ndmf:LanguageSwitcher/>
-        <engine:Button text="ErrorReport:TestBuild" name="test-build-button" class="ndmf-tr"/>
+        <engine:Button text="ErrorReport:TestBuild" name="test-build-button" class="ndmf-tr test-build-button"/>
     </engine:VisualElement>
 
 </engine:UXML>

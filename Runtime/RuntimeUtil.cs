@@ -105,6 +105,51 @@ namespace nadena.dev.ndmf.runtime
         }
 
         /// <summary>
+        /// Return a list of avatar roots in the current Scene(s). This function is a heuristic, and the details
+        /// of its operation may change in patch releases.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<GameObject> FindAvatarRoots(GameObject root = null)
+        {
+            if (root == null)
+            {
+                var sceneCount = SceneManager.sceneCount;
+                for (int i = 0; i < sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    Debug.Log("=== scene: " + scene.name + " ===");
+                    foreach (var sceneRoot in scene.GetRootGameObjects())
+                    {
+                        foreach (var avatar in FindAvatarRoots(sceneRoot))
+                        {
+                            yield return avatar;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                GameObject priorRoot = null;
+#if NDMF_VRCSDK3_AVATARS
+                var candidates = root.GetComponentsInChildren<VRCAvatarDescriptor>();
+#else
+                var candidates = root.GetComponentsInChildren<Animator>();
+#endif
+                foreach (var candidate in candidates)
+                {
+                    Debug.Log("=== candidate: " + candidate.gameObject.name + " ===");
+                    
+                    var gameObject = candidate.gameObject;
+                    // Ignore nested candidates
+                    if (priorRoot != null && RelativePath(priorRoot, gameObject) != null) continue;
+
+                    priorRoot = gameObject;
+                    yield return candidate.gameObject;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns the component marking the root of the avatar.
         /// </summary>
         /// <param name="target"></param>
