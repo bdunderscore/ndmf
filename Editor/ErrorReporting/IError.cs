@@ -11,9 +11,6 @@ namespace nadena.dev.ndmf
         ErrorCategory Category { get; }
         VisualElement CreateVisualElement(ErrorReport report);
         string ToMessage();
-
-        void AddReference(ObjectReference obj)
-        {
-        }
+        void AddReference(ObjectReference obj);
     }
 }

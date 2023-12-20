@@ -91,9 +91,9 @@ namespace nadena.dev.ndmf
             return sb.ToString();
         }
         
-        public void AddReference(Object obj)
+        public void AddReference(ObjectReference obj)
         {
-            _references.Add(ObjectRegistry.GetReference(obj));
+            if (obj != null) _references.Add(obj);
         }
     }
 }
