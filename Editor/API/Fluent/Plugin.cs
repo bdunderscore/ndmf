@@ -1,6 +1,8 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using nadena.dev.ndmf.fluent;
 using UnityEngine;
@@ -32,6 +34,12 @@ namespace nadena.dev.ndmf
 
         public virtual string QualifiedName => typeof(T).FullName;
         public virtual string DisplayName => QualifiedName;
+
+        /// <summary>
+        /// The set of platforms for which this plugin will be applied. By default, the plugin is always executed. 
+        /// </summary>
+        public virtual ISet<AvatarPlatform> SupportedPlatforms => ImmutableHashSet<AvatarPlatform>.Empty
+            .Add(AvatarPlatform.Generic);
 
         void IPlugin.Configure(PluginInfo info)
         {
