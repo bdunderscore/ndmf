@@ -40,7 +40,7 @@ namespace UnitTests.PluginResolverTests
         [Test]
         public void TestBeforeAfterPluginConstraints()
         {
-            var resolver = new PluginResolver(new IPlugin[]
+            var resolver = new PluginResolver(new IPluginInternal[]
             {
                 PluginA.Instance, PluginB.Instance, PluginC.Instance
             });

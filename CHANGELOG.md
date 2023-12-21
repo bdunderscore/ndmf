@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- New localization framework
+- New error reporting framework
 
 ### Fixed
 - Play mode processing fails when installed via UPM (#89)

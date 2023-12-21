@@ -1,0 +1,32 @@
+#header {
+    flex-direction: column;
+    height: 64px;
+    width: 100%;
+    
+    border-color: #000;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+
+    justify-content: center;
+
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#center {
+    flex-direction: row;
+    justify-content: center;
+}
+
+#content {
+    margin: 6px;
+}
+
+#content > Label {
+    justify-content: center;
+    flex-grow: 0;
+    font-size: 32px;
+}
+
+#content > Image {
+
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:ndmf="nadena.dev.ndmf.ui"
+        xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="header">
+        <engine:VisualElement name="center">
+            <engine:VisualElement name="content">
+                <engine:Label name="group-title" text="Group Title" />
+                <engine:Image name="group-logo"/>
+            </engine:VisualElement>
+        </engine:VisualElement>
+        
+    </engine:VisualElement>
+
+</engine:UXML>

@@ -1,0 +1,9 @@
+msgid ""
+msgstr ""
+"Language: ja-JP\n"
+
+msgid "ErrorReport:Title"
+msgstr "エラー表示"
+
+msgid "ErrorReport:Title:tooltip"
+msgstr "テストツールチップ"
