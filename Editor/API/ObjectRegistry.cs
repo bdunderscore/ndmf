@@ -33,6 +33,12 @@ namespace nadena.dev.ndmf
         }
     }
 
+    internal struct Entry
+    {
+        public UnityObject Object;
+        public ObjectReference Reference;
+    }
+
     /// <summary>
     /// The ObjectRegistry tracks the original position of objects on the avatar; this is used to be able to identify
     /// the source of errors after objects have been moved within the hierarchy.
@@ -40,8 +46,8 @@ namespace nadena.dev.ndmf
     public sealed class ObjectRegistry
     {
         // Reference hash code => objects
-        private static readonly Dictionary<int, List<ObjectReference>> _obj2ref =
-            new Dictionary<int, List<ObjectReference>>();
+        private readonly Dictionary<int, List<Entry>> _obj2ref =
+            new Dictionary<int, List<Entry>>();
 
         static internal ObjectRegistry ActiveRegistry;
         internal readonly Transform AvatarRoot;
@@ -63,12 +69,12 @@ namespace nadena.dev.ndmf
             if (obj == null) return null;
             if (!_obj2ref.TryGetValue(RuntimeHelpers.GetHashCode(obj), out var refs))
             {
-                _obj2ref[RuntimeHelpers.GetHashCode(obj)] = refs = new List<ObjectReference>();
+                _obj2ref[RuntimeHelpers.GetHashCode(obj)] = refs = new List<Entry>();
             }
 
             foreach (var r in refs)
             {
-                if (r.Object == obj) return r;
+                if (r.Object == obj) return r.Reference;
             }
 
             string path = null;
@@ -83,9 +89,62 @@ namespace nadena.dev.ndmf
 
             var objref = new ObjectReference(obj, path);
 
-            refs.Add(objref);
+            refs.Add(new Entry()
+            {
+                Object = obj,
+                Reference = objref
+            });
 
             return objref;
         }
+
+        /// <summary>
+        /// Record that a particular object (asset or scene object) was replaced by a clone or transformed version.
+        /// This will be used to track the original object in error reports.
+        /// </summary>
+        /// <param name="oldObject"></param>
+        /// <param name="newObject"></param>
+        /// <returns>The ObjectReference for the objects in question</returns>
+        public static ObjectReference RegisterReplacedObject(UnityObject oldObject, UnityObject newObject)
+        {
+            return RegisterReplacedObject(GetReference(oldObject), newObject);
+        }
+        
+        /// <summary>
+        /// Record that a particular object (asset or scene object) was replaced by a clone or transformed version.
+        /// This will be used to track the original object in error reports.
+        /// </summary>
+        /// <param name="oldObject"></param>
+        /// <param name="newObject"></param>
+        /// <returns>The ObjectReference for the objects in question</returns>
+        public static ObjectReference RegisterReplacedObject(ObjectReference oldObject, UnityObject newObject)
+        {
+            if (ActiveRegistry == null) return oldObject;
+
+            if (oldObject == null) throw new NullReferenceException("oldObject must not be null");
+            if (newObject == null) throw new NullReferenceException("newObject must not be null");
+            
+            if (!ActiveRegistry._obj2ref.TryGetValue(RuntimeHelpers.GetHashCode(newObject), out var refs))
+            {
+                ActiveRegistry._obj2ref[RuntimeHelpers.GetHashCode(newObject)] = refs = new List<Entry>();
+            }
+
+            foreach (var r in refs)
+            {
+                if (r.Object == newObject)
+                {
+                    throw new ArgumentException(
+                        "RegisterReplacedObject must be called before GetReference is called on the new object");
+                }
+            }
+            
+            refs.Add(new Entry()
+            {
+                Object = newObject,
+                Reference = oldObject
+            });
+
+            return oldObject;
+        } 
     }
 }
