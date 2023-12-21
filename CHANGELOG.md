@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
-- New localization framework
-- New error reporting framework
 
 ### Fixed
-- Play mode processing fails when installed via UPM (#89)
 
 ### Changed
 
@@ -21,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.3.0-alpha.0] - [2023-12-21]
+
+### Added
+- New localization framework
+- New error reporting framework
+
+### Fixed
+- Play mode processing fails when installed via UPM (#89)
 
 ## [1.2.5] - [2023-11-15]
 
