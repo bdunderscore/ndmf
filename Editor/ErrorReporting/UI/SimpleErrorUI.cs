@@ -79,7 +79,7 @@ namespace nadena.dev.ndmf.ui
             }
 
             var icon = this.Q<ErrorIcon>("icon");
-            icon.Category = _error.Category;
+            icon.Severity = _error.Severity;
             
             var objRefs = this.Q<VisualElement>("object-references");
             if (_error.References.Length == 0)

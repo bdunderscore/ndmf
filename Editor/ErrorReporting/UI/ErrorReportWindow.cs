@@ -38,6 +38,11 @@ namespace nadena.dev.ndmf.ui
         private ToolbarMenu _selector;
         #endif
 
+        /// <summary>
+        /// Gets or sets the error report currently being displayed. May be null if no error report has been generated
+        /// yet. Setting this will update CurrentAvatar, pointing to the avatar that originated the error report (or
+        /// null if it can't be found).
+        /// </summary>
         public ErrorReport CurrentReport
         {
             get => _report;
@@ -57,6 +62,11 @@ namespace nadena.dev.ndmf.ui
             }
         }
 
+        /// <summary>
+        /// Gets or sets the avatar corresponding to the error report being displayed. On set, the window will search
+        /// for a corresponding error report; if not found, a UI offering to run a test build will be shown instead of
+        /// the error contents. 
+        /// </summary>
         public GameObject CurrentAvatar
         {
             get => _avatarRoot;
@@ -81,6 +91,7 @@ namespace nadena.dev.ndmf.ui
             }
         }
 
+        [ExcludeFromDocs]
         public void CreateGUI()
         {
             // Each editor window contains a root VisualElement object
@@ -169,6 +180,9 @@ namespace nadena.dev.ndmf.ui
 #endif
         }
 
+        /// <summary>
+        /// Shows the error report window, displaying the last error report generated.
+        /// </summary>
         [MenuItem("Tools/NDM Framework/Show Error Report")]
         public static void ShowErrorReportWindow()
         {
@@ -198,7 +212,7 @@ namespace nadena.dev.ndmf.ui
             }
         }
 
-        void UpdateContents()
+        private void UpdateContents()
         {
             _errorList.Clear();
 
@@ -252,30 +266,10 @@ namespace nadena.dev.ndmf.ui
             SetupSelector();
         }
 
-        private GameObject FindAvatarRoot(ErrorReport report)
-        {
-            var path = report.AvatarRootPath;
-            var firstSegmentIndex = path.IndexOf('/');
-            var firstSegment = firstSegmentIndex > 0 ? path.Substring(0, firstSegmentIndex) : path;
-
-            foreach (var sceneRoot in SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                if (sceneRoot.name == firstSegment)
-                {
-                    if (firstSegmentIndex > 0)
-                    {
-                        return sceneRoot.transform.Find(path.Substring(firstSegmentIndex + 1))?.gameObject;
-                    }
-                    else
-                    {
-                        return sceneRoot;
-                    }
-                }
-            }
-
-            return null;
-        }
-
+        /// <summary>
+        /// Shows the error report window, displaying a specific error report.
+        /// </summary>
+        /// <param name="report"></param>
         public static void ShowReport(ErrorReport report)
         {
             if (Application.isBatchMode) return; // headless unit tests
@@ -286,6 +280,10 @@ namespace nadena.dev.ndmf.ui
             wnd.Show();
         }
 
+        /// <summary>
+        /// Shows the error report window, displaying a specific avatar and its error report (if any).
+        /// </summary>
+        /// <param name="avatarRoot"></param>
         public static void ShowReport(GameObject avatarRoot)
         {
             if (Application.isBatchMode || avatarRoot == null) return;
@@ -309,12 +307,5 @@ namespace nadena.dev.ndmf.ui
         {
             return Selection.activeGameObject != null && RuntimeUtil.IsAvatarRoot(Selection.activeGameObject.transform);
         }
-    }
-
-    internal class TestError : SimpleError
-    {
-        public override ErrorCategory Category => ErrorCategory.NonFatal;
-        protected override Localizer Localizer => NDMFLocales.L;
-        protected override string TitleKey => "ndmf.test_error";
     }
 }

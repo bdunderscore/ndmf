@@ -7,6 +7,9 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf.ui
 {
+    /// <summary>
+    /// VisualElement to display a language selector.
+    /// </summary>
     public sealed class LanguageSwitcher : VisualElement
     {
         public new class UxmlFactory : UxmlFactory<LanguageSwitcher, UxmlTraits>
@@ -24,6 +27,9 @@ namespace nadena.dev.ndmf.ui
             Add(imgui);
         }
 
+        /// <summary>
+        /// Draws a language selector using IMGUI.
+        /// </summary>
         public static void DrawImmediate()
         {
             var curLang = LanguagePrefs.Language;

@@ -6,8 +6,18 @@ namespace nadena.dev.ndmf.ui
 {
     using UnityObject = UnityEngine.Object;
     
+    /// <summary>
+    /// VisualElement used to provide a consistent UI for selecting an object referenced by error messages.
+    /// </summary>
     public sealed class ObjectSelector : VisualElement
     {
+        /// <summary>
+        /// Attempt to resolve an ObjectReference to a unity object and create a UI to display it.
+        /// </summary>
+        /// <param name="report">Error report this selector is referencing (used to find the avatar root)</param>
+        /// <param name="reference">Object reference to represent</param>
+        /// <param name="selector">The ObjectSelector to be created</param>
+        /// <returns></returns>
         public static bool TryCreate(ErrorReport report, ObjectReference reference, out ObjectSelector selector)
         {
             selector = null;

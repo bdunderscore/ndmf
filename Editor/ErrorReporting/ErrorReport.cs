@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
@@ -78,6 +79,9 @@ namespace nadena.dev.ndmf
         }
     }
 
+    /// <summary>
+    /// Contains any errors or warnings issued during a single build operation.
+    /// </summary>
     public sealed class ErrorReport
     {
         internal static List<ErrorReport> Reports = new List<ErrorReport>();
@@ -93,9 +97,18 @@ namespace nadena.dev.ndmf
             Errors = ImmutableList<ErrorContext>.Empty;
         }
 
+        /// <summary>
+        /// The name of the avatar being processed
+        /// </summary>
         public string AvatarName { get; }
+        /// <summary>
+        /// The path (from the scene root) of the avatar being processed
+        /// </summary>
         public string AvatarRootPath { get; }
 
+        /// <summary>
+        /// A list of reported errors.
+        /// </summary>
         public ImmutableList<ErrorContext> Errors { get; private set; }
 
         internal ErrorContext CurrentContext = new ErrorContext();
@@ -128,7 +141,7 @@ namespace nadena.dev.ndmf
             return report;
         }
 
-        public void AddError(IError error)
+        internal void AddError(IError error)
         {
             var context = CurrentContext;
             context.TheError = error;
@@ -136,6 +149,11 @@ namespace nadena.dev.ndmf
             Errors = Errors.Add(context);
         }
 
+        /// <summary>
+        /// Adds an error to the currently active error report. If no error report is active, the error will simply be
+        /// logged to the debug log. 
+        /// </summary>
+        /// <param name="error"></param>
         public static void ReportError(IError error)
         {
             if (error is StackTraceError e)
@@ -157,12 +175,24 @@ namespace nadena.dev.ndmf
             CurrentReport?.AddError(error);
         }
 
-        public static void ReportError(Localizer localizer, ErrorCategory errorCategory, string key,
+        /// <summary>
+        /// Helper to report a SimpleError.
+        /// </summary>
+        /// <param name="localizer">The Localizer used to look up translations</param>
+        /// <param name="errorSeverity">The severity of the error</param>
+        /// <param name="key">The prefix used to find localization keys</param>
+        /// <param name="args">Inline substitutions and unity objects to reference from the error</param>
+        public static void ReportError(Localizer localizer, ErrorSeverity errorSeverity, string key,
             params object[] args)
         {
-            ReportError(new InlineError(localizer, errorCategory, key, args));
+            ReportError(new InlineError(localizer, errorSeverity, key, args));
         }
 
+        /// <summary>
+        /// Helper to report an exception. This will generate an error of InternalError severity.
+        /// </summary>
+        /// <param name="e">Exception to report</param>
+        /// <param name="additionalStackTrace">Additional information to append to the stack trace</param>
         public static void ReportException(Exception e, string additionalStackTrace = null)
         {
             var report = CurrentReport;
@@ -178,6 +208,11 @@ namespace nadena.dev.ndmf
             report?.ReportedExceptions?.Add(e);
         }
 
+        /// <summary>
+        /// Attempts to find the original avatar that generated the report.
+        /// </summary>
+        /// <param name="av">The avatar root</param>
+        /// <returns>true if the avatar was found, otherwise false</returns>
         public bool TryResolveAvatar(out GameObject av)
         {
             var scene = SceneManager.GetActiveScene();
@@ -206,7 +241,12 @@ namespace nadena.dev.ndmf
             return false;
         }
 
-        public static IDisposable WithContextObject(UnityObject obj)
+        /// <summary>
+        /// Returns a disposable scope, within which all errors will reference a specific UnityObject.
+        /// </summary>
+        /// <param name="obj">The object to reference (can be null)</param>
+        /// <returns>A disposable that will remove the object from the current scope when disposed.</returns>
+        public static IDisposable WithContextObject([CanBeNull] UnityObject obj)
         {
             if (obj == null || CurrentReport == null) return new NullScope();
             
@@ -216,7 +256,14 @@ namespace nadena.dev.ndmf
             return scope;
         }
         
-        public static T WithContextObject<T>(UnityObject obj, Func<T> func)
+        /// <summary>
+        /// Executes a function, within which any errors will reference a specific UnityObject.
+        /// Thrown exceptions will automatically be logged.
+        /// </summary>
+        /// <param name="obj">The object to reference</param>
+        /// <param name="func">The function to invoke</param>
+        /// <returns>The return value of func()</returns>
+        public static T WithContextObject<T>([CanBeNull] UnityObject obj, Func<T> func)
         {
             using (WithContextObject(obj))
             {
@@ -232,7 +279,14 @@ namespace nadena.dev.ndmf
             }
         }
         
-        public static void WithContextObject(UnityObject obj, Action action)
+        /// <summary>
+        /// Executes a function, within which any errors will reference a specific UnityObject.
+        /// Thrown exceptions will automatically be logged.
+        /// </summary>
+        /// <param name="obj">The object to reference</param>
+        /// <param name="func">The function to invoke</param>
+        /// <returns>The return value of func()</returns>
+        public static void WithContextObject([CanBeNull] UnityObject obj, Action action)
         {
             using (WithContextObject(obj))
             {
@@ -294,6 +348,9 @@ namespace nadena.dev.ndmf
             return report.Errors.ToList();
         }
 
+        /// <summary>
+        /// Clears all error reports.
+        /// </summary>
         public static void Clear()
         {
             Reports.Clear();

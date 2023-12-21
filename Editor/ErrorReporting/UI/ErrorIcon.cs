@@ -10,9 +10,12 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf.ui
 {
+    /// <summary>
+    /// Displays a severity icon for a particular ErrorLevel.
+    /// </summary>
     public sealed class ErrorIcon : VisualElement
     {
-        private ErrorCategory _category;
+        private ErrorSeverity _severity;
 
         private Image _image;
 
@@ -22,12 +25,12 @@ namespace nadena.dev.ndmf.ui
             Add(_image);
         }
 
-        public ErrorCategory Category
+        public ErrorSeverity Severity
         {
-            get => _category;
+            get => _severity;
             set
             {
-                _category = value;
+                _severity = value;
                 UpdateIcon();
             }
         }
@@ -36,12 +39,12 @@ namespace nadena.dev.ndmf.ui
         {
             Texture2D tex;
 
-            switch (_category)
+            switch (_severity)
             {
-                case ErrorCategory.Information:
+                case ErrorSeverity.Information:
                     tex = EditorGUIUtility.FindTexture("d_console.infoicon");
                     break;
-                case ErrorCategory.NonFatal:
+                case ErrorSeverity.NonFatal:
                     tex = EditorGUIUtility.FindTexture("d_console.warnicon");
                     break;
                 default:
@@ -73,12 +76,12 @@ namespace nadena.dev.ndmf.ui
 
                 var categoryStr = m_Category.GetValueFromBag(bag, cc);
 
-                if (categoryStr == null || !Enum.TryParse<ErrorCategory>(categoryStr, out var categoryVal))
+                if (categoryStr == null || !Enum.TryParse<ErrorSeverity>(categoryStr, out var categoryVal))
                 {
-                    categoryVal = ErrorCategory.Error;
+                    categoryVal = ErrorSeverity.Error;
                 }
 
-                elem.Category = categoryVal;
+                elem.Severity = categoryVal;
             }
         }
     }

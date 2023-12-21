@@ -10,10 +10,17 @@ using VRC.SDKBase.Network;
 
 namespace nadena.dev.ndmf.localization
 {
-    public class Localizer
+    /// <summary>
+    /// Provides a way to translate language lookup keys into localized strings.
+    /// </summary>
+    public sealed class Localizer
     {
         private static Action _reloadLocalizations;
         
+        /// <summary>
+        /// The default (fallback) language to use to look up keys when they are missing in the currently selected
+        /// UI language.
+        /// </summary>
         public string DefaultLanguage { get; }
 
         private ImmutableSortedDictionary<string, Func<string, string>> languages;
@@ -22,25 +29,39 @@ namespace nadena.dev.ndmf.localization
         private Func<string, string> _lookupCache;
         private Func<List<(string, Func<string, string>)>> _localizationLoader;
 
-        public Localizer(string defaultLanguage, Func<List<(string, Func<string, string>)>> lookup)
+        /// <summary>
+        /// Constructs a Localizer based on a callback which loads from some external source of localizations.
+        /// The function is expected to return a list of (language, lookup) pairs, where lookup is a function which
+        /// attempts to look up a single string by its key, returning null if not found.
+        ///
+        /// This function may be called multiple times if localizations are reloaded.
+        /// </summary>
+        /// <param name="defaultLanguage">The default language code to use as a fallback when strings are missing</param>
+        /// <param name="loader"></param>
+        public Localizer(string defaultLanguage, Func<List<(string, Func<string, string>)>> loader)
         {
             DefaultLanguage = defaultLanguage;
             LanguagePrefs.RegisterLanguage(defaultLanguage);
 
-            _localizationLoader = lookup;
+            _localizationLoader = loader;
             languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
             LoadLocalizations();
             _reloadLocalizations += LoadLocalizations;
         }
         
-        public Localizer(string defaultLanguage, Func<List<LocalizationAsset>> lookup)
+        /// <summary>
+        /// Constructs a localizer based on a list of LocalizationAssets.
+        /// </summary>
+        /// <param name="defaultLanguage">The default language code to use as a fallback when strings are missing</param>
+        /// <param name="assetLoader">A function which loads LocalizationAssets</param>
+        public Localizer(string defaultLanguage, Func<List<LocalizationAsset>> assetLoader)
         {
             DefaultLanguage = defaultLanguage;
             LanguagePrefs.RegisterLanguage(defaultLanguage);
 
             _localizationLoader = () =>
             {
-                return lookup().Select<
+                return assetLoader().Select<
                        LocalizationAsset,
                        (string, Func<string, string>)
                 >(asset => (asset.localeIsoCode, asset.GetLocalizedString)).ToList();
@@ -48,30 +69,6 @@ namespace nadena.dev.ndmf.localization
             
             languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
             LoadLocalizations();
-            _reloadLocalizations += LoadLocalizations;
-        }
-
-        public Localizer(string defaultLanguage, Func<string, string> lookup)
-        {
-            DefaultLanguage = defaultLanguage;
-            _localizationLoader = null;
-
-            LanguagePrefs.RegisterLanguage(defaultLanguage);
-            
-            languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty
-                .Add(defaultLanguage, lookup);
-            _reloadLocalizations += LoadLocalizations;
-        }
-
-        public Localizer(LocalizationAsset asset)
-        {
-            DefaultLanguage = asset.localeIsoCode;
-            _localizationLoader = null;
-
-            LanguagePrefs.RegisterLanguage(asset.localeIsoCode);
-            
-            languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty
-                .Add(asset.localeIsoCode, asset.GetLocalizedString);
             _reloadLocalizations += LoadLocalizations;
         }
 
@@ -98,29 +95,21 @@ namespace nadena.dev.ndmf.localization
             languages = newLanguages;
         }
 
+        /// <summary>
+        /// Reloads all localizations from their loader functions.
+        /// </summary>
         public static void ReloadLocalizations()
         {
             AssetDatabase.Refresh();
             _reloadLocalizations?.Invoke();
         }
         
-        public Localizer WithLanguage(LocalizationAsset asset)
-        {
-            return WithLanguage(asset.localeIsoCode, asset.GetLocalizedString);
-        }
-        
-        public Localizer WithLanguage(string lang, Func<string, string> lookup)
-        {
-            if (languages.ContainsKey(lang))
-            {
-                throw new ArgumentException($"Language {lang} already exists");
-            }
-            
-            LanguagePrefs.RegisterLanguage(lang);
-            
-            return new Localizer(DefaultLanguage, languages.Add(lang, lookup));
-        }
-        
+        /// <summary>
+        /// Attempts to look up a localized string. Returns true if the string was found, false otherwise.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public bool TryGetLocalizedString(string key, out string value)
         {
             if (_lookupCache == null || _lastLanguage != LanguagePrefs.Language)
@@ -159,6 +148,11 @@ namespace nadena.dev.ndmf.localization
             return value != null && value != key;
         }
 
+        /// <summary>
+        /// Obtains a localized string, or a placeholder if it cannot be found.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public string GetLocalizedString(string key)
         {
             if (!TryGetLocalizedString(key, out var value))
@@ -169,6 +163,13 @@ namespace nadena.dev.ndmf.localization
             return value;
         }
         
+        /// <summary>
+        /// Localizes UI elements under the given root element. Any elements with the class "ndmf-tr" will be
+        /// localized automatically, with localization keys under their `text` or `label` properties being converted
+        /// into localized strings. These elements will automatically update when the currently selected language
+        /// changes.
+        /// </summary>
+        /// <param name="root"></param>
         public void LocalizeUIElements(VisualElement root)
         {
             new UIElementLocalizer(this).Localize(root);

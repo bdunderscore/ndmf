@@ -1,6 +1,9 @@
 ﻿namespace nadena.dev.ndmf
 {
-    public enum ErrorCategory
+    /// <summary>
+    /// Indicates the severity of a reported error.
+    /// </summary>
+    public enum ErrorSeverity
     {
         /// <summary>
         /// Informational messages that indicate an unusual configuration that might be an error.

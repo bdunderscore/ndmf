@@ -5,14 +5,14 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf
 {
-    public class InlineError : SimpleError
+    internal class InlineError : SimpleError
     {
         private readonly string[] _subst;
 
-        public InlineError(Localizer localizer, ErrorCategory errorCategory, string key, params object[] args)
+        public InlineError(Localizer localizer, ErrorSeverity errorSeverity, string key, params object[] args)
         {
             Localizer = localizer;
-            Category = errorCategory;
+            Severity = errorSeverity;
             TitleKey = key;
 
             _subst = Array.ConvertAll(args, o => o?.ToString());
@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf
         }
 
         protected override Localizer Localizer { get; }
-        public override ErrorCategory Category { get; }
+        public override ErrorSeverity Severity { get; }
         protected override string TitleKey { get; }
 
         protected override string[] DetailsSubst => _subst;

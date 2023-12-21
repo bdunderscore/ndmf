@@ -5,10 +5,16 @@ using System.Runtime.CompilerServices;
 
 namespace nadena.dev.ndmf.localization
 {
+    /// <summary>
+    /// Tracks the currently selected UI language
+    /// </summary>
     public static class LanguagePrefs
     {
         private static string _curLanguage = "en-us";
 
+        /// <summary>
+        /// The currently selected language ID, e.g. "en-us".
+        /// </summary>
         public static string Language
         {
             get => _curLanguage;
@@ -44,6 +50,13 @@ namespace nadena.dev.ndmf.localization
         private static ConditionalWeakTable<object, ElementFinalizer> _targetRefs =
             new ConditionalWeakTable<object, ElementFinalizer>();
 
+        /// <summary>
+        /// Registers a callback to be invoked when the currently selected language changes.
+        /// This callback will be retained as long as the `handle` object is not garbage collected.
+        /// </summary>
+        /// <param name="handle">An object which controls the lifetime of callback.</param>
+        /// <param name="callback">A callback to be invoked, passing the value of handle</param>
+        /// <typeparam name="T"></typeparam>
         public static void RegisterLanguageChangeCallback<T>(
             T handle,
             Action<T> callback
@@ -76,6 +89,9 @@ namespace nadena.dev.ndmf.localization
             }
         }
 
+        /// <summary>
+        /// Returns a list of all languages which have been registered at some point with the localization system.
+        /// </summary>
         public static ImmutableSortedSet<string> RegisteredLanguages
         {
             get;
@@ -87,9 +103,13 @@ namespace nadena.dev.ndmf.localization
             RegisteredLanguages = ImmutableSortedSet<string>.Empty;
         }
         
-        public static void RegisterLanguage(string defaultLanguage)
+        /// <summary>
+        /// Registers an additional language code to display in the language selectors.
+        /// </summary>
+        /// <param name="languageCode"></param>
+        public static void RegisterLanguage(string languageCode)
         {
-            RegisteredLanguages = RegisteredLanguages.Add(defaultLanguage);
+            RegisteredLanguages = RegisteredLanguages.Add(languageCode);
         }
     }
 }

@@ -73,7 +73,7 @@ namespace nadena.dev.ndmf
         /// </summary>
         public UnityObject AssetContainer { get; private set; }
 
-        public bool Successful => !_report.Errors.Any(e => e.TheError.Category >= ErrorCategory.Error);
+        public bool Successful => !_report.Errors.Any(e => e.TheError.Severity >= ErrorSeverity.Error);
         
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();

@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace nadena.dev.ndmf
 {
-    public class StackTraceError : SimpleError
+    internal class StackTraceError : SimpleError
     {
         private Exception _e;
         private string _stackTrace;
@@ -27,7 +27,7 @@ namespace nadena.dev.ndmf
 
         protected override Localizer Localizer => NDMFLocales.L;
         protected override string TitleKey => "Errors:InternalError";
-        public override ErrorCategory Category => ErrorCategory.InternalError;
+        public override ErrorSeverity Severity => ErrorSeverity.InternalError;
 
         protected override string[] DetailsSubst => new []
         {
