@@ -117,7 +117,6 @@ namespace nadena.dev.ndmf.runtime
                 for (int i = 0; i < sceneCount; i++)
                 {
                     var scene = SceneManager.GetSceneAt(i);
-                    Debug.Log("=== scene: " + scene.name + " ===");
                     foreach (var sceneRoot in scene.GetRootGameObjects())
                     {
                         foreach (var avatar in FindAvatarRoots(sceneRoot))
@@ -137,8 +136,7 @@ namespace nadena.dev.ndmf.runtime
 #endif
                 foreach (var candidate in candidates)
                 {
-                    Debug.Log("=== candidate: " + candidate.gameObject.name + " ===");
-                    
+                   
                     var gameObject = candidate.gameObject;
                     // Ignore nested candidates
                     if (priorRoot != null && RelativePath(priorRoot, gameObject) != null) continue;
