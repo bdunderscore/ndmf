@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.3.0-alpha.1] - [2023-12-22]
+
+### Added
+- API to record when one object is replaced by another
+
 ## [1.3.0-alpha.0] - [2023-12-21]
 
 ### Added
