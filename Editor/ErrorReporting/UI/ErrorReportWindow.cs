@@ -22,21 +22,24 @@ namespace nadena.dev.ndmf.ui
 
     #endregion
 
-    public class ErrorReportWindow : EditorWindow
+    public sealed class ErrorReportWindow : EditorWindow
     {
+        // Disables displaying the error report window (for tests)
+        public static bool DISABLE_WINDOW = false;
+
         private Label _avatarHeader;
 
         private VisualElement _errorList, _noErrorLabel, _unbuiltContainer, _noAvatarLabel;
         private ErrorReport _report;
-        
+
         [SerializeField] // retain over domain reloads
         private GameObject _avatarRoot;
-        
+
         private List<Button> _testBuild;
-        
-        #if UNITY_2021_3_OR_NEWER
+
+#if UNITY_2021_3_OR_NEWER
         private ToolbarMenu _selector;
-        #endif
+#endif
 
         /// <summary>
         /// Gets or sets the error report currently being displayed. May be null if no error report has been generated
@@ -49,12 +52,13 @@ namespace nadena.dev.ndmf.ui
             set
             {
                 if (_report == value) return;
-                
+
                 _report = value;
                 if (_report?.TryResolveAvatar(out _avatarRoot) != true)
                 {
                     _avatarRoot = null;
-                } 
+                }
+
                 if (_errorList != null)
                 {
                     UpdateContents();
@@ -73,7 +77,7 @@ namespace nadena.dev.ndmf.ui
             set
             {
                 if (_avatarRoot == value) return;
-                
+
                 var avatarPath = RuntimeUtil.RelativePath(null, value);
                 var report = ErrorReport.Reports.FirstOrDefault(r => r.AvatarRootPath == avatarPath);
 
@@ -119,7 +123,7 @@ namespace nadena.dev.ndmf.ui
             _noErrorLabel = root.Q<VisualElement>("no-errors-label");
             _unbuiltContainer = root.Q<VisualElement>("unbuilt-container");
             _noAvatarLabel = root.Q<VisualElement>("no-avatar-label");
-            
+
             _testBuild = root.Query<Button>(className: "test-build-button").ToList();
             foreach (var button in _testBuild)
             {
@@ -129,7 +133,7 @@ namespace nadena.dev.ndmf.ui
 
             SetupSelector();
             EditorApplication.hierarchyChanged += SetupSelector;
-            
+
             UpdateContents();
         }
 
@@ -152,7 +156,6 @@ namespace nadena.dev.ndmf.ui
             var container = rootVisualElement.Q<VisualElement>("avatar-selector-container");
 
 #if UNITY_2021_3_OR_NEWER
-
             if (_selector != null)
             {
                 container.Remove(_selector);
@@ -186,7 +189,7 @@ namespace nadena.dev.ndmf.ui
         [MenuItem("Tools/NDM Framework/Show Error Report")]
         public static void ShowErrorReportWindow()
         {
-            if (Application.isBatchMode) return; // headless unit tests
+            if (Application.isBatchMode || DISABLE_WINDOW) return; // headless unit tests
 
             ShowReport(ErrorReport.Reports.LastOrDefault());
         }
@@ -194,7 +197,7 @@ namespace nadena.dev.ndmf.ui
         private void TestBuild()
         {
             if (_avatarRoot == null) return;
-            
+
             var clone = Instantiate(_avatarRoot);
 
             try
@@ -230,10 +233,10 @@ namespace nadena.dev.ndmf.ui
             {
                 _errorList.style.display = DisplayStyle.Flex;
                 _errorList.Clear();
-                
+
                 var errors = _report.Errors.OrderBy(e => e.Plugin.DisplayName).ToList();
                 PluginBase lastPlugin = null;
-                
+
                 foreach (var error in errors)
                 {
                     if (error.Plugin != lastPlugin)
@@ -249,9 +252,8 @@ namespace nadena.dev.ndmf.ui
                 }
 
                 _avatarHeader.text = "Avatar: " + _report.AvatarName;
-                
-                _noErrorLabel.style.display = _report.Errors.Count == 0 ?
-                    DisplayStyle.Flex : DisplayStyle.None;
+
+                _noErrorLabel.style.display = _report.Errors.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             }
             else if (_avatarRoot != null)
             {
@@ -272,7 +274,7 @@ namespace nadena.dev.ndmf.ui
         /// <param name="report"></param>
         public static void ShowReport(ErrorReport report)
         {
-            if (Application.isBatchMode) return; // headless unit tests
+            if (Application.isBatchMode || DISABLE_WINDOW) return; // headless unit tests
 
             ErrorReportWindow wnd = GetWindow<ErrorReportWindow>();
             wnd.titleContent = new GUIContent("NDMF Error Report");
@@ -286,8 +288,8 @@ namespace nadena.dev.ndmf.ui
         /// <param name="avatarRoot"></param>
         public static void ShowReport(GameObject avatarRoot)
         {
-            if (Application.isBatchMode || avatarRoot == null) return;
-            
+            if (Application.isBatchMode || avatarRoot == null || DISABLE_WINDOW) return;
+
             ErrorReportWindow wnd = GetWindow<ErrorReportWindow>();
             wnd.titleContent = new GUIContent("NDMF Error Report");
             wnd.CurrentAvatar = avatarRoot;
@@ -298,10 +300,10 @@ namespace nadena.dev.ndmf.ui
         private static void ShowCurrentAvatarErrorReport()
         {
             if (Selection.activeGameObject == null) return;
-            
+
             ShowReport(Selection.activeGameObject);
         }
-        
+
         [MenuItem("GameObject/NDM Framework/Show Error Report", true)]
         private static bool ShowCurrentAvatarErrorReportValidation()
         {
