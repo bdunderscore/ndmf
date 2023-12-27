@@ -62,17 +62,21 @@ namespace nadena.dev.ndmf
                 return false;
             }
 
+            if (av == null || _path == null) return false;
+
             GameObject go = av.transform.Find(_path)?.gameObject;
 
             if (go == null) return false;
             if (Type == typeof(GameObject))
             {
                 obj = go;
-            } else {
+            }
+            else
+            {
                 obj = go.GetComponent(Type);
             }
 
             return obj != null;
-        } 
+        }
     }
 }
