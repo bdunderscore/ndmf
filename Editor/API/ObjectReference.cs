@@ -19,17 +19,32 @@ namespace nadena.dev.ndmf
         private readonly Object _obj;
         private readonly string _path;
         private readonly Type _type;
+        private readonly string _description;
 
         internal ObjectReference(Object obj, string path)
         {
             _obj = obj;
             _path = path;
             _type = obj?.GetType();
+
+            if (_path != null)
+            {
+                _description = _path;
+            }
+            else
+            {
+                _description = obj.name;
+            }
         }
 
         public Object Object => _obj;
         public string Path => _path;
         public Type Type => _type;
+
+        public override string ToString()
+        {
+            return _description;
+        }
 
         private bool Equals(ObjectReference other)
         {
