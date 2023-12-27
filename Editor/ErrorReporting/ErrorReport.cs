@@ -297,7 +297,7 @@ namespace nadena.dev.ndmf
                 catch (Exception e)
                 {
                     ReportException(e);
-                    ExceptionDispatchInfo.Capture(e).Throw();
+                    throw;
                 }
             }
         }
