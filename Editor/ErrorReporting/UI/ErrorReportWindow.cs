@@ -179,7 +179,7 @@ namespace nadena.dev.ndmf.ui
 
             var placeholder = rootVisualElement.Q<Label>("avatar-header-placeholder-label");
             placeholder.style.display = DisplayStyle.Flex;
-            placeholder.text = "Avatar: " + (_report.AvatarName ?? _avatarRoot.name ?? "<???>");
+            placeholder.text = "Avatar: " + (_report?.AvatarName ?? (_avatarRoot != null ? _avatarRoot.name : "<???>"));
 #endif
         }
 
