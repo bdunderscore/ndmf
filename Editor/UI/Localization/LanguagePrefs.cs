@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace nadena.dev.ndmf.localization
 {
@@ -84,7 +85,14 @@ namespace nadena.dev.ndmf.localization
             {
                 foreach (Action op in new List<Action>(_onLanguageChangeCallbacks))
                 {
-                    op();
+                    try
+                    {
+                        op();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
