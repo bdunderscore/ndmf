@@ -25,30 +25,35 @@ namespace nadena.dev.ndmf
         /// The key to use for the title of the error. By default, all other keys are derived from this TitleKey.
         /// </summary>
         protected abstract string TitleKey { get; }
+
         /// <summary>
         /// The key to use for the details section of the error display. By default, this is the TitleKey + `:description`.
         /// </summary>
         protected virtual string DetailsKey => TitleKey + ":description";
+
         /// <summary>
         /// String substitutions to insert into the details section of the error display. You can reference these with
         /// e.g. `{0}`.
         /// </summary>
         protected virtual string[] DetailsSubst => Array.Empty<string>();
+
         /// <summary>
         /// The key to use for the hint section of the error display. By default, this is the TitleKey + `:hint`.
         /// This section should be used to provide a hint to the user about how to resolve the error.
         /// </summary>
         protected virtual string HintKey => TitleKey + ":hint";
+
         /// <summary>
         /// String substitutions to insert into the hint section of the error display. You can reference these with
         /// e.g. `{0}`.
         /// </summary>
         protected virtual string[] HintSubst => Array.Empty<string>();
-        
+
         /// <summary>
         /// Any ObjectReferences to display to the user; the user will be able to click to jump to these objects.
         /// </summary>
         protected List<ObjectReference> _references = new List<ObjectReference>();
+
         /// <summary>
         /// Any ObjectReferences to display to the user; the user will be able to click to jump to these objects.
         /// By default this just returns the `_references` protected field.
@@ -82,7 +87,7 @@ namespace nadena.dev.ndmf
         /// Returns the formatted title of the error.
         /// </summary>
         /// <returns></returns>
-        public string FormatTitle()
+        public virtual string FormatTitle()
         {
             return Localizer.GetLocalizedString(TitleKey);
         }
@@ -91,34 +96,55 @@ namespace nadena.dev.ndmf
         /// Returns the formatted details message for the error.
         /// </summary>
         /// <returns></returns>
-        public string FormatDetails()
+        public virtual string FormatDetails()
         {
-            return SafeSubst(DetailsKey, DetailsSubst);
+            return SafeSubstByKey(DetailsKey, DetailsSubst);
         }
 
         /// <summary>
         /// Returns the formatted hint message for the error.
         /// </summary>
         /// <returns></returns>
-        public string FormatHint()
+        public virtual string FormatHint()
         {
-            return SafeSubst(HintKey, HintSubst);
+            return SafeSubstByKey(HintKey, HintSubst);
         }
 
-        private string SafeSubst(string key, string[] subst)
+        /// <summary>
+        /// Substitutes placeholders like {0}, {1} in the localized string referenced by `key` with the values in
+        /// `subst`. Unlike String.Format, this will not throw an exception if the number of substitutions does not
+        /// match the number of placeholders.
+        /// </summary>
+        /// <param name="key">A localization key that references a string containing placeholders</param>
+        /// <param name="subst"></param>
+        /// <returns></returns>
+        protected string SafeSubstByKey(string key, string[] subst)
         {
-            if (!Localizer.TryGetLocalizedString(key, out var value))
+            if (!Localizer.TryGetLocalizedString(key, out var message))
             {
                 return null;
             }
 
-            var matches = Pattern.Matches(value);
+            return SafeSubst(message, subst);
+        }
+
+        /// <summary>
+        /// Substitutes placeholders like {0}, {1} in the raw string `message` with the values in
+        /// `subst`. Unlike String.Format, this will not throw an exception if the number of substitutions does not
+        /// match the number of placeholders.
+        /// </summary>
+        /// <param name="message">The raw string containing placeholders</param>
+        /// <param name="subst"></param>
+        /// <returns></returns>
+        protected static string SafeSubst(string message, string[] subst)
+        {
+            var matches = Pattern.Matches(message);
             int consumedUpTo = 0;
 
             StringBuilder sb = new StringBuilder();
             foreach (Match match in matches)
             {
-                sb.Append(value.Substring(consumedUpTo, match.Index - consumedUpTo));
+                sb.Append(message.Substring(consumedUpTo, match.Index - consumedUpTo));
                 consumedUpTo = match.Index + match.Length;
 
                 if (int.TryParse(match.Groups[1].Value, out var substIndex) && substIndex >= 0 &&
@@ -132,11 +158,11 @@ namespace nadena.dev.ndmf
                 }
             }
 
-            sb.Append(value.Substring(consumedUpTo));
+            sb.Append(message.Substring(consumedUpTo));
 
             return sb.ToString();
         }
-        
+
         public void AddReference(ObjectReference obj)
         {
             if (obj != null) _references.Add(obj);
