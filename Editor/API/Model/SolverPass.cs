@@ -16,7 +16,7 @@ namespace nadena.dev.ndmf.model
         internal IPass Pass { get; }
         internal BuildPhase Phase { get; }
 
-        internal IPlugin Plugin { get; }
+        internal IPluginInternal Plugin { get; }
         internal PassKey PassKey => Pass.PassKey;
         internal bool IsPhantom => Pass.IsPhantom;
 
@@ -28,7 +28,7 @@ namespace nadena.dev.ndmf.model
             return IsPhantom || RequiredExtensions.Contains(ty) || CompatibleExtensions.Contains(ty.FullName);
         }
 
-        internal SolverPass(IPlugin plugin, IPass pass, BuildPhase phase, IImmutableSet<string> compatibleExtensions,
+        internal SolverPass(IPluginInternal plugin, IPass pass, BuildPhase phase, IImmutableSet<string> compatibleExtensions,
             IImmutableSet<Type> requiredExtensions)
         {
             Plugin = plugin;

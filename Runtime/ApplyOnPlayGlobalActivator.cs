@@ -2,6 +2,9 @@
 
 using System;
 using System.Linq;
+#if NDMF_LYUMA_AV3EMU
+using Lyuma.Av3Emulator.Runtime;
+#endif
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -9,6 +12,38 @@ using UnityEngine.SceneManagement;
 
 namespace nadena.dev.ndmf.runtime
 {
+    #if NDMF_LYUMA_AV3EMU
+
+    static class Av3EmuStatusChecker
+    {
+        internal static bool IsAv3EmuActive()
+        {
+            foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt))
+            foreach (var root in scene.GetRootGameObjects())
+            foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
+            {
+                if (emulator.isActiveAndEnabled && emulator.RunPreprocessAvatarHook)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+    
+    #else
+    
+    static class Av3EmuStatusChecker
+    {
+        internal static bool IsAv3EmuActive()
+        {
+            return false;
+        }
+    }
+    
+    #endif
+    
     /// <summary>
     /// This component is used to trigger MA processing upon entering play mode (prior to Av3Emu running).
     /// We create it on a hidden object via AvatarTagObject's OnValidate, and it will proceed to add MAAvatarActivator
@@ -21,6 +56,7 @@ namespace nadena.dev.ndmf.runtime
     /// </summary>
     [InitializeOnLoad]
     [AddComponentMenu("")]
+    [DefaultExecutionOrder(-9995)]
     class ApplyOnPlayGlobalActivator : MonoBehaviour
     {
         private const string TAG_OBJECT_NAME = "nadena.dev.ndmf__Activator";
@@ -69,28 +105,7 @@ namespace nadena.dev.ndmf.runtime
             if (!RuntimeUtil.IsPlaying || this == null) return;
 
             // Check if Lyuma's Av3Emulator is present and enabled; if so, we leave preprocessing up to it.
-            // First, find the type...
-
-            Type ty_av3emu = null;
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                ty_av3emu = assembly.GetType("Lyuma.Av3Emulator.Runtime.LyumaAv3Emulator", false);
-                if (ty_av3emu != null) break;
-            }
-
-            if (ty_av3emu != null)
-            {
-                // find Av3Emulator for all scenes
-                foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt))
-                foreach (var root in scene.GetRootGameObjects())
-                foreach (var emulator in root.GetComponentsInChildren(ty_av3emu))
-                {
-                    if (emulator.gameObject.activeInHierarchy)
-                    {
-                        return;
-                    }
-                }
-            }
+            if (Av3EmuStatusChecker.IsAv3EmuActive()) return;
 
             foreach (var avatar in RuntimeUtil.FindAvatarsInScene(gameObject.scene))
             {

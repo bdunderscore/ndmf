@@ -1,6 +1,7 @@
 {
     "name": "nadena.dev.ndmf.runtime",
     "references": [
+        "lyuma.av3emulator",
         "VRM",
         "VRM10"
     ],
@@ -16,6 +17,11 @@
             "name": "com.vrchat.avatars",
             "expression": "",
             "define": "NDMF_VRCSDK3_AVATARS"
+        },
+        {
+            "name": "lyuma.av3emulator",
+            "expression": "",
+            "define": "NDMF_LYUMA_AV3EMU"
         },
         {
             "name": "com.vrmc.univrm",

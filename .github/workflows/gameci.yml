@@ -46,7 +46,7 @@ jobs:
     strategy:
       matrix:
         #unity_version: [ auto, 2022.3.5f1 ]
-        unity_version: [ auto, 2022.3.5f1 ]
+        unity_version: [ 2019.4.31f1, 2022.3.6f1 ]
         sdk: [ vrcsdk, standalone ]
     runs-on: ubuntu-latest
     permissions:
@@ -64,13 +64,10 @@ jobs:
           sudo apt-get install xmlstarlet -y
           
           should_test=true
-          if [ $sdk == vrcsdk ] && [ $unity_version != auto ]; then
-            should_test=false
-          fi
           echo should_test=$should_test >> $GITHUB_OUTPUT
           
           can_fail=false
-          if [ $sdk == standalone ] || [ $unity_version != auto ]; then
+          if [ $sdk == standalone ]; then
             can_fail=$should_test
           fi
           echo can_fail=$can_fail >> $GITHUB_OUTPUT
@@ -115,7 +112,7 @@ jobs:
           mv [^P]* .github/ProjectRoot/Packages/nadena.dev.ndmf
           mv .github/ProjectRoot/* .
           mv 'Packages/nadena.dev.ndmf/UnitTests~' 'Packages/nadena.dev.ndmf/UnitTests'
-          for i in packages-lock manifest; do
+          for i in packages-lock manifest vpm-manifest; do
             if [ -e "$i-${{ matrix.unity_version }}.json" ]; then
               mv "$i-${{ matrix.unity_version }}.json" Packages/$i.json -v
             fi

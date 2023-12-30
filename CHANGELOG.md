@@ -8,8 +8,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- API to record when one object is replaced by another
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.3.0-alpha.1] - [2023-12-22]
+
+### Added
+- API to record when one object is replaced by another
+
+## [1.3.0-alpha.0] - [2023-12-21]
+
+### Added
+- New localization framework
+- New error reporting framework
+
+### Fixed
+- Play mode processing fails when installed via UPM (#89)
+
+## [1.2.5] - [2023-11-15]
+
+### Fixed
+- GUID collisions with packages derived from the VRChat template package (#84)
+
+## [1.2.4] - [2023-11-12]
+
+### Fixed
+- Duplicate references error when Lyuma's Av3emulator is installed due to Unity bug (#80)
+
+## [1.2.3] - [2023-11-11]
+
+### Added
+
+### Fixed
+- Fixed an issue where apply on play might not work when multiple scenes are open (#61)
+- Fixed an issue where Apply on Play would not work properly when Lyuma's Av3Emulator had preprocess hooks disabled
+  (bdunderscore/modular-avatar#516) (#64)
 
 ### Changed
 
@@ -17,8 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve APIs for finding avatar roots, support non-VRChat avatars in VRCSDK projects (#71)
 
 ### Removed
+- Removed a vestigial "Avatar Toolkit -> Apply on Play" menu item, which didn't do anything when selected. (#70)
 
 ### Security
+
+### Deprecated
+- Deprecated APIs for finding avatar roots defined outside RuntimeUtil (#73)
 
 ## [1.2.2] - [2023-10-09]
 

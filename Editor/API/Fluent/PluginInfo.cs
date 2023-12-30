@@ -11,11 +11,11 @@ namespace nadena.dev.ndmf
     internal class PluginInfo
     {
         private readonly SolverContext _solverContext;
-        private readonly IPlugin _plugin;
+        private readonly IPluginInternal _plugin;
         private int sequenceIndex = 0;
         private HashSet<BuildPhase> _createdInnatePhases = new HashSet<BuildPhase>();
 
-        public PluginInfo(SolverContext solverContext, IPlugin plugin)
+        public PluginInfo(SolverContext solverContext, IPluginInternal plugin)
         {
             _solverContext = solverContext;
             _plugin = plugin;

@@ -114,7 +114,7 @@ namespace nadena.dev.ndmf.fluent
     /// </summary>
     public sealed partial class Sequence
     {
-        private readonly IPlugin _plugin;
+        private readonly IPluginInternal _plugin;
         private readonly string _sequenceBaseName;
         private readonly SolverContext _solverContext;
         private readonly BuildPhase _phase;
@@ -124,7 +124,7 @@ namespace nadena.dev.ndmf.fluent
 
         private int inlinePassIndex = 0;
 
-        internal Sequence(BuildPhase phase, SolverContext solverContext, IPlugin plugin, string sequenceBaseName)
+        internal Sequence(BuildPhase phase, SolverContext solverContext, IPluginInternal plugin, string sequenceBaseName)
         {
             _phase = phase;
             _solverContext = solverContext;

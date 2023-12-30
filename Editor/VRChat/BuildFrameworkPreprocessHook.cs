@@ -66,7 +66,7 @@ namespace nadena.dev.ndmf.VRChat
                 Debug.Log($"Build Framework: Saved assets in {sw.ElapsedMilliseconds}ms");
                 Object.DestroyImmediate(holder);
 
-                return true;
+                return holder.context.Successful;
             }
             catch (Exception e)
             {

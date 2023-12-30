@@ -1,0 +1,53 @@
+﻿
+.error-list-top {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2px;
+    margin: 2px;
+}
+
+.ErrorElement > Image {
+    width: 32px;
+    height: 32px;
+}
+
+.ErrorElement Box {
+    flex: 1 auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 2px;
+    margin: 2px;
+    border-width: 0 0 0 0;
+}
+
+Label {
+    white-space: normal; /* word wrap */
+}
+
+#icon-container {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    height: 100%;
+}
+
+#title {
+    -unity-font-style: bold;
+    margin-bottom: 10px;
+}
+
+#icon {
+    width: 32px;
+    height: 32px;
+}
+
+#hint-foldout {
+    margin-top: 10px;
+}
+
+#stack-trace-foldout {
+    display: none;
+}

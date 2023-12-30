@@ -90,7 +90,7 @@ namespace nadena.dev.ndmf.ui
             {
                 var phase = phaseKVP.Item1;
                 var passes = phaseKVP.Item2;
-                IPlugin priorPlugin = null;
+                IPluginInternal priorPlugin = null;
                 SolverUIItem pluginItem = null;
 
                 allItems.Add(new SolverUIItem() {id = id++, depth = 1, displayName = phase.ToString()});

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:ndmf="nadena.dev.ndmf.ui"
+        xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement class="error-list-top">
+        <engine:VisualElement name="icon-container">
+            <ndmf:ErrorIcon name="icon"/>
+        </engine:VisualElement>
+        <engine:VisualElement class="error-list-main">
+            <engine:Label class="error-title" name="title" text="Error message"/>
+            <engine:Label class="error-description" name="description" text="Error description"/>
+            <engine:VisualElement name="object-references"/>
+            <engine:Foldout class="error-hint" name="hint-foldout" text="Error hint popout title" value="false">
+                <engine:Label name="hint" text="Error hint"/>
+            </engine:Foldout>
+            <engine:Foldout class="error-stacktrace ndmf-tr" name="stack-trace-foldout" text="InternalError:StackTraceFoldout" value="false">
+                <engine:TextField name="stack-trace" text="Error stacktrace" multiline="true" readonly="true"/>
+            </engine:Foldout>
+        </engine:VisualElement>
+
+    </engine:VisualElement>
+</engine:UXML>

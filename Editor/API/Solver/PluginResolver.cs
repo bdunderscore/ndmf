@@ -25,7 +25,7 @@ namespace nadena.dev.ndmf
 
     internal class ConcretePass
     {
-        internal IPlugin Plugin;
+        internal IPluginInternal Plugin;
         internal string Description { get; }
         internal IPass InstantiatedPass { get; }
         internal ImmutableList<Type> DeactivatePlugins { get; }
@@ -36,7 +36,7 @@ namespace nadena.dev.ndmf
             InstantiatedPass.Execute(context);
         }
 
-        internal ConcretePass(IPlugin plugin, IPass pass, ImmutableList<Type> deactivatePlugins,
+        internal ConcretePass(IPluginInternal plugin, IPass pass, ImmutableList<Type> deactivatePlugins,
             ImmutableList<Type> activatePlugins)
         {
             Plugin = plugin;
@@ -63,12 +63,12 @@ namespace nadena.dev.ndmf
 
         public PluginResolver(IEnumerable<Type> plugins) : this(
             plugins.Select(plugin =>
-                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPlugin)
+                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPluginInternal)
         )
         {
         }
 
-        public PluginResolver(IEnumerable<IPlugin> pluginTemplates)
+        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates)
         {
             var solverContext = new SolverContext();
 
