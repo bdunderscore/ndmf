@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for substituting keys in the error title (#106)
 
 ### Fixed
+- Language selection is not persisted across Unity Editor restarts or domain reloads (#108)
 - Exceptions leaking out of language change callbacks break subsequent callbacks (#103)
 - Deregistering a language change callback while callbacks are running could skip executing some callbacks (#103)
 - .po files don't fall back correctly (#107)
