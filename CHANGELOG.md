@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
-- API to record when one object is replaced by another
+- Made some SimpleError APIs virtual (#104)
+- Exposed SafeSubst and SafeSubstByKey on SimpleError (#104)
 
 ### Fixed
 
@@ -19,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.3.0-alpha.2] - [2023-12-22]
+
+### Added
+- API to record when one object is replaced by another
 
 ## [1.3.0-alpha.1] - [2023-12-22]
 
