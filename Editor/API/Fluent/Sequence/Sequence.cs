@@ -52,6 +52,9 @@ namespace nadena.dev.ndmf.fluent
 
         /// <summary>
         /// Declares that the pass you just declared must run before a particular other plugin.
+        ///
+        /// It's recommended to avoid using this to refer to passes in other plugins, as the internal class names
+        /// of those plugins may not be a stable API.
         /// </summary>
         /// <param name="QualifiedName">The qualified name of the other plugin</param>
         /// <returns>This DeclaringPass context</returns>
@@ -82,7 +85,17 @@ namespace nadena.dev.ndmf.fluent
         }
 
 
-        private DeclaringPass BeforePass(string qualifiedName, string sourceFile = "", int sourceLine = 0)
+        /// <summary>
+        /// Declares that the pass you just declared must run after a particular other pass.
+        ///
+        /// It's recommended to avoid using this to refer to passes in other plugins, as the internal class names
+        /// of those plugins may not be a stable API.
+        /// </summary>
+        /// <param name="qualifiedName"></param>
+        /// <param name="sourceFile"></param>
+        /// <param name="sourceLine"></param>
+        /// <returns></returns>
+        public DeclaringPass BeforePass(string qualifiedName, string sourceFile = "", int sourceLine = 0)
         {
             _solverContext.Constraints.Add(new Constraint()
             {
@@ -124,7 +137,8 @@ namespace nadena.dev.ndmf.fluent
 
         private int inlinePassIndex = 0;
 
-        internal Sequence(BuildPhase phase, SolverContext solverContext, IPluginInternal plugin, string sequenceBaseName)
+        internal Sequence(BuildPhase phase, SolverContext solverContext, IPluginInternal plugin,
+            string sequenceBaseName)
         {
             _phase = phase;
             _solverContext = solverContext;
@@ -167,7 +181,8 @@ namespace nadena.dev.ndmf.fluent
         private SolverPass CreateSequencingPass(string displayName, InlinePass callback, string sourceFile,
             int sourceLine)
         {
-            var anonPass = new AnonymousPass(_sequenceBaseName + "/" + displayName + "#" + inlinePassIndex++, displayName,
+            var anonPass = new AnonymousPass(_sequenceBaseName + "/" + displayName + "#" + inlinePassIndex++,
+                displayName,
                 callback);
             var pass = new SolverPass(_plugin, anonPass, _phase, _compatibleExtensions, _requiredExtensions);
             anonPass.IsPhantom = true;

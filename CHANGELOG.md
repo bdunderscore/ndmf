@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for passing IEnumerable as context objects for inline errors (#106)
 - Added support for a custom IErrorContext object to pass multiple context objects (#106)
 - Added support for substituting keys in the error title (#106)
+- Exposed the qualified name variant of `Sequence.BeforePass` (#109)
 
 ### Fixed
 - Exceptions leaking out of language change callbacks break subsequent callbacks (#103)
