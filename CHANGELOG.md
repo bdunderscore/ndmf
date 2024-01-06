@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.3.0-rc.1] - [2024-01-06]
+
+### Added
 - Made some SimpleError APIs virtual (#104)
 - Exposed SafeSubst and SafeSubstByKey on SimpleError (#104)
 - Added support for passing IEnumerable as context objects for inline errors (#106)
@@ -23,12 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The error report window now responds to selection change events (#110)
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.3.0-alpha.2] - [2023-12-22]
 
