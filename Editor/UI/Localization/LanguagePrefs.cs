@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace nadena.dev.ndmf.localization
 {
@@ -46,7 +47,7 @@ namespace nadena.dev.ndmf.localization
                 }
             }
         }
-        
+
         private static ConditionalWeakTable<object, ElementFinalizer> _targetRefs =
             new ConditionalWeakTable<object, ElementFinalizer>();
 
@@ -82,9 +83,16 @@ namespace nadena.dev.ndmf.localization
         {
             lock (_onLanguageChangeCallbacks)
             {
-                foreach (Action op in _onLanguageChangeCallbacks)
+                foreach (Action op in new List<Action>(_onLanguageChangeCallbacks))
                 {
-                    op();
+                    try
+                    {
+                        op();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
@@ -92,17 +100,13 @@ namespace nadena.dev.ndmf.localization
         /// <summary>
         /// Returns a list of all languages which have been registered at some point with the localization system.
         /// </summary>
-        public static ImmutableSortedSet<string> RegisteredLanguages
-        {
-            get;
-            private set;
-        }
+        public static ImmutableSortedSet<string> RegisteredLanguages { get; private set; }
 
         static LanguagePrefs()
         {
             RegisteredLanguages = ImmutableSortedSet<string>.Empty;
         }
-        
+
         /// <summary>
         /// Registers an additional language code to display in the language selectors.
         /// </summary>

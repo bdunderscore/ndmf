@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exposed SafeSubst and SafeSubstByKey on SimpleError (#104)
 
 ### Fixed
+- Exceptions leaking out of language change callbacks break subsequent callbacks (#103)
+- Deregistering a language change callback while callbacks are running could skip executing some callbacks (#103)
 
 ### Changed
 
