@@ -1,0 +1,6 @@
+﻿msgid ""
+msgstr ""
+"Language: pt-PT\n"
+
+msgid "test3"
+msgstr "pt-pt-3"
