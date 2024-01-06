@@ -16,7 +16,7 @@ namespace nadena.dev.ndmf.localization
     public sealed class Localizer
     {
         private static Action _reloadLocalizations;
-        
+
         /// <summary>
         /// The default (fallback) language to use to look up keys when they are missing in the currently selected
         /// UI language.
@@ -48,7 +48,7 @@ namespace nadena.dev.ndmf.localization
             LoadLocalizations();
             _reloadLocalizations += LoadLocalizations;
         }
-        
+
         /// <summary>
         /// Constructs a localizer based on a list of LocalizationAssets.
         /// </summary>
@@ -62,11 +62,16 @@ namespace nadena.dev.ndmf.localization
             _localizationLoader = () =>
             {
                 return assetLoader().Select<
-                       LocalizationAsset,
-                       (string, Func<string, string>)
-                >(asset => (asset.localeIsoCode, asset.GetLocalizedString)).ToList();
+                    LocalizationAsset,
+                    (string, Func<string, string>)
+                >(asset => (asset.localeIsoCode, k =>
+                {
+                    var s = asset.GetLocalizedString(k);
+                    if (s == k) s = null;
+                    return s;
+                })).ToList();
             };
-            
+
             languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
             LoadLocalizations();
             _reloadLocalizations += LoadLocalizations;
@@ -81,9 +86,9 @@ namespace nadena.dev.ndmf.localization
         void LoadLocalizations()
         {
             _lookupCache = null;
-            
+
             if (_localizationLoader == null) return;
-            
+
             var newLanguages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
             foreach (var (lang, lookup) in _localizationLoader())
             {
@@ -103,7 +108,7 @@ namespace nadena.dev.ndmf.localization
             AssetDatabase.Refresh();
             _reloadLocalizations?.Invoke();
         }
-        
+
         /// <summary>
         /// Attempts to look up a localized string. Returns true if the string was found, false otherwise.
         /// </summary>
@@ -143,7 +148,7 @@ namespace nadena.dev.ndmf.localization
                 };
                 _lastLanguage = LanguagePrefs.Language;
             }
-            
+
             value = _lookupCache(key);
             return value != null && value != key;
         }
@@ -162,7 +167,7 @@ namespace nadena.dev.ndmf.localization
 
             return value;
         }
-        
+
         /// <summary>
         /// Localizes UI elements under the given root element. Any elements with the class "ndmf-tr" will be
         /// localized automatically, with localization keys under their `text` or `label` properties being converted

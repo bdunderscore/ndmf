@@ -1,0 +1,12 @@
+﻿msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "test1"
+msgstr "en-us-1"
+
+msgid "test2"
+msgstr "en-us-2"
+
+msgid "test3"
+msgstr "en-us-3"

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Exceptions leaking out of language change callbacks break subsequent callbacks (#103)
 - Deregistering a language change callback while callbacks are running could skip executing some callbacks (#103)
+- .po files don't fall back correctly (#107)
 
 ### Changed
 

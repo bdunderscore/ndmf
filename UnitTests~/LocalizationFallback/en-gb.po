@@ -1,0 +1,9 @@
+﻿msgid ""
+msgstr ""
+"Language: en-GB\n"
+
+msgid "test1"
+msgstr "en-gb-1"
+
+msgid "test3"
+msgstr "en-gb-3"
