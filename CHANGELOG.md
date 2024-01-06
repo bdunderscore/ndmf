@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .po files don't fall back correctly (#107)
 
 ### Changed
+- The error report window now responds to selection change events (#110)
 
 ### Removed
 

@@ -151,6 +151,26 @@ namespace nadena.dev.ndmf.ui
             EditorApplication.hierarchyChanged -= SetupSelector;
         }
 
+        private void OnSelectionChange()
+        {
+            if (_testBuild == null) return;
+
+            // On newer versions of unity, we expose an explicit selection UI that we don't want to override.
+            // On Unity 2019, however, there's no way to explicitly select an avatar, so rely on editor selection UI
+            // instead.
+#if UNITY_2020_1_OR_NEWER
+            if (_avatarRoot != null || _report != null) return;
+#endif
+            if (Selection.gameObjects.Length != 1) return;
+
+            var go = Selection.activeGameObject;
+            var av = RuntimeUtil.FindAvatarInParents(go.transform);
+            if (av != null)
+            {
+                CurrentAvatar = av.gameObject;
+            }
+        }
+
         private void SetupSelector()
         {
             var container = rootVisualElement.Q<VisualElement>("avatar-selector-container");
