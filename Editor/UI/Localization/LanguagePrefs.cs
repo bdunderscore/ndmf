@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using UnityEditor;
 using UnityEngine;
 
 namespace nadena.dev.ndmf.localization
@@ -11,7 +12,14 @@ namespace nadena.dev.ndmf.localization
     /// </summary>
     public static class LanguagePrefs
     {
+        private const string EditorPrefKey = "nadena.dev.ndmf.language-selection";
         private static string _curLanguage = "en-us";
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            Language = EditorPrefs.GetString(EditorPrefKey, "en-US");
+        }
 
         /// <summary>
         /// The currently selected language ID, e.g. "en-us".
@@ -23,6 +31,7 @@ namespace nadena.dev.ndmf.localization
             {
                 if (value == _curLanguage) return;
                 _curLanguage = value;
+                EditorPrefs.SetString(EditorPrefKey, value);
                 TriggerLanguageChangeCallbacks();
             }
         }
