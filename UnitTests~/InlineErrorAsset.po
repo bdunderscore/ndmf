@@ -1,0 +1,21 @@
+﻿msgid ""
+msgstr ""
+"Language: en-US\n"
+
+msgid "Errors:test"
+msgstr "Test error {0}"
+
+msgid "Errors:test:description"
+msgstr "Test error description {1}"
+
+msgid "Errors:test:hint"
+msgstr "Test error hint {2}"
+
+msgid "Errors:test2"
+msgstr "Test error {0}"
+
+msgid "Errors:test2:description"
+msgstr "Test error description {1}"
+
+msgid "Errors:test2:hint"
+msgstr "Test error hint {2} {3}"

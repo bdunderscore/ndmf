@@ -27,6 +27,12 @@ namespace nadena.dev.ndmf
         protected abstract string TitleKey { get; }
 
         /// <summary>
+        /// String substitutions to insert into the title of the error display. You can reference these with
+        /// e.g. `{0}`.
+        /// </summary>
+        protected virtual string[] TitleSubst => Array.Empty<string>();
+
+        /// <summary>
         /// The key to use for the details section of the error display. By default, this is the TitleKey + `:description`.
         /// </summary>
         protected virtual string DetailsKey => TitleKey + ":description";
@@ -89,7 +95,7 @@ namespace nadena.dev.ndmf
         /// <returns></returns>
         public virtual string FormatTitle()
         {
-            return Localizer.GetLocalizedString(TitleKey);
+            return SafeSubstByKey(TitleKey, TitleSubst);
         }
 
         /// <summary>
