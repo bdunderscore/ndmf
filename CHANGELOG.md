@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Made some SimpleError APIs virtual (#104)
 - Exposed SafeSubst and SafeSubstByKey on SimpleError (#104)
+- Added support for passing IEnumerable as context objects for inline errors (#106)
+- Added support for a custom IErrorContext object to pass multiple context objects (#106)
+- Added support for substituting keys in the error title (#106)
 
 ### Fixed
 - Exceptions leaking out of language change callbacks break subsequent callbacks (#103)

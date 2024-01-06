@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.localization;
 using Object = UnityEngine.Object;
@@ -15,28 +17,55 @@ namespace nadena.dev.ndmf
             Severity = errorSeverity;
             TitleKey = key;
 
-            _subst = Array.ConvertAll(args, o => o?.ToString());
-            _references = args.Select(r =>
+            List<string> substitutions = new List<string>();
+            AddContext(args, substitutions);
+            _subst = substitutions.ToArray();
+        }
+
+        private void AddContext(IEnumerable args, List<string> substitutions)
+        {
+            foreach (var arg in args)
             {
-                if (r is ObjectReference or)
+                if (arg == null)
                 {
-                    return or;
+                    substitutions.Add("<missing>");
                 }
-                else if (r is Object uo)
+                else if (arg is string s)
                 {
-                    return ObjectRegistry.GetReference(uo);
+                    // string is IEnumerable, so we have to special case this
+                    substitutions.Add(s);
+                }
+                else if (arg is ObjectReference or)
+                {
+                    AddReference(or);
+                    substitutions.Add(or.ToString());
+                }
+                else if (arg is Object uo)
+                {
+                    var objectReference = ObjectRegistry.GetReference(uo);
+                    AddReference(objectReference);
+                    substitutions.Add(objectReference.ToString());
+                }
+                else if (arg is IEnumerable e)
+                {
+                    AddContext(e, substitutions);
+                }
+                else if (arg is IErrorContext ec)
+                {
+                    AddContext(ec.ContextReferences, substitutions);
                 }
                 else
                 {
-                    return null;
+                    substitutions.Add(arg.ToString());
                 }
-            }).Where(r => r != null).ToList();
+            }
         }
 
         protected override Localizer Localizer { get; }
         public override ErrorSeverity Severity { get; }
         protected override string TitleKey { get; }
 
+        protected override string[] TitleSubst => _subst;
         protected override string[] DetailsSubst => _subst;
         protected override string[] HintSubst => _subst;
     }
