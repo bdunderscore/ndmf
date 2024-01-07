@@ -7,7 +7,7 @@ namespace nadena.dev.ndmf.localization
     internal static class NDMFLocales
     {
         public static Localizer L = new Localizer(
-            "en-us",
+            "en-US",
             () => new List<LocalizationAsset>()
             {
                 AssetDatabase.LoadAssetAtPath<LocalizationAsset>(
