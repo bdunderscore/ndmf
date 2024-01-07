@@ -25,21 +25,21 @@ namespace nadena.dev.ndmf
     internal sealed class ExecutionScope : IDisposable
     {
         private readonly ErrorReportScope _errorReportScope;
-        private readonly RegistryScope _registryScope;
+        private readonly ObjectRegistryScope _objectRegistryScope;
 
         public ExecutionScope(BuildContext ctx)
         {
             _errorReportScope = new ErrorReportScope(ctx._report);
-            _registryScope = new RegistryScope(ctx._registry);
+            _objectRegistryScope = new ObjectRegistryScope(ctx._registry);
         }
-        
+
         public void Dispose()
         {
             _errorReportScope.Dispose();
-            _registryScope.Dispose();
+            _objectRegistryScope.Dispose();
         }
     }
-    
+
     /// <summary>
     /// The BuildContext is passed to all plugins during the build process. It provides access to the avatar being
     /// built, as well as various other context information.
@@ -55,7 +55,7 @@ namespace nadena.dev.ndmf
 
         public ObjectRegistry ObjectRegistry => _registry;
         public ErrorReport ErrorReport => _report;
-        
+
         /// <summary>
         /// The root GameObject of the avatar being built.
         /// </summary>
@@ -74,7 +74,7 @@ namespace nadena.dev.ndmf
         public UnityObject AssetContainer { get; private set; }
 
         public bool Successful => !_report.Errors.Any(e => e.TheError.Severity >= ErrorSeverity.Error);
-        
+
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
         private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
@@ -83,12 +83,12 @@ namespace nadena.dev.ndmf
         {
             if (_state.TryGetValue(typeof(T), out var value))
             {
-                return (T) value;
+                return (T)value;
             }
 
             value = new T();
             _state[typeof(T)] = value;
-            return (T) value;
+            return (T)value;
         }
 
         public T Extension<T>() where T : IExtensionContext
@@ -98,7 +98,7 @@ namespace nadena.dev.ndmf
                 throw new Exception($"Extension {typeof(T)} not active");
             }
 
-            return (T) value;
+            return (T)value;
         }
 
         public BuildContext(GameObject obj, string assetRootPath, bool isClone = true)
@@ -109,10 +109,10 @@ namespace nadena.dev.ndmf
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
-            
+
             _avatarRootObject = obj;
             _avatarRootTransform = obj.transform;
-            
+
 #if NDMF_VRCSDK3_AVATARS
             PlatformInit();
 #endif
@@ -126,7 +126,7 @@ namespace nadena.dev.ndmf
                 Directory.CreateDirectory(assetRootPath);
 
                 var pathAvatarName = FilterAvatarName(avatarName);
-                
+
                 var avatarPath = Path.Combine(assetRootPath, pathAvatarName) + ".asset";
                 AssetDatabase.GenerateUniqueAssetPath(avatarPath);
                 AssetDatabase.CreateAsset(AssetContainer, avatarPath);
@@ -146,14 +146,14 @@ namespace nadena.dev.ndmf
             }
 
             sw.Stop();
-            
+
             // Register all initially-existing GameObjects and Components
-            using (new RegistryScope(_registry))
+            using (new ObjectRegistryScope(_registry))
             {
                 foreach (Transform xform in _avatarRootTransform.GetComponentsInChildren<Transform>(true))
                 {
                     ObjectRegistry.GetReference(xform.gameObject);
-                    
+
                     foreach (Component c in xform.gameObject.GetComponents<Component>())
                     {
                         ObjectRegistry.GetReference(c);
@@ -166,12 +166,12 @@ namespace nadena.dev.ndmf
             "(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])([.].*)?",
             RegexOptions.IgnoreCase
         );
-        
+
         private static readonly Regex WindowsReservedFileCharacters = new Regex(
             "[<>:\"/\\\\|?*\x00-\x1f]",
             RegexOptions.IgnoreCase
         );
-        
+
         internal static string FilterAvatarName(string avatarName)
         {
             avatarName = WindowsReservedFileCharacters.Replace(avatarName, "_");
@@ -353,7 +353,7 @@ namespace nadena.dev.ndmf
 
         public T ActivateExtensionContext<T>() where T : IExtensionContext
         {
-            return (T) ActivateExtensionContext(typeof(T));
+            return (T)ActivateExtensionContext(typeof(T));
         }
 
         public IExtensionContext ActivateExtensionContext(Type ty)
@@ -403,7 +403,7 @@ namespace nadena.dev.ndmf
                         try
                         {
                             kvp.Value.OnDeactivate(this);
-                            
+
                             // ReSharper disable once SuspiciousTypeConversion.Global
                             if (kvp.Value is IDisposable d)
                             {
@@ -415,7 +415,7 @@ namespace nadena.dev.ndmf
                             ErrorReport.ReportException(e);
                         }
                     }
-                    
+
                     _activeExtensions.Remove(kvp.Key);
                 }
 
@@ -423,7 +423,7 @@ namespace nadena.dev.ndmf
                 sw.Stop();
 
                 BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
-                
+
                 if (!Application.isBatchMode && _report.Errors.Count > 0)
                 {
                     ErrorReportWindow.ShowReport(_report);

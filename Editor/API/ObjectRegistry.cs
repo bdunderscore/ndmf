@@ -17,11 +17,15 @@ namespace nadena.dev.ndmf
 
     #endregion
 
-    internal sealed class RegistryScope : IDisposable
+    /// <summary>
+    /// This class allows you to set a particular Object Registry instance as the current one to be used for static
+    /// methods. This is primarily intended for unit testing.
+    /// </summary>
+    public sealed class ObjectRegistryScope : IDisposable
     {
         private readonly ObjectRegistry _oldRegistry;
 
-        public RegistryScope(ObjectRegistry registry)
+        public ObjectRegistryScope(ObjectRegistry registry)
         {
             _oldRegistry = ObjectRegistry.ActiveRegistry;
             ObjectRegistry.ActiveRegistry = registry;
@@ -60,7 +64,7 @@ namespace nadena.dev.ndmf
         public static ObjectReference GetReference(UnityObject obj)
         {
             if (obj == null) return null;
-            
+
             return ActiveRegistry?._GetReference(obj) ?? new ObjectReference(obj, null);
         }
 
@@ -109,7 +113,7 @@ namespace nadena.dev.ndmf
         {
             return RegisterReplacedObject(GetReference(oldObject), newObject);
         }
-        
+
         /// <summary>
         /// Record that a particular object (asset or scene object) was replaced by a clone or transformed version.
         /// This will be used to track the original object in error reports.
@@ -123,7 +127,7 @@ namespace nadena.dev.ndmf
 
             if (oldObject == null) throw new NullReferenceException("oldObject must not be null");
             if (newObject == null) throw new NullReferenceException("newObject must not be null");
-            
+
             if (!ActiveRegistry._obj2ref.TryGetValue(RuntimeHelpers.GetHashCode(newObject), out var refs))
             {
                 ActiveRegistry._obj2ref[RuntimeHelpers.GetHashCode(newObject)] = refs = new List<Entry>();
@@ -137,7 +141,7 @@ namespace nadena.dev.ndmf
                         "RegisterReplacedObject must be called before GetReference is called on the new object");
                 }
             }
-            
+
             refs.Add(new Entry()
             {
                 Object = newObject,
@@ -145,6 +149,6 @@ namespace nadena.dev.ndmf
             });
 
             return oldObject;
-        } 
+        }
     }
 }
