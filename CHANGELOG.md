@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Completed ja-JP localization (#116)
 
 ### Fixed
 - NDMF native strings don't fall back to en-US properly (#115)
