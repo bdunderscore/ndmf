@@ -10,7 +10,7 @@ namespace UnitTests
 {
     public class InlineErrorTests
     {
-        private Localizer TEST_LOCALIZER = new Localizer("en-us", () => new List<LocalizationAsset>()
+        private Localizer TEST_LOCALIZER = new Localizer("en-US", () => new List<LocalizationAsset>()
         {
             AssetDatabase.LoadAssetAtPath<LocalizationAsset>("Packages/nadena.dev.ndmf/UnitTests/InlineErrorAsset.po")
         });
