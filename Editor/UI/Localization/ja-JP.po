@@ -5,5 +5,29 @@ msgstr ""
 msgid "ErrorReport:Title"
 msgstr "エラー表示"
 
-msgid "ErrorReport:Title:tooltip"
-msgstr "テストツールチップ"
+msgid "ErrorReport:HintFoldout"
+msgstr "直すには？"
+
+msgid "ErrorReport:TestBuild"
+msgstr "テストビルドを実行"
+
+msgid "ErrorReport:NoErrors"
+msgstr "エラーがありません！"
+
+msgid "ErrorReport:NoAvatarSelected"
+msgstr "アバターが選択されていません"
+
+msgid "ErrorReport:Unbuilt"
+msgstr "アバターはまだビルドされていません。"
+
+msgid "Errors:InternalError"
+msgstr "内部エラーが発生しました。"
+
+msgid "Errors:InternalError:description"
+msgstr "プラグインに{0}のエラーが発生しました。プラグイン作者にご報告ください。"
+
+msgid "InternalError:StackTraceFoldout"
+msgstr "スタックトレースを表示（バグ報告に添付してください！）"
+
+msgid "AvatarProcessor:ProcessingFailed"
+msgstr "アバター処理中にエラーが発生しました。詳しくはエラー表示をご確認ください。"
