@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
-- Completed ja-JP localization (#116)
-- Exposed `ObjectRegistryScope` for testing (#117)
 
 ### Fixed
-- NDMF native strings don't fall back to en-US properly (#115)
 
 ### Changed
 
@@ -21,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.3.0-rc.2] - [2024-01-07]
+
+### Added
+- Completed ja-JP localization (#116)
+- Exposed `ObjectRegistryScope` for testing (#117)
+
+### Fixed
+- NDMF native strings don't fall back to en-US properly (#115)
 
 ## [1.3.0-rc.1] - [2024-01-06]
 
