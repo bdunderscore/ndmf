@@ -50,7 +50,7 @@ Passes are grouped into execution phases, which execute in the following order:
 * Resolving - This is intended to run before any editor extensions modify the avatar, and is useful for rehydrating components with serialized state that need to refer to the pre-transformation avatar (e.g. if you have a path serialized to a string which you need to resolve to an object before objects start moving around)
 * Generating - This is intended to run before editor extensions which primarily generate new objects and components for use by other systems.
 * Transforming - This is intended as the "general-purpose" execution phase, where most extensions which transform avatars run.
-* Optimization - This is intended as an execution phase for optimization plugins which aren't intended to modify the avatar in a semantically-meaningful way.
+* Optimizing - This is intended as an execution phase for optimization plugins which aren't intended to modify the avatar in a semantically-meaningful way.
 
 Within each phase, passes are always executed in the order in which they are declared in the plugin definition. However, depending on dependency declarations, passes from other plugins can be injected between your passes.
 
