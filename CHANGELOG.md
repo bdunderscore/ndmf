@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.3.0-rc.3] - [2024-01-14]
+
+### Changed
+- Adjusted hook processing order to improve compatibility with VRCFury (#122)
+
 ## [1.3.0-rc.2] - [2024-01-07]
 
 ### Added
