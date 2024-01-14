@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Normalize the representation of the "default language" locale (#124)
 
 ### Changed
 

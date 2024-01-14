@@ -40,7 +40,7 @@ namespace nadena.dev.ndmf.localization
         /// <param name="loader"></param>
         public Localizer(string defaultLanguage, Func<List<(string, Func<string, string>)>> loader)
         {
-            DefaultLanguage = defaultLanguage;
+            DefaultLanguage = CultureInfo.GetCultureInfo(defaultLanguage).Name;
             LanguagePrefs.RegisterLanguage(defaultLanguage);
 
             _localizationLoader = loader;
