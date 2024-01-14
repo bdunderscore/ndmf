@@ -22,7 +22,7 @@ namespace nadena.dev.ndmf.runtime
             foreach (var root in scene.GetRootGameObjects())
             foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
             {
-                if (emulator.isActiveAndEnabled && emulator.RunPreprocessAvatarHook)
+                if (emulator.enabled && emulator.gameObject.activeInHierarchy && emulator.RunPreprocessAvatarHook)
                 {
                     return true;
                 }
