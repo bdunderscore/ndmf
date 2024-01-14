@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- Adjusted hook processing order to improve compatibility with VRCFury (#122)
 
 ### Removed
 
