@@ -22,7 +22,8 @@ namespace nadena.dev.ndmf.VRChat
 
     internal class BuildFrameworkPreprocessHook : IVRCSDKPreprocessAvatarCallback
     {
-        public int callbackOrder => -5000;
+        // Must run before -10000 (VRCFury)
+        public int callbackOrder => -11000;
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
