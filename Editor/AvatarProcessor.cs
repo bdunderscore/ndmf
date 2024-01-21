@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -98,6 +99,37 @@ namespace nadena.dev.ndmf
             }
         }
 
+        #if NDMF_VRCSDK3_AVATARS
+        private static bool IsVRCFuryHack(System.Diagnostics.StackTrace trace)
+        {
+            foreach (var frame in trace.GetFrames())
+            {
+                Debug.Log("Frame: " + frame.GetMethod().DeclaringType.FullName + " " + frame.GetMethod());
+            }
+            
+            return trace.GetFrames().Any(frame =>
+                frame.GetMethod().DeclaringType.FullName == "VF.Menu.NdmfFirstMenuItem"
+            );
+        }
+        
+        private static bool InHookExecution(System.Diagnostics.StackTrace trace)
+        {
+            return trace.GetFrames().Any(frame =>
+                typeof(VRC.SDKBase.Editor.BuildPipeline.IVRCSDKPreprocessAvatarCallback)
+                    .IsAssignableFrom(frame.GetMethod().DeclaringType));
+        }
+        #else
+        private static bool IsVRCFuryHack(System.Diagnostics.StackTrace trace)
+        {
+            return false;
+        }
+
+        private static bool InHookExecution(System.Diagnostics.StackTrace trace)
+        {
+            return false;
+        }
+        #endif
+
         /// <summary>
         /// Processes an avatar as part of an automated process. The resulting assets will be saved in a temporary
         /// location.
@@ -105,16 +137,43 @@ namespace nadena.dev.ndmf
         /// <param name="root"></param>
         public static void ProcessAvatar(GameObject root)
         {
-            if (root.GetComponent<AlreadyProcessedTag>()) return;
+            ProcessAvatar(root, BuildPhase.Optimizing);
+        }
+        
+        internal static void ProcessAvatar(GameObject root, BuildPhase lastPhase) {
+            if (root.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return;
 
+            // HACK: VRCFury tries to invoke ProcessAvatar during its own processing, but this risks having Optimization
+            // phase passes run too early (before VRCF runs). Detect when we're being invoked like this and skip
+            // optimization.
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+            if (IsVRCFuryHack(stackTrace))
+            {
+                if (InHookExecution(stackTrace))
+                {
+                    Debug.Log("NDMF: Detected VRCFury hack from within VRChat build hooks - " +
+                              "ignoring VRCFury invocation");
+                    // We're running from within VRChat build hooks, so just ignore VRCFury's request;
+                    // we'll be run in the correct order anyway.
+                    return;
+                }
+                else
+                {
+                    Debug.Log("NDMF: Detected VRCFury hack from play mode - skipping optimization");
+                    // Skip optimizations, because they might break VRCFury processing.
+                    lastPhase = BuildPhase.Transforming;
+                }
+            }
+            
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
 
-            ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
+            ProcessAvatar(buildContext, BuildPhase.Resolving, lastPhase);
             buildContext.Finish();
 
             if (RuntimeUtil.IsPlaying)
             {
-                root.AddComponent<AlreadyProcessedTag>();
+                var tag = root.GetComponent<AlreadyProcessedTag>() ?? root.AddComponent<AlreadyProcessedTag>();
+                tag.processingCompleted = true;
             }
         }
 

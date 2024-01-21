@@ -27,7 +27,7 @@ namespace nadena.dev.ndmf.VRChat
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
-            if (avatarGameObject.GetComponent<AlreadyProcessedTag>()) return true;
+            if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
 
             try
             {
@@ -52,7 +52,7 @@ namespace nadena.dev.ndmf.VRChat
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
-            if (avatarGameObject.GetComponent<AlreadyProcessedTag>()) return true;
+            if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
 
             var holder = avatarGameObject.GetComponent<ContextHolder>();
             if (holder == null) return true;
