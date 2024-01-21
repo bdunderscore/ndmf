@@ -62,7 +62,9 @@ namespace nadena.dev.ndmf
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;
-                AvatarProcessor.ProcessAvatar(avatar.gameObject);
+
+                // Skip optimizing the avatar as we might have VRCFury or similar running after us.
+                AvatarProcessor.ProcessAvatar(avatar.gameObject, BuildPhase.Transforming);
             }
         }
 
