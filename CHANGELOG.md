@@ -10,17 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Normalize the representation of the "default language" locale (#124)
 
 ### Changed
-- Adjusted hook processing order to improve compatibility with VRCFury (#122)
-- Worked around a hack in VRCFury that broke optimization plugins (#126)
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.3.0-rc.4] - [2024-01-21]
+
+### Fixed
+- Normalize the representation of the "default language" locale (#124)
+
+### Changed
+- Adjusted hook processing order to improve compatibility with VRCFury (#122)
+- Worked around a hack in VRCFury that broke optimization plugins (#126)
 
 ## [1.3.0-rc.3] - [2024-01-14]
 
