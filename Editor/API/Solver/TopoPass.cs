@@ -56,9 +56,6 @@ namespace nadena.dev.ndmf
             {
                 if (kvp.Value != ConstraintType.WeakOrder && kvp.Key.IsReady)
                 {
-                    var typeSort = kvp.Value == ConstraintType.WaitFor ? 0 : 1;
-                    var sortOrder = (typeSort, kvp.Key.FallbackOrder);
-
                     if (bestPass == null || kvp.Value > bestType ||
                         (kvp.Value == bestType && kvp.Key.FallbackOrder < bestFallback))
                     {

@@ -42,7 +42,7 @@ namespace nadena.dev.ndmf.ui
                         {
                             return CultureInfo.GetCultureInfo(lang).NativeName;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             return lang;
                         }
