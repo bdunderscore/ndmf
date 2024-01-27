@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Made a number of properties on `SimpleError` public (#128)
 - Set a minimum size for the error report window (#127)
-- 
+
 ## [1.3.0-rc.5] - [2024-01-27]
 
 (not released)
