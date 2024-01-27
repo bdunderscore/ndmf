@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- Made a number of properties on `SimpleError` public (#128)
 
 ### Removed
 
@@ -20,10 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [1.3.0-rc.5] - [2024-01-21]
+## [1.3.0-rc.6] - [2024-01-27]
 
 ### Changed
+- Made a number of properties on `SimpleError` public (#128)
 - Set a minimum size for the error report window (#127)
+- 
+## [1.3.0-rc.5] - [2024-01-27]
+
+(not released)
 
 ## [1.3.0-rc.4] - [2024-01-21]
 
