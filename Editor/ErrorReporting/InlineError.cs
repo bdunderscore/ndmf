@@ -61,12 +61,12 @@ namespace nadena.dev.ndmf
             }
         }
 
-        protected override Localizer Localizer { get; }
+        public override Localizer Localizer { get; }
         public override ErrorSeverity Severity { get; }
-        protected override string TitleKey { get; }
+        public override string TitleKey { get; }
 
-        protected override string[] TitleSubst => _subst;
-        protected override string[] DetailsSubst => _subst;
-        protected override string[] HintSubst => _subst;
+        public override string[] TitleSubst => _subst;
+        public override string[] DetailsSubst => _subst;
+        public override string[] HintSubst => _subst;
     }
 }

@@ -19,46 +19,46 @@ namespace nadena.dev.ndmf
         /// <summary>
         /// The Localizer to use to look up strings.
         /// </summary>
-        protected abstract Localizer Localizer { get; }
+        public abstract Localizer Localizer { get; }
 
         /// <summary>
         /// The key to use for the title of the error. By default, all other keys are derived from this TitleKey.
         /// </summary>
-        protected abstract string TitleKey { get; }
+        public abstract string TitleKey { get; }
 
         /// <summary>
         /// String substitutions to insert into the title of the error display. You can reference these with
         /// e.g. `{0}`.
         /// </summary>
-        protected virtual string[] TitleSubst => Array.Empty<string>();
+        public virtual string[] TitleSubst => Array.Empty<string>();
 
         /// <summary>
         /// The key to use for the details section of the error display. By default, this is the TitleKey + `:description`.
         /// </summary>
-        protected virtual string DetailsKey => TitleKey + ":description";
+        public virtual string DetailsKey => TitleKey + ":description";
 
         /// <summary>
         /// String substitutions to insert into the details section of the error display. You can reference these with
         /// e.g. `{0}`.
         /// </summary>
-        protected virtual string[] DetailsSubst => Array.Empty<string>();
+        public virtual string[] DetailsSubst => Array.Empty<string>();
 
         /// <summary>
         /// The key to use for the hint section of the error display. By default, this is the TitleKey + `:hint`.
         /// This section should be used to provide a hint to the user about how to resolve the error.
         /// </summary>
-        protected virtual string HintKey => TitleKey + ":hint";
+        public virtual string HintKey => TitleKey + ":hint";
 
         /// <summary>
         /// String substitutions to insert into the hint section of the error display. You can reference these with
         /// e.g. `{0}`.
         /// </summary>
-        protected virtual string[] HintSubst => Array.Empty<string>();
+        public virtual string[] HintSubst => Array.Empty<string>();
 
         /// <summary>
         /// Any ObjectReferences to display to the user; the user will be able to click to jump to these objects.
         /// </summary>
-        protected List<ObjectReference> _references = new List<ObjectReference>();
+        public List<ObjectReference> _references = new List<ObjectReference>();
 
         /// <summary>
         /// Any ObjectReferences to display to the user; the user will be able to click to jump to these objects.
