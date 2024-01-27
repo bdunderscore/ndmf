@@ -25,11 +25,11 @@ namespace nadena.dev.ndmf
             }
         }
 
-        protected override Localizer Localizer => NDMFLocales.L;
-        protected override string TitleKey => "Errors:InternalError";
+        public override Localizer Localizer => NDMFLocales.L;
+        public override string TitleKey => "Errors:InternalError";
         public override ErrorSeverity Severity => ErrorSeverity.InternalError;
 
-        protected override string[] DetailsSubst => new []
+        public override string[] DetailsSubst => new []
         {
             _e.GetType().Name
         };

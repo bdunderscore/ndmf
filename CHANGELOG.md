@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- Made a number of properties on `SimpleError` public (#128)
 
 ### Removed
 
