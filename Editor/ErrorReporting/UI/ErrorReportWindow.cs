@@ -98,6 +98,8 @@ namespace nadena.dev.ndmf.ui
         [ExcludeFromDocs]
         public void CreateGUI()
         {
+            minSize = new Vector2(300, 400);
+            
             // Each editor window contains a root VisualElement object
             VisualElement root = rootVisualElement;
             root.AddToClassList("WindowRoot");
