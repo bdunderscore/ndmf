@@ -40,7 +40,7 @@ jobs:
       cancel-in-progress: true
     needs: build-docs
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: docs
           path: docs
