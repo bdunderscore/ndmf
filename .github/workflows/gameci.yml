@@ -1,4 +1,4 @@
-﻿#  MIT License
+#  MIT License
 #
 #  Copyright (c) 2022 anatawa12
 #  Copyright (c) 2022 bd_
@@ -79,7 +79,7 @@ jobs:
           fi
           echo check_name=$check_name >> $GITHUB_OUTPUT
 
-      - uses: LouisBrunner/checks-action@v1.6.2
+      - uses: LouisBrunner/checks-action@v2.0.0
         id: create_check
         name: Create check
         if: ${{ github.event_name == 'pull_request_target' && steps.setup.outputs.can_fail == 'true' }}
@@ -89,7 +89,7 @@ jobs:
           status: in_progress
           
 
-      - uses: LouisBrunner/checks-action@v1.6.2
+      - uses: LouisBrunner/checks-action@v2.0.0
         id: create_skipped_check
         name: Create check (skipped)
         if: ${{ github.event_name == 'pull_request_target' && steps.setup.outputs.should_test == 'false' }}
@@ -206,7 +206,7 @@ jobs:
           echo matrix_outcome=$outcome >> $GITHUB_OUTPUT
           echo matrix_output=$output >> $GITHUB_OUTPUT
 
-      - uses: LouisBrunner/checks-action@v1.6.2
+      - uses: LouisBrunner/checks-action@v2.0.0
         name: Set check conclusion
         if: ${{ github.event_name == 'pull_request_target' && steps.setup.outputs.can_fail == 'true' }}
         with:
