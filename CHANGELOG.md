@@ -12,13 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- Reverted the optimizing phase to being invoked by Apply on Play when VRCFury is not installed (#135)
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.3.0-rc.7] - [2024-01-28]
+
+### Changed
+- Reverted the optimizing phase to being invoked by Apply on Play when VRCFury is not installed (#135)
 
 ## [1.3.0-rc.6] - [2024-01-27]
 
