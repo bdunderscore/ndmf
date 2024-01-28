@@ -1,4 +1,4 @@
-﻿#  MIT License
+#  MIT License
 #
 #  Copyright (c) 2022 anatawa12
 #  Copyright (c) 2022 bd_
@@ -215,7 +215,7 @@ jobs:
           conclusion: ${{ steps.determine_conclusion.outputs.matrix_outcome }}
           output: ${{ steps.determine_conclusion.outputs.matrix_output }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ steps.setup.outputs.should_test == 'true' && matrix.sdk == 'vrcsdk' && matrix.unity_version == 'auto' }}
         continue-on-error: true
         with:
