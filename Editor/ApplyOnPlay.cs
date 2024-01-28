@@ -26,6 +26,8 @@
 
 #region
 
+using System;
+using System.Linq;
 using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
@@ -62,9 +64,15 @@ namespace nadena.dev.ndmf
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;
+                
+                var furyInstalled = AppDomain.CurrentDomain.GetAssemblies()
+                    .Any(a => a.GetName().Name == "VRCFury");
 
-                // Skip optimizing the avatar as we might have VRCFury or similar running after us.
-                AvatarProcessor.ProcessAvatar(avatar.gameObject, BuildPhase.Transforming);
+                // Skip optimizing the avatar if VRCFury is installed, as VRCFury will run after optimizations
+                // and might be broken by e.g. blendshape removal, etc.
+                var lastPhase = furyInstalled ? BuildPhase.Transforming : BuildPhase.Optimizing;
+                
+                AvatarProcessor.ProcessAvatar(avatar.gameObject, lastPhase);
             }
         }
 
