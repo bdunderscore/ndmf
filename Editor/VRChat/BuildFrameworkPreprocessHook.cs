@@ -27,7 +27,12 @@ namespace nadena.dev.ndmf.VRChat
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
+            // Legacy: For VRCF
             if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
+
+            var state = HookDedup.RecordAvatar(avatarGameObject);
+            if (state.ranEarlyHook) return true;
+            state.ranEarlyHook = true;
 
             try
             {
@@ -53,7 +58,11 @@ namespace nadena.dev.ndmf.VRChat
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
             if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
-
+            
+            var state = HookDedup.RecordAvatar(avatarGameObject);
+            if (state.ranOptimization) return true;
+            state.ranOptimization = true;
+            
             var holder = avatarGameObject.GetComponent<ContextHolder>();
             if (holder == null) return true;
 
