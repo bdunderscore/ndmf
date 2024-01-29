@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-### Added
-- Added a non-component-based check for double execution of hooks (#142)
-
 ### Fixed
 
 ### Changed
@@ -20,78 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [1.3.0-rc.7] - [2024-01-28]
-
-### Changed
-- Reverted the optimizing phase to being invoked by Apply on Play when VRCFury is not installed (#135)
-
-## [1.3.0-rc.6] - [2024-01-27]
-
-### Changed
-- Made a number of properties on `SimpleError` public (#128)
-- Set a minimum size for the error report window (#127)
-
-## [1.3.0-rc.5] - [2024-01-27]
-
-(not released)
-
-## [1.3.0-rc.4] - [2024-01-21]
-
-### Fixed
-- Normalize the representation of the "default language" locale (#124)
-
-### Changed
-- Adjusted hook processing order to improve compatibility with VRCFury (#122)
-- Worked around a hack in VRCFury that broke optimization plugins (#126)
-
-## [1.3.0-rc.3] - [2024-01-14]
-
-### Changed
-- Adjusted hook processing order to improve compatibility with VRCFury (#122)
-
-## [1.3.0-rc.2] - [2024-01-07]
-
-### Added
-- Completed ja-JP localization (#116)
-- Exposed `ObjectRegistryScope` for testing (#117)
-
-### Fixed
-- NDMF native strings don't fall back to en-US properly (#115)
-
-## [1.3.0-rc.1] - [2024-01-06]
-
-### Added
-- Made some SimpleError APIs virtual (#104)
-- Exposed SafeSubst and SafeSubstByKey on SimpleError (#104)
-- Added support for passing IEnumerable as context objects for inline errors (#106)
-- Added support for a custom IErrorContext object to pass multiple context objects (#106)
-- Added support for substituting keys in the error title (#106)
-- Exposed the qualified name variant of `Sequence.BeforePass` (#109)
-
-### Fixed
-- Language selection is not persisted across Unity Editor restarts or domain reloads (#108)
-- Exceptions leaking out of language change callbacks break subsequent callbacks (#103)
-- Deregistering a language change callback while callbacks are running could skip executing some callbacks (#103)
-- .po files don't fall back correctly (#107)
-
-### Changed
-- The error report window now responds to selection change events (#110)
-
-## [1.3.0-alpha.2] - [2023-12-22]
-
-### Added
-- API to record when one object is replaced by another
-
-## [1.3.0-alpha.1] - [2023-12-22]
-
-### Added
-- API to record when one object is replaced by another
-
-## [1.3.0-alpha.0] - [2023-12-21]
+## [1.3.0] - [2024-01-29]
 
 ### Added
 - New localization framework
 - New error reporting framework
+- API to record when one object is replaced by another
+- Added a non-component-based check for double execution of hooks (#142)
+- Exposed the qualified name variant of `Sequence.BeforePass` (#109)
+
+### Changed
+- Adjusted hook processing order to improve compatibility with VRCFury (#122)
+- Worked around a hack in VRCFury that broke optimization plugins (#126)
 
 ### Fixed
 - Play mode processing fails when installed via UPM (#89)
