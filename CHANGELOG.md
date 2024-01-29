@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added a non-component-based check for double execution of hooks (#142)
 
 ### Fixed
 
