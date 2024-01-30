@@ -1,9 +1,7 @@
-﻿#if NDMF_VRCSDK3_AVATARS
-
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace nadena.dev.ndmf.VRChat
+namespace nadena.dev.ndmf
 {
     /// <summary>
     /// Ensures that we don't run hooks more than once. This is in preparation for coordinating with VRCFury to have all
@@ -39,5 +37,3 @@ namespace nadena.dev.ndmf.VRChat
         }
     }
 }
-
-#endif
