@@ -60,11 +60,10 @@ constraints.
 The main purpose of phases is to provide clearly delineated places for other plugins to insert their own passes. For
 example, NDMF declares a number of built-in phases:
 
-* BeforeEditorOnlyCleanup
 * Resolving
 * Generating
 * Transforming
-* Optimization
+* Optimizing
 
 Other plugins, such as Modular Avatar, might offer phases within their own processing.
 
