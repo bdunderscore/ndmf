@@ -22,8 +22,10 @@ namespace nadena.dev.ndmf.runtime
             foreach (var root in scene.GetRootGameObjects())
             foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
             {
-                if (emulator.enabled && emulator.gameObject.activeInHierarchy && emulator.RunPreprocessAvatarHook)
+                if (emulator.enabled && emulator.gameObject.activeInHierarchy)
                 {
+                    // Force enable hook processing, same as VRCFury
+                    emulator.RunPreprocessAvatarHook = true;
                     return true;
                 }
             }
