@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+- Outfit sub-animators can cause transforms to move when using GestureManager (#147)
 
 ### Changed
 - Run all preprocess hooks in Apply On Play processing, to better align with VRCFury handling. (#145)
