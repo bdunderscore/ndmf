@@ -38,6 +38,8 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace nadena.dev.ndmf
 {
+    using UnityObject = UnityEngine.Object;
+    
     [InitializeOnLoad]
     internal static class ApplyOnPlay
     {
@@ -69,9 +71,41 @@ namespace nadena.dev.ndmf
                 if (HookDedup.HasAvatar(avatar.gameObject)) return;
                 
                 VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
+                
+                RecreateAnimators(avatar);
             }
         }
 
+        private static void RecreateAnimators(Transform avatar)
+        {
+            // Recreate all animators. This avoids issues where old outfit animators might try
+            // animating bones which have since moved.
+            //
+            // It's important to actually recreate animators here - if we try, for example, calling Rebind,
+            // it can still start moving around stale bone references.
+            var tmpObject = new GameObject();
+            foreach (var animator in avatar.GetComponentsInChildren<Animator>(true))
+            {
+                // We need to store animator configuration somewhere while we recreate it.
+                // Since we can't add two animators to the same object, we'll just stash it on a
+                // temporary object.
+                var obj = animator.gameObject;
+                    
+                var tmpAnimator = tmpObject.AddComponent<Animator>();
+                bool enabled = animator.enabled;
+                    
+                EditorUtility.CopySerialized(animator, tmpAnimator);
+                UnityObject.DestroyImmediate(animator);
+                var newAnimator = obj.AddComponent<Animator>();
+                newAnimator.enabled = false;
+                EditorUtility.CopySerialized(tmpAnimator, newAnimator);
+                newAnimator.enabled = enabled;
+                    
+                UnityObject.DestroyImmediate(tmpAnimator);
+            }
+            UnityObject.DestroyImmediate(tmpObject);
+        }
+        
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
             if (obj == PlayModeStateChange.EnteredPlayMode)
