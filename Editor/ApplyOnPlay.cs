@@ -32,6 +32,7 @@ using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDKBase.Editor.BuildPipeline;
 
 #endregion
 
@@ -64,15 +65,10 @@ namespace nadena.dev.ndmf
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
                 if (avatar == null) return;
-                
-                var furyInstalled = AppDomain.CurrentDomain.GetAssemblies()
-                    .Any(a => a.GetName().Name == "VRCFury");
 
-                // Skip optimizing the avatar if VRCFury is installed, as VRCFury will run after optimizations
-                // and might be broken by e.g. blendshape removal, etc.
-                var lastPhase = furyInstalled ? BuildPhase.Transforming : BuildPhase.Optimizing;
+                if (HookDedup.HasAvatar(avatar.gameObject)) return;
                 
-                AvatarProcessor.ProcessAvatar(avatar.gameObject, lastPhase);
+                VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
             }
         }
 
