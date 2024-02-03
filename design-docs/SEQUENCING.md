@@ -86,7 +86,7 @@ All passes and phases are (typically singleton) objects. A typical pass might lo
 ```csharp
 
 class MyPass : Pass<MyPass> {
-    public override void Execute(BuildContext context) {
+    protected override void Execute(BuildContext context) {
         // Do stuff
     }
 }
