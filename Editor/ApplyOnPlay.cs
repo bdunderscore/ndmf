@@ -32,7 +32,11 @@ using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+
+#if NDMF_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
+#endif
 
 #endregion
 
@@ -69,9 +73,24 @@ namespace nadena.dev.ndmf
                 if (avatar == null) return;
 
                 if (HookDedup.HasAvatar(avatar.gameObject)) return;
-                
-                VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
-                
+
+                var avatarPreprocessed = false;
+#if NDMF_VRCSDK3_AVATARS
+                if (avatar.GetComponent<VRCAvatarDescriptor>())
+                {
+                    // For VRC avatars, we respect VRC Public SDK API, to align with other VRC preprocessors.
+                    // That means, our entrypoint is the responsible VRCSDK hook, which calls ndmf and other VRC preprocessors.
+                    avatarPreprocessed = true;
+                    VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
+                }
+#endif
+                if (!avatarPreprocessed)
+                {
+                    // For non-VRC avatars (or environment without VRCSDK), we do not care anything outside ndmf.
+                    // So our entrypoint is an automated ndmf build.
+                    AvatarProcessor.ProcessAvatar(avatar.gameObject);
+                }
+
                 RecreateAnimators(avatar);
             }
         }
