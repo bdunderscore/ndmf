@@ -18,7 +18,7 @@ namespace nadena.dev.ndmf.runtime
     {
         internal static bool IsAv3EmuActive()
         {
-            foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt))
+            foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Where(x => x.isLoaded))
             foreach (var root in scene.GetRootGameObjects())
             foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
             {
