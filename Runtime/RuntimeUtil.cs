@@ -117,6 +117,7 @@ namespace nadena.dev.ndmf.runtime
                 for (int i = 0; i < sceneCount; i++)
                 {
                     var scene = SceneManager.GetSceneAt(i);
+                    if (!scene.isLoaded) continue;
                     foreach (var sceneRoot in scene.GetRootGameObjects())
                     {
                         foreach (var avatar in FindAvatarRoots(sceneRoot))
