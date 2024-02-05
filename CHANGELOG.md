@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+- Apply on Play did not work for non-VRChat avatars or environments (#153)
 - Error if some scene is not loaded (#156)
 
 ### Changed

@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using VRC.SDKBase.Network;
 
 namespace nadena.dev.ndmf.localization
 {
