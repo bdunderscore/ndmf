@@ -1,4 +1,5 @@
-﻿using nadena.dev.ndmf;
+﻿using System;
+using nadena.dev.ndmf;
 using NUnit.Framework;
 
 namespace UnitTests
@@ -36,6 +37,25 @@ namespace UnitTests
             Assert.AreEqual(
                 "foo_bar_baz_quux",
                 BuildContext.FilterAvatarName("foo\\bar?baz*quux")
+            );
+            
+            Assert.AreEqual(
+                "foo",
+                BuildContext.FilterAvatarName(" foo")
+            );
+            
+            Assert.AreEqual(
+                "foo",
+                BuildContext.FilterAvatarName("foo ")
+            );
+            Assert.AreEqual(
+                "f",
+                BuildContext.FilterAvatarName(" f ")
+            );
+            
+            Assert.AreEqual(
+                Guid.NewGuid().ToString().Length,
+                BuildContext.FilterAvatarName("   ").Length
             );
         }
     }

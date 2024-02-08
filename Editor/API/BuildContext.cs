@@ -172,6 +172,10 @@ namespace nadena.dev.ndmf
             RegexOptions.IgnoreCase
         );
 
+        private static readonly Regex StripLeadingTrailingWhitespace = new Regex(
+            "^[\\s]*((?=\\S).*\\S)[\\s]*$"
+        );
+
         internal static string FilterAvatarName(string avatarName)
         {
             avatarName = WindowsReservedFileCharacters.Replace(avatarName, "_");
@@ -181,8 +185,11 @@ namespace nadena.dev.ndmf
                 avatarName = "_" + avatarName;
             }
 
-            if (string.IsNullOrEmpty(avatarName))
+            var match = StripLeadingTrailingWhitespace.Match(avatarName);
+            if (match.Success)
             {
+                avatarName = match.Groups[1].Value;
+            } else {
                 avatarName = Guid.NewGuid().ToString();
             }
 
