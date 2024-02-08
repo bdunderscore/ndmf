@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ave3mu's "Run Preprocess Avatar Hook" option was force-enabled even when apply on play was disabled (#160)
 
 ### Changed
+- Changed the hook processing logic to closer match VRCSDK (improves compatibility with VRCF and other external hooks)
+  (#162)
 
 ### Removed
 

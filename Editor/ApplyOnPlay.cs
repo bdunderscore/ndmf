@@ -73,15 +73,32 @@ namespace nadena.dev.ndmf
                 if (avatar == null) return;
 
                 if (HookDedup.HasAvatar(avatar.gameObject)) return;
-
+                
                 var avatarPreprocessed = false;
 #if NDMF_VRCSDK3_AVATARS
                 if (avatar.GetComponent<VRCAvatarDescriptor>())
                 {
-                    // For VRC avatars, we respect VRC Public SDK API, to align with other VRC preprocessors.
-                    // That means, our entrypoint is the responsible VRCSDK hook, which calls ndmf and other VRC preprocessors.
-                    avatarPreprocessed = true;
-                    VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatar.gameObject);
+                    // When the VRCSDK processes an avatar, the original avatar and a clone exist at the same time in
+                    // the scene, with the clone having a `(Clone)` suffix. Some non-NDMF hooks (e.g. VRCFury) depend
+                    // on this behavior, so replicate it here.
+
+                    var avatarGameObject = avatar.gameObject;
+                    var oldName = avatarGameObject.name;
+                    avatarGameObject.name += "(Clone)";
+                    var fakeOriginal = new GameObject(oldName);
+                    
+                    try
+                    {
+                        // For VRC avatars, we respect VRC Public SDK API, to align with other VRC preprocessors.
+                        // That means, our entrypoint is the responsible VRCSDK hook, which calls ndmf and other VRC preprocessors.
+                        avatarPreprocessed = true;
+                        VRCBuildPipelineCallbacks.OnPreprocessAvatar(avatarGameObject);
+                    }
+                    finally
+                    {
+                        UnityEngine.Object.DestroyImmediate(fakeOriginal);
+                        avatar.gameObject.name = oldName;
+                    }
                 }
 #endif
                 if (!avatarPreprocessed)
