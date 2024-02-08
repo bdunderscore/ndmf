@@ -1,10 +1,10 @@
 ﻿#if UNITY_EDITOR
 
-using System;
 using System.Linq;
 #if NDMF_LYUMA_AV3EMU
 using Lyuma.Av3Emulator.Runtime;
 #endif
+using nadena.dev.ndmf.config.runtime;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,7 +17,9 @@ namespace nadena.dev.ndmf.runtime
     static class Av3EmuStatusChecker
     {
         internal static bool IsAv3EmuActive()
-        {
+        { 
+            if (!ScriptableSingleton<NonPersistentConfig>.instance.applyOnPlay) return false;
+
             foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Where(x => x.isLoaded))
             foreach (var root in scene.GetRootGameObjects())
             foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
@@ -104,6 +106,7 @@ namespace nadena.dev.ndmf.runtime
 
         private void Awake()
         {
+            if (!ScriptableSingleton<NonPersistentConfig>.instance.applyOnPlay) return;
             if (!RuntimeUtil.IsPlaying || this == null) return;
 
             // Check if Lyuma's Av3Emulator is present and enabled; if so, we leave preprocessing up to it.

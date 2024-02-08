@@ -25,6 +25,7 @@
 #region
 
 using System;
+using nadena.dev.ndmf.config.runtime;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,12 +33,6 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.config
 {
-    internal class NonPersistentConfig : ScriptableSingleton<NonPersistentConfig>
-    {
-        [SerializeField] public bool applyOnPlay = true;
-    }
-
-
     public static class Config
     {
         /// <summary>
