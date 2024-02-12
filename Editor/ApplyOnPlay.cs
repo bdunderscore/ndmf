@@ -120,7 +120,10 @@ namespace nadena.dev.ndmf
             // It's important to actually recreate animators here - if we try, for example, calling Rebind,
             // it can still start moving around stale bone references.
             var tmpObject = new GameObject();
-            foreach (var animator in avatar.GetComponentsInChildren<Animator>(true))
+            
+            // Note that we need to recreate animators from the bottom up. This ensures that certain hacks where
+            // animators animate other animators work properly (e.g. https://github.com/hfcRed/Among-Us-Follower/tree/main)
+            foreach (var animator in avatar.GetComponentsInChildren<Animator>(true).Reverse())
             {
                 // We need to store animator configuration somewhere while we recreate it.
                 // Since we can't add two animators to the same object, we'll just stash it on a
@@ -129,7 +132,7 @@ namespace nadena.dev.ndmf
                     
                 var tmpAnimator = tmpObject.AddComponent<Animator>();
                 bool enabled = animator.enabled;
-                    
+
                 EditorUtility.CopySerialized(animator, tmpAnimator);
                 UnityObject.DestroyImmediate(animator);
                 var newAnimator = obj.AddComponent<Animator>();
@@ -139,6 +142,7 @@ namespace nadena.dev.ndmf
                     
                 UnityObject.DestroyImmediate(tmpAnimator);
             }
+            
             UnityObject.DestroyImmediate(tmpObject);
         }
         
