@@ -16,7 +16,7 @@ namespace UnitTests
                 {
                     new AssetBundleBuild
                     {
-                        assetNames = new[] { "Packages/ndmf/UnitTests/Empty.prefab" },
+                        assetNames = new[] { "Packages/nadena.dev.ndmf/UnitTests/Empty.prefab" },
                         assetBundleName = "asset.unity3d"
                     }
                 },
