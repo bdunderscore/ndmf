@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.3.3] - [2024-02-12]
+
+### Fixed
+- VRCSDK builds fail due to UnityEditor-only type references (#167)
+
+## [1.3.2] - [2024-02-12]
+
+### Fixed
 - Avatar names with leading/trailing whitespace broke builds (#161) 
 - Ave3mu's "Run Preprocess Avatar Hook" option was force-enabled even when apply on play was disabled (#160)
 - Animator cloning broke "Among Us" follower due to sus processing order (#165)
