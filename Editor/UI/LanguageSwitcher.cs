@@ -35,18 +35,10 @@ namespace nadena.dev.ndmf.ui
             var curLang = LanguagePrefs.Language;
 
             var curIndex = LanguagePrefs.RegisteredLanguages.IndexOf(curLang);
-            var DisplayNames = LanguagePrefs.RegisteredLanguages.Select(
-                    lang =>
-                    {
-                        try
-                        {
-                            return CultureInfo.GetCultureInfo(lang).NativeName;
-                        }
-                        catch (Exception)
-                        {
-                            return lang;
-                        }
-                    })
+            var DisplayNames = LanguagePrefs.RegisteredLanguages
+                .Where(lang => lang.Contains("-") ||
+                               LanguagePrefs.RegisteredLanguages.All(l2 => !l2.StartsWith(lang + "-")))
+                .Select(LanguagePrefs.GetLocaleNativeName)
                 .ToArray();
 
             var newIndex = EditorGUILayout.Popup("Editor Language", curIndex, DisplayNames);
