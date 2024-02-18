@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+- Incorrect language display names for some locales (#171)
 
 ### Changed
+- Uncultured language variants (e.g. `en`) are not displayed in the language switcher when cultured variants (e.g. 
+  `en-US`) are registered. (#171)
 
 ### Removed
 

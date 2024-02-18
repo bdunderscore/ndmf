@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,8 +15,12 @@ namespace nadena.dev.ndmf.localization
     /// </summary>
     public static class LanguagePrefs
     {
+        private const string LocaleNameDatasetPath =
+            "Packages/nadena.dev.ndmf/Editor/UI/Localization/language_names.json";
         private const string EditorPrefKey = "nadena.dev.ndmf.language-selection";
         private static string _curLanguage = "en-us";
+
+        private static ImmutableDictionary<String, String> LocaleNames;
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -111,8 +118,40 @@ namespace nadena.dev.ndmf.localization
         /// </summary>
         public static ImmutableSortedSet<string> RegisteredLanguages { get; private set; }
 
+        internal static string GetLocaleNativeName(string locale)
+        {
+            if (LocaleNames.TryGetValue(locale.ToLowerInvariant().Replace("-", "_"), out var name))
+            {
+                return name;
+            }
+            else
+            {
+                try
+                {
+                    return CultureInfo.CreateSpecificCulture(locale).NativeName;
+                }
+                catch (Exception e)
+                {
+                    return locale;
+                }
+            }
+        } 
+        
         static LanguagePrefs()
         {
+            try
+            {
+                var localeNameJson = System.IO.File.ReadAllText(LocaleNameDatasetPath);
+                LocaleNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(localeNameJson)
+                    .Select(kvp => { return new KeyValuePair<String, String>(kvp.Key.ToLowerInvariant(), kvp.Value); })
+                    .ToImmutableDictionary();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                LocaleNames = ImmutableDictionary<string, string>.Empty;
+            }
+
             RegisteredLanguages = ImmutableSortedSet<string>.Empty;
         }
 
