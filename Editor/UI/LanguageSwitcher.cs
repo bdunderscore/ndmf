@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Linq;
 using nadena.dev.ndmf.localization;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -35,17 +33,17 @@ namespace nadena.dev.ndmf.ui
             var curLang = LanguagePrefs.Language;
 
             var curIndex = LanguagePrefs.RegisteredLanguages.IndexOf(curLang);
-            var DisplayNames = LanguagePrefs.RegisteredLanguages
+            var FilteredLanguages = LanguagePrefs.RegisteredLanguages
                 .Where(lang => lang.Contains("-") ||
                                LanguagePrefs.RegisteredLanguages.All(l2 => !l2.StartsWith(lang + "-")))
-                .Select(LanguagePrefs.GetLocaleNativeName)
                 .ToArray();
+            var DisplayNames = FilteredLanguages.Select(LanguagePrefs.GetLocaleNativeName).ToArray();
 
             var newIndex = EditorGUILayout.Popup("Editor Language", curIndex, DisplayNames);
 
             if (newIndex != curIndex)
             {
-                LanguagePrefs.Language = LanguagePrefs.RegisteredLanguages[newIndex];
+                LanguagePrefs.Language = FilteredLanguages[newIndex];
             }
         }
     }
