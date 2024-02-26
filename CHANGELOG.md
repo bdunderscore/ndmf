@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+- Incorrect language switcher behavior when locales were filtered from display (#175)
 
 ### Changed
 
