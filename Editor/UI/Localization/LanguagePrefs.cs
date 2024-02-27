@@ -161,7 +161,7 @@ namespace nadena.dev.ndmf.localization
         /// <param name="languageCode"></param>
         public static void RegisterLanguage(string languageCode)
         {
-            RegisteredLanguages = RegisteredLanguages.Add(languageCode);
+            RegisteredLanguages = RegisteredLanguages.Add(languageCode.ToLowerInvariant());
         }
     }
 }
