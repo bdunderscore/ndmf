@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.3.6] - [2024-02-27]
+
+### Fixed
+- Having multiple language variants that differ in case (e.g. `en-us` vs `en-US`) would break the language switcher (#176)
+
 ## [1.3.5] - [2024-02-26]
 
 ### Fixed
