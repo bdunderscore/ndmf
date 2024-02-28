@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf.localization
                 })).ToList();
             };
 
-            languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
+            languages = ImmutableSortedDictionary<string, Func<string, string>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase);
             LoadLocalizations();
             _reloadLocalizations += LoadLocalizations;
         }
@@ -88,7 +88,7 @@ namespace nadena.dev.ndmf.localization
 
             if (_localizationLoader == null) return;
 
-            var newLanguages = ImmutableSortedDictionary<string, Func<string, string>>.Empty;
+            var newLanguages = ImmutableSortedDictionary<string, Func<string, string>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase);
             foreach (var (lang, lookup) in _localizationLoader())
             {
                 var normalizedLang = CultureInfo.GetCultureInfo(lang).Name;
@@ -129,10 +129,10 @@ namespace nadena.dev.ndmf.localization
                     .Select(l => languages[l])
                     .ToList();
 
-                if (languages.ContainsKey(LanguagePrefs.Language))
+                if (languages.TryGetValue(LanguagePrefs.Language, out var lookup))
                 {
                     // Always try the exact match first
-                    lookups.Insert(0, languages[LanguagePrefs.Language]);
+                    lookups.Insert(0, lookup);
                 }
 
                 _lookupCache = k =>
