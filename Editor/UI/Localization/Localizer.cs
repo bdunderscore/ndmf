@@ -129,10 +129,10 @@ namespace nadena.dev.ndmf.localization
                     .Select(l => languages[l])
                     .ToList();
 
-                if (languages.TryGetValue(LanguagePrefs.Language, out var lookup))
+                if (languages.TryGetValue(LanguagePrefs.Language, out var currentLookup))
                 {
                     // Always try the exact match first
-                    lookups.Insert(0, lookup);
+                    lookups.Insert(0, currentLookup);
                 }
 
                 _lookupCache = k =>
