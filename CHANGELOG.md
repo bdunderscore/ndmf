@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
+- Fix language code not recognizable due to inconsistent case
 
 ### Changed
 
