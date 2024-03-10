@@ -103,7 +103,7 @@ namespace nadena.dev.ndmf.ui
                     var plugin = pass.Plugin;
                     if (plugin != priorPlugin)
                     {
-                        allItems.Add(new SolverUIItem() {id = id++, depth = 2, displayName = plugin.DisplayName});
+                        allItems.Add(new SolverUIItem() {id = id++, depth = 2, displayName = $"{plugin.DisplayName} ({plugin.QualifiedName})"});
                         priorPlugin = plugin;
                         pluginItem = allItems[allItems.Count - 1];
                     }
