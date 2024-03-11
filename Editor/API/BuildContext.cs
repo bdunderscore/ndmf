@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
@@ -81,12 +80,17 @@ namespace nadena.dev.ndmf
 
         public T GetState<T>() where T : new()
         {
+            return GetState(_ => new T());
+        }
+
+        public T GetState<T>(Func<BuildContext, T> init)
+        {
             if (_state.TryGetValue(typeof(T), out var value))
             {
                 return (T)value;
             }
 
-            value = new T();
+            value = init(this);
             _state[typeof(T)] = value;
             return (T)value;
         }
