@@ -1,12 +1,16 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
+
+#endregion
 
 namespace nadena.dev.ndmf.localization
 {
@@ -16,7 +20,7 @@ namespace nadena.dev.ndmf.localization
     public static class LanguagePrefs
     {
         private const string LocaleNameDatasetPath =
-            "Packages/nadena.dev.ndmf/Editor/UI/Localization/language_names.json";
+            "Packages/nadena.dev.ndmf/Editor/UI/Localization/language_names.txt";
         private const string EditorPrefKey = "nadena.dev.ndmf.language-selection";
         private static string _curLanguage = "en-us";
 
@@ -130,7 +134,7 @@ namespace nadena.dev.ndmf.localization
                 {
                     return CultureInfo.CreateSpecificCulture(locale).NativeName;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return locale;
                 }
@@ -141,10 +145,21 @@ namespace nadena.dev.ndmf.localization
         {
             try
             {
-                var localeNameJson = System.IO.File.ReadAllText(LocaleNameDatasetPath);
-                LocaleNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(localeNameJson)
-                    .Select(kvp => { return new KeyValuePair<String, String>(kvp.Key.ToLowerInvariant(), kvp.Value); })
-                    .ToImmutableDictionary();
+                var localeNameJson = File.ReadAllText(LocaleNameDatasetPath, Encoding.UTF8);
+                var lines = localeNameJson.Split('\n');
+
+                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("#") || string.IsNullOrEmpty(line)) continue;
+
+                    var parts = line.Split('=');
+                    if (parts.Length != 2) continue;
+
+                    builder.Add(parts[0].ToLowerInvariant(), parts[1]);
+                }
+
+                LocaleNames = builder.ToImmutableDictionary();
             }
             catch (Exception e)
             {
