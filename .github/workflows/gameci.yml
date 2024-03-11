@@ -133,7 +133,7 @@ jobs:
         continue-on-error: true
         if: failure()
         run: |
-          perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----EndCompilerOutput/; print if $out;' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
+          perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
           
       - name: List test failures
         continue-on-error: true
