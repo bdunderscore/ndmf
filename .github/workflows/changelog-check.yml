@@ -10,7 +10,7 @@
 name: CHANGELOG check
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [ main, main-* ]
     types: [ opened, synchronize, reopened, ready_for_review, labeled, unlabeled ]
 
