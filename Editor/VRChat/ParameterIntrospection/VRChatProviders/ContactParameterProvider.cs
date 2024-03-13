@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.VRChatProviders
             };
         }
 
-        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), string> nameMap,
+        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> nameMap,
             BuildContext context)
         {
             // no-op

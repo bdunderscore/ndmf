@@ -177,7 +177,7 @@ namespace UnitTests.Parameters
 
             List<ParameterInfo.ConflictType> conflicts = new List<ParameterInfo.ConflictType>();
             
-            var parameters = ParameterInfo.ForUI.GetParametersForObject(av, (ct, _, _) => conflicts.Add(ct)).ToList();
+            var parameters = ParameterInfo.ForUI.GetParametersForObject(av, (ct, _1, _2) => conflicts.Add(ct)).ToList();
             
             Assert.AreEqual(1, parameters.Count());
 

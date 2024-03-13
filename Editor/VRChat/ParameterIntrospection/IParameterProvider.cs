@@ -15,6 +15,7 @@ namespace nadena.dev.ndmf
         /// Indicates that this is an animator or expressions menu parameter
         /// </summary>
         Animator,
+
         /// <summary>
         /// Indicates that this is a PhysBones parameter prefix
         /// </summary>
@@ -68,17 +69,19 @@ namespace nadena.dev.ndmf
 
         public override int GetHashCode()
         {
-            var hashCode = new HashCode();
-            hashCode.Add(_effectiveName);
-            hashCode.Add(_isAnimatorOnly);
-            hashCode.Add(OriginalName);
-            hashCode.Add((int)Namespace);
-            hashCode.Add(Source);
-            hashCode.Add(Plugin);
-            hashCode.Add(ParameterType);
-            hashCode.Add(IsHidden);
-            hashCode.Add(WantSynced);
-            return hashCode.ToHashCode();
+            unchecked
+            {
+                var hashCode = (_effectiveName != null ? _effectiveName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ _isAnimatorOnly.GetHashCode();
+                hashCode = (hashCode * 397) ^ (OriginalName != null ? OriginalName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int)Namespace;
+                hashCode = (hashCode * 397) ^ (Source != null ? Source.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Plugin != null ? Plugin.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ ParameterType.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
+                hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
+                return hashCode;
+            }
         }
 
         public ProvidedParameter(
@@ -119,12 +122,12 @@ namespace nadena.dev.ndmf
                 }
             }
         }
-        
+
         /// <summary>
         /// The name of this parameter, as originally set by the component.
         /// </summary>
         public string OriginalName { get; private set; }
-        
+
         public ParameterNamespace Namespace { get; private set; }
 
         private string _effectiveName;

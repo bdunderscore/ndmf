@@ -13,14 +13,6 @@ namespace nadena.dev.ndmf.VRChatProviders
     [ParameterProviderFor(typeof(VRCPhysBone))]
     internal class PhysBoneParameterProvider : IParameterProvider
     {
-        private static readonly ImmutableList<(AnimatorControllerParameterType, string)> ParameterNames = new[]
-        {
-            (AnimatorControllerParameterType.Bool, "_IsGrabbed"),
-            (AnimatorControllerParameterType.Bool, "_IsPosed"),
-            (AnimatorControllerParameterType.Float, "_Angle"),
-            (AnimatorControllerParameterType.Float, "_Stretch")
-        }.ToImmutableList();
-
         private readonly VRCPhysBone _bone;
 
         public PhysBoneParameterProvider(VRCPhysBone bone)
@@ -39,7 +31,7 @@ namespace nadena.dev.ndmf.VRChatProviders
             };
         }
 
-        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), string> nameMap,
+        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> nameMap,
             BuildContext context)
         {
             // no-op
