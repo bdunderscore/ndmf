@@ -19,7 +19,7 @@ namespace nadena.dev.ndmf.VRChatProviders
             _component = receiver;
         }
 
-        public IEnumerable<ProvidedParameter> GetSuppliedParameters(BuildContext context = null)
+        public IEnumerable<ProvidedParameter> GetSuppliedParameters(BuildContext context)
         {
             if (string.IsNullOrEmpty(_component.parameter)) return Array.Empty<ProvidedParameter>();
 
@@ -33,8 +33,9 @@ namespace nadena.dev.ndmf.VRChatProviders
                 }
             };
         }
-        
-        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), string> nameMap, BuildContext context = null)
+
+        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), string> nameMap,
+            BuildContext context)
         {
             // no-op
         }

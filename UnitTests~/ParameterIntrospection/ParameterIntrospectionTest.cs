@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NDMF_VRCSDK3_AVATARS
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,7 +12,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace UnitTests.Parameters
 {
-    #if NDMF_VRCSDK3_AVATARS
+    
     public class ParameterIntrospectionTest : TestBase
     {
         [TearDown]
@@ -202,5 +203,6 @@ namespace UnitTests.Parameters
             ParameterInfo.ForContext(ctx).GetParametersForObject(av).ToList();
         }
     }
-    #endif
 }
+
+#endif

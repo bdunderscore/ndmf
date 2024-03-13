@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -21,7 +22,7 @@ namespace nadena.dev.ndmf.VRChatProviders
             _avatarDescriptor = descriptor;
         }
 
-        public IEnumerable<ProvidedParameter> GetSuppliedParameters(BuildContext context = null)
+        public IEnumerable<ProvidedParameter> GetSuppliedParameters(BuildContext context)
         {
             if (_avatarDescriptor.expressionParameters == null) return Array.Empty<ProvidedParameter>();
             if (_avatarDescriptor.expressionParameters.parameters == null) return Array.Empty<ProvidedParameter>();
@@ -39,6 +40,12 @@ namespace nadena.dev.ndmf.VRChatProviders
                     WantSynced = p.networkSynced,
                 };
             });
+        }
+
+        public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), string> nameMap,
+            BuildContext context)
+        {
+            // no-op
         }
 
         private AnimatorControllerParameterType ConvertType(VRCExpressionParameters.ValueType argValueType)

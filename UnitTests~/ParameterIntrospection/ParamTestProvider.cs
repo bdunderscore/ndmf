@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NDMF_VRCSDK3_AVATARS
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,3 +64,4 @@ namespace UnitTests.Parameters
         }
     }
 }
+#endif

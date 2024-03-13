@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿#if NDMF_VRCSDK3_AVATARS
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
@@ -10,8 +11,6 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace UnitTests.Parameters
 {
-#if NDMF_VRCSDK3_AVATARS
-
     public class VRChatBindingsTest : TestBase
     {
         
@@ -136,6 +135,5 @@ namespace UnitTests.Parameters
             Assert.IsTrue(param.IsAnimatorOnly);
         }
     }
-    
-#endif
 }
+#endif
