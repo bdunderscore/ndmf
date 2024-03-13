@@ -190,7 +190,6 @@ namespace nadena.dev.ndmf.ui
 
             foreach (var root in RuntimeUtil.FindAvatarRoots())
             {
-                Debug.Log(root.name);
                 _selector.menu.AppendAction(root.name, _ =>
                 {
                     CurrentAvatar = root;
