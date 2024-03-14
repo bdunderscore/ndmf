@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.4.0-rc.1] - [2024-03-14]
+
+### Fixed
+- Fixed apply on play mode (#192)
+
 ## [1.4.0-rc.0] - [2024-03-14]
 
 ### Added
