@@ -101,7 +101,12 @@ namespace nadena.dev.ndmf.localization
             lock (_onLanguageChangeCallbacks)
             {
                 _onLanguageChangeCallbacks.Add(op);
-                _targetRefs.AddOrUpdate(handle, finalizer);
+                // _targetRefs.AddOrUpdate(handle, finalizer); - not supported on 2019
+                if (_targetRefs.TryGetValue(handle, out var _))
+                {
+                    _targetRefs.Remove(handle);
+                }
+                _targetRefs.Add(handle, finalizer);
             }
         }
 
