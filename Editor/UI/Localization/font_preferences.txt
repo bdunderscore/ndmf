@@ -1,0 +1,4 @@
+﻿# Default (base) font
+=Arial
+# Matches ja-*
+ja-=Meiryo UI
