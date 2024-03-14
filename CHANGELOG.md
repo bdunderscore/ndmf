@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
 
 ### Fixed
+- UIElementLocalizer could fail to find localized strings in some cases (#189)
 
 ### Changed
 

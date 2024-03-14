@@ -8,7 +8,7 @@ namespace nadena.dev.ndmf.localization
 {
     internal class UIElementLocalizer
     {
-        private static Dictionary<Type, Func<VisualElement, Action>> _localizers =
+        private Dictionary<Type, Func<VisualElement, Action>> _localizers =
             new Dictionary<Type, Func<VisualElement, Action>>();
 
         private readonly Localizer _localizer;
