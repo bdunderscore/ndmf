@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+- Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
+
 ### Fixed
-- Fix language code not recognizable due to inconsistent case
 
 ### Changed
 
@@ -17,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.3.7] - [2024-03-06]
+
+### Fixed
+- Fix language code not recognizable due to inconsistent case
 
 ## [1.3.6] - [2024-02-27]
 
