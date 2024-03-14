@@ -1,8 +1,11 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
+
+#endregion
 
 namespace nadena.dev.ndmf.localization
 {
@@ -21,6 +24,7 @@ namespace nadena.dev.ndmf.localization
         internal void Localize(VisualElement elem)
         {
             WalkTree(elem);
+            LanguagePrefs.ApplyFontPreferences(elem);
         }
 
         private void WalkTree(VisualElement elem)

@@ -9,6 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_2022_1_OR_NEWER
+using UnityEngine.TextCore.Text;
+#endif
+using UnityEngine.UIElements;
 
 #endregion
 
@@ -49,6 +53,8 @@ namespace nadena.dev.ndmf.localization
 
         // TODO: Move to a single ConditionalWeakTable once we can use .NET 7 (which allows us to iterate this)
         private static HashSet<Action> _onLanguageChangeCallbacks = new HashSet<Action>();
+
+        private static Dictionary<VisualElement, Action> _fontUpdateCallbacks = new Dictionary<VisualElement, Action>();
 
         private sealed class ElementFinalizer
         {
@@ -95,6 +101,11 @@ namespace nadena.dev.ndmf.localization
             lock (_onLanguageChangeCallbacks)
             {
                 _onLanguageChangeCallbacks.Add(op);
+                // _targetRefs.AddOrUpdate(handle, finalizer); - not supported on 2019
+                if (_targetRefs.TryGetValue(handle, out var _))
+                {
+                    _targetRefs.Remove(handle);
+                }
                 _targetRefs.Add(handle, finalizer);
             }
         }
@@ -104,6 +115,18 @@ namespace nadena.dev.ndmf.localization
             lock (_onLanguageChangeCallbacks)
             {
                 foreach (Action op in new List<Action>(_onLanguageChangeCallbacks))
+                {
+                    try
+                    {
+                        op();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
+                
+                foreach (Action op in _fontUpdateCallbacks.Values)
                 {
                     try
                     {
@@ -178,5 +201,96 @@ namespace nadena.dev.ndmf.localization
         {
             RegisteredLanguages = RegisteredLanguages.Add(languageCode.ToLowerInvariant());
         }
+
+        #if UNITY_2022_1_OR_NEWER
+        private static IDictionary<string, StyleFontDefinition> FontCache =
+            new Dictionary<string, StyleFontDefinition>(); 
+
+        private static StyleFontDefinition PreferredFont => TryLoadFontForLanguage(Language);
+
+        private static StyleFontDefinition TryLoadFontForLanguage(string lang)
+        {
+            if (FontCache.TryGetValue(lang, out var font)) return font;
+            
+            var definitions = System.IO.File.ReadAllLines("Packages/nadena.dev.ndmf/Editor/UI/Localization/font_preferences.txt");
+
+            FontAsset currentFont = null;
+            foreach (var line in definitions)
+            {
+                if (line.StartsWith("#")) continue;
+                var parts = line.Split('=');
+                
+                if (!lang.StartsWith(parts[0])) continue;
+                
+                var loadedFont = FontAsset.CreateFontAsset(parts[1], "");
+                if (loadedFont == null) continue;
+
+                if (currentFont == null)
+                {
+                    currentFont = loadedFont;
+                    currentFont.fallbackFontAssetTable = new List<FontAsset>();
+                }
+                else
+                {
+                    currentFont.fallbackFontAssetTable.Add(loadedFont);
+                }
+            }
+            
+            if (currentFont == null)
+            {
+                font = new StyleFontDefinition(StyleKeyword.Null);
+            }
+            else
+            {
+                font = new StyleFontDefinition(currentFont);
+            }
+            
+            FontCache[lang] = font;
+
+            return font;
+        }
+
+        /// <summary>
+        /// Arranges to set the inheritable font style for a given visual element to the NDMF-bundled font for this
+        /// language, if any.
+        /// </summary>
+        /// <param name="elem"></param>
+        public static void ApplyFontPreferences(VisualElement elem)
+        {
+            elem.UnregisterCallback<AttachToPanelEvent>(AttachToPanelForFont);
+            elem.UnregisterCallback<DetachFromPanelEvent>(DetachFromPanelForFont);
+            
+            elem.RegisterCallback<AttachToPanelEvent>(AttachToPanelForFont);
+            elem.RegisterCallback<DetachFromPanelEvent>(DetachFromPanelForFont);
+            
+            UpdateElementFont(elem);
+        }
+
+        private static void AttachToPanelForFont(AttachToPanelEvent evt)
+        {
+            var elem = evt.target as VisualElement;
+            if (elem == null) return;
+            
+            _fontUpdateCallbacks[elem] = () => UpdateElementFont(elem);
+            UpdateElementFont(elem);
+        }
+
+        private static void DetachFromPanelForFont(DetachFromPanelEvent evt)
+        {
+            var elem = evt.target as VisualElement;
+            if (elem == null) return;
+            
+            _fontUpdateCallbacks.Remove(elem);
+        }
+
+        private static void UpdateElementFont(VisualElement elem)
+        {
+            elem.style.unityFontDefinition = PreferredFont;
+        }
+        #else
+        public static void ApplyFontPreferences(VisualElement elem) {
+            // Unity 2019 users will need to deal with garbage font rendering, sorry.
+        }
+        #endif
     }
 }

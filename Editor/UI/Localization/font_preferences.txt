@@ -1,0 +1,7 @@
+﻿# Default (base) font
+=Verdana
+=Tahoma
+=Arial
+# Matches ja-*
+ja-=Yu Gothic UI
+ja-=Meiryo UI
