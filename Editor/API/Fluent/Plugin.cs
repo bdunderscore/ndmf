@@ -23,6 +23,11 @@ namespace nadena.dev.ndmf
     {
         public abstract string QualifiedName { get; }
         public abstract string DisplayName { get; }
+        
+        /// <summary>
+        /// An optional theme color, which will be used (for example) in the modular avatar parameter bit usage display.  
+        /// </summary>
+        public virtual Color? ThemeColor => null;
         public virtual Texture2D LogoTexture => null;
         
         internal PluginBase()
