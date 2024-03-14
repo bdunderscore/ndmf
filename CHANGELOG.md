@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
-- Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
-- Added an API to select a non-broken font for use in UI Elements based on the current locale (#190)
 
 ### Fixed
-- UIElementLocalizer could fail to find localized strings in some cases (#189)
 
 ### Changed
 
@@ -21,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.4.0-rc.0] - [2024-03-14]
+
+### Added
+- Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
+- Added an API to select a non-broken font for use in UI Elements based on the current locale (#190)
+
+### Fixed
+- UIElementLocalizer could fail to find localized strings in some cases (#189)
+
 
 ## [1.3.7] - [2024-03-06]
 
