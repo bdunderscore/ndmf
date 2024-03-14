@@ -9,7 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_2022_1_OR_NEWER
 using UnityEngine.TextCore.Text;
+#endif
 using UnityEngine.UIElements;
 
 #endregion
