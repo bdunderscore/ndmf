@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added support for declaring ProvidesParametersFor via base classes and interfaces (#198)
 
 ### Fixed
 

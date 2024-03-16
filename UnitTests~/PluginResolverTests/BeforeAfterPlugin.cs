@@ -2,7 +2,6 @@
 using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
-using PlasticPipe.PlasticProtocol.Messages;
 
 namespace UnitTests.PluginResolverTests
 {
