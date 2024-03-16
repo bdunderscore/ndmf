@@ -33,7 +33,15 @@ namespace nadena.dev.ndmf.localization
         [InitializeOnLoadMethod]
         private static void Init()
         {
+            // Exiting playmode destroys the dynamic font assets we create, so we need to recreate and reapply them.
             Language = EditorPrefs.GetString(EditorPrefKey, "en-US");
+            EditorApplication.playModeStateChanged += evt =>
+            {
+                foreach (var fontCallback in _fontUpdateCallbacks.Values)
+                {
+                    fontCallback();
+                }
+            };
         }
 
         /// <summary>
@@ -210,7 +218,8 @@ namespace nadena.dev.ndmf.localization
 
         private static StyleFontDefinition TryLoadFontForLanguage(string lang)
         {
-            if (FontCache.TryGetValue(lang, out var font)) return font;
+            if (FontCache.TryGetValue(lang, out var font)
+                && (font.keyword != StyleKeyword.Undefined || font.value.fontAsset != null)) return font;
             
             var definitions = System.IO.File.ReadAllLines("Packages/nadena.dev.ndmf/Editor/UI/Localization/font_preferences.txt");
 
@@ -235,7 +244,7 @@ namespace nadena.dev.ndmf.localization
                     currentFont.fallbackFontAssetTable.Add(loadedFont);
                 }
             }
-            
+             
             if (currentFont == null)
             {
                 font = new StyleFontDefinition(StyleKeyword.Null);
@@ -262,6 +271,11 @@ namespace nadena.dev.ndmf.localization
             
             elem.RegisterCallback<AttachToPanelEvent>(AttachToPanelForFont);
             elem.RegisterCallback<DetachFromPanelEvent>(DetachFromPanelForFont);
+
+            if (elem.parent != null)
+            {
+                _fontUpdateCallbacks[elem] = () => UpdateElementFont(elem);
+            }
             
             UpdateElementFont(elem);
         }
