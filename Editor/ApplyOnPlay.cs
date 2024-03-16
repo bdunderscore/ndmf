@@ -67,6 +67,8 @@ namespace nadena.dev.ndmf
         private static void MaybeProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource source,
             MonoBehaviour component)
         {
+            if (Av3EmuStatusChecker.IsAv3EmuActive()) return;
+            
             if (Config.ApplyOnPlay && source == armedSource && component != null)
             {
                 var avatar = RuntimeUtil.FindAvatarInParents(component.transform);
