@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- Apply on play isn't suppressed when Av3mu is present (#200)
 - JP fonts disappear after leaving play mode (#199)
 
 ### Changed

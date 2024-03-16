@@ -20,15 +20,17 @@ namespace nadena.dev.ndmf.runtime
         { 
             if (!ScriptableSingleton<NonPersistentConfig>.instance.applyOnPlay) return false;
 
-            foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Where(x => x.isLoaded))
+            foreach (var scene in Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Where(x => x.IsValid()))
             foreach (var root in scene.GetRootGameObjects())
-            foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
             {
-                if (emulator.enabled && emulator.gameObject.activeInHierarchy)
+                foreach (var emulator in root.GetComponentsInChildren<LyumaAv3Emulator>())
                 {
-                    // Force enable hook processing, same as VRCFury
-                    emulator.RunPreprocessAvatarHook = true;
-                    return true;
+                    if (emulator.enabled && emulator.gameObject.activeInHierarchy)
+                    {
+                        // Force enable hook processing, same as VRCFury
+                        emulator.RunPreprocessAvatarHook = true;
+                        return true;
+                    }
                 }
             }
 
