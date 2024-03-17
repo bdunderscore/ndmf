@@ -5,3 +5,6 @@
 # Matches ja-*
 ja-=Yu Gothic UI
 ja-=Meiryo UI
+# Matches zh-*
+zh-hant=Microsoft JhengHei UI
+zh-hans=Microsoft YaHei UI

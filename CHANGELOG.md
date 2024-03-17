@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-
+- Specify zh-* font to make the font normal
 ### Changed
 
 ### Removed
