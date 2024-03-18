@@ -270,6 +270,9 @@ namespace nadena.dev.ndmf.ui
                         $"Desired root {info.Root.Asset.name} for asset {next.name} is not a root asset");
                 }
 
+                // This is to keep project view clean
+                next.hideFlags |= HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+
                 AssetDatabase.AddObjectToAsset(next, info.Root.Asset);
             }
             else
