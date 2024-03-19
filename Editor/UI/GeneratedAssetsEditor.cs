@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 #if NDMF_VRCSDK3_AVATARS
@@ -52,6 +53,15 @@ namespace nadena.dev.ndmf.ui
             typeof(VRCExpressionParameters),
             typeof(VRCExpressionsMenu),
 #endif
+        };
+
+        private static readonly ISet<Type> HiddenAssets = new HashSet<Type>()
+        {
+            typeof(AnimatorState),
+            typeof(AnimatorStateMachine),
+            typeof(AnimatorTransitionBase),
+            typeof(BlendTree),
+            typeof(StateMachineBehaviour),
         };
 
         private Dictionary<UnityEngine.Object, AssetInfo> _assets;
@@ -271,7 +281,10 @@ namespace nadena.dev.ndmf.ui
                 }
 
                 // This is to keep project view clean
-                next.hideFlags |= HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+                if (HiddenAssets.Any(t => t.IsInstanceOfType(next)))
+                {
+                    next.hideFlags |= HideFlags.HideInHierarchy;
+                }
 
                 AssetDatabase.AddObjectToAsset(next, info.Root.Asset);
             }
