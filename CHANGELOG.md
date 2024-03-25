@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added a debug feature to profile a test build (#214)
 
 ### Fixed
 - Specify zh-* font to make the font normal
+
 ### Changed
 
 ### Removed
