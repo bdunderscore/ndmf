@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.localization
         private static void Init()
         {
             // Exiting playmode destroys the dynamic font assets we create, so we need to recreate and reapply them.
-            Language = EditorPrefs.GetString(EditorPrefKey, "en-us");
+            Language = EditorPrefs.GetString(EditorPrefKey, "en-us").ToLowerInvariant();
             EditorApplication.playModeStateChanged += evt =>
             {
                 foreach (var fontCallback in _fontUpdateCallbacks.Values)
