@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.4.0-rc.3] - [2024-03-26]
+
+### Added
 - Added a debug feature to profile a test build (#214)
 - Added `ParameterProvider.SubParameters()` for `ParameterNamespace.PhysBonesPrefix` parameters (#196)
 
@@ -18,12 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - In ParameterProvider, the parameter type of PhysBone Contact Receiver is now the type corresponding to the receiver type. (#209)
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.4.0-rc.2] - [2024-03-16]
 
