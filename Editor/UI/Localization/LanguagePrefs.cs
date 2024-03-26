@@ -52,6 +52,7 @@ namespace nadena.dev.ndmf.localization
             get => _curLanguage;
             set
             {
+                value = value.ToLowerInvariant();
                 if (value == _curLanguage) return;
                 _curLanguage = value;
                 EditorPrefs.SetString(EditorPrefKey, value);
