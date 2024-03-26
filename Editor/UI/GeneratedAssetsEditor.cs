@@ -290,6 +290,7 @@ namespace nadena.dev.ndmf.ui
             }
             else
             {
+                next.hideFlags = HideFlags.None;
                 AssetDatabase.CreateAsset(next, AssignAssetFilename(directory, next));
             }
         }
