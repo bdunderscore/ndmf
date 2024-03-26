@@ -1,7 +1,14 @@
 ﻿#region
 
+using System;
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using nadena.dev.ndmf.config;
+using nadena.dev.ndmf.runtime;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Profiling;
 using UnityObject = UnityEngine.Object;
 
 #endregion
@@ -60,5 +67,78 @@ namespace nadena.dev.ndmf.ui
         {
             Menu.SetChecked(APPLY_ON_PLAY_MENU_NAME, Config.ApplyOnPlay);
         }
+        
+#if UNITY_2022_1_OR_NEWER
+        [MenuItem("Tools/NDM Framework/Debug Tools/Profile build", false, 101)]
+        private static void ProfileBuild()
+        {
+            var av = Selection.activeGameObject;
+            IEnumerator coro = ProfileBuildCoro(av);
+
+            EditorApplication.CallbackFunction updateCall = null;
+            updateCall = () =>
+            {
+                if (coro == null)
+                {
+                    EditorApplication.update -= updateCall;
+                }
+                else
+                {
+                    coro.MoveNext();
+                }
+            };
+            
+            EditorApplication.update += updateCall;
+        }
+
+        [MenuItem("Tools/NDM Framework/Debug Tools/Profile build", true, 101)]
+        private static bool ProfileBuild_Validate()
+        {
+            return Selection.activeGameObject != null 
+                   && RuntimeUtil.IsAvatarRoot(Selection.activeGameObject.transform);
+        }
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        private static IEnumerator ProfileBuildCoro(GameObject av)
+        {
+            Type ty_PW = typeof(ProfilerWindow);
+
+            MethodInfo m_OnTargetedEditorConnectionChanged =
+                ty_PW.GetMethod("OnTargetedEditorConnectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            MethodInfo m_SetRecordingEnabled =
+                ty_PW.GetMethod("SetRecordingEnabled", BindingFlags.Instance | BindingFlags.NonPublic);
+            
+            Type ty_EditorConnectionTarget = m_OnTargetedEditorConnectionChanged.GetParameters()[0].ParameterType;
+            var MainEditorProcessEditmode = Enum.Parse(ty_EditorConnectionTarget, "MainEditorProcessEditmode");
+            var profWindow = EditorWindow.GetWindow<ProfilerWindow>();
+
+            m_OnTargetedEditorConnectionChanged.Invoke(profWindow, new object[] { MainEditorProcessEditmode });
+            m_SetRecordingEnabled.Invoke(profWindow, new object[] { true });
+            
+            yield return null; // wait one frame
+
+            if (av == null) yield break;
+
+            var clone = UnityEngine.Object.Instantiate(av);
+
+            try
+            {
+                AvatarProcessor.ProcessAvatar(clone);
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            //yield return null;
+            m_SetRecordingEnabled.Invoke(profWindow, new object[] { false });
+            yield return null;
+            
+            UnityEngine.Object.DestroyImmediate(clone);
+            AvatarProcessor.CleanTemporaryAssets();
+        }
+#endif
     }
 }

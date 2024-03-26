@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Added
+- Added a debug feature to profile a test build (#214)
+- Added `ParameterProvider.SubParameters()` for `ParameterNamespace.PhysBonesPrefix` parameters (#196)
 
 ### Fixed
 - Specify zh-* font to make the font normal
-- Hide all subassets after manually apply and extract.
+- Hide certain subassets after manual bake and/or extracting assets.
+
 ### Changed
+- In ParameterProvider, the parameter type of PhysBone Contact Receiver is now the type corresponding to the receiver type. (#209)
 
 ### Removed
 
