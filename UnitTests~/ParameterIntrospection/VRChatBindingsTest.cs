@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEngine;
+using VRC.Dynamics;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -80,8 +81,10 @@ namespace UnitTests.Parameters
             Assert.IsTrue(parameters["syncedBool"].WantSynced);
         }
 
-        [Test]
-        public void TestContact()
+        [TestCase(ContactReceiver.ReceiverType.Constant, AnimatorControllerParameterType.Bool)]
+        [TestCase(ContactReceiver.ReceiverType.OnEnter, AnimatorControllerParameterType.Bool)]
+        [TestCase(ContactReceiver.ReceiverType.Proximity, AnimatorControllerParameterType.Float)]
+        public void TestContact(ContactReceiver.ReceiverType receiverType, AnimatorControllerParameterType parameterType)
         {
             var root = CreateRoot("avatar");
             var desc = root.GetComponent<VRCAvatarDescriptor>();
@@ -89,6 +92,7 @@ namespace UnitTests.Parameters
 
             var obj = CreateChild(root, "foo");
             var contact = obj.AddComponent<VRCContactReceiver>();
+            contact.receiverType = receiverType;
             
             var parameters = ParameterInfo.ForUI.GetParametersForObject(obj)
                 .ToImmutableDictionary(p => p.EffectiveName, p => p);
@@ -100,7 +104,7 @@ namespace UnitTests.Parameters
             
             Assert.AreEqual(1, parameters.Count);
             var param = parameters["abc"];
-            Assert.AreEqual(null, param.ParameterType);
+            Assert.AreEqual(parameterType, param.ParameterType);
             Assert.AreEqual(0, param.BitUsage);
             Assert.AreEqual(ParameterNamespace.Animator, param.Namespace);
             Assert.IsFalse(param.WantSynced);

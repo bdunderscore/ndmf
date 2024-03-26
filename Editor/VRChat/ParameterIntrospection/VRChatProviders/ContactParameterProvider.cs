@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using VRC.SDK3.Dynamics.Contact.Components;
+using VRC.Dynamics;
+using UnityEngine;
 
 #endregion
 
@@ -26,7 +28,7 @@ namespace nadena.dev.ndmf.VRChatProviders
             return new[]
             {
                 new ProvidedParameter(_component.parameter, ParameterNamespace.Animator, _component,
-                    VRChatBuiltinProviderPlugin.Instance, null)
+                    VRChatBuiltinProviderPlugin.Instance,  _component.receiverType == ContactReceiver.ReceiverType.Proximity ? AnimatorControllerParameterType.Float : AnimatorControllerParameterType.Bool)
                 {
                     IsAnimatorOnly = true,
                     WantSynced = false,
