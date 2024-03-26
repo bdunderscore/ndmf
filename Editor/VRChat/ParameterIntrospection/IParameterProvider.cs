@@ -187,6 +187,22 @@ namespace nadena.dev.ndmf
         /// </summary>
         public bool WantSynced { get; set; }
 
+        public IEnumerable<ProvidedParameter> SubParameters()
+        {
+            if (Namespace == ParameterNamespace.Animator)
+            {
+                return new ProvidedParameter[] { this };
+            }
+            return new ProvidedParameter[]
+            {
+                new ProvidedParameter(OriginalName + "_IsGrabbed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_IsPosed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Angle", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Stretch", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Squish", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
+            };
+        }
+
         public ProvidedParameter Clone()
         {
             return (ProvidedParameter)MemberwiseClone();
