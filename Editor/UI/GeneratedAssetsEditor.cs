@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 #if NDMF_VRCSDK3_AVATARS
@@ -37,7 +38,15 @@ namespace nadena.dev.ndmf.ui
         /// <param name="bundle"></param>
         public static void Extract(this GeneratedAssets bundle)
         {
-            new GeneratedAssetBundleExtractor(bundle).Extract();
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                new GeneratedAssetBundleExtractor(bundle).Extract();
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
         }
     }
     
@@ -53,6 +62,28 @@ namespace nadena.dev.ndmf.ui
             typeof(VRCExpressionsMenu),
 #endif
         };
+
+        private static readonly ISet<Type> HiddenAssets = new HashSet<Type>()
+        {
+            typeof(AnimatorState),
+            typeof(AnimatorStateMachine),
+            typeof(AnimatorTransitionBase),
+            typeof(BlendTree),
+            typeof(StateMachineBehaviour),
+        };
+
+        private static Dictionary<Type, bool> ShouldHideAssetCache = new Dictionary<Type, bool>();
+        
+        internal static bool IsAssetTypeHidden(Type t)
+        {
+            // This is to keep project view clean
+
+            if (ShouldHideAssetCache.TryGetValue(t, out var hide)) return hide;
+            hide = HiddenAssets.Any(potentialBase => potentialBase.IsAssignableFrom(t));
+            ShouldHideAssetCache[t] = hide;
+
+            return hide;
+        }
 
         private Dictionary<UnityEngine.Object, AssetInfo> _assets;
         private GeneratedAssets Bundle;
@@ -270,10 +301,16 @@ namespace nadena.dev.ndmf.ui
                         $"Desired root {info.Root.Asset.name} for asset {next.name} is not a root asset");
                 }
 
+                if (IsAssetTypeHidden(next.GetType()))
+                {
+                    next.hideFlags |= HideFlags.HideInHierarchy;
+                }
+
                 AssetDatabase.AddObjectToAsset(next, info.Root.Asset);
             }
             else
             {
+                next.hideFlags = HideFlags.None;
                 AssetDatabase.CreateAsset(next, AssignAssetFilename(directory, next));
             }
         }

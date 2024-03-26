@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `ParameterProvider.SubParameters()` for `ParameterNamespace.PhysBonesPrefix` parameters (#196)
 
 ### Fixed
-- Specify zh-* font to make the font normal
+- Specify zh-* font to make the font normal (#206)
+- Hide certain subassets after manual bake and/or extracting assets (#212)
 - Fixed issues with capitalization in language preference (#215)
 
 ### Changed

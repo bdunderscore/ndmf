@@ -257,6 +257,19 @@ namespace nadena.dev.ndmf
                 }
             }
 
+            // SaveAssets to make sub-assets visible on the Project window
+            AssetDatabase.SaveAssets();
+            
+            foreach (var assetToHide in AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)))
+            {
+                if (assetToHide != AssetContainer && 
+                    GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
+                {
+                    Debug.Log($"Hiding asset of type " + assetToHide.GetType());
+                    assetToHide.hideFlags = HideFlags.HideInHierarchy;
+                }
+            }
+            
             // Remove obsolete temporary assets
             foreach (var asset in _savedObjects)
             {
@@ -266,11 +279,8 @@ namespace nadena.dev.ndmf
                     continue;
                 }
 
-                AssetDatabase.RemoveObjectFromAsset(asset);
+                UnityEngine.Object.DestroyImmediate(asset);
             }
-
-            // SaveAssets to make sub-assets visible on the Project window
-            AssetDatabase.SaveAssets();
         }
 
         public void DeactivateExtensionContext<T>() where T : IExtensionContext
