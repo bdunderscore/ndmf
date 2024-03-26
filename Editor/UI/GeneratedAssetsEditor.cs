@@ -38,7 +38,15 @@ namespace nadena.dev.ndmf.ui
         /// <param name="bundle"></param>
         public static void Extract(this GeneratedAssets bundle)
         {
-            new GeneratedAssetBundleExtractor(bundle).Extract();
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                new GeneratedAssetBundleExtractor(bundle).Extract();
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
         }
     }
     
