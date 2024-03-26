@@ -64,6 +64,19 @@ namespace nadena.dev.ndmf.ui
             typeof(StateMachineBehaviour),
         };
 
+        private static Dictionary<Type, bool> ShouldHideAssetCache = new Dictionary<Type, bool>();
+        
+        internal static bool IsAssetTypeHidden(Type t)
+        {
+            // This is to keep project view clean
+
+            if (ShouldHideAssetCache.TryGetValue(t, out var hide)) return hide;
+            hide = HiddenAssets.Any(potentialBase => potentialBase.IsAssignableFrom(t));
+            ShouldHideAssetCache[t] = hide;
+
+            return hide;
+        }
+
         private Dictionary<UnityEngine.Object, AssetInfo> _assets;
         private GeneratedAssets Bundle;
         private HashSet<Object> _unassigned;
@@ -280,8 +293,7 @@ namespace nadena.dev.ndmf.ui
                         $"Desired root {info.Root.Asset.name} for asset {next.name} is not a root asset");
                 }
 
-                // This is to keep project view clean
-                if (HiddenAssets.Any(t => t.IsInstanceOfType(next)))
+                if (IsAssetTypeHidden(next.GetType()))
                 {
                     next.hideFlags |= HideFlags.HideInHierarchy;
                 }
