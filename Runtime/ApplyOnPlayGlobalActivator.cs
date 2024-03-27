@@ -173,6 +173,7 @@ namespace nadena.dev.ndmf.runtime
     [AddComponentMenu("")]
     [ExecuteInEditMode]
     [DefaultExecutionOrder(-9997)]
+    [NDMFInternal]
     public class AvatarActivator : MonoBehaviour
     {
         private void Awake()

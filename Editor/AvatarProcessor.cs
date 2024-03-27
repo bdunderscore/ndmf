@@ -34,6 +34,7 @@ namespace nadena.dev.ndmf
         }
     }
 
+    [NDMFInternal]
     internal class AvatarBuildStateTracker : MonoBehaviour
     {
         internal BuildContext buildContext;

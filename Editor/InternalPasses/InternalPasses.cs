@@ -1,11 +1,13 @@
 ﻿#region
 
 using nadena.dev.ndmf.builtin;
+using nadena.dev.ndmf.runtime;
 
 #endregion
 
 namespace nadena.dev.ndmf
 {
+    [NDMFInternal]
     internal class InternalPasses : Plugin<InternalPasses>
     {
         public override string QualifiedName => "nadena.dev.ndmf.InternalPasses";
