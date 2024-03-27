@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.runtime
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("")] [NDMFInternal]
     internal class AlreadyProcessedTag : MonoBehaviour
     {
         // VRCF creates this tag via reflection, but we're not actually done processing yet.

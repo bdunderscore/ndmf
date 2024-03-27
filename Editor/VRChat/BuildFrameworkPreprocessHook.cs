@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.VRChat
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("")] [NDMFInternal]
     internal class ContextHolder : MonoBehaviour
     {
         internal BuildContext context;
