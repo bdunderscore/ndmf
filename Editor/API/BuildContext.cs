@@ -265,7 +265,6 @@ namespace nadena.dev.ndmf
                 if (assetToHide != AssetContainer && 
                     GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
                 {
-                    Debug.Log($"Hiding asset of type " + assetToHide.GetType());
                     assetToHide.hideFlags = HideFlags.HideInHierarchy;
                 }
             }
