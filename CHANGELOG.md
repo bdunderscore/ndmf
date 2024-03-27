@@ -5,58 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [1.4.0] - [2024-03-27]
 
 ### Added
+- Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
+- Added an API to select a non-broken font for use in UI Elements based on the current locale (#190)
 - Added `[NDMFInternal]` attribute (#217)
-
-### Fixed
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
-
-## [1.4.0-rc.3] - [2024-03-26]
-
-### Added
 - Added a debug feature to profile a test build (#214)
 - Added `ParameterProvider.SubParameters()` for `ParameterNamespace.PhysBonesPrefix` parameters (#196)
+- Added support for declaring ProvidesParametersFor via base classes and interfaces (#198)
 
 ### Fixed
 - Specify zh-* font to make the font normal (#206)
 - Hide certain subassets after manual bake and/or extracting assets (#212)
 - Fixed issues with capitalization in language preference (#215)
+- Apply on play isn't suppressed when Av3mu is present (#200)
+- UIElementLocalizer could fail to find localized strings in some cases (#189)
 
 ### Changed
 - In ParameterProvider, the parameter type of PhysBone Contact Receiver is now the type corresponding to the receiver type. (#209)
-
-## [1.4.0-rc.2] - [2024-03-16]
-
-### Added
-- Added support for declaring ProvidesParametersFor via base classes and interfaces (#198)
-
-### Fixed
-- Apply on play isn't suppressed when Av3mu is present (#200)
-- JP fonts disappear after leaving play mode (#199)
-
-## [1.4.0-rc.1] - [2024-03-14]
-
-### Fixed
-- Fixed apply on play mode (#192)
-
-## [1.4.0-rc.0] - [2024-03-14]
-
-### Added
-- Added a new API to allow NDMF plugins to declare and introspect expressions parameter usage (#184)
-- Added an API to select a non-broken font for use in UI Elements based on the current locale (#190)
-
-### Fixed
-- UIElementLocalizer could fail to find localized strings in some cases (#189)
-
 
 ## [1.3.7] - [2024-03-06]
 
