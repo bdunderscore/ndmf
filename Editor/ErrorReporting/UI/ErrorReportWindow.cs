@@ -207,7 +207,7 @@ namespace nadena.dev.ndmf.ui
         /// <summary>
         /// Shows the error report window, displaying the last error report generated.
         /// </summary>
-        [MenuItem("Tools/NDM Framework/Show Error Report")]
+        [MenuItem("Tools/NDM Framework/Show NDMF Console")]
         public static void ShowErrorReportWindow()
         {
             if (Application.isBatchMode || DISABLE_WINDOW) return; // headless unit tests
@@ -298,7 +298,7 @@ namespace nadena.dev.ndmf.ui
             if (Application.isBatchMode || DISABLE_WINDOW) return; // headless unit tests
 
             ErrorReportWindow wnd = GetWindow<ErrorReportWindow>();
-            wnd.titleContent = new GUIContent("NDMF Error Report");
+            wnd.titleContent = new GUIContent("NDMF Console");
             wnd.CurrentReport = report;
             wnd.Show();
         }
@@ -312,12 +312,12 @@ namespace nadena.dev.ndmf.ui
             if (Application.isBatchMode || avatarRoot == null || DISABLE_WINDOW) return;
 
             ErrorReportWindow wnd = GetWindow<ErrorReportWindow>();
-            wnd.titleContent = new GUIContent("NDMF Error Report");
+            wnd.titleContent = new GUIContent("NDMF Console");
             wnd.CurrentAvatar = avatarRoot;
             wnd.Show();
         }
 
-        [MenuItem("GameObject/NDM Framework/Show Error Report", false)]
+        [MenuItem("GameObject/NDM Framework/Show NDMF Console", false)]
         private static void ShowCurrentAvatarErrorReport()
         {
             if (Selection.activeGameObject == null) return;
@@ -325,7 +325,7 @@ namespace nadena.dev.ndmf.ui
             ShowReport(Selection.activeGameObject);
         }
 
-        [MenuItem("GameObject/NDM Framework/Show Error Report", true)]
+        [MenuItem("GameObject/NDM Framework/Show NDMF Console", true)]
         private static bool ShowCurrentAvatarErrorReportValidation()
         {
             return Selection.activeGameObject != null && RuntimeUtil.IsAvatarRoot(Selection.activeGameObject.transform);

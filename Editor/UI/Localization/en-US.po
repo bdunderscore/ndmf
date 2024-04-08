@@ -6,7 +6,7 @@ msgid "ErrorReport:AvatarPrefix"
 msgstr "Avatar: "
 
 msgid "ErrorReport:Title"
-msgstr "Error Report"
+msgstr "NDMF Console"
 
 msgid "ErrorReport:HintFoldout"
 msgstr "Help me fix it!"
@@ -15,7 +15,7 @@ msgid "ErrorReport:TestBuild"
 msgstr "Perform Test Build"
 
 msgid "ErrorReport:NoErrors"
-msgstr "No errors to report!"
+msgstr "No informations to report!"
 
 msgid "ErrorReport:NoAvatarSelected"
 msgstr "No avatar selected."
