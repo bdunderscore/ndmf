@@ -34,3 +34,6 @@ msgstr "Show Stack Trace (please include with bug reports!)"
 
 msgid "AvatarProcessor:ProcessingFailed"
 msgstr "There were errors processing the avatar. Check the error report for details."
+
+msgid "BuildContext:UnsupportedTextureFormat"
+msgstr "{0} doesn't support {1} texture format. When this texture was created by manual bake, switch target platform then execute manual bake again."

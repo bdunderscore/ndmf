@@ -124,3 +124,26 @@ dependencies on `MyPass` that are not yet satisfied, then `MyPass` will not run 
 
 Additionally, there might be multiple `WaitFor` dependencies, in which case the order in which these are executed -
 absent other constraints - is undefined.
+
+## Assets management
+
+After all passes have been executed, NDMF will automatically save the generated assets which are referenced by the
+built avatar object. So usually you don't need to worry about saving the assets manually.
+
+### Texture compression
+
+NDMF will automatically compress textures with appropriate format for the active build target.
+The default settings are:
+- PC: DXT5
+- Android: ASTC 6x6
+
+You can set texture compression settings with `TextureCompressor` class.
+
+```csharp
+sequence.Run(ctx => {
+    var texture = GenerateTexture();
+
+    // Use DXT5 with Crunch compression.
+    TextureCompressor.RegisterCompression(texture, TextureFormat.DXT5Crunched, TextureCompressionQuality.Best);
+});
+```

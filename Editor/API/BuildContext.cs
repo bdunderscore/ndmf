@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
@@ -25,17 +26,20 @@ namespace nadena.dev.ndmf
     {
         private readonly ErrorReportScope _errorReportScope;
         private readonly ObjectRegistryScope _objectRegistryScope;
+        private readonly TextureCompressorScope _textureCompressorScope;
 
         public ExecutionScope(BuildContext ctx)
         {
             _errorReportScope = new ErrorReportScope(ctx._report);
             _objectRegistryScope = new ObjectRegistryScope(ctx._registry);
+            _textureCompressorScope = new TextureCompressorScope(ctx._compresor);
         }
 
         public void Dispose()
         {
             _errorReportScope.Dispose();
             _objectRegistryScope.Dispose();
+            _textureCompressorScope.Dispose();
         }
     }
 
@@ -51,9 +55,11 @@ namespace nadena.dev.ndmf
         private Stopwatch sw = new Stopwatch();
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
+        internal readonly TextureCompressor _compresor;
 
         public ObjectRegistry ObjectRegistry => _registry;
         public ErrorReport ErrorReport => _report;
+        public TextureCompressor TextureCompressor => _compresor;
 
         /// <summary>
         /// The root GameObject of the avatar being built.
@@ -110,6 +116,7 @@ namespace nadena.dev.ndmf
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
             _registry = new ObjectRegistry(obj.transform);
             _report = ErrorReport.Create(obj, isClone);
+            _compresor = new TextureCompressor();
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
@@ -243,6 +250,14 @@ namespace nadena.dev.ndmf
 
                 if (!EditorUtility.IsPersistent(asset))
                 {
+                    if (asset is Texture2D unsavedTexture)
+                    {
+                        if (!TextureCompressor.IsCompressedTexture(unsavedTexture) && !TextureCompressor.IsExplicitlyUncompressedTexture(unsavedTexture))
+                        {
+                            TextureCompressor.CompressTexture(unsavedTexture, EditorUserBuildSettings.activeBuildTarget);
+                        }
+                    }
+
                     try
                     {
                         AssetDatabase.AddObjectToAsset(asset, AssetContainer);
@@ -253,6 +268,14 @@ namespace nadena.dev.ndmf
                             $"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
                             $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
                         throw ex;
+                    }
+                }
+
+                if (asset is Texture2D textureAsset)
+                {
+                    if (!TextureUtility.IsSupportedFormat(textureAsset.format, EditorUserBuildSettings.activeBuildTarget))
+                    {
+                        ErrorReport.ReportError(NDMFLocales.L, ErrorSeverity.NonFatal, "BuildContext:UnsupportedTextureFormat", EditorUserBuildSettings.activeBuildTarget, textureAsset.format, textureAsset);
                     }
                 }
             }

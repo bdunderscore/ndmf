@@ -255,7 +255,7 @@ namespace nadena.dev.ndmf.ui
                 _errorList.style.display = DisplayStyle.Flex;
                 _errorList.Clear();
 
-                var errors = _report.Errors.OrderBy(e => e.Plugin.DisplayName).ToList();
+                var errors = _report.Errors.OrderBy(e => e.Plugin?.DisplayName ?? "(Unnamed)").ToList();
                 PluginBase lastPlugin = null;
 
                 foreach (var error in errors)

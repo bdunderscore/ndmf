@@ -31,3 +31,6 @@ msgstr "スタックトレースを表示（バグ報告に添付してくださ
 
 msgid "AvatarProcessor:ProcessingFailed"
 msgstr "アバター処理中にエラーが発生しました。詳しくはエラー表示をご確認ください。"
+
+msgid "BuildContext:UnsupportedTextureFormat"
+msgstr "{0}で{1}フォーマットのテクスチャはサポートされていません。このテクスチャがマニュアルベイクで作成されている場合、ターゲットプラットフォームを変更した後で再度マニュアルベイクしてください。"
