@@ -30,4 +30,4 @@ msgid "InternalError:StackTraceFoldout"
 msgstr "スタックトレースを表示（バグ報告に添付してください！）"
 
 msgid "AvatarProcessor:ProcessingFailed"
-msgstr "アバター処理中にエラーが発生しました。詳しくはエラー表示をご確認ください。"
+msgstr "アバター処理中にエラーが発生しました。詳しくはNDMFコンソールをご確認ください。"

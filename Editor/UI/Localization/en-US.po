@@ -33,4 +33,4 @@ msgid "InternalError:StackTraceFoldout"
 msgstr "Show Stack Trace (please include with bug reports!)"
 
 msgid "AvatarProcessor:ProcessingFailed"
-msgstr "There were errors processing the avatar. Check the error report for details."
+msgstr "There were errors processing the avatar. Check the NDMF Console for details."
