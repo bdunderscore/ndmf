@@ -206,6 +206,7 @@ namespace nadena.dev.ndmf.ui
 
         /// <summary>
         /// Shows the error report window, displaying the last error report generated.
+        /// Note: "Error Report" window has been renamed to "NDMF Console".
         /// </summary>
         [MenuItem("Tools/NDM Framework/Show NDMF Console")]
         public static void ShowErrorReportWindow()
@@ -291,6 +292,7 @@ namespace nadena.dev.ndmf.ui
 
         /// <summary>
         /// Shows the error report window, displaying a specific error report.
+        /// Note: "Error Report" window has been renamed to "NDMF Console".
         /// </summary>
         /// <param name="report"></param>
         public static void ShowReport(ErrorReport report)
@@ -305,6 +307,7 @@ namespace nadena.dev.ndmf.ui
 
         /// <summary>
         /// Shows the error report window, displaying a specific avatar and its error report (if any).
+        /// Note: "Error Report" window has been renamed to "NDMF Console".
         /// </summary>
         /// <param name="avatarRoot"></param>
         public static void ShowReport(GameObject avatarRoot)
