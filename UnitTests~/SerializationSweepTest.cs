@@ -39,7 +39,7 @@ namespace UnitTests
             testScriptable3.ref2 = testScriptable4;
 
             BuildContext bc = CreateContext(root);
-            bc.Serialize();
+            bc.SerializeInternal();
 
             var path = AssetDatabase.GetAssetPath(testScriptable1);
             Assert.IsFalse(string.IsNullOrEmpty(path));

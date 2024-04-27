@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
@@ -52,17 +53,22 @@ namespace nadena.dev.ndmf
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
 
+        [PublicAPI]
         public ObjectRegistry ObjectRegistry => _registry;
+        [PublicAPI]
         public ErrorReport ErrorReport => _report;
 
         /// <summary>
         /// The root GameObject of the avatar being built.
         /// </summary>
+        
+        [PublicAPI]
         public GameObject AvatarRootObject => _avatarRootObject;
 
         /// <summary>
         /// The root Transform of the avatar being built.
         /// </summary>
+        [PublicAPI]
         public Transform AvatarRootTransform => _avatarRootTransform;
 
         /// <summary>
@@ -70,19 +76,27 @@ namespace nadena.dev.ndmf
         /// referenced by the avatar to this container when the build completes, but in some cases it can be necessary
         /// to manually save assets (e.g. when using AnimatorController builtins).
         /// </summary>
+        [PublicAPI]
         public UnityObject AssetContainer { get; private set; }
 
         public bool Successful => !_report.Errors.Any(e => e.TheError.Severity >= ErrorSeverity.Error);
 
-        private Dictionary<Type, object> _state = new Dictionary<Type, object>();
-        private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
-        private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
+        private readonly Dictionary<Type, object> _state = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
+        private readonly Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
+        
+        private readonly List<(UnityEngine.Object, PostprocessAssetDelegate)> _assetPostprocessors
+            = new List<(UnityEngine.Object, PostprocessAssetDelegate)>();
+        
+        public delegate void PostprocessAssetDelegate(UnityEngine.Object asset);
 
+        [PublicAPI]
         public T GetState<T>() where T : new()
         {
             return GetState(_ => new T());
         }
 
+        [PublicAPI]
         public T GetState<T>(Func<BuildContext, T> init)
         {
             if (_state.TryGetValue(typeof(T), out var value))
@@ -95,6 +109,7 @@ namespace nadena.dev.ndmf
             return (T)value;
         }
 
+        [PublicAPI]
         public T Extension<T>() where T : IExtensionContext
         {
             if (!_activeExtensions.TryGetValue(typeof(T), out var value))
@@ -105,6 +120,7 @@ namespace nadena.dev.ndmf
             return (T)value;
         }
 
+        [PublicAPI]
         public BuildContext(GameObject obj, string assetRootPath, bool isClone = true)
         {
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
@@ -200,13 +216,44 @@ namespace nadena.dev.ndmf
             return avatarName;
         }
 
+        [PublicAPI]
         public bool IsTemporaryAsset(UnityObject obj)
         {
             return !EditorUtility.IsPersistent(obj)
                    || AssetDatabase.GetAssetPath(obj) == AssetDatabase.GetAssetPath(AssetContainer);
         }
 
+        /// <summary>
+        /// Processes a Unity asset after the build completes, but only if it is still referenced. This can be used to
+        /// e.g. compress textures only if they are not replaced by other NDMF plugins.
+        ///
+        /// Postprocess callbacks are run in order of registration. Note that the set of assets to be postprocessed is
+        /// determined prior to invoking callbacks; as such, if you change an asset to add or remove references to
+        /// assets during a postprocess callback, this will not impact which subsequent callbacks are invoked.
+        /// </summary>
+        /// <param name="asset">The asset to postprocess</param>
+        /// <param name="postprocess">The postprocess callback</param>
+        /// <returns></returns>
+        [PublicAPI]
+        public void DeferPostprocessAsset(
+            UnityEngine.Object asset,
+            PostprocessAssetDelegate postprocess
+        )
+        {
+            _assetPostprocessors.Add((asset, postprocess));
+        }
+
+        /// <summary>
+        /// No-op. Retained for API compatibility.
+        /// </summary>
+        [Obsolete("Serialize() was not meant to be public in the first place")]
+        [PublicAPI]
         public void Serialize()
+        {
+            
+        }
+        
+        internal void SerializeInternal()
         {
             if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
             {
@@ -257,6 +304,16 @@ namespace nadena.dev.ndmf
                 }
             }
 
+            foreach (var pair in _assetPostprocessors)
+            {
+                var (asset, postprocess) = pair;
+
+                if (_savedObjects.Contains(asset))
+                {
+                    postprocess(asset);
+                }
+            }
+
             // SaveAssets to make sub-assets visible on the Project window
             AssetDatabase.SaveAssets();
             
@@ -282,11 +339,13 @@ namespace nadena.dev.ndmf
             }
         }
 
+        [PublicAPI]
         public void DeactivateExtensionContext<T>() where T : IExtensionContext
         {
             DeactivateExtensionContext(typeof(T));
         }
 
+        [PublicAPI]
         public void DeactivateExtensionContext(Type t)
         {
             using (new ExecutionScope(this))
@@ -371,11 +430,13 @@ namespace nadena.dev.ndmf
             }
         }
 
+        [PublicAPI]
         public T ActivateExtensionContext<T>() where T : IExtensionContext
         {
             return (T)ActivateExtensionContext(typeof(T));
         }
 
+        [PublicAPI]
         public IExtensionContext ActivateExtensionContext(Type ty)
         {
             using (new ExecutionScope(this))
@@ -439,7 +500,7 @@ namespace nadena.dev.ndmf
                     _activeExtensions.Remove(kvp.Key);
                 }
 
-                Serialize();
+                SerializeInternal();
                 sw.Stop();
 
                 BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
