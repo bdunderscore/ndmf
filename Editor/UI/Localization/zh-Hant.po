@@ -18,7 +18,7 @@ msgid "ErrorReport:NoErrors"
 msgstr "沒有資訊可供報告！"
 
 msgid "ErrorReport:NoAvatarSelected"
-msgstr "沒有選定 Avatar。"
+msgstr "沒有選擇 Avatar。"
 
 msgid "ErrorReport:Unbuilt"
 msgstr "此 Avatar 尚未建置。 "
