@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,6 +15,9 @@ namespace nadena.dev.ndmf.localization
                 ),
                 AssetDatabase.LoadAssetAtPath<LocalizationAsset>(
                     AssetDatabase.GUIDToAssetPath("87c99a0330751d842a030f1385973541")
+                ),
+                AssetDatabase.LoadAssetAtPath<LocalizationAsset>(
+                    AssetDatabase.GUIDToAssetPath("b1fe4225ad3686e46bb3257770364b6e")
                 )                
             }
         );
