@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.4.1] - [2024-05-12]
+
+### Added
 - Manual Bake avatar context menu for projects with Modular Avatar (#234)
 - `__Generated` folder is not removed after building avatar (#235)
 - Add Traditional Chinese support (#230)
