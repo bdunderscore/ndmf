@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using UnityEngine;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.Contact.Components;
@@ -38,7 +39,6 @@ namespace nadena.dev.ndmf.VRChat
                 foreach (var contact in avatarGameObject.GetComponentsInChildren<ContactBase>(true))
                 {
                     contact.UpdateShape();
-                    contact.UpdateContact();
                 }
             }
 
