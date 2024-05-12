@@ -1,6 +1,7 @@
 ![GitHub release (with filter)](https://img.shields.io/github/v/release/bdunderscore/ndmf)
 ![GitHub release (by tag)](https://img.shields.io/github/downloads/bdunderscore/ndmf/latest/total)
 ![GitHub all releases](https://img.shields.io/github/downloads/bdunderscore/ndmf/total?label=total%20downloads)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue)](https://ndmf.nadena.dev)
 
 # Non-Destructive Modular Framework ("なでもふ")
 
@@ -13,17 +14,15 @@ This package is a framework for building non-destructive editor plugins for VRCh
 * Support for adjusting animation paths after objects are moved
 
 Future plans include:
-* A unified error reporting UI
 * Support for caching generated assets across subsequent builds
 * Support for platforms other than VRChat.
 
-## Project status
-
-This project is currently considered API-stable, but is still very new. Please report any bugs you run into! 
 
 ## Getting started
 
-A minimal plugin definition looks a bit like this:
+You can find detailed information in [the documentation](https://ndmf.nadena.dev).
+
+To get started quickly, a minimal plugin definition looks a bit like this:
 
 ```csharp
 [assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
