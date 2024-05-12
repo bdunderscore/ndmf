@@ -29,21 +29,17 @@ namespace nadena.dev.ndmf.ui
             Config.OnChange += OnSettingsChanged;
         }
 
-        // Avoid cluttering the GameObject context menu with duplicate entries. Users are more familiar with MA anyway,
-        // so we'll keep that entry.
-#if !MODULAR_AVATAR
-        [MenuItem("GameObject/[NDMF] Manual bake avatar", true, 49)]
+        [MenuItem("GameObject/NDM Framework/Manual bake avatar", true, 49)]
         private static bool ValidateManualBakeGameObject()
         {
             return AvatarProcessor.CanProcessObject(Selection.activeGameObject);
         }
 
-        [MenuItem("GameObject/[NDMF] Manual bake avatar", false, 49)]
+        [MenuItem("GameObject/NDM Framework/Manual bake avatar", false, 49)]
         private static void ManualBakeGameObject()
         {
             AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
         }
-#endif
 
         [MenuItem(TOPLEVEL_MANUAL_BAKE_MENU_NAME, true, TOPLEVEL_MANUAL_BAKE_PRIO)]
         private static bool ValidateManualBakeToplevel()
