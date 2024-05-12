@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using JetBrains.Annotations;
 using UnityEngine;
 
 #endregion
@@ -220,6 +221,7 @@ namespace nadena.dev.ndmf
     /// here. This constructor will be invoked when querying a component's parameters.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
+    [MeansImplicitUse(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public sealed class ParameterProviderFor : Attribute
     {
         public Type ForType { get; private set; }
