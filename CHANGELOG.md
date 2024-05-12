@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [Unreleased]
 
 ### Added
+- Manual Bake avatar context menu for projects with Modular Avatar (#234)
+- `__Generated` folder is not removed after building avatar (#235)
 
 ### Fixed
+- Workaround VRCSDK bug where stale PhysBones state could be retained over play mode transitions (#231) 
 
 ### Changed
 - Renamed `NDMF Error Report` to `NDMF Console` (#222)

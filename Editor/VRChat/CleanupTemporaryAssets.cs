@@ -14,7 +14,7 @@ namespace nadena.dev.ndmf.VRChat
 
         public void OnPostprocessAvatar()
         {
-            //AvatarProcessor.CleanTemporaryAssets();
+            AvatarProcessor.CleanTemporaryAssets();
         }
     }
 }
