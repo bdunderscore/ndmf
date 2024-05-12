@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Workaround VRCSDK bug where stale PhysBones state could be retained over play mode transitions (#231) 
+- Show object name when we're unable to find the actual GameObject, in error display UI (#224)
 
 ### Changed
 
