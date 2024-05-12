@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show object name when we're unable to find the actual GameObject, in error display UI (#224)
 
 ### Changed
+- Renamed `NDMF Error Report` to `NDMF Console` (#222)
+- Changed Japanese strings a bit (#222)
 
 ### Removed
 

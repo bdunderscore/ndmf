@@ -3,7 +3,7 @@ msgstr ""
 "Language: ja-JP\n"
 
 msgid "ErrorReport:Title"
-msgstr "エラー表示"
+msgstr "NDMFコンソール"
 
 msgid "ErrorReport:HintFoldout"
 msgstr "直すには？"
@@ -12,10 +12,10 @@ msgid "ErrorReport:TestBuild"
 msgstr "テストビルドを実行"
 
 msgid "ErrorReport:NoErrors"
-msgstr "エラーがありません！"
+msgstr "表示する情報は特にありません。"
 
 msgid "ErrorReport:NoAvatarSelected"
-msgstr "アバターが選択されていません"
+msgstr "アバターが選択されていません。"
 
 msgid "ErrorReport:Unbuilt"
 msgstr "アバターはまだビルドされていません。"
@@ -30,4 +30,4 @@ msgid "InternalError:StackTraceFoldout"
 msgstr "スタックトレースを表示（バグ報告に添付してください！）"
 
 msgid "AvatarProcessor:ProcessingFailed"
-msgstr "アバター処理中にエラーが発生しました。詳しくはエラー表示をご確認ください。"
+msgstr "アバター処理中にエラーが発生しました。詳しくはNDMFコンソールをご確認ください。"
