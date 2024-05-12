@@ -1,6 +1,8 @@
 ﻿#region
 
 using UnityEngine;
+using VRC.Dynamics;
+using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 
@@ -26,6 +28,17 @@ namespace nadena.dev.ndmf.VRChat
                 {
                     physBone.InitTransforms(true);
                     physBone.InitParameters();
+                }
+
+                foreach (var collider in avatarGameObject.GetComponentsInChildren<VRCPhysBoneColliderBase>(true))
+                {
+                    collider.UpdateShape();
+                }
+
+                foreach (var contact in avatarGameObject.GetComponentsInChildren<ContactBase>(true))
+                {
+                    contact.UpdateShape();
+                    contact.UpdateContact();
                 }
             }
 
