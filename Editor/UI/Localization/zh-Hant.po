@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"Language: zh-Hant\n"
+
+msgid "ErrorReport:AvatarPrefix"
+msgstr "Avatar: "
+
+msgid "ErrorReport:Title"
+msgstr "NDMF 控制台"
+
+msgid "ErrorReport:HintFoldout"
+msgstr "幫助我修復它！"
+
+msgid "ErrorReport:TestBuild"
+msgstr "執行測試用建置"
+
+msgid "ErrorReport:NoErrors"
+msgstr "沒有資訊可供報告！"
+
+msgid "ErrorReport:NoAvatarSelected"
+msgstr "沒有選擇 Avatar。"
+
+msgid "ErrorReport:Unbuilt"
+msgstr "此 Avatar 尚未建置。 "
+
+msgid "Errors:InternalError"
+msgstr "發生內部錯誤。"
+
+msgid "Errors:InternalError:description"
+msgstr "A plugin has thrown an exception of type {0}. 請將此資訊回報給工具作者。"
+
+msgid "InternalError:StackTraceFoldout"
+msgstr "Show Stack Trace (請將此訊息與錯誤報告一併提交！)"
+
+msgid "AvatarProcessor:ProcessingFailed"
+msgstr "處理 Avatar 時發生了錯誤。詳細資訊請查看 NDMF 控制台。"

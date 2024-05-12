@@ -5,6 +5,8 @@
 # Matches ja-*
 ja-=Yu Gothic UI
 ja-=Meiryo UI
+# non-Windows may not have preceding fonts, so attempt to set following fonts:
+ja-=Noto Sans CJK JP
 # Matches zh-*
 zh-hant=Microsoft JhengHei UI
 zh-hans=Microsoft YaHei UI

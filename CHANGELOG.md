@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Manual Bake avatar context menu for projects with Modular Avatar (#234)
 - `__Generated` folder is not removed after building avatar (#235)
+- Add Traditional Chinese support (#230)
 
 ### Fixed
 - Workaround VRCSDK bug where stale PhysBones state could be retained over play mode transitions (#231) 
