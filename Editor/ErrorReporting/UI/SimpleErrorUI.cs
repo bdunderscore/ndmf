@@ -94,6 +94,10 @@ namespace nadena.dev.ndmf.ui
                     {
                         objRefs.Add(selector);
                     }
+                    else
+                    {
+                        objRefs.Add(new Label(objRef.ToString()));
+                    }
                 }
             }
         }
