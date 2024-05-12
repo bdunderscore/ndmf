@@ -1,6 +1,5 @@
 #region
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.localization;
@@ -8,17 +7,13 @@ using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 #endregion
 
 namespace nadena.dev.ndmf.ui
 {
     #region
-
-    using UnityObject = Object;
 
     #endregion
 
@@ -147,11 +142,23 @@ namespace nadena.dev.ndmf.ui
                 // GUI setup done
                 EditorApplication.hierarchyChanged += SetupSelector;
             }
+
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         private void OnDisable()
         {
             EditorApplication.hierarchyChanged -= SetupSelector;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (_testBuild != null && state == PlayModeStateChange.EnteredEditMode)
+            {
+                // Rerender error UI in case we can now find objects that had moved during processing...
+                UpdateContents();
+            }
         }
 
         private void OnSelectionChange()

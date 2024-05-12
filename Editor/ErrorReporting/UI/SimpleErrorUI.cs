@@ -1,5 +1,6 @@
 ﻿#region
 
+using System.Collections.Generic;
 using nadena.dev.ndmf.localization;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -88,8 +89,12 @@ namespace nadena.dev.ndmf.ui
             }
             else
             {
+                HashSet<ObjectReference> _refs = new HashSet<ObjectReference>();
                 foreach (var objRef in _error.References)
                 {
+                    // dedup refs
+                    if (!_refs.Add(objRef)) continue;
+                    
                     if (ObjectSelector.TryCreate(_report, objRef, out var selector))
                     {
                         objRefs.Add(selector);
