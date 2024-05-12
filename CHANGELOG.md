@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `__Generated` folder is not removed after building avatar (#235)
 
 ### Fixed
+- Workaround VRCSDK bug where stale PhysBones state could be retained over play mode transitions (#231) 
 
 ### Changed
 
