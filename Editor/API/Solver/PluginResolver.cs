@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.model;
-using UnityEngine;
+using nadena.dev.ndmf.preview;
 
 #endregion
 
@@ -49,6 +49,7 @@ namespace nadena.dev.ndmf
 
     internal class PluginResolver
     {
+        internal PreviewSession PreviewSession { get; private set; }
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         public PluginResolver() : this(
@@ -70,6 +71,8 @@ namespace nadena.dev.ndmf
 
         public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates)
         {
+            PreviewSession = new PreviewSession();
+
             var solverContext = new SolverContext();
 
             foreach (var plugin in pluginTemplates)
@@ -195,6 +198,11 @@ namespace nadena.dev.ndmf
 
                 concrete.Add(new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
                     toActivate.ToImmutableList()));
+
+                if (pass.RenderFilter != null)
+                {
+                    PreviewSession.AddMutator(new SequencePoint(), pass.RenderFilter);
+                }
             }
 
             if (activeExtensions.Count > 0)

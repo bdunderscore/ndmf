@@ -1,8 +1,10 @@
 ﻿#region
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
+using nadena.dev.ndmf.preview;
 
 #endregion
 
@@ -48,6 +50,18 @@ namespace nadena.dev.ndmf.fluent
             _solverContext = solverContext;
             _phase = phase;
             _seq = seq;
+        }
+
+        public DeclaringPass PreviewingWith(IRenderFilter filter)
+        {
+            if (_pass.RenderFilter != null)
+            {
+                throw new InvalidOperationException("Render filter already set");
+            }
+
+            _pass.RenderFilter = filter;
+
+            return this;
         }
 
         /// <summary>
