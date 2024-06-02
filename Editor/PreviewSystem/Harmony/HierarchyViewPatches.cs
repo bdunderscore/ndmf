@@ -50,7 +50,7 @@ namespace nadena.dev.ndmf.preview
                     typeof(bool),
                     typeof(int)
                 });
-            var m_patch = AccessTools.Method(typeof(HierarchyViewPatches), "Prefix_InitTreeViewItem");
+            var m_patch = AccessTools.Method(typeof(HierarchyViewPatches), nameof(Prefix_InitTreeViewItem));
 
             h.Patch(original: m_orig, prefix: new HarmonyMethod(m_patch));
 
@@ -165,7 +165,7 @@ namespace nadena.dev.ndmf.preview
         )
         {
             var sess = PreviewSession.Current;
-            if (sess == null) return false;
+            if (sess == null) return true;
 
             if (pptrObject == null || isSceneHeader) return true;
 
