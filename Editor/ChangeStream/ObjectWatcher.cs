@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -64,6 +65,14 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
         internal ObjectWatcher()
         {
+        }
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            SceneManager.sceneLoaded += (_, _) => Instance.Hierarchy.InvalidateAll();
+            SceneManager.sceneUnloaded += _ => Instance.Hierarchy.InvalidateAll();
+            SceneManager.activeSceneChanged += (_, _) => Instance.Hierarchy.InvalidateAll();
         }
 
         public ImmutableList<GameObject> MonitorSceneRoots<T>(out IDisposable cancel, Action<T> callback, T target)

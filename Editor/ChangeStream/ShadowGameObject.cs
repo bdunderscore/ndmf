@@ -331,6 +331,8 @@ namespace nadena.dev.ndmf.rq.unity.editor
             {
                 shadow._listeners.Fire(HierarchyEvent.ForceInvalidate);
             }
+
+            _rootSetListener.Fire(HierarchyEvent.ForceInvalidate);
         }
 
         /// <summary>
