@@ -42,18 +42,18 @@ namespace UnitTests.EditorTests
                 queries.Insert(0, ReactiveValue<int>.Create("", async ctx =>
                 {
                     Interlocked.Increment(ref startedCount);
-                    Debug.Log("sleep start");
+                    //.Debug.Log("sleep start");
                     Thread.Sleep(50);
-                    Debug.Log("sleep end");
+                    //Debug.Log("sleep end");
                     return 1;
                 }).GetValueAsync().ContinueWith(t =>
                 {
-                    Debug.Log("Task complete");
+                    //Debug.Log("Task complete");
                     return t.Result;
                 }));
             }
             
-            await Task.Delay(25).ContinueWith(_ => Debug.Log("Delay complete"));
+            await Task.Delay(25);//.ContinueWith(_ => Debug.Log("Delay complete"));
             
             var completedCount = queries.Count(q => q.IsCompleted);
             Debug.Log("Completed: " + completedCount);

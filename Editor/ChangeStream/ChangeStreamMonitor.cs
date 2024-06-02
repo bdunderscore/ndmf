@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using UnityEditor;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 #endregion
@@ -19,8 +20,8 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
         private static void OnChange(ref ObjectChangeEventStream stream)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            Profiler.BeginSample("ChangeStreamMonitor.OnChange");
+
             int length = stream.length;
             for (int i = 0; i < length; i++)
             {
@@ -34,13 +35,11 @@ namespace nadena.dev.ndmf.rq.unity.editor
                 }
             }
 
-            sw.Stop();
-            Debug.Log($"Handled {length} events in {sw.ElapsedMilliseconds}ms");
+            Profiler.EndSample();
         }
 
         private static void HandleEvent(ObjectChangeEventStream stream, int i)
         {
-            Debug.Log("HandleEvent: " + stream.GetEventType(i));
             switch (stream.GetEventType(i))
             {
                 case ObjectChangeKind.None: break;
@@ -196,16 +195,6 @@ namespace nadena.dev.ndmf.rq.unity.editor
         }
 
         private static void OnChangeGameObjectStructureHierarchy(ChangeGameObjectStructureHierarchyEventArgs data)
-        {
-            // TODO - we need to record original parent/child relationships so we can fire off notifications
-            // for everything that was previously present.
-
-            var instanceId = data.instanceId;
-
-            ObjectWatcher.Instance.Hierarchy.InvalidateTree(instanceId);
-        }
-
-        private void OnCreateGameObjectHierarchy(CreateGameObjectHierarchyEventArgs data)
         {
             var instanceId = data.instanceId;
 

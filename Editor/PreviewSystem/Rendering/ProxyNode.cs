@@ -98,7 +98,6 @@ namespace nadena.dev.ndmf.preview
             {
                 node.InvalidatedTask.ContinueWith(_ =>
                 {
-                    Debug.Log("Trigger invalidate");
                     Invalidate();
                 });
             }
@@ -109,7 +108,6 @@ namespace nadena.dev.ndmf.preview
                 context.OnInvalidate = InvalidatedTask;
                 context.Invalidate = () =>
                 {
-                    Debug.Log("Trigger invalidate");
                     Invalidate();
                 };
 
@@ -123,12 +121,10 @@ namespace nadena.dev.ndmf.preview
 
                         if (Invalidated) return null;
 
-                        Debug.Log($"Execute node " + Id + " for filter " + filter);
                         var inputMeshes = SourceNodes.Select(kvp =>
                         {
                             var node = kvp.Value;
                             var state = kvp.Value.PrepareTask.Result[kvp.Key];
-                            Debug.Log($"Input node ID " + node.Id + " mesh name " + state.Mesh?.name);
 
                             return state.Clone(Id);
                         }).ToList();
@@ -146,7 +142,6 @@ namespace nadena.dev.ndmf.preview
 
         public void Invalidate()
         {
-            Debug.Log("Invalidate");
             _invalidater.TrySetResult(null);
         }
 
