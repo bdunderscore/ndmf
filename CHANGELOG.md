@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Unity 2019 is no longer supported.
+
 ### Security
 
 ### Deprecated
