@@ -11,6 +11,11 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
 {
+    /// <summary>
+    /// TODO: Document
+    ///
+    /// (For now, this isn't very useful; use  `DeclaringPass.PreviewingWith` instead)
+    /// </summary>
     public class PreviewSession : IDisposable
     {
         #region Static State

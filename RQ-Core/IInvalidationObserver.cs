@@ -1,6 +1,6 @@
 ﻿namespace nadena.dev.ndmf.rq
 {
-    public interface IInvalidationObserver
+    internal interface IInvalidationObserver
     {
         public void OnInvalidate();
     }
