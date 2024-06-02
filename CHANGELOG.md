@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#244] - Added a framework that can be used to override the rendering of an object without modifying the object itself
+- [#244] - Added a framework for observing scene object changes and reacting to them.
+- [#244] - Added `SelfDestructComponent` (useful for hidden preview-only components)
 
 ### Fixed
 
