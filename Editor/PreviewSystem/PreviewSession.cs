@@ -57,16 +57,6 @@ namespace nadena.dev.ndmf.preview
 
         private readonly Sequencer _sequence = new Sequencer();
 
-        internal class ResolvedRegistration
-        {
-            public readonly IRenderFilter filter;
-
-            public ResolvedRegistration(IRenderFilter filter, ImmutableHashSet<Renderer> targets)
-            {
-                this.filter = filter;
-            }
-        }
-
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
 
         private ProxySession _session;

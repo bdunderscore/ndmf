@@ -108,11 +108,13 @@ namespace nadena.dev.ndmf.rq.unity.editor
                     n++;
                 } while (_pendingWork.Count > 0 && !terminationCondition());
 
+                /*
                 if (_pendingWork.Count > 0)
                 {
                     Debug.Log("Throttling SynchronizationContext: " + n + " tasks processed, " + _pendingWork.Count +
                               " remaining");
                 }
+                */
             }
 
             lock (_lock)

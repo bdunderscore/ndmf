@@ -13,6 +13,9 @@ namespace nadena.dev.ndmf.rq.unity.editor
 {
     public static class CommonQueries
     {
+        /// <summary>
+        /// Reactive value evaluating to a list of all root game objects in all loaded scenes.
+        /// </summary>
         public static ReactiveValue<ImmutableList<GameObject>> SceneRoots { get; }
             = ReactiveValue<ImmutableList<GameObject>>.Create("SceneRoots",
                 ctx =>
@@ -28,7 +31,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
                 });
 
         private static Dictionary<Type, object /* ReactiveQuery<T> */> _builderCache = new();
-
+        
         private static ReactiveQuery<Type, ImmutableList<Component>> _componentsByType
             = new("ComponentsByType",
                 async (ctx, type) =>
@@ -41,6 +44,11 @@ namespace nadena.dev.ndmf.rq.unity.editor
                     return components.ToImmutableList();
                 });
 
+        /// <summary>
+        /// Returns a reactive value that evaluates to a list of all components of the given type in the scene.
+        /// </summary>
+        /// <typeparam name="T">The type to search for</typeparam>
+        /// <returns></returns>
         public static ReactiveValue<ImmutableList<T>> GetComponentsByType<T>() where T : Component
         {
             if (!_builderCache.TryGetValue(typeof(T), out var builder))

@@ -32,6 +32,13 @@ namespace nadena.dev.ndmf.rq.unity.editor
             return obj;
         }
 
+        /// <summary>
+        /// Observes the full path from the scene root to the given transform. The calling computation will be
+        /// re-executed if any of the objects in this path are reparented.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="obj"></param>
+        /// <returns>An enumerable of transforms in the path, starting from the leaf.</returns>
         public static IEnumerable<Transform> ObservePath(this ComputeContext ctx, Transform obj)
         {
             var invalidate = ctx.Invalidate;
@@ -52,20 +59,39 @@ namespace nadena.dev.ndmf.rq.unity.editor
             }
         }
 
-        public static void ObserveTransformPosition(this ComputeContext ctx, Transform t)
+        /// <summary>
+        /// Observes the world space position of a given transform.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="t"></param>
+        public static Transform ObserveTransformPosition(this ComputeContext ctx, Transform t)
         {
             foreach (var node in ctx.ObservePath(t))
             {
                 ctx.Observe(node);
             }
+
+            return t;
         }
 
+        /// <summary>
+        /// Observes whether a given game object and all its parents are active.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static bool ActiveInHierarchy(this ComputeContext ctx, GameObject obj)
         {
             ObservePath(ctx, obj.transform);
             return obj.activeInHierarchy;
         }
 
+        /// <summary>
+        /// Observes whether a component is enabled, and its heirarchy path is active.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public static bool ActiveAndEnabled(this ComputeContext ctx, Behaviour c)
         {
             return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c).enabled;
@@ -82,23 +108,6 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
             return c;
         }
-
-        /* TODO - need to monitor for component holder
-        public static C GetComponent<C>(this ComputeContext ctx, Component obj) where C : Component
-        {
-            var invalidate = ctx.Invalidate;
-            var onInvalidate = ctx.OnInvalidate;
-
-            var objHolder = obj.gameObject;
-            var c1 = ObjectWatcher.Instance.MonitorObjectProps()
-
-            var c = ObjectWatcher.Instance.MonitorGetComponent(out var dispose, obj.gameObject, _ => invalidate(), onInvalidate, () => obj.GetComponent<C>());
-            onInvalidate.ContinueWith(_ => dispose.Dispose());
-
-            return c;
-
-        }
-        */
 
         public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type)
         {
