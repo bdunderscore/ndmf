@@ -31,6 +31,8 @@ using System.Diagnostics;
 
 // ReSharper disable UnusedType.Global
 
+// conflict with UnityEngine.CoreModule annotations
+#pragma warning disable 0436
 #pragma warning disable 1591
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
