@@ -1,5 +1,6 @@
 ﻿#region
 
+using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 
@@ -13,6 +14,12 @@ namespace nadena.dev.ndmf
         static GlobalInit()
         {
             RuntimeUtil.DelayCall = call => { EditorApplication.delayCall += () => call(); };
+
+            EditorApplication.delayCall += () =>
+            {
+                var resolver = new PluginResolver();
+                PreviewSession.Current = resolver.PreviewSession;
+            };
         }
     }
 }

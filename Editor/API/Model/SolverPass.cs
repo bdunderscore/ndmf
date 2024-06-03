@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using nadena.dev.ndmf.preview;
 
 #endregion
 
@@ -22,6 +23,7 @@ namespace nadena.dev.ndmf.model
 
         internal IImmutableSet<Type> RequiredExtensions { get; set; }
         internal IImmutableSet<string> CompatibleExtensions { get; set; }
+        internal IRenderFilter RenderFilter { get; set; }
 
         internal bool IsExtensionCompatible(Type ty)
         {
