@@ -8,9 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#244] - Added a framework that can be used to override the rendering of an object without modifying the object itself
-- [#244] - Added a framework for observing scene object changes and reacting to them.
-- [#244] - Added `SelfDestructComponent` (useful for hidden preview-only components)
 
 ### Fixed
 
@@ -18,11 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Unity 2019 is no longer supported.
-
 ### Security
 
 ### Deprecated
+
+## [1.5.0-alpha.0] - [2024-06-02]
+
+### Added
+
+- [#244] - Added a framework that can be used to override the rendering of an object without modifying the object itself
+  - NOTE: The API for this is still in flux and will likely change in further alpha releases.
+- [#244] - Added a framework for observing scene object changes and reacting to them.
+- [#244] - Added `SelfDestructComponent` (useful for hidden preview-only components)
+
+### Removed
+
+- Unity 2019 is no longer supported.
 
 ## [1.4.1] - [2024-05-12]
 
