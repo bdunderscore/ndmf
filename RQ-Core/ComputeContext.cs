@@ -56,5 +56,26 @@ namespace nadena.dev.ndmf.rq
             ct.ThrowIfCancellationRequested();
             return await compute;
         }
+
+        internal bool TryObserve<T>(ReactiveValue<T> q, out T value)
+        {
+            // capture the current invalidate function immediately, to avoid infinite invalidate loops
+            var invalidate = Invalidate;
+            var ct = CancellationToken;
+            // Propagate the invalidation to any listeners synchronously on Invalidate.
+            _ = q.Invalidated.ContinueWith(
+                _ => invalidate(), ct,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
+            );
+
+            var result = q.TryGetValue(out value);
+            if (!result)
+            {
+                q.RequestCompute().ContinueWith(_ => invalidate());
+            }
+
+            return result;
+        }
     }
 }
