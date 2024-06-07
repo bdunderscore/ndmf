@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.5.0-alpha.1] - [2024-06-06]
+
+### Changed (since alpha.0)
+
+- Redid `IRenderFilter` API
+
 ## [1.5.0-alpha.0] - [2024-06-02]
 
 ### Added

@@ -1,12 +1,11 @@
 ﻿#region
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.rq;
-using UnityEditor;
 using UnityEngine;
 
 #endregion
@@ -21,176 +20,194 @@ namespace nadena.dev.ndmf.preview
         Disposed
     }
 
+    class StageDescriptor
+    {
+        #region Initial configuration
+
+        public readonly IRenderFilter Filter;
+        public readonly ImmutableList<ImmutableList<Renderer>> Originals;
+
+        public StageDescriptor(IRenderFilter filter, ComputeContext context)
+        {
+            context.TryObserve(filter.TargetGroups, out var unsorted);
+
+            if (unsorted == null) unsorted = ImmutableList<IImmutableList<Renderer>>.Empty;
+
+            Originals = unsorted
+                .Select(group => group.OrderBy(o => o.GetInstanceID()).ToImmutableList())
+                .OrderBy(group => group.First().GetInstanceID())
+                .ToImmutableList();
+        }
+
+        #endregion
+
+        public List<Task<NodeController>> NodeTasks = new();
+    } 
+
     /// <summary>
     /// Represents a single, instantiated pipeline for building and maintaining all proxy objects.
     /// </summary>
     internal class ProxyPipeline
     {
-        private List<(IRenderFilter, ImmutableList<Renderer>)> _filterGroups;
-        private Dictionary<Renderer, List<IRenderFilter>> _rendererToFilters;
-        private ImmutableDictionary<Renderer, ProxyNode> _meshLeaves;
+        private List<StageDescriptor> _stages = new();
+        private Dictionary<Renderer, ProxyObjectController> _proxies = new();
+        private List<NodeController> _nodes = new(); // in OnFrame execution order
 
-        private TaskCompletionSource<object> _invalidater = new();
-        public Task InvalidatedTask => _invalidater.Task;
-        public bool Invalidated => InvalidatedTask.IsCompleted;
+        private Task _buildTask;
 
-        private Task BuildPipelineTask;
+        private TaskCompletionSource<object> _invalidater = new(), _completedBuild = new();
+        internal bool IsInvalidated => _invalidater.Task.IsCompleted;
 
-        private bool _disposeCalled;
-        private Task _disposeTask;
-
-        public bool BuildCompleted => BuildPipelineTask.IsCompleted;
-        public bool Aborted => BuildPipelineTask.IsCompleted && _meshLeaves == null;
-
-        public IImmutableSet<Renderer> Renderers => _meshLeaves.Keys.ToImmutableHashSet();
-
-        private IImmutableList<ProxyNodeKey> Nodes = ImmutableList<ProxyNodeKey>.Empty;
-
-        public ProxyPipeline(NodeGraph graph, IEnumerable<IRenderFilter> filters)
+        internal void Invalidate()
         {
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
-                BuildPipelineTask = Build(graph, filters).ContinueWith(t =>
+                _invalidater.TrySetResult(null);
+            }
+        }
+
+        public bool IsReady => _buildTask.IsCompletedSuccessfully;
+        public bool IsFailed => _buildTask.IsFaulted;
+
+        public IEnumerable<(Renderer, Renderer)> Renderers
+            => _proxies.Select(kvp => (kvp.Key, kvp.Value.Renderer));
+
+        public ProxyPipeline(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
+        {
+            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
+            {
+                _buildTask = Task.Factory.StartNew(
+                    _ => Build(filters, priorPipeline),
+                    null,
+                    CancellationToken.None,
+                    0,
+                    TaskScheduler.FromCurrentSynchronizationContext()
+                ).Unwrap();
+            }
+        }
+
+        private async Task Build(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline)
+        {
+            var context = new ComputeContext(() => "ProxyPipeline construction");
+            context.Invalidate = Invalidate;
+            context.OnInvalidate = _invalidater.Task;
+
+            List<IRenderFilter> filterList = filters.ToList();
+            List<StageDescriptor> priorStages = priorPipeline?._stages;
+
+            Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
+
+            for (int i = 0; i < filterList.Count(); i++)
+            {
+                // TODO: Reuse logic
+
+                var filter = filterList[i];
+                var stage = new StageDescriptor(filter, context);
+                _stages.Add(stage);
+
+                var prior = priorPipeline?._stages.ElementAtOrDefault(i);
+                if (prior?.Filter != filter)
                 {
-                    if (t.IsFaulted)
+                    prior = null;
+                }
+
+                int groupIndex = -1;
+                foreach (var group in stage.Originals)
+                {
+                    groupIndex++;
+                    var resolved = group.Select(r =>
                     {
-                        Debug.LogException(t.Exception);
-                    }
+                        if (nodeTasks.TryGetValue(r, out var task))
+                        {
+                            return task.ContinueWith(task1 => (r, task1.Result.GetProxyFor(r)));
+                        }
+                        else
+                        {
+                            var proxy = new ProxyObjectController(r);
+                            proxy.OnPreFrame();
+                            _proxies.Add(r, proxy);
+                            return Task.FromResult((r, proxy));
+                        }
+                    });
 
-                    EditorApplication.delayCall += SceneView.RepaintAll;
-                });
-            }
-        }
 
-        public void Invalidate()
-        {
-            _invalidater.TrySetResult(null);
-        }
+                    var node = Task.WhenAll(resolved).ContinueWith(items =>
+                        {
+                            // TODO - prior node handling
 
-        private async Task Build(NodeGraph graph, IEnumerable<IRenderFilter> filters)
-        {
-            var ctx = new ComputeContext(() => "Preview pipeline: Construct pipeline");
+                            return NodeController.Create(filter, items.Result.ToList());
+                        })
+                        .Unwrap();
 
-            ctx.Invalidate = () => _invalidater.TrySetResult(null);
-            ctx.OnInvalidate = InvalidatedTask;
+                    stage.NodeTasks.Add(node);
 
-            filters = filters.ToList();
-
-            _filterGroups = await CollectInterestingRenderers(filters);
-
-            _rendererToFilters = new Dictionary<Renderer, List<IRenderFilter>>();
-            foreach (var group in _filterGroups)
-            {
-                foreach (var renderer in group.Item2)
-                {
-                    if (!_rendererToFilters.TryGetValue(renderer, out var list))
+                    foreach (var renderer in group)
                     {
-                        list = new List<IRenderFilter>();
-                        _rendererToFilters.Add(renderer, list);
+                        nodeTasks[renderer] = node;
                     }
-
-                    list.Add(group.Item1);
                 }
             }
 
-            var allRenderers = _filterGroups.SelectMany(p => p.Item2).ToHashSet();
-            var nodes = ImmutableList<ProxyNodeKey>.Empty.ToBuilder();
+            await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
+                .ContinueWith(result => { _completedBuild.TrySetResult(null); });
 
-            var leaves = ImmutableDictionary<Renderer, ProxyNode>.Empty;
-            foreach (var renderer in allRenderers)
+            foreach (var stage in _stages)
             {
-                var node = graph.GetOrCreate(new ProxyNodeKey(renderer), () => new ProxyNode(renderer));
-                leaves = leaves.Add(renderer, node);
-                nodes.Add(node.Key);
-                _ = node.InvalidatedTask.ContinueWith(_ => Invalidate());
-            }
-
-            if (Invalidated)
-            {
-                // Abort ASAP
-                return;
-            }
-
-            foreach (var pair in _filterGroups)
-            {
-                var (filter, sourceRenderers) = pair;
-                var sources = sourceRenderers.Select(r => leaves[r].Id);
-                var key = new ProxyNodeKey(filter, sources);
-
-                var node = graph.GetOrCreate(key, () => new ProxyNode(filter, sourceRenderers, leaves));
-                nodes.Add(node.Key);
-                _ = node.InvalidatedTask.ContinueWith(_ => Invalidate());
-
-                foreach (var source in sourceRenderers)
+                foreach (var node in stage.NodeTasks)
                 {
-                    leaves = leaves.SetItem(source, node);
+                    _nodes.Add(await node);
                 }
             }
-
-            _meshLeaves = leaves;
-            Nodes = nodes.ToImmutable();
         }
 
-        private async Task<List<(IRenderFilter, ImmutableList<Renderer>)>> CollectInterestingRenderers(
-            IEnumerable<IRenderFilter> filters)
+        public void OnFrame()
         {
-            var ctx = new ComputeContext(() => "Preview pipeline: Collect interesting renderers");
+            if (!IsReady) return;
 
-            ctx.Invalidate = () => _invalidater.TrySetResult(null);
-            ctx.OnInvalidate = InvalidatedTask;
-
-            var result = new List<(IRenderFilter, ImmutableList<Renderer>)>();
-            foreach (var filter in filters)
+            foreach (var pair in _proxies)
             {
-                var groups = await ctx.Observe(filter.TargetGroups);
-                if (groups.Count == 0) continue;
-
-                // TODO: Validate groups are non-overlapping
-
-                foreach (var group in groups)
-                {
-                    if (group.Count == 0) continue;
-                    result.Add((filter, group.ToImmutableList()));
-                }
+                pair.Value.OnPreFrame();
             }
 
-            return result;
-        }
-
-
-        public MeshState GetState(Renderer originalRenderer)
-        {
-            if (_disposeCalled) throw new ObjectDisposedException("ProxyPipeline");
-            if (!BuildCompleted) throw new InvalidOperationException("Pipeline not ready");
-
-            if (_meshLeaves.TryGetValue(originalRenderer, out var node))
+            foreach (var node in _nodes)
             {
-                if (node.PrepareTask.IsCompleted &&
-                    node.PrepareTask.Result?.TryGetValue(originalRenderer, out var state) == true)
-                {
-                    return state;
-                }
-            }
-
-            return null;
-        }
-
-        public void RunOnFrame(Renderer original, Renderer replacement)
-        {
-            var filters = _rendererToFilters[original];
-
-            foreach (var filter in filters)
-            {
-                filter.OnFrame(original, replacement);
+                node.OnFrame();
             }
         }
 
-        public void CollectNodes(HashSet<ProxyNodeKey> toRetain)
+        public void Dispose()
         {
-            foreach (var node in Nodes)
+            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
-                toRetain.Add(node);
+                // We need to make sure this task runs on the unity main thread so it can delete the proxy objects
+                _completedBuild.Task.ContinueWith(_ =>
+                    {
+                        foreach (var stage in _stages)
+                        {
+                            foreach (var node in stage.NodeTasks)
+                            {
+                                if (node.IsCompletedSuccessfully)
+                                {
+                                    node.Result.Dispose();
+                                }
+                            }
+
+                            foreach (var proxy in _proxies.Values)
+                            {
+                                proxy.Dispose();
+                            }
+                        }
+                    },
+                    CancellationToken.None,
+                    TaskContinuationOptions.RunContinuationsAsynchronously,
+                    TaskScheduler.FromCurrentSynchronizationContext()
+                );
             }
+        }
+
+        public void ShowError()
+        {
+            Debug.LogException(_buildTask.Exception);
         }
     }
 }

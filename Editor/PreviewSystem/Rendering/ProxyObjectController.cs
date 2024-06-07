@@ -1,7 +1,6 @@
 ﻿#region
 
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -14,8 +13,6 @@ namespace nadena.dev.ndmf.preview
     {
         private readonly Renderer _originalRenderer;
         private Renderer _replacementRenderer;
-
-        internal ProxyPipeline Pipeline { get; set; }
         internal Renderer Renderer => _replacementRenderer;
         public bool IsValid => _originalRenderer != null && _replacementRenderer != null;
 
@@ -26,32 +23,30 @@ namespace nadena.dev.ndmf.preview
             CreateReplacementObject();
         }
 
-        private void UpdateRenderer()
+        internal bool OnPreFrame()
         {
-            MeshState state = Pipeline?.GetState(_originalRenderer);
-            SkinnedMeshRenderer smr = null;
-
             if (_replacementRenderer == null || _originalRenderer == null)
             {
-                Pipeline?.Invalidate();
-                return;
+                return false;
             }
 
+            SkinnedMeshRenderer smr = null;
             if (_originalRenderer is SkinnedMeshRenderer smr_)
             {
                 smr = smr_;
 
                 var replacementSMR = (SkinnedMeshRenderer)_replacementRenderer;
-                replacementSMR.sharedMesh = state?.Mesh ?? smr_.sharedMesh;
+                replacementSMR.sharedMesh = smr_.sharedMesh;
                 replacementSMR.bones = smr_.bones;
             }
             else
             {
+                var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
                 var filter = _replacementRenderer.GetComponent<MeshFilter>();
-                filter.sharedMesh = state?.Mesh ?? _originalRenderer.GetComponent<MeshFilter>().sharedMesh;
+                filter.sharedMesh = originalFilter.sharedMesh;
             }
 
-            _replacementRenderer.sharedMaterials = state?.Materials?.ToArray() ?? _originalRenderer.sharedMaterials;
+            _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
 
             var target = _replacementRenderer;
             var original = _originalRenderer;
@@ -89,7 +84,7 @@ namespace nadena.dev.ndmf.preview
             target.motionVectorGenerationMode = original.motionVectorGenerationMode;
             target.allowOcclusionWhenDynamic = original.allowOcclusionWhenDynamic;
 
-            Pipeline?.RunOnFrame(_originalRenderer, _replacementRenderer);
+            return true;
         }
 
         private bool CreateReplacementObject()
@@ -120,17 +115,6 @@ namespace nadena.dev.ndmf.preview
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns>(original, replacement renderer)</returns>
-        public (Renderer, Renderer) OnPreCull()
-        {
-            UpdateRenderer();
-
-            return (_originalRenderer, _replacementRenderer);
         }
 
         public void Dispose()

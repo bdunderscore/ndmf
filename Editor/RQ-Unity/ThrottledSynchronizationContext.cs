@@ -139,7 +139,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
             {
                 lock (_lock)
                 {
-                    CheckInvocation();
+                    CheckInvocation(d, state);
                     _remoteWork.Add(new PendingWork(d, state, null));
                     IsQueued = true;
                 }
@@ -154,7 +154,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
             }
             else
             {
-                CheckInvocation();
+                CheckInvocation(d, state);
                 var waitHandle = new ManualResetEvent(false);
                 lock (_lock)
                 {
@@ -166,13 +166,15 @@ namespace nadena.dev.ndmf.rq.unity.editor
             }
         }
 
-        private void CheckInvocation()
+        private void CheckInvocation(SendOrPostCallback d, object state)
         {
+            /*
             if (Thread.CurrentThread.ManagedThreadId != _owningThreadId) return;
             if (Current == this) return;
 
             Debug.LogWarning(
-                "Work was enqueued into ThrottledSynchronizationContext from a foreign task. This can result in deadlocks!");
+                "Work was enqueued into ThrottledSynchronizationContext from a foreign task. This can result in deadlocks! callback=" + d + " state=" + state);
+                */
         }
 
         private class PendingWork

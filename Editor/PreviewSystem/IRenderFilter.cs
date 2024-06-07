@@ -3,153 +3,120 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.rq;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 #endregion
 
 namespace nadena.dev.ndmf.preview
 {
-    /// <summary>
-    /// Represents the current state of a mesh. IRenderFilters mutate this state in order to perform heavyweight portions
-    /// of a preview rendering operation.
-    ///
-    /// TODO: This API is likely to change radically in future alpha releases.
-    /// </summary>
-    public sealed class MeshState
-    {
-        internal long NodeId { get; }
-
-        /// <summary>
-        /// The original renderer that this MeshState was born from
-        /// </summary>
-        public Renderer Original { get; }
-
-        private bool _meshIsOwned;
-        private Mesh _mesh;
-
-        /// <summary>
-        /// The current mesh associated with this renderer. Important: When setting this value, you must set to a _new_
-        /// mesh. This new mesh will be destroyed when the preview state is recomputed.
-        /// </summary>
-        public Mesh Mesh
-        {
-            get => _mesh;
-            set
-            {
-                _meshIsOwned = true;
-                _mesh = value;
-                if (_mesh != null) _mesh.name = "Mesh #" + NodeId;
-            }
-        }
-
-        private bool _materialsAreOwned;
-        private ImmutableList<Material> _materials;
-
-        /// <summary>
-        /// The materials associated with this mesh. Important: When setting this value, you must set to a list of entirely
-        /// _new_ materials. These new materials will be destroyed when the preview state is recomputed.
-        /// </summary>
-        public ImmutableList<Material> Materials
-        {
-            get => _materials;
-            set
-            {
-                _materials = value;
-                _materialsAreOwned = true;
-            }
-        }
-
-        /// <summary>
-        /// An event which will be invoked when the mesh state is discarded. This can be used to destroy any resources
-        /// you've created other than Meshes and Materials - e.g. textures.
-        /// </summary>
-        public event Action OnDispose;
-
-        private bool _disposed = false;
-
-        internal MeshState(Renderer renderer)
-        {
-            Original = renderer;
-
-            if (renderer is SkinnedMeshRenderer smr)
-            {
-                Mesh = Object.Instantiate(smr.sharedMesh);
-            }
-            else if (renderer is MeshRenderer mr)
-            {
-                Mesh = Object.Instantiate(mr.GetComponent<MeshFilter>().sharedMesh);
-            }
-
-            Materials = renderer.sharedMaterials.Select(m => new Material(m)).ToImmutableList();
-        }
-
-        private MeshState(MeshState state, long nodeId)
-        {
-            Original = state.Original;
-            _mesh = state._mesh;
-            _materials = state._materials;
-            NodeId = nodeId;
-        }
-
-        // Not IDisposable as we don't want to expose that as a public API
-        internal void Dispose()
-        {
-            if (_disposed) return;
-
-            if (_meshIsOwned) Object.DestroyImmediate(Mesh);
-            if (_materialsAreOwned)
-            {
-                foreach (var material in Materials)
-                {
-                    Object.DestroyImmediate(material);
-                }
-            }
-
-            OnDispose?.Invoke();
-        }
-
-        internal MeshState Clone(long nodeId)
-        {
-            return new MeshState(this, nodeId);
-        }
-    }
-
-    /// <summary>
-    /// An interface implemented by components which need to modify the appearance of a renderer for preview purposes.
-    /// </summary>
     public interface IRenderFilter
     {
-        /// <summary>
-        /// A list of lists of renderers this filter operates on. The outer list is a list of renderer groups; each
-        /// group of renderers will be passed to this filter as one unit, allowing for cross-renderer operation such
-        /// as texture atlasing.
-        /// </summary>
         public ReactiveValue<IImmutableList<IImmutableList<Renderer>>> TargetGroups { get; }
 
         /// <summary>
-        /// Performs any heavyweight operations required to prepare the renderers for preview. This method is called
-        /// once when the preview pipeline is set up. You can use the attached ComputeContext to arrange for the
-        /// preview pipeline to be recomputed when something changes with the initial state of the renderer.
+        /// Instantiates a node in the preview graph. This operation is used when creating a new proxy renderer, and may
+        /// perform relatively heavyweight operations to prepare the Mesh, Materials, and Textures for the renderer. It
+        /// may not modify other aspects of the renderer; however, these can be done in the OnFrame callback in the
+        /// returned IRenderFilterNode.
+        ///
+        /// When making changes to meshes, textures, and materials, this node must create new instances of these objects,
+        /// and destroy them in `IRenderFilterNode.Dispose`.
         /// </summary>
-        /// <param name="state"></param>
-        /// <param name="context"></param>
+        /// <param name="proxyPairs">An enumerable of (original, proxy) renderer pairs</param>
+        /// <param name="context">A compute context that is used to track which values your code depended on in
+        /// configuring this node. Changing these values will triger a recomputation of this node.</param>
         /// <returns></returns>
-        public Task MutateMeshData(IList<MeshState> state, ComputeContext context)
+        public Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context);
+    }
+
+    public interface IRenderFilterNode : IDisposable
+    {
+        /// <summary>
+        /// The sharedMesh value
+        /// </summary>
+        public const ulong Mesh = 1;
+
+        /// <summary>
+        /// Materials and their properties
+        /// </summary>
+        public const ulong Material = 2;
+
+        /// <summary>
+        /// The contents of the textures bound to materials
+        /// </summary>
+        public const ulong Texture = 4;
+
+        /// <summary>
+        /// Blendshapes and the bones array
+        /// </summary>
+        public const ulong Shapes = 8;
+
+        public const ulong Everything = Mesh | Material | Texture | Shapes;
+
+        /// <summary>
+        /// Indicates which static aspects of a renderer this node examines. Changes to these aspects will trigger a
+        /// rebuild or partial update of this node.
+        /// </summary>
+        public ulong Reads { get; }
+
+        /// <summary>
+        /// Indicates which aspects of a renderer this node changed, relative to the node prior to the last Update
+        /// call. This may trigger updates of downstream nodes.
+        ///
+        /// This value is ignored on the first generation of the node, created from `IRenderFilter.Instantiate`.
+        /// </summary>
+        public ulong WhatChanged { get; }
+
+        /// <summary>
+        /// Recreates this RenderFilterNode, with a new set of target renderers. The node _may_ reuse state, including
+        /// things such as output RenderTextures, from its prior run. It may also fast-fail and return null; in this
+        /// case, the preview pipeline will create a new node from its original `IRenderFilter` instead. Finally,
+        /// it may return itself; in this case, it will continue to be used with the new renderers. 
+        ///
+        /// This function is passed a list of original-proxy object pairs, which are guaranteed to have the same
+        /// original objects, in the same order, as the initial call to Instantiate, but will have new proxy objects.
+        /// It is also passed an update flags field, which indicates which upstream nodes have changed since the last
+        /// update. This may be zero if the update was triggered by an invalidation on the compute context for this
+        /// node itself.
+        ///
+        /// As with `IRenderFilter.Instantiate`, the OnFrame effects of prior stages in the pipeline will be applied
+        /// before invoking this function. This ensures any changes to bones, blendshapes, etc will be reflected in this
+        /// mesh.
+        ///
+        /// This function must not destroy the original Node. If it chooses to share resources with the original node,
+        /// those resources must not be released until both old and new nodes are destroyed.
+        /// </summary>
+        /// <param name="proxyPairs"></param>
+        /// <param name="context"></param>
+        /// <param name="updateFlags"></param>
+        /// <returns></returns>
+        public Task<IRenderFilterNode> Refresh(
+            IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context,
+            ulong updateFlags
+        )
         {
-            return Task.CompletedTask;
+            return Task.FromResult<IRenderFilterNode>(null);
         }
 
         /// <summary>
-        /// Called on each frame to perform lighter-weight operations on the renderers, such as manipulating blend shapes
-        /// or the bones array. 
+        /// Invoked on each frame, and may modify the target renderers bound to this render filter node. Generally,
+        /// you should not modify the mesh or materials in this method, but you may change other properties, such as
+        /// the bones array, blend shapes, or the active state of the renderer. These properties will be reset to the
+        /// original renderer state on each frame.
+        ///
+        /// This function is passed the original and replacement renderers, and is invoked for each renderer in question.
+        /// If an original renderer is destroyed, OnFrame will be called only on remaining renderers, until the preview
+        /// pipeline rebuild is completed.
         /// </summary>
-        /// <param name="original"></param>
-        /// <param name="proxy"></param>
         public void OnFrame(Renderer original, Renderer proxy)
+        {
+        }
+
+        void IDisposable.Dispose()
         {
         }
     }
