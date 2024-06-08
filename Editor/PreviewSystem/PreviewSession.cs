@@ -50,7 +50,7 @@ namespace nadena.dev.ndmf.preview
         {
             return _session?.OnPreCull() ?? Enumerable.Empty<(Renderer, Renderer)>();
         }
-
+        
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>
             _session?.OriginalToProxyRenderer ?? ImmutableDictionary<Renderer, Renderer>.Empty;
 
@@ -59,7 +59,7 @@ namespace nadena.dev.ndmf.preview
 
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =>
             _session?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
-
+        
         private readonly Sequencer _sequence = new Sequencer();
 
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();

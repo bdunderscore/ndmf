@@ -19,17 +19,14 @@ namespace nadena.dev.ndmf.preview
 
         private IDisposable _unsubscribe;
 
-        private Dictionary<Renderer, ProxyObjectController> _proxyControllers = new();
-        private List<(Renderer, Renderer)> activeRenderers = new();
+        internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>
+            _active?.OriginalToProxyRenderer ?? ImmutableDictionary<Renderer, Renderer>.Empty;
 
-        internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
-            ImmutableDictionary<Renderer, Renderer>.Empty;
+        internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =>
+            _active?.OriginalToProxyObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
-        internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty;
-
-        internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty;
+        internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =>
+            _active?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
         public ProxySession(ReactiveValue<ImmutableList<IRenderFilter>> filters)
         {
