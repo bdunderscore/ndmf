@@ -58,6 +58,15 @@ namespace nadena.dev.ndmf.preview
         private TaskCompletionSource<object> _invalidater = new(), _completedBuild = new();
         internal bool IsInvalidated => _invalidater.Task.IsCompleted;
 
+        internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
+            ImmutableDictionary<Renderer, Renderer>.Empty;
+
+        internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =
+            ImmutableDictionary<GameObject, GameObject>.Empty;
+
+        internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
+            ImmutableDictionary<GameObject, GameObject>.Empty;
+        
         internal void Invalidate()
         {
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
@@ -126,6 +135,11 @@ namespace nadena.dev.ndmf.preview
                             var proxy = new ProxyObjectController(r);
                             proxy.OnPreFrame();
                             _proxies.Add(r, proxy);
+
+                            OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
+                            OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
+                            ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
+                            
                             return Task.FromResult((r, proxy));
                         }
                     });

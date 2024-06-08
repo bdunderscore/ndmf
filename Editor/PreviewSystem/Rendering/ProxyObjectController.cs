@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -11,11 +12,20 @@ namespace nadena.dev.ndmf.preview
 {
     internal class ProxyObjectController : IDisposable
     {
+        private static HashSet<int> _proxyObjectInstanceIds = new();
+        
         private readonly Renderer _originalRenderer;
         private Renderer _replacementRenderer;
         internal Renderer Renderer => _replacementRenderer;
         public bool IsValid => _originalRenderer != null && _replacementRenderer != null;
 
+        public static bool IsProxyObject(GameObject obj)
+        {
+            if (obj == null) return false;
+
+            return _proxyObjectInstanceIds.Contains(obj.GetInstanceID());
+        }
+        
         public ProxyObjectController(Renderer originalRenderer)
         {
             _originalRenderer = originalRenderer;
@@ -90,6 +100,7 @@ namespace nadena.dev.ndmf.preview
         private bool CreateReplacementObject()
         {
             var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
+            _proxyObjectInstanceIds.Add(replacementGameObject.GetInstanceID());
             replacementGameObject.hideFlags = HideFlags.DontSave;
 
 #if MODULAR_AVATAR_DEBUG_HIDDEN
@@ -121,6 +132,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (_replacementRenderer != null)
             {
+                _proxyObjectInstanceIds.Remove(_replacementRenderer.gameObject.GetInstanceID());
                 Object.DestroyImmediate(_replacementRenderer.gameObject);
                 _replacementRenderer = null;
             }

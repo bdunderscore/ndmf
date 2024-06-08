@@ -146,7 +146,7 @@ namespace nadena.dev.ndmf.preview
             var pptrValue = p_pptrValue.GetValue(hierarchyProperty);
             if (pptrValue == null) return false;
 
-            var skip = sess.ProxyToOriginalObject.ContainsKey((GameObject)pptrValue);
+            var skip = ProxyObjectController.IsProxyObject(pptrValue as GameObject);
             if (skip) skipped++;
 
             return skip;
