@@ -99,6 +99,8 @@ namespace nadena.dev.ndmf.preview
 
         private bool CreateReplacementObject()
         {
+            if (_originalRenderer == null) return false;
+            
             var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
             _proxyObjectInstanceIds.Add(replacementGameObject.GetInstanceID());
             replacementGameObject.hideFlags = HideFlags.DontSave;
