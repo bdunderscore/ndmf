@@ -27,6 +27,7 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
@@ -123,13 +124,6 @@ namespace nadena.dev.ndmf
             // it can still start moving around stale bone references.
             var tmpObject = new GameObject();
             
-#if CVR_CCK_EXISTS
-            // ChilloutVR is not a package, and does not have an assembly definition.
-            var t_CVRAvatar = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.FullName == "ABI.CCK.Components.CVRAvatar");
-#endif
-
             // Note that we need to recreate animators from the bottom up. This ensures that certain hacks where
             // animators animate other animators work properly (e.g. https://github.com/hfcRed/Among-Us-Follower/tree/main)
             foreach (var animator in avatar.GetComponentsInChildren<Animator>(true).Reverse())
@@ -142,17 +136,17 @@ namespace nadena.dev.ndmf
                 var tmpAnimator = tmpObject.AddComponent<Animator>();
                 bool enabled = animator.enabled;
 
-#if CVR_CCK_EXISTS
-                var cvrAvatar = t_CVRAvatar != null ? animator.GetComponent(t_CVRAvatar) : null;
-                var tmpCvrAvatar = cvrAvatar != null ? tmpObject.AddComponent(t_CVRAvatar) : null;
-                if (cvrAvatar != null)
+                // Support components that need to be destroyed before the Animator is destroyed,
+                // such as ChilloutVR's CVRAvatar component.
+                var tmpComponentsRequiringAnimator = new List<Component>();
+                foreach (var componentRequiringAnimator in FindSiblingComponentsRequiringAnimator(animator))
                 {
-                    // CVRAvatar has a RequireComponent annotation for Animator.
-                    // Destroy this first before destroying the Animator.
-                    EditorUtility.CopySerialized(cvrAvatar, tmpCvrAvatar);
-                    UnityObject.DestroyImmediate(cvrAvatar);
+                    var tmpComponentRequiringAnimator = tmpObject.AddComponent(componentRequiringAnimator.GetType());
+                    tmpComponentsRequiringAnimator.Add(tmpComponentRequiringAnimator);
+                    EditorUtility.CopySerialized(componentRequiringAnimator, tmpComponentRequiringAnimator);
+                    // Destroy this first before destroying the Animator below.
+                    UnityObject.DestroyImmediate(componentRequiringAnimator);
                 }
-#endif
 
                 EditorUtility.CopySerialized(animator, tmpAnimator);
                 UnityObject.DestroyImmediate(animator);
@@ -161,23 +155,37 @@ namespace nadena.dev.ndmf
                 EditorUtility.CopySerialized(tmpAnimator, newAnimator);
                 newAnimator.enabled = enabled;
                 
-#if CVR_CCK_EXISTS
-                if (tmpCvrAvatar != null)
+                foreach (var tmpComponentRequiringAnimator in tmpComponentsRequiringAnimator)
                 {
-                    var newCvrAvatar = obj.AddComponent(t_CVRAvatar);
-                    EditorUtility.CopySerialized(tmpCvrAvatar, newCvrAvatar);
-                    // CVRAvatar has a RequireComponent annotation for Animator.
-                    // Even in the temporary object, destroy this first before destroying the Animator.
-                    UnityObject.DestroyImmediate(tmpCvrAvatar);
+                    var newComponent = obj.AddComponent(tmpComponentRequiringAnimator.GetType());
+                    EditorUtility.CopySerialized(tmpComponentRequiringAnimator, newComponent);
+                    // Even in the temporary object, destroy this first before destroying the Animator below.
+                    UnityObject.DestroyImmediate(tmpComponentRequiringAnimator);
                 }
-#endif
                     
                 UnityObject.DestroyImmediate(tmpAnimator);
             }
             
             UnityObject.DestroyImmediate(tmpObject);
         }
-        
+
+        private static IEnumerable<Component> FindSiblingComponentsRequiringAnimator(Animator animator)
+        {
+            return animator.GetComponents<Component>()
+                // GetComponents may return null elements on unloaded MonoBehaviour scripts
+                .Where(component => component != null)
+                .Where(component =>
+                {
+                    var requiresAnimator = component.GetType()
+                        .GetCustomAttributes(typeof(RequireComponent), true)
+                        .Cast<RequireComponent>()
+                        .Any(requireComponent => requireComponent.m_Type0 == typeof(Animator)
+                                                 || requireComponent.m_Type1 == typeof(Animator)
+                                                 || requireComponent.m_Type2 == typeof(Animator));
+                    return requiresAnimator;
+                });
+        }
+
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
             if (obj == PlayModeStateChange.EnteredPlayMode)
