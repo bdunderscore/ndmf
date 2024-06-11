@@ -123,6 +123,13 @@ namespace nadena.dev.ndmf
             // it can still start moving around stale bone references.
             var tmpObject = new GameObject();
             
+#if CVR_CCK_EXISTS
+            // ChilloutVR is not a package, and does not have an assembly definition.
+            var t_CVRAvatar = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.FullName == "ABI.CCK.Components.CVRAvatar");
+#endif
+
             // Note that we need to recreate animators from the bottom up. This ensures that certain hacks where
             // animators animate other animators work properly (e.g. https://github.com/hfcRed/Among-Us-Follower/tree/main)
             foreach (var animator in avatar.GetComponentsInChildren<Animator>(true).Reverse())
@@ -135,12 +142,35 @@ namespace nadena.dev.ndmf
                 var tmpAnimator = tmpObject.AddComponent<Animator>();
                 bool enabled = animator.enabled;
 
+#if CVR_CCK_EXISTS
+                var cvrAvatar = t_CVRAvatar != null ? animator.GetComponent(t_CVRAvatar) : null;
+                var tmpCvrAvatar = cvrAvatar != null ? tmpObject.AddComponent(t_CVRAvatar) : null;
+                if (cvrAvatar != null)
+                {
+                    // CVRAvatar has a RequireComponent annotation for Animator.
+                    // Destroy this first before destroying the Animator.
+                    EditorUtility.CopySerialized(cvrAvatar, tmpCvrAvatar);
+                    UnityObject.DestroyImmediate(cvrAvatar);
+                }
+#endif
+
                 EditorUtility.CopySerialized(animator, tmpAnimator);
                 UnityObject.DestroyImmediate(animator);
                 var newAnimator = obj.AddComponent<Animator>();
                 newAnimator.enabled = false;
                 EditorUtility.CopySerialized(tmpAnimator, newAnimator);
                 newAnimator.enabled = enabled;
+                
+#if CVR_CCK_EXISTS
+                if (tmpCvrAvatar != null)
+                {
+                    var newCvrAvatar = obj.AddComponent(t_CVRAvatar);
+                    EditorUtility.CopySerialized(tmpCvrAvatar, newCvrAvatar);
+                    // CVRAvatar has a RequireComponent annotation for Animator.
+                    // Even in the temporary object, destroy this first before destroying the Animator.
+                    UnityObject.DestroyImmediate(tmpCvrAvatar);
+                }
+#endif
                     
                 UnityObject.DestroyImmediate(tmpAnimator);
             }
