@@ -113,6 +113,11 @@ namespace nadena.dev.ndmf.runtime
 
             // Check if Lyuma's Av3Emulator is present and enabled; if so, we leave preprocessing up to it.
             if (Av3EmuStatusChecker.IsAv3EmuActive()) return;
+            
+#if CVR_CCK_EXISTS
+            // If the ChilloutVR SDK is installed and this is the upload dialog UI, don't process the avatar.
+            if (EditorPrefs.GetBool("m_ABI_isBuilding")) return;
+#endif
 
             foreach (var avatar in RuntimeUtil.FindAvatarsInScene(gameObject.scene))
             {
