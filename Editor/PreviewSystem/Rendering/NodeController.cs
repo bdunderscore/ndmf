@@ -60,7 +60,7 @@ namespace nadena.dev.ndmf.preview
             var invalidater = new TaskCompletionSource<object>();
 
             ComputeContext context = new ComputeContext(() => filter.ToString());
-            context.Invalidate = () => invalidater.SetResult(null);
+            context.Invalidate = () => invalidater.TrySetResult(null);
             context.OnInvalidate = invalidater.Task;
 
             var node = await filter.Instantiate(
