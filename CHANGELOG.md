@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#257] Proxy renderers no longer appear in the hierarchy.
 - [#260] [ChilloutVR] Fix: Build fails due to CVRAvatar preventing recreation of Animator (contributed by @hai-vr)
+- [#261] [ChilloutVR] feat: don't build the avatar when ChilloutVR shows the upload UI (contributed by @hai-vr)
 
 ### Changed
 
