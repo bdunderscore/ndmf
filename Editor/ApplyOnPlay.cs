@@ -27,6 +27,7 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
@@ -135,19 +136,56 @@ namespace nadena.dev.ndmf
                 var tmpAnimator = tmpObject.AddComponent<Animator>();
                 bool enabled = animator.enabled;
 
+                // Support components that need to be destroyed before the Animator is destroyed,
+                // such as ChilloutVR's CVRAvatar component.
+                var tmpComponentsRequiringAnimator = new List<Component>();
+                foreach (var componentRequiringAnimator in FindSiblingComponentsRequiringAnimator(animator))
+                {
+                    var tmpComponentRequiringAnimator = tmpObject.AddComponent(componentRequiringAnimator.GetType());
+                    tmpComponentsRequiringAnimator.Add(tmpComponentRequiringAnimator);
+                    EditorUtility.CopySerialized(componentRequiringAnimator, tmpComponentRequiringAnimator);
+                    // Destroy this first before destroying the Animator below.
+                    UnityObject.DestroyImmediate(componentRequiringAnimator);
+                }
+
                 EditorUtility.CopySerialized(animator, tmpAnimator);
                 UnityObject.DestroyImmediate(animator);
                 var newAnimator = obj.AddComponent<Animator>();
                 newAnimator.enabled = false;
                 EditorUtility.CopySerialized(tmpAnimator, newAnimator);
                 newAnimator.enabled = enabled;
+                
+                foreach (var tmpComponentRequiringAnimator in tmpComponentsRequiringAnimator)
+                {
+                    var newComponent = obj.AddComponent(tmpComponentRequiringAnimator.GetType());
+                    EditorUtility.CopySerialized(tmpComponentRequiringAnimator, newComponent);
+                    // Even in the temporary object, destroy this first before destroying the Animator below.
+                    UnityObject.DestroyImmediate(tmpComponentRequiringAnimator);
+                }
                     
                 UnityObject.DestroyImmediate(tmpAnimator);
             }
             
             UnityObject.DestroyImmediate(tmpObject);
         }
-        
+
+        private static IEnumerable<Component> FindSiblingComponentsRequiringAnimator(Animator animator)
+        {
+            return animator.GetComponents<Component>()
+                // GetComponents may return null elements on unloaded MonoBehaviour scripts
+                .Where(component => component != null)
+                .Where(component =>
+                {
+                    var requiresAnimator = component.GetType()
+                        .GetCustomAttributes(typeof(RequireComponent), true)
+                        .Cast<RequireComponent>()
+                        .Any(requireComponent => requireComponent.m_Type0 == typeof(Animator)
+                                                 || requireComponent.m_Type1 == typeof(Animator)
+                                                 || requireComponent.m_Type2 == typeof(Animator));
+                    return requiresAnimator;
+                });
+        }
+
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
             if (obj == PlayModeStateChange.EnteredPlayMode)
