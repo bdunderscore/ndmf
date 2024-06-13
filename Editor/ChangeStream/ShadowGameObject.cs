@@ -345,9 +345,9 @@ namespace nadena.dev.ndmf.rq.unity.editor
         {
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
             {
+                _gameObjects.Remove(instanceId);
                 shadow._listeners.Fire(HierarchyEvent.ForceInvalidate);
                 FireParentComponentChangeNotifications(shadow.Parent);
-                _gameObjects.Remove(instanceId);
 
                 var parentGameObject = shadow.Parent?.GameObject;
 
@@ -366,6 +366,13 @@ namespace nadena.dev.ndmf.rq.unity.editor
                 {
                     ActivateShadowObject(gameObject);
                 }
+            }
+
+            if (_otherObjects.TryGetValue(instanceId, out var otherObj))
+            {
+                Debug.Log("Invalidate OtherObject (" + instanceId + " " + otherObj.Object.GetType() + ")");
+                _otherObjects.Remove(instanceId);
+                otherObj._listeners.Fire(HierarchyEvent.ForceInvalidate);
             }
         }
 
