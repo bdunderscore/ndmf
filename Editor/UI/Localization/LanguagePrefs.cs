@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.localization
         private static void Init()
         {
             // Exiting playmode destroys the dynamic font assets we create, so we need to recreate and reapply them.
-            Language = EditorPrefs.GetString(EditorPrefKey, "en-us").ToLowerInvariant();
+            Language = EditorPrefs.GetString(EditorPrefKey, GetSystemLanguage()).ToLowerInvariant();
             EditorApplication.playModeStateChanged += evt =>
             {
                 foreach (var fontCallback in _fontUpdateCallbacks.Values)
@@ -42,6 +42,25 @@ namespace nadena.dev.ndmf.localization
                     fontCallback();
                 }
             };
+        }
+
+        private static string GetSystemLanguage()
+        {
+            switch (Application.systemLanguage)
+            {
+                case SystemLanguage.Japanese:
+                    return "ja-jp";
+                case SystemLanguage.Chinese:
+                    return "zh-hans";
+                case SystemLanguage.ChineseSimplified:
+                    return "zh-hans";
+                case SystemLanguage.ChineseTraditional:
+                    return "zh-hant";
+                case SystemLanguage.Korean:
+                    return "ko-kr";
+                default:
+                    return "en-us";
+            }
         }
 
         /// <summary>
