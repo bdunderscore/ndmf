@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.rq;
 using UnityEngine;
 
@@ -11,24 +13,106 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
 {
+    /// <summary>
+    /// A group of renderers that will be processed together.
+    /// </summary>
+    [PublicAPI]
+    public class RenderGroup
+    {
+        public ImmutableList<Renderer> Renderers { get; }
+
+        internal RenderGroup(ImmutableList<Renderer> renderers)
+        {
+            Renderers = renderers;
+        }
+
+        public static RenderGroup For(IEnumerable<Renderer> renderers)
+        {
+            return new(renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList());
+        }
+
+        public static RenderGroup For(Renderer renderer)
+        {
+            return new(ImmutableList.Create(renderer));
+        }
+
+        public RenderGroup WithData<T>(T data)
+        {
+            return new RenderGroup<T>(Renderers, data);
+        }
+
+        public T GetData<T>()
+        {
+            return ((RenderGroup<T>)this).Context;
+        }
+
+        protected bool Equals(RenderGroup other)
+        {
+            return Equals(Renderers, other.Renderers);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((RenderGroup)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Renderers != null ? Renderers.GetHashCode() : 0);
+        }
+    }
+
+    internal sealed class RenderGroup<T> : RenderGroup
+    {
+        public T Context { get; }
+
+        internal RenderGroup(ImmutableList<Renderer> renderers, T context) : base(renderers)
+        {
+            Context = context;
+        }
+
+        private bool Equals(RenderGroup<T> other)
+        {
+            return base.Equals(other) && EqualityComparer<T>.Default.Equals(Context, other.Context);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is RenderGroup<T> other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ EqualityComparer<T>.Default.GetHashCode(Context);
+            }
+        }
+    }
+
+    [PublicAPI]
     public interface IRenderFilter
     {
-        public ReactiveValue<IImmutableList<IImmutableList<Renderer>>> TargetGroups { get; }
+        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; }
 
         /// <summary>
         /// Instantiates a node in the preview graph. This operation is used when creating a new proxy renderer, and may
         /// perform relatively heavyweight operations to prepare the Mesh, Materials, and Textures for the renderer. It
         /// may not modify other aspects of the renderer; however, these can be done in the OnFrame callback in the
         /// returned IRenderFilterNode.
-        ///
+        /// 
         /// When making changes to meshes, textures, and materials, this node must create new instances of these objects,
         /// and destroy them in `IRenderFilterNode.Dispose`.
         /// </summary>
+        /// <param name="group"></param>
         /// <param name="proxyPairs">An enumerable of (original, proxy) renderer pairs</param>
         /// <param name="context">A compute context that is used to track which values your code depended on in
-        /// configuring this node. Changing these values will triger a recomputation of this node.</param>
+        ///     configuring this node. Changing these values will triger a recomputation of this node.</param>
         /// <returns></returns>
-        public Task<IRenderFilterNode> Instantiate(IEnumerable<(Renderer, Renderer)> proxyPairs,
+        public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context);
     }
 

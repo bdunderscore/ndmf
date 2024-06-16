@@ -18,6 +18,7 @@ namespace nadena.dev.ndmf.preview
             public int Count = 1;
         }
 
+        private readonly RenderGroup _group;
         private readonly IRenderFilter _filter;
         private readonly IRenderFilterNode _node;
         private readonly List<(Renderer, ProxyObjectController)> _proxies;
@@ -34,6 +35,7 @@ namespace nadena.dev.ndmf.preview
         }
 
         private NodeController(
+            RenderGroup group,
             IRenderFilterNode node,
             List<(Renderer, ProxyObjectController)> proxies,
             RefCount refCount,
@@ -41,6 +43,7 @@ namespace nadena.dev.ndmf.preview
             ComputeContext context
         )
         {
+            _group = group;
             _node = node;
             _proxies = proxies;
             _refCount = refCount;
@@ -64,6 +67,7 @@ namespace nadena.dev.ndmf.preview
 
         public static async Task<NodeController> Create(
             IRenderFilter filter,
+            RenderGroup group,
             List<(Renderer, ProxyObjectController)> proxies)
         {
             var invalidater = new TaskCompletionSource<object>();
@@ -73,11 +77,12 @@ namespace nadena.dev.ndmf.preview
             context.OnInvalidate = invalidater.Task;
 
             var node = await filter.Instantiate(
+                group,
                 proxies.Select(p => (p.Item1, p.Item2.Renderer)),
                 context
             );
 
-            return new NodeController(node, proxies, new RefCount(), invalidater.Task, context);
+            return new NodeController(group, node, proxies, new RefCount(), invalidater.Task, context);
         }
 
         public async Task<NodeController> Refresh(
@@ -105,14 +110,14 @@ namespace nadena.dev.ndmf.preview
             }
             else if (node == null)
             {
-                return await Create(_filter, proxies);
+                return await Create(_filter, _group, proxies);
             }
             else
             {
                 refCount = new RefCount();
             }
 
-            var controller = new NodeController(node, proxies, refCount, invalidater.Task, context);
+            var controller = new NodeController(_group, node, proxies, refCount, invalidater.Task, context);
             controller.WhatChanged = changes | node.WhatChanged;
             return controller;
         }
