@@ -26,17 +26,17 @@ namespace nadena.dev.ndmf.preview
         #region Initial configuration
 
         public readonly IRenderFilter Filter;
-        public readonly ImmutableList<ImmutableList<Renderer>> Originals;
+        public readonly ImmutableList<RenderGroup> Originals;
 
         public StageDescriptor(IRenderFilter filter, ComputeContext context)
         {
             context.TryObserve(filter.TargetGroups, out var unsorted);
 
-            if (unsorted == null) unsorted = ImmutableList<IImmutableList<Renderer>>.Empty;
+            if (unsorted == null) unsorted = ImmutableList<RenderGroup>.Empty;
+            Originals = unsorted;
 
             Originals = unsorted
-                .Select(group => group.OrderBy(o => o.GetInstanceID()).ToImmutableList())
-                .OrderBy(group => group.First().GetInstanceID())
+                .OrderBy(group => group.Renderers.First().GetInstanceID())
                 .ToImmutableList();
         }
 
@@ -135,7 +135,7 @@ namespace nadena.dev.ndmf.preview
                 foreach (var group in stage.Originals)
                 {
                     groupIndex++;
-                    var resolved = group.Select(r =>
+                    var resolved = group.Renderers.Select(r =>
                     {
                         if (nodeTasks.TryGetValue(r, out var task))
                         {
@@ -160,13 +160,13 @@ namespace nadena.dev.ndmf.preview
                         {
                             // TODO - prior node handling
 
-                            return NodeController.Create(filter, items.Result.ToList());
+                            return NodeController.Create(filter, group, items.Result.ToList());
                         })
                         .Unwrap();
 
                     stage.NodeTasks.Add(node);
 
-                    foreach (var renderer in group)
+                    foreach (var renderer in group.Renderers)
                     {
                         nodeTasks[renderer] = node;
                     }
