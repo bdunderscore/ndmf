@@ -14,7 +14,8 @@ namespace nadena.dev.ndmf.rq.unity.editor
     public static class CommonQueries
     {
         /// <summary>
-        /// Reactive value evaluating to a list of all root game objects in all loaded scenes.
+        /// Reactive value evaluating to a list of all root game objects in all loaded scenes. Excludes objects with
+        /// nonzero hide flags.
         /// </summary>
         public static ReactiveValue<ImmutableList<GameObject>> SceneRoots { get; }
             = ReactiveValue<ImmutableList<GameObject>>.Create("SceneRoots",
@@ -46,6 +47,8 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
         /// <summary>
         /// Returns a reactive value that evaluates to a list of all components of the given type in the scene.
+        /// Excludes components found on a hidden game object, or under a hidden scene root (where hidden means
+        /// hideFlags are nonzero)
         /// </summary>
         /// <typeparam name="T">The type to search for</typeparam>
         /// <returns></returns>
