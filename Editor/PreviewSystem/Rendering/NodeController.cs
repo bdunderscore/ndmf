@@ -22,7 +22,11 @@ namespace nadena.dev.ndmf.preview
         private readonly IRenderFilterNode _node;
         private readonly List<(Renderer, ProxyObjectController)> _proxies;
         private readonly RefCount _refCount;
+
+        // ReSharper disable once NotAccessedField.Local
+        private readonly ComputeContext _context; // prevents GC
         internal ulong WhatChanged = IRenderFilterNode.Everything;
+        internal Task OnInvalidate;
 
         internal ProxyObjectController GetProxyFor(Renderer r)
         {
@@ -32,12 +36,17 @@ namespace nadena.dev.ndmf.preview
         private NodeController(
             IRenderFilterNode node,
             List<(Renderer, ProxyObjectController)> proxies,
-            RefCount refCount
+            RefCount refCount,
+            Task invalidated,
+            ComputeContext context
         )
         {
             _node = node;
             _proxies = proxies;
             _refCount = refCount;
+            _context = context;
+
+            OnInvalidate = invalidated;
 
             OnFrame();
         }
@@ -68,7 +77,7 @@ namespace nadena.dev.ndmf.preview
                 context
             );
 
-            return new NodeController(node, proxies, new RefCount());
+            return new NodeController(node, proxies, new RefCount(), invalidater.Task, context);
         }
 
         public async Task<NodeController> Refresh(
@@ -103,7 +112,7 @@ namespace nadena.dev.ndmf.preview
                 refCount = new RefCount();
             }
 
-            var controller = new NodeController(node, proxies, refCount);
+            var controller = new NodeController(node, proxies, refCount, invalidater.Task, context);
             controller.WhatChanged = changes | node.WhatChanged;
             return controller;
         }

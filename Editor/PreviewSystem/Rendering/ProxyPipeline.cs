@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -66,14 +67,21 @@ namespace nadena.dev.ndmf.preview
 
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
             ImmutableDictionary<GameObject, GameObject>.Empty;
+
+        // ReSharper disable once NotAccessedField.Local
+        // needed to prevent GC of the ComputeContext
+        private ComputeContext _ctx;
         
         internal void Invalidate()
         {
+            Debug.Log("=== pipeline invalidate ===");
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
                 _invalidater.TrySetResult(null);
             }
         }
+
+        private readonly Action InvalidateAction;
 
         public bool IsReady => _buildTask.IsCompletedSuccessfully;
         public bool IsFailed => _buildTask.IsFaulted;
@@ -83,6 +91,8 @@ namespace nadena.dev.ndmf.preview
 
         public ProxyPipeline(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
         {
+            InvalidateAction = Invalidate;
+            
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
                 _buildTask = Task.Factory.StartNew(
@@ -98,8 +108,9 @@ namespace nadena.dev.ndmf.preview
         private async Task Build(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline)
         {
             var context = new ComputeContext(() => "ProxyPipeline construction");
-            context.Invalidate = Invalidate;
+            context.Invalidate = InvalidateAction;
             context.OnInvalidate = _invalidater.Task;
+            _ctx = context; // prevent GC
 
             List<IRenderFilter> filterList = filters.ToList();
             List<StageDescriptor> priorStages = priorPipeline?._stages;
@@ -169,7 +180,9 @@ namespace nadena.dev.ndmf.preview
             {
                 foreach (var node in stage.NodeTasks)
                 {
-                    _nodes.Add(await node);
+                    var resolvedNode = await node;
+                    _nodes.Add(resolvedNode);
+                    _ = resolvedNode.OnInvalidate.ContinueWith(_ => Invalidate());
                 }
             }
         }
