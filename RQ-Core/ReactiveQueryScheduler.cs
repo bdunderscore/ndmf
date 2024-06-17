@@ -22,14 +22,17 @@ namespace nadena.dev.ndmf.rq
             get
             {
                 var oldContext = SynchronizationContext.Current;
+                TaskScheduler scheduler;
                 if (SynchronizationContextOverride.Value != null)
                 {
                     SynchronizationContext.SetSynchronizationContext(SynchronizationContextOverride.Value);
+                    scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                    SynchronizationContext.SetSynchronizationContext(oldContext);
                 }
-
-                var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
-                SynchronizationContext.SetSynchronizationContext(oldContext);
+                else
+                {
+                    scheduler = TaskScheduler.Default;
+                }
 
                 return scheduler;
             }

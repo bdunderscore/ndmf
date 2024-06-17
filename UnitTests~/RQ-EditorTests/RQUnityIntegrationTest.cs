@@ -1,12 +1,13 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using nadena.dev.ndmf.rq;
 using nadena.dev.ndmf.rq.StandaloneTests;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace UnitTests.EditorTests
 {
@@ -32,6 +33,9 @@ namespace UnitTests.EditorTests
         [Test]
         public async Task ReactiveQueriesThrottle()
         {
+            // flush any existing tasks...
+            await Task.Delay(250);
+            
             int startedCount = 0;
             List<Task<int>> queries = new List<Task<int>>();
 
@@ -39,21 +43,27 @@ namespace UnitTests.EditorTests
 
             for (int i = 0; i < 10; i++)
             {
+                Stopwatch sw = new();
                 queries.Insert(0, ReactiveValue<int>.Create("", async ctx =>
                 {
                     Interlocked.Increment(ref startedCount);
-                    //.Debug.Log("sleep start");
+                    // Debug.Log("sleep start");
                     Thread.Sleep(50);
-                    //Debug.Log("sleep end");
+                    // Debug.Log("sleep end;thread: " + Thread.CurrentThread.ManagedThreadId);
+                    sw.Start();
                     return 1;
                 }).GetValueAsync().ContinueWith(t =>
                 {
-                    //Debug.Log("Task complete");
+                    sw.Stop();
+                    // Debug.Log("Task complete; elapsed: " + sw.ElapsedMilliseconds + "ms on thread: " +
+                    //           Thread.CurrentThread.ManagedThreadId);
                     return t.Result;
-                }));
+                }, TaskContinuationOptions.ExecuteSynchronously));
             }
             
-            await Task.Delay(25);//.ContinueWith(_ => Debug.Log("Delay complete"));
+            Debug.Log("=== Delay start ===");
+            await Task.Delay(100);//.ContinueWith(_ => Debug.Log("Delay complete"));
+            Debug.Log("=== Delay end ===");
             
             var completedCount = queries.Count(q => q.IsCompleted);
             Debug.Log("Completed: " + completedCount);

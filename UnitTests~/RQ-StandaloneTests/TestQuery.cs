@@ -6,6 +6,8 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
 {
     internal class TestQuery<T> : ReactiveValue<T>
     {
+        private static int COUNT = 0;
+        private int n = COUNT++;
         private Func<ComputeContext, Task<T>> _value;
 
         public Func<ComputeContext, Task<T>> Value
@@ -30,7 +32,7 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
 
         public override string ToString()
         {
-            return "TestQuery";
+            return "TestQuery " + n;
         }
     }
 }
