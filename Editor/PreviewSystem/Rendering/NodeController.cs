@@ -24,10 +24,10 @@ namespace nadena.dev.ndmf.preview
         private readonly List<(Renderer, ProxyObjectController)> _proxies;
         private readonly RefCount _refCount;
 
-        // ReSharper disable once NotAccessedField.Local
-        private readonly ComputeContext _context; // prevents GC
+        private readonly ComputeContext _context;
         internal ulong WhatChanged = IRenderFilterNode.Everything;
-        internal Task OnInvalidate;
+
+        internal Task OnInvalidate => _context.OnInvalidate;
 
         internal ProxyObjectController GetProxyFor(Renderer r)
         {
@@ -39,7 +39,6 @@ namespace nadena.dev.ndmf.preview
             IRenderFilterNode node,
             List<(Renderer, ProxyObjectController)> proxies,
             RefCount refCount,
-            Task invalidated,
             ComputeContext context
         )
         {
@@ -48,10 +47,10 @@ namespace nadena.dev.ndmf.preview
             _proxies = proxies;
             _refCount = refCount;
             _context = context;
-
-            OnInvalidate = invalidated;
-
+            
             OnFrame();
+
+            ///OnInvalidate.ContinueWith(_ => Debug.Log("=== Node invalidated: " + _node.ToString()));
         }
 
         internal void OnFrame()
@@ -70,19 +69,15 @@ namespace nadena.dev.ndmf.preview
             RenderGroup group,
             List<(Renderer, ProxyObjectController)> proxies)
         {
-            var invalidater = new TaskCompletionSource<object>();
-
             ComputeContext context = new ComputeContext(() => filter.ToString());
-            context.Invalidate = () => invalidater.TrySetResult(null);
-            context.OnInvalidate = invalidater.Task;
-
+         
             var node = await filter.Instantiate(
                 group,
                 proxies.Select(p => (p.Item1, p.Item2.Renderer)),
                 context
             );
 
-            return new NodeController(group, node, proxies, new RefCount(), invalidater.Task, context);
+            return new NodeController(group, node, proxies, new RefCount(), context);
         }
 
         public async Task<NodeController> Refresh(
@@ -90,11 +85,7 @@ namespace nadena.dev.ndmf.preview
             ulong changes
         )
         {
-            var invalidater = new TaskCompletionSource<object>();
-
             ComputeContext context = new ComputeContext(() => _node.ToString());
-            context.Invalidate = () => invalidater.SetResult(null);
-            context.OnInvalidate = invalidater.Task;
 
             var node = await _node.Refresh(
                 proxies.Select(p => (p.Item1, p.Item2.Renderer)),
@@ -117,7 +108,7 @@ namespace nadena.dev.ndmf.preview
                 refCount = new RefCount();
             }
 
-            var controller = new NodeController(_group, node, proxies, refCount, invalidater.Task, context);
+            var controller = new NodeController(_group, node, proxies, refCount, context);
             controller.WhatChanged = changes | node.WhatChanged;
             return controller;
         }

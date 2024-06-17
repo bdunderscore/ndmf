@@ -61,30 +61,51 @@ namespace nadena.dev.ndmf.rq
     /// <typeparam name="T"></typeparam>
     public abstract class ReactiveValue<T> : IObservable<T>
     {
-        [PublicAPI] protected virtual TaskScheduler TaskScheduler { get; } = ReactiveQueryScheduler.TaskScheduler;
+        /*
+         * RV works by having a permanent task looping to update the value on invalidation.
+         * This works as follows:
+         *
+         * loop {
+         *   waitAll(invalidated, updateRequested);
+         *   lock { updatedRequested, invalidated reset }
+         *   compute value
+         *   lock { set new changed; notify changed }
+         * }
+         *
+         * If nothing holds a reference to the RV or its tasks, this loop will be GC'd as well.
+         */
+
+
+        [PublicAPI] protected virtual TaskScheduler TaskScheduler { get; }
 
         #region State
 
         private object _lock = new();
 
         // Locked by _lock
-        private long _invalidationCount = 0;
+        private Task _invalidated = Task.CompletedTask;
+        private Action _forceInvalidate = () => { };
+        private TaskCompletionSource<object> _updateRequested = new();
+        private TaskCompletionSource<T> _changed = new();
 
-        private CancellationToken _cancellationToken = CancellationToken.None;
-        private Task _cancelledTask = null;
-        private TaskCompletionSource<object> _invalidated = null;
-
-        private bool _currentValueIsValid = false;
-
-        private Task<T> _valueTask = null;
-
-        // Used to drive DestroyObsoleteValue
+        // Used to drive DestroyObsoleteValue and TryGetValue
         private T _currentValue = default;
+        private bool _currentValueIsValid = false;
         private Exception _currentValueException = null;
 
         #endregion
 
         #region Public API
+
+        protected ReactiveValue()
+        {
+            Task.Factory.StartNew(UpdateLoop);
+
+            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
+            {
+                TaskScheduler = ReactiveQueryScheduler.TaskScheduler;
+            }
+        }
 
         private class SimpleValue<T> : ReactiveValue<T>
         {
@@ -142,16 +163,17 @@ namespace nadena.dev.ndmf.rq
         {
             lock (_lock)
             {
+                if (!_currentValueIsValid || _invalidated.IsCompleted)
+                {
+                    _updateRequested.TrySetResult(null);
+                    value = default;
+                    return false;
+                }
+                
                 value = _currentValue;
                 if (_currentValueException != null)
                 {
                     throw _currentValueException;
-                }
-
-                if (!_currentValueIsValid)
-                {
-                    RequestCompute();
-                    return false;
                 }
 
                 return true;
@@ -162,40 +184,76 @@ namespace nadena.dev.ndmf.rq
         /// Returns a Task which will resolve to the query's latest value.
         /// </summary>
         /// <returns></returns>
-        public async Task<T> GetValueAsync()
+        public Task<T> GetValueAsync()
         {
-            while (true)
+            Task<T> next;
+            lock (_lock)
             {
-                try
+                if (_currentValueIsValid && !_invalidated.IsCompleted)
                 {
-                    return await RequestCompute();
+                    if (_currentValueException != null)
+                    {
+                        return Task.FromException<T>(_currentValueException);
+                    }
+
+                    return Task.FromResult(_currentValue);
                 }
-                catch (TaskCanceledException e)
-                {
-                    continue;
-                }
+
+                next = Changed;
             }
+
+            return next;
         }
 
         /// <summary>
-        /// Returns a task which will complete the next time this task is invalidated. 
+        /// Returns a task which will complete (with the updated value) the next time this value is computed or updated.
+        /// Reading this property ensures that the value will be recomputed on the next invalidation (or ASAP, if it is
+        /// currently invalidated).  
         /// </summary>
-        public Task Invalidated
+        public Task<T> Changed
         {
             get
             {
                 lock (_lock)
                 {
-                    if (_invalidated == null)
+                    if (_changed == null)
                     {
-                        _invalidated = new TaskCompletionSource<object>();
+                        _changed = new TaskCompletionSource<T>();
                     }
 
-                    return _invalidated.Task;
+                    _updateRequested.TrySetResult(null);
+
+                    return _changed.Task;
                 }
             }
         }
 
+        /// <summary>
+        /// Waits for a value to be available; returns it (wrapped in a task), as well as another task which represents
+        /// the subsequent value update.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<(Task<T>, Task<T>)> GetCurrentAndNext()
+        {
+            while (true)
+            {
+                Task to_wait;
+                lock (_lock)
+                {
+                    if (_currentValueIsValid && !_invalidated.IsCompleted)
+                    {
+                        return (GetValueAsync(), Changed);
+                    }
+
+                    to_wait = ((Task)Changed)
+                        // suppress exceptions, we just want to wait for the task to complete
+                        .ContinueWith(_ => { }, TaskContinuationOptions.ExecuteSynchronously);
+                }
+
+                await to_wait;
+            }
+        }
+        
         #endregion
 
         #region IObservable<T> API
@@ -255,7 +313,7 @@ namespace nadena.dev.ndmf.rq
             {
                 _observers.Add(observerContext);
 
-                if (_currentValueIsValid)
+                if (_currentValueIsValid && !_invalidated.IsCompleted)
                 {
                     var cv = _currentValue;
                     var ex = _currentValueException;
@@ -274,7 +332,7 @@ namespace nadena.dev.ndmf.rq
                 }
                 else
                 {
-                    RequestCompute();
+                    _updateRequested.TrySetResult(null);
                 }
             }
 
@@ -308,7 +366,10 @@ namespace nadena.dev.ndmf.rq
         /// </summary>
         public void Invalidate()
         {
-            Invalidate(-1);
+            lock (_lock)
+            {
+                _forceInvalidate();
+            }
         }
 
         #endregion
@@ -339,72 +400,49 @@ namespace nadena.dev.ndmf.rq
 
         #region Internal API
 
-        internal void Invalidate(long expectedSeq)
-        {
-            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
-            {
-                TaskCompletionSource<object> invalidationToken = null;
-
-                lock (_lock)
-                {
-                    if (expectedSeq == _invalidationCount || expectedSeq == -1)
-                    {
-                        if (_valueTask != null && !_valueTask.IsCompleted)
-                        {
-                            _cancelledTask = _valueTask;
-                        }
-
-                        invalidationToken = _invalidated;
-                        _invalidated = null;
-                        _invalidationCount++;
-                        _valueTask = null;
-
-                        _currentValueIsValid = false;
-                    }
-
-                    if (_observers.Count > 0)
-                    {
-                        RequestCompute();
-
-                        foreach (var observer in _observers)
-                        {
-                            observer.Invoke(o => (o as IInvalidationObserver)?.OnInvalidate());
-                        }
-                    }
-                }
-
-                // This triggers invalidation of downstream queries (as well as potentially other user code), so drop the
-                // lock before invoking it...
-                invalidationToken?.SetResult(null);
-            }
-        }
-
-        internal async Task<T> ComputeInternal(ComputeContext context)
+        private async Task<T> Compute0(ComputeContext context)
         {
             await TaskThrottle.MaybeThrottle();
+            return await Compute(context);
+        }
 
-            long seq = _invalidationCount;
-
-            Task cancelledTask;
+        private async Task UpdateLoop0()
+        {
+            Task barrier;
             lock (_lock)
             {
-                cancelledTask = _cancelledTask;
-                _cancelledTask = null;
-
-                context.OnInvalidate = Invalidated;
+                barrier = Task.WhenAll(_invalidated, _updateRequested.Task);
             }
 
-            // Ensure we don't ever have multiple instances of the same RQ computation running in parallel
-            if (cancelledTask != null)
+            await barrier;
+
+            var context = new ComputeContext(ToString);
+            lock (_lock)
             {
-                await cancelledTask.ContinueWith(_ => { }); // swallow exceptions
+                _invalidated = context.OnInvalidate;
+                _forceInvalidate = context.Invalidate;
+                // We keep running updates as long as we have observers; otherwise,
+                // we need to see someone query OnChanged before we bother updating.
+                if (_observers.Count == 0)
+                {
+                    _updateRequested = new TaskCompletionSource<object>();
+                }
             }
 
             T result;
             ExceptionDispatchInfo e;
             try
             {
-                result = await Compute(context);
+                using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
+                {
+                    result = await Task.Factory.StartNew(
+                        () => Compute0(context),
+                        context.CancellationToken,
+                        TaskCreationOptions.None,
+                        TaskScheduler
+                    ).Unwrap();
+                }
+
                 e = null;
             }
             catch (Exception ex)
@@ -412,75 +450,51 @@ namespace nadena.dev.ndmf.rq
                 result = default;
                 e = ExceptionDispatchInfo.Capture(ex);
             }
-
-            Console.WriteLine("ComputeInternal: before lock");
+            
             lock (_lock)
             {
-                if (_invalidationCount == seq)
+                if (e != null)
                 {
-                    if (e == null && !ReferenceEquals(result, _currentValue))
+                    _changed?.TrySetException(e.SourceException);
+                }
+                else
+                {
+                    _changed?.TrySetResult(result);
+                }
+
+                _changed = null;
+
+                _currentValue = result;
+                _currentValueException = e?.SourceException;
+                _currentValueIsValid = true;
+
+                Action<IObserver<T>> op = observer =>
+                {
+                    if (e != null)
                     {
-                        DestroyObsoleteValue(_currentValue);
+                        observer.OnError(e.SourceException);
                     }
-
-                    _currentValue = result;
-                    _currentValueException = e?.SourceException;
-                    _currentValueIsValid = true;
-
-                    Action<IObserver<T>> op = observer =>
+                    else
                     {
-                        if (e != null)
-                        {
-                            observer.OnError(e.SourceException);
-                        }
-                        else
-                        {
-                            observer.OnNext(result);
-                        }
-                    };
-
-                    Console.WriteLine("ComputeInternal: before observers");
-                    foreach (var observer in _observers)
-                    {
-                        observer.Invoke(op);
+                        observer.OnNext(result);
                     }
+                };
+
+                foreach (var observer in _observers)
+                {
+                    observer.Invoke(op);
                 }
             }
-
-            Console.WriteLine("ComputeInternal: before exit");
-            e?.Throw();
-            return result;
         }
 
-        internal Task<T> RequestCompute()
+        private async Task UpdateLoop()
         {
-            lock (_lock)
+            while (true)
             {
-                if (_valueTask == null)
-                {
-                    var context = new ComputeContext(() => ToString());
-
-                    var invalidateSeq = _invalidationCount;
-                    context.Invalidate = () => Invalidate(invalidateSeq);
-                    // TODO: arrange for cancellation when we invalidate the task
-                    context.CancellationToken = new CancellationToken();
-
-                    using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
-                    {
-                        // _context.Activate();
-                        _valueTask = Task.Factory.StartNew(
-                            () => ComputeInternal(context),
-                            context.CancellationToken,
-                            TaskCreationOptions.None,
-                            TaskScheduler
-                        ).Unwrap();
-                    }
-                }
-
-                return _valueTask;
+                await UpdateLoop0();
             }
         }
-
+        
         #endregion
     }
 }

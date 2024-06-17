@@ -56,8 +56,7 @@ namespace nadena.dev.ndmf.preview
 
         private Task _buildTask;
 
-        private TaskCompletionSource<object> _invalidater = new(), _completedBuild = new();
-        internal bool IsInvalidated => _invalidater.Task.IsCompleted;
+        private TaskCompletionSource<object> _completedBuild = new();
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
             ImmutableDictionary<Renderer, Renderer>.Empty;
@@ -70,13 +69,15 @@ namespace nadena.dev.ndmf.preview
 
         // ReSharper disable once NotAccessedField.Local
         // needed to prevent GC of the ComputeContext
-        private ComputeContext _ctx;
+        private ComputeContext _ctx = new(() => "ProxyPipeline");
+        internal bool IsInvalidated => _ctx.OnInvalidate.IsCompleted;
         
         internal void Invalidate()
         {
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
-                _invalidater.TrySetResult(null);
+                _ctx.Invalidate();
+                //Debug.Log("=== Invalidate ProxyPipeline ok: + " + IsInvalidated + " ===");
             }
         }
 
@@ -107,8 +108,6 @@ namespace nadena.dev.ndmf.preview
         private async Task Build(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline)
         {
             var context = new ComputeContext(() => "ProxyPipeline construction");
-            context.Invalidate = InvalidateAction;
-            context.OnInvalidate = _invalidater.Task;
             _ctx = context; // prevent GC
 
             List<IRenderFilter> filterList = filters.ToList();

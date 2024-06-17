@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace nadena.dev.ndmf.rq.StandaloneTests
 {
@@ -46,10 +47,13 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
             var q2 = new TestQuery<int>(async ctx => await ctx.Observe(q1));
             
             Assert.AreEqual(1, await q2.GetValueAsync().Timeout());
+
+            var changed = q2.Changed;
             
             value = 2;
             q1.Invalidate();
             
+            Assert.AreEqual(2, await changed.Timeout());
             Assert.AreEqual(2, await q2.GetValueAsync().Timeout());
         }
         
@@ -76,7 +80,7 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             var q = new TestQuery<int>(_ => tcs.Task);
 
-            var task = q.GetValueAsync();
+            var pair = q.GetCurrentAndNext();
             await Task.Delay(100);
             
             q.Value = _ => Task.FromResult(42);
@@ -86,7 +90,8 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
             Assert.IsFalse(task2.IsCompleted);
             
             tcs.SetResult(123);
-            Assert.AreEqual(42, await task2.Timeout(100));
+            await pair.Timeout();
+            Assert.AreEqual(42, await pair.Result.Item2.Timeout());
         }
 
         [Test]
@@ -98,12 +103,14 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
             var q3 = new TestQuery<int>(async ctx => await ctx.Observe(q1) + await ctx.Observe(q2));
             
             Assert.AreEqual(3, await q3.GetValueAsync().Timeout());
+            var c = q3.Changed;
             
             q2.Value = _ => Task.FromResult(30);
-            Assert.AreEqual(31, await q3.GetValueAsync().Timeout());
+            Assert.AreEqual(31, await c.Timeout());
+            c = q3.Changed;
             
             q1.Value = _ => Task.FromResult(10);
-            Assert.AreEqual(40, await q3.GetValueAsync().Timeout());
+            Assert.AreEqual(40, await c.Timeout());
         }
 
         [Test]
@@ -128,17 +135,22 @@ namespace nadena.dev.ndmf.rq.StandaloneTests
                 else
                 {
                     Console.WriteLine("L4");
-                    return 0;
+                    return -(counter++);
                 }
             });
-            
-            Assert.AreEqual(1, await q2.GetValueAsync().Timeout());
+
+            var c = q2.Changed;
+            Assert.AreEqual(1, await c.Timeout());
             q1.Invalidate();
-            Assert.AreEqual(2, await q2.GetValueAsync().Timeout());
+            c = q2.Changed;
+            Assert.AreEqual(2, await c.Timeout());
+            c = q2.Changed;
             shouldCheck.Value = _ => Task.FromResult(false);
-            Assert.AreEqual(0, await q2.GetValueAsync().Timeout());
+            Assert.AreEqual(-3, await c.Timeout());
+            c = q2.Changed;
             q1.Invalidate();
-            Assert.AreEqual(0, await q2.GetValueAsync().Timeout());
+            
+            Assert.IsTrue(await c.Timeout(250).ContinueWith(t => t.IsFaulted));
         }
     }
 }
