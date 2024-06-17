@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#256] Certain CommonQueries now ignore hidden and unsaved objects, to avoid infinite update loops.
 - [#269] ReactiveValues now invalidate only after their dependencies finish computation
+- [#258] The `WhatChanged` and `Reads` flags on `IRenderFilter` are now of an enum type `RenderAspects`
 
 ### Removed
 
