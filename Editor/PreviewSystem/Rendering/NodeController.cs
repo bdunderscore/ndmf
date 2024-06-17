@@ -25,7 +25,7 @@ namespace nadena.dev.ndmf.preview
         private readonly RefCount _refCount;
 
         private readonly ComputeContext _context;
-        internal ulong WhatChanged = IRenderFilterNode.Everything;
+        internal RenderAspects WhatChanged = RenderAspects.Everything;
 
         internal Task OnInvalidate => _context.OnInvalidate;
 
@@ -82,7 +82,7 @@ namespace nadena.dev.ndmf.preview
 
         public async Task<NodeController> Refresh(
             List<(Renderer, ProxyObjectController)> proxies,
-            ulong changes
+            RenderAspects changes
         )
         {
             ComputeContext context = new ComputeContext(() => _node.ToString());

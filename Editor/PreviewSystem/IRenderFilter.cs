@@ -116,35 +116,36 @@ namespace nadena.dev.ndmf.preview
             ComputeContext context);
     }
 
-    public interface IRenderFilterNode : IDisposable
+    public enum RenderAspects
     {
         /// <summary>
-        /// The sharedMesh value
+        /// The sharedMesh property of a renderer or mesh filter
         /// </summary>
-        public const ulong Mesh = 1;
-
+        Mesh = 1,
         /// <summary>
-        /// Materials and their properties
+        /// The sharedMaterials property of a renderer
         /// </summary>
-        public const ulong Material = 2;
-
+        Material = 2,
         /// <summary>
-        /// The contents of the textures bound to materials
+        /// A texture referenced by a material, or the contents of a render texture
         /// </summary>
-        public const ulong Texture = 4;
-
+        Texture = 4,
         /// <summary>
-        /// Blendshapes and the bones array
+        /// Blendshapes or bones of a skinned mesh renderer
         /// </summary>
-        public const ulong Shapes = 8;
+        Shapes = 8,
 
-        public const ulong Everything = Mesh | Material | Texture | Shapes;
 
+        Everything = 0x7FFFFFFF
+    }
+
+    public interface IRenderFilterNode : IDisposable
+    {
         /// <summary>
         /// Indicates which static aspects of a renderer this node examines. Changes to these aspects will trigger a
         /// rebuild or partial update of this node.
         /// </summary>
-        public ulong Reads { get; }
+        public RenderAspects Reads { get; }
 
         /// <summary>
         /// Indicates which aspects of a renderer this node changed, relative to the node prior to the last Update
@@ -152,7 +153,7 @@ namespace nadena.dev.ndmf.preview
         ///
         /// This value is ignored on the first generation of the node, created from `IRenderFilter.Instantiate`.
         /// </summary>
-        public ulong WhatChanged { get; }
+        public RenderAspects WhatChanged { get; }
 
         /// <summary>
         /// Recreates this RenderFilterNode, with a new set of target renderers. The node _may_ reuse state, including
@@ -175,12 +176,12 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <param name="proxyPairs"></param>
         /// <param name="context"></param>
-        /// <param name="updateFlags"></param>
+        /// <param name="updatedAspects"></param>
         /// <returns></returns>
         public Task<IRenderFilterNode> Refresh(
             IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context,
-            ulong updateFlags
+            RenderAspects updatedAspects
         )
         {
             return Task.FromResult<IRenderFilterNode>(null);
