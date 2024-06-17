@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-alpha.2] - [2024-06-16]
+
+### Added
+
 - [#255] Added support for passing context information along with preview target groups.
 
 ### Fixed
@@ -23,12 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#256] Certain CommonQueries now ignore hidden and unsaved objects, to avoid infinite update loops.
 - [#269] ReactiveValues now invalidate only after their dependencies finish computation
 - [#258] The `WhatChanged` and `Reads` flags on `IRenderFilter` are now of an enum type `RenderAspects`
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-alpha.1] - [2024-06-06]
 
