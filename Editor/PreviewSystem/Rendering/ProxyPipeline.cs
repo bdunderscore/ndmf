@@ -74,7 +74,6 @@ namespace nadena.dev.ndmf.preview
         
         internal void Invalidate()
         {
-            Debug.Log("=== pipeline invalidate ===");
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
                 _invalidater.TrySetResult(null);

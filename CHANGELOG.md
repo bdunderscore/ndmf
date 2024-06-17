@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#256] Certain CommonQueries now ignore hidden and unsaved objects, to avoid infinite update loops.
+
 ### Removed
 
 ### Security

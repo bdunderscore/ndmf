@@ -114,6 +114,10 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
                 foreach (var go in scene.GetRootGameObjects())
                 {
+                    if (go.hideFlags != 0)
+                    {
+                        continue;
+                    }
                     roots.Add(go);
                 }
             }
@@ -193,9 +197,14 @@ namespace nadena.dev.ndmf.rq.unity.editor
         }
 
         public C[] MonitorGetComponents<T, C>(out IDisposable cancel, GameObject obj, Action<T> callback, T target,
-            Func<C[]> get, bool includeChildren) where T : class
+            Func<C[]> get0, bool includeChildren) where T : class
         {
             cancel = default;
+
+            Func<C[]> get = () => get0().Where(c =>
+                (c as Component)?.hideFlags == 0 &&
+                (c as Component)?.gameObject.hideFlags == 0
+            ).ToArray();
 
             C[] components = get();
 
