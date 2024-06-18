@@ -50,14 +50,15 @@ namespace nadena.dev.ndmf.localization
             {
                 case SystemLanguage.Japanese:
                     return "ja-jp";
-                case SystemLanguage.Chinese:
-                    return "zh-hans";
                 case SystemLanguage.ChineseSimplified:
                     return "zh-hans";
                 case SystemLanguage.ChineseTraditional:
                     return "zh-hant";
                 case SystemLanguage.Korean:
                     return "ko-kr";
+                case SystemLanguage.Chinese:
+                    // fall through - this case is ambiguous and culturally sensitive, so we'll treat this case as an
+                    // unknown language.
                 default:
                     return "en-us";
             }
