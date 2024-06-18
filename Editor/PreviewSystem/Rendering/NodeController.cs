@@ -25,9 +25,11 @@ namespace nadena.dev.ndmf.preview
         private readonly RefCount _refCount;
 
         private readonly ComputeContext _context;
+        
         internal RenderAspects WhatChanged = RenderAspects.Everything;
-
+        internal RenderGroup Group => _group;
         internal Task OnInvalidate => _context.OnInvalidate;
+        internal bool IsInvalidated => OnInvalidate.IsCompleted;
 
         internal ProxyObjectController GetProxyFor(Renderer r)
         {
@@ -35,6 +37,7 @@ namespace nadena.dev.ndmf.preview
         }
 
         private NodeController(
+            IRenderFilter filter,
             RenderGroup group,
             IRenderFilterNode node,
             List<(Renderer, ProxyObjectController)> proxies,
@@ -42,6 +45,7 @@ namespace nadena.dev.ndmf.preview
             ComputeContext context
         )
         {
+            _filter = filter;
             _group = group;
             _node = node;
             _proxies = proxies;
@@ -77,7 +81,7 @@ namespace nadena.dev.ndmf.preview
                 context
             );
 
-            return new NodeController(group, node, proxies, new RefCount(), context);
+            return new NodeController(filter, group, node, proxies, new RefCount(), context);
         }
 
         public async Task<NodeController> Refresh(
@@ -87,11 +91,24 @@ namespace nadena.dev.ndmf.preview
         {
             ComputeContext context = new ComputeContext(() => _node.ToString());
 
-            var node = await _node.Refresh(
-                proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                context,
-                changes
-            );
+            IRenderFilterNode node;
+
+            if (changes == 0 && !IsInvalidated)
+            {
+                // Reuse the old node in its entirety
+                node = _node;
+                context = _context;
+                Debug.Log("=== Reusing node " + _node);
+            }
+            else
+            {
+                node = await _node.Refresh(
+                    proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                    context,
+                    changes
+                );
+                Debug.Log("=== Refreshing node " + _node + " with changes " + changes + "; success? " + (node != null) + " same? " + (node == _node));
+            }
 
             RefCount refCount;
             if (node == _node)
@@ -108,8 +125,14 @@ namespace nadena.dev.ndmf.preview
                 refCount = new RefCount();
             }
 
-            var controller = new NodeController(_group, node, proxies, refCount, context);
+            var controller = new NodeController(_filter, _group, node, proxies, refCount, context);
             controller.WhatChanged = changes | node.WhatChanged;
+
+            foreach (var proxy in proxies)
+            {
+                proxy.Item2.ChangeFlags |= node.WhatChanged;
+            }
+            
             return controller;
         }
 

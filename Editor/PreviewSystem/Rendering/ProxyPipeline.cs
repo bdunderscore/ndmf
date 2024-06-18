@@ -30,6 +30,8 @@ namespace nadena.dev.ndmf.preview
 
         public StageDescriptor(IRenderFilter filter, ComputeContext context)
         {
+            Filter = filter;
+            
             context.TryObserve(filter.TargetGroups, out var unsorted);
 
             if (unsorted == null) unsorted = ImmutableList<RenderGroup>.Empty;
@@ -89,14 +91,14 @@ namespace nadena.dev.ndmf.preview
         public IEnumerable<(Renderer, Renderer)> Renderers
             => _proxies.Select(kvp => (kvp.Key, kvp.Value.Renderer));
 
-        public ProxyPipeline(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
+        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
         {
             InvalidateAction = Invalidate;
             
             using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
             {
                 _buildTask = Task.Factory.StartNew(
-                    _ => Build(filters, priorPipeline),
+                    _ => Build(proxyCache, filters, priorPipeline),
                     null,
                     CancellationToken.None,
                     0,
@@ -105,7 +107,8 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        private async Task Build(IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline)
+        private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
+            ProxyPipeline priorPipeline)
         {
             var context = new ComputeContext(() => "ProxyPipeline construction");
             _ctx = context; // prevent GC
@@ -141,7 +144,12 @@ namespace nadena.dev.ndmf.preview
                         }
                         else
                         {
-                            var proxy = new ProxyObjectController(r);
+                            ProxyObjectController priorProxy = null;
+                            priorPipeline?._proxies.TryGetValue(r, out priorProxy);
+                            
+                            var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
+                            proxy.OnInvalidate.ContinueWith(_ => InvalidateAction(),
+                                TaskContinuationOptions.ExecuteSynchronously);
                             proxy.OnPreFrame();
                             _proxies.Add(r, proxy);
 
@@ -153,12 +161,27 @@ namespace nadena.dev.ndmf.preview
                         }
                     });
 
+                    var priorNode = prior?.NodeTasks.ElementAtOrDefault(groupIndex);
+                    if (priorNode?.IsCompletedSuccessfully != true || !Equals(priorNode?.Result.Group, group))
+                    {
+                        priorNode = null;
+                    }
 
-                    var node = Task.WhenAll(resolved).ContinueWith(items =>
+                    var node = Task.WhenAll(resolved).ContinueWith(async items =>
                         {
-                            // TODO - prior node handling
+                            var proxies = items.Result.ToList();
+                            var key = (group, filter);
 
-                            return NodeController.Create(filter, group, items.Result.ToList());
+                            if (priorNode != null)
+                            {
+                                RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
+                                    .Aggregate((a, b) => a | b);
+
+                                var node = await priorNode.Result.Refresh(proxies, changeFlags);
+                                if (node != null) return node;
+                            }
+                            
+                            return await NodeController.Create(filter, group, items.Result.ToList());
                         })
                         .Unwrap();
 

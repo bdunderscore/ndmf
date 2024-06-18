@@ -26,6 +26,11 @@ namespace nadena.dev.ndmf.preview
             Renderers = renderers;
         }
 
+        internal RenderGroup WithoutData()
+        {
+            return new RenderGroup(Renderers);
+        }
+
         public static RenderGroup For(IEnumerable<Renderer> renderers)
         {
             return new(renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList());
@@ -116,6 +121,7 @@ namespace nadena.dev.ndmf.preview
             ComputeContext context);
     }
 
+    [Flags]
     public enum RenderAspects
     {
         /// <summary>
