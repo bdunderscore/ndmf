@@ -1,0 +1,6 @@
+﻿msgid ""
+msgstr ""
+"Language: zh-Hans\n"
+
+#: This file is kept just so the zh-Hans (chinese simplified) language is registered, so that we can safely default to
+#: it. However, we do not yet have any community translations for this language.
