@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#266] NDMF language defaults to being based on the system language.
+
 ### Removed
 
 ### Security
