@@ -4,6 +4,7 @@ using System.Linq;
 using nadena.dev.ndmf.rq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.preview
 {
@@ -90,9 +91,11 @@ namespace nadena.dev.ndmf.preview
 
         private static void DestroyProxy(Renderer proxy)
         {
+            if (proxy == null) return;
+            
             var gameObject = proxy.gameObject;
             _proxyObjectInstanceIds.Remove(gameObject.GetInstanceID());
-            UnityEngine.Object.DestroyImmediate(gameObject);
+            Object.DestroyImmediate(gameObject);
         }
 
         private void Cleanup()
@@ -103,7 +106,7 @@ namespace nadena.dev.ndmf.preview
             {
                 if (entry.Value.InactiveProxy != null)
                 {
-                    UnityEngine.Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
+                    Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
                 }
                 _renderers.Remove(entry.Key);
             }
@@ -115,7 +118,7 @@ namespace nadena.dev.ndmf.preview
             {
                 if (entry.Value.InactiveProxy != null)
                 {
-                    UnityEngine.Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
+                    Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
                 }
             }
             _renderers.Clear();
