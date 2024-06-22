@@ -143,5 +143,10 @@ namespace nadena.dev.ndmf.preview
                 _node.Dispose();
             }
         }
+
+        public override string ToString()
+        {
+            return "Node(" + _filter + " for group including " + _group.Renderers[0].gameObject.name + ")";
+        }
     }
 }
