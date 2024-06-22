@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#273] Preview system now calls `Refresh` to avoid double computation
 
 ### Removed
 

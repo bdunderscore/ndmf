@@ -28,6 +28,8 @@ namespace nadena.dev.ndmf.preview
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =>
             _active?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
+        internal ProxyObjectCache _proxyCache = new();
+        
         public ProxySession(ReactiveValue<ImmutableList<IRenderFilter>> filters)
         {
             _filters = filters;
@@ -53,6 +55,7 @@ namespace nadena.dev.ndmf.preview
             Reset();
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             _unsubscribe?.Dispose();
+            _proxyCache.Dispose();
         }
 
         public void OnCompleted()
@@ -84,7 +87,7 @@ namespace nadena.dev.ndmf.preview
 
             if (activeNeedsReplacement && _next == null && _filters.TryGetValue(out var filters))
             {
-                _next = new ProxyPipeline(filters.ToList(), _active);
+                _next = new ProxyPipeline(_proxyCache, filters.ToList(), _active);
             }
 
             if (activeNeedsReplacement && _next?.IsReady == true)

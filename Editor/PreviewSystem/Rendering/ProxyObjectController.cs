@@ -1,7 +1,10 @@
 ﻿#region
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using nadena.dev.ndmf.rq;
+using nadena.dev.ndmf.rq.unity.editor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -12,25 +15,107 @@ namespace nadena.dev.ndmf.preview
 {
     internal class ProxyObjectController : IDisposable
     {
-        private static HashSet<int> _proxyObjectInstanceIds = new();
-        
+        private readonly ProxyObjectCache _cache;
         private readonly Renderer _originalRenderer;
         private Renderer _replacementRenderer;
         internal Renderer Renderer => _replacementRenderer;
         public bool IsValid => _originalRenderer != null && _replacementRenderer != null;
 
+        internal RenderAspects ChangeFlags;
+
+        internal Material[] _initialMaterials;
+        internal Mesh _initialSharedMesh;
+        internal ComputeContext _monitorRenderer, _monitorMaterials, _monitorMesh;
+
+        internal Task OnInvalidate;
+
         public static bool IsProxyObject(GameObject obj)
         {
-            if (obj == null) return false;
-
-            return _proxyObjectInstanceIds.Contains(obj.GetInstanceID());
+            return ProxyObjectCache.IsProxyObject(obj);
         }
         
-        public ProxyObjectController(Renderer originalRenderer)
+        public ProxyObjectController(ProxyObjectCache cache, Renderer originalRenderer, ProxyObjectController _priorController)
         {
+            _cache = cache;
             _originalRenderer = originalRenderer;
+            
+            SetupRendererMonitoring(originalRenderer);
+            
+            if (_priorController != null)
+            {
+                if (_priorController._monitorRenderer.OnInvalidate.IsCompleted)
+                {
+                    ChangeFlags |= RenderAspects.Shapes;
+                    
+                    if (!_initialMaterials.SequenceEqual(_priorController._initialMaterials))
+                    {
+                        ChangeFlags |= RenderAspects.Material | RenderAspects.Texture;
+                    }
+                    
+                    if (_initialSharedMesh != _priorController._initialSharedMesh)
+                    {
+                        ChangeFlags |= RenderAspects.Mesh;
+                    }
+                }
+
+                if (_priorController._monitorMaterials.OnInvalidate.IsCompleted)
+                {
+                    ChangeFlags |= RenderAspects.Material | RenderAspects.Texture;
+                }
+                
+                if (_priorController._monitorMesh.OnInvalidate.IsCompleted)
+                {
+                    ChangeFlags |= RenderAspects.Mesh;
+                }
+
+                if (ChangeFlags != 0)
+                {
+                    Debug.Log("=== ProxyObjectController for " + originalRenderer.gameObject.name + " flags=" +
+                              ChangeFlags);
+                }
+            }
 
             CreateReplacementObject();
+        }
+
+        private void SetupRendererMonitoring(Renderer r)
+        {
+            _monitorRenderer = new ComputeContext(() => "ProxyObjectController.Renderer");
+            _monitorMaterials = new ComputeContext(() => "ProxyObjectController.Materials");
+            _monitorMesh = new ComputeContext(() => "ProxyObjectController.Mesh");
+
+            _monitorRenderer.Observe(r);
+            if (r is SkinnedMeshRenderer smr)
+            {
+                _monitorMesh.Observe(smr.sharedMesh);
+                _initialSharedMesh = smr.sharedMesh;
+            }
+            else if (r is MeshRenderer mr)
+            {
+                var meshRenderer = _monitorMesh.GetComponent<MeshFilter>(r.gameObject);
+                if (meshRenderer != null)
+                {
+                    _monitorMesh.Observe(meshRenderer.sharedMesh);
+                    _initialSharedMesh = meshRenderer.sharedMesh;
+                }
+            }
+
+            _initialMaterials = (Material[]) r.sharedMaterials.Clone();
+            foreach (var material in r.sharedMaterials)
+            {
+                _monitorMaterials.Observe(material);
+                var texPropIds = material.GetTexturePropertyNameIDs();
+                foreach (var texPropId in texPropIds)
+                {
+                    var tex = material.GetTexture(texPropId);
+                    if (tex != null)
+                    {
+                        _monitorMaterials.Observe(tex);
+                    }
+                }
+            }
+            
+            OnInvalidate = Task.WhenAny(_monitorRenderer.OnInvalidate, _monitorMaterials.OnInvalidate, _monitorMesh.OnInvalidate);
         }
 
         internal bool OnPreFrame()
@@ -97,45 +182,47 @@ namespace nadena.dev.ndmf.preview
             return true;
         }
 
-        private bool CreateReplacementObject()
+        private void CreateReplacementObject()
         {
-            if (_originalRenderer == null) return false;
-            
-            var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
-            _proxyObjectInstanceIds.Add(replacementGameObject.GetInstanceID());
-            replacementGameObject.hideFlags = HideFlags.DontSave;
+            if (_originalRenderer == null) return;
+
+            _replacementRenderer = _cache.GetOrCreate(_originalRenderer, () =>
+            {
+                var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
+                replacementGameObject.hideFlags = HideFlags.DontSave;
 
 #if MODULAR_AVATAR_DEBUG_HIDDEN
-            replacementGameObject.hideFlags = HideFlags.DontSave;
+                replacementGameObject.hideFlags = HideFlags.DontSave;
 #endif
 
-            replacementGameObject.AddComponent<SelfDestructComponent>().KeepAlive = this;
+                replacementGameObject.AddComponent<SelfDestructComponent>().KeepAlive = this;
 
-            if (_originalRenderer is SkinnedMeshRenderer smr)
-            {
-                _replacementRenderer = replacementGameObject.AddComponent<SkinnedMeshRenderer>();
-            }
-            else if (_originalRenderer is MeshRenderer mr)
-            {
-                _replacementRenderer = replacementGameObject.AddComponent<MeshRenderer>();
-                replacementGameObject.AddComponent<MeshFilter>();
-            }
-            else
-            {
-                Debug.Log("Unsupported renderer type: " + _replacementRenderer.GetType());
-                Object.DestroyImmediate(replacementGameObject);
-                return true;
-            }
+                Renderer renderer;
+                if (_originalRenderer is SkinnedMeshRenderer smr)
+                {
+                    renderer = replacementGameObject.AddComponent<SkinnedMeshRenderer>();
+                }
+                else if (_originalRenderer is MeshRenderer mr)
+                {
+                    renderer = replacementGameObject.AddComponent<MeshRenderer>();
+                    replacementGameObject.AddComponent<MeshFilter>();
+                }
+                else
+                {
+                    Debug.Log("Unsupported renderer type: " + _originalRenderer.GetType());
+                    Object.DestroyImmediate(replacementGameObject);
+                    return null;
+                }
 
-            return false;
+                return renderer;
+            });
         }
 
         public void Dispose()
         {
             if (_replacementRenderer != null)
             {
-                _proxyObjectInstanceIds.Remove(_replacementRenderer.gameObject.GetInstanceID());
-                Object.DestroyImmediate(_replacementRenderer.gameObject);
+                _cache.ReturnProxy(_originalRenderer, _replacementRenderer);
                 _replacementRenderer = null;
             }
         }
