@@ -71,16 +71,12 @@ namespace nadena.dev.ndmf.preview
 
         // ReSharper disable once NotAccessedField.Local
         // needed to prevent GC of the ComputeContext
-        private ComputeContext _ctx = new(() => "ProxyPipeline");
+        private ComputeContext _ctx = new();
         internal bool IsInvalidated => _ctx.OnInvalidate.IsCompleted;
         
         internal void Invalidate()
         {
-            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
-            {
-                _ctx.Invalidate();
-                //Debug.Log("=== Invalidate ProxyPipeline ok: + " + IsInvalidated + " ===");
-            }
+            _ctx.Invalidate();
         }
 
         private readonly Action InvalidateAction;
@@ -95,22 +91,19 @@ namespace nadena.dev.ndmf.preview
         {
             InvalidateAction = Invalidate;
             
-            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
-            {
-                _buildTask = Task.Factory.StartNew(
-                    _ => Build(proxyCache, filters, priorPipeline),
-                    null,
-                    CancellationToken.None,
-                    0,
-                    TaskScheduler.FromCurrentSynchronizationContext()
-                ).Unwrap();
-            }
+            _buildTask = Task.Factory.StartNew(
+                _ => Build(proxyCache, filters, priorPipeline),
+                null,
+                CancellationToken.None,
+                0,
+                TaskScheduler.FromCurrentSynchronizationContext()
+            ).Unwrap();
         }
 
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
             ProxyPipeline priorPipeline)
         {
-            var context = new ComputeContext(() => "ProxyPipeline construction");
+            var context = new ComputeContext();
             _ctx = context; // prevent GC
 
             List<IRenderFilter> filterList = filters.ToList();
@@ -225,32 +218,29 @@ namespace nadena.dev.ndmf.preview
 
         public void Dispose()
         {
-            using (new SyncContextScope(ReactiveQueryScheduler.SynchronizationContext))
-            {
-                // We need to make sure this task runs on the unity main thread so it can delete the proxy objects
-                _completedBuild.Task.ContinueWith(_ =>
+            // We need to make sure this task runs on the unity main thread so it can delete the proxy objects
+            _completedBuild.Task.ContinueWith(_ =>
+                {
+                    foreach (var stage in _stages)
                     {
-                        foreach (var stage in _stages)
+                        foreach (var node in stage.NodeTasks)
                         {
-                            foreach (var node in stage.NodeTasks)
+                            if (node.IsCompletedSuccessfully)
                             {
-                                if (node.IsCompletedSuccessfully)
-                                {
-                                    node.Result.Dispose();
-                                }
-                            }
-
-                            foreach (var proxy in _proxies.Values)
-                            {
-                                proxy.Dispose();
+                                node.Result.Dispose();
                             }
                         }
-                    },
-                    CancellationToken.None,
-                    TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.FromCurrentSynchronizationContext()
-                );
-            }
+
+                        foreach (var proxy in _proxies.Values)
+                        {
+                            proxy.Dispose();
+                        }
+                    }
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.RunContinuationsAsynchronously,
+                TaskScheduler.FromCurrentSynchronizationContext()
+            );
         }
 
         public void ShowError()
