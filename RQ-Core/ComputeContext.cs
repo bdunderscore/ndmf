@@ -74,7 +74,7 @@ namespace nadena.dev.ndmf.rq
             return await cur;
         }
 
-        internal bool TryObserve<T>(ReactiveValue<T> q, out T value)
+        public bool TryObserve<T>(ReactiveValue<T> q, out T value)
         {
             // capture the current invalidate function immediately, to avoid infinite invalidate loops
             var invalidate = Invalidate;

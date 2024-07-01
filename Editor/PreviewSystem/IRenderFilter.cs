@@ -101,8 +101,8 @@ namespace nadena.dev.ndmf.preview
     [PublicAPI]
     public interface IRenderFilter
     {
-        public ReactiveValue<ImmutableList<RenderGroup>> TargetGroups { get; }
-
+        public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context);
+        
         /// <summary>
         /// Instantiates a node in the preview graph. This operation is used when creating a new proxy renderer, and may
         /// perform relatively heavyweight operations to prepare the Mesh, Materials, and Textures for the renderer. It

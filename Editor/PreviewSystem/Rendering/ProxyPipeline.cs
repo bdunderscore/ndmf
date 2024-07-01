@@ -31,8 +31,8 @@ namespace nadena.dev.ndmf.preview
         public StageDescriptor(IRenderFilter filter, ComputeContext context)
         {
             Filter = filter;
-            
-            context.TryObserve(filter.TargetGroups, out var unsorted);
+
+            var unsorted = filter.GetTargetGroups(context);
 
             if (unsorted == null) unsorted = ImmutableList<RenderGroup>.Empty;
             Originals = unsorted;

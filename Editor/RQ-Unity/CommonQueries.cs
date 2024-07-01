@@ -1,10 +1,8 @@
 ﻿#region
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
 #endregion
@@ -14,36 +12,20 @@ namespace nadena.dev.ndmf.rq.unity.editor
     public static class CommonQueries
     {
         /// <summary>
-        /// Reactive value evaluating to a list of all root game objects in all loaded scenes. Excludes objects with
+        /// Returns a list of all root game objects in all loaded scenes. Excludes objects with
         /// nonzero hide flags.
         /// </summary>
-        public static ReactiveValue<ImmutableList<GameObject>> SceneRoots { get; }
-            = ReactiveValue<ImmutableList<GameObject>>.Create("SceneRoots",
-                ctx =>
-                {
-                    var invalidate = ctx.Invalidate;
-                    var onInvalidate = ctx.OnInvalidate;
+        public static ImmutableList<GameObject> GetSceneRoots(this ComputeContext ctx)
+        {
+            var invalidate = ctx.Invalidate;
+            var onInvalidate = ctx.OnInvalidate;
 
-                    var roots = ObjectWatcher.Instance.MonitorSceneRoots(out var dispose, _ => invalidate(),
-                        onInvalidate);
-                    onInvalidate.ContinueWith(_ => dispose.Dispose());
+            var roots = ObjectWatcher.Instance.MonitorSceneRoots(out var dispose, _ => invalidate(),
+                onInvalidate);
+            onInvalidate.ContinueWith(_ => dispose.Dispose());
 
-                    return Task.FromResult(roots);
-                });
-
-        private static Dictionary<Type, object /* ReactiveQuery<T> */> _builderCache = new();
-        
-        private static ReactiveQuery<Type, ImmutableList<Component>> _componentsByType
-            = new("ComponentsByType",
-                async (ctx, type) =>
-                {
-                    var roots = await ctx.Observe(SceneRoots);
-
-                    IEnumerable<Component> components =
-                        roots.SelectMany(root => ctx.GetComponentsInChildren(root, type, true));
-
-                    return components.ToImmutableList();
-                });
+            return roots;
+        }
 
         /// <summary>
         /// Returns a reactive value that evaluates to a list of all components of the given type in the scene.
@@ -52,29 +34,24 @@ namespace nadena.dev.ndmf.rq.unity.editor
         /// </summary>
         /// <typeparam name="T">The type to search for</typeparam>
         /// <returns></returns>
-        public static ReactiveValue<ImmutableList<T>> GetComponentsByType<T>() where T : Component
+        public static ImmutableList<T> GetComponentsByType<T>(this ComputeContext ctx) where T : Component
         {
-            if (!_builderCache.TryGetValue(typeof(T), out var builder))
-            {
-                _builderCache[typeof(T)] = builder = ReactiveValue<ImmutableList<T>>.Create(
-                    "ComponentsByType: " + typeof(T),
-                    async ctx =>
-                    {
-                        var roots = await ctx.Observe(SceneRoots);
+            var roots = ctx.GetSceneRoots();
 
-                        IEnumerable<T> components =
-                            roots.SelectMany(root => ctx.GetComponentsInChildren<T>(root, true));
+            var components =
+                roots.SelectMany(root => ctx.GetComponentsInChildren<T>(root, true));
 
-                        return components.ToImmutableList();
-                    });
-            }
-
-            return (ReactiveValue<ImmutableList<T>>)builder;
+            return components.ToImmutableList();
         }
 
-        public static ReactiveValue<ImmutableList<Component>> GetComponentsByType(Type type)
+        public static ImmutableList<Component> GetComponentsByType(this ComputeContext ctx, Type type)
         {
-            return _componentsByType.Get(type);
+            var roots = ctx.GetSceneRoots();
+
+            var components =
+                roots.SelectMany(root => ctx.GetComponentsInChildren(root, type, true));
+
+            return components.ToImmutableList();
         }
     }
 }
