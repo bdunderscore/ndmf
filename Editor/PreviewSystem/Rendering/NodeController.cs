@@ -73,7 +73,7 @@ namespace nadena.dev.ndmf.preview
             RenderGroup group,
             List<(Renderer, ProxyObjectController)> proxies)
         {
-            ComputeContext context = new ComputeContext(() => filter.ToString());
+            ComputeContext context = new ComputeContext();
          
             var node = await filter.Instantiate(
                 group,
@@ -89,7 +89,7 @@ namespace nadena.dev.ndmf.preview
             RenderAspects changes
         )
         {
-            ComputeContext context = new ComputeContext(() => _node.ToString());
+            ComputeContext context = new ComputeContext();
 
             IRenderFilterNode node;
 

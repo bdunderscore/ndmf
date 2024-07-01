@@ -65,16 +65,10 @@ namespace nadena.dev.ndmf.preview
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
 
         private ProxySession _session;
-
-        private ReactiveField<ImmutableList<IRenderFilter>> _resolved;
-
+        
         public PreviewSession()
         {
-            _resolved = new ReactiveField<ImmutableList<IRenderFilter>>(
-                ImmutableList<IRenderFilter>.Empty
-            );
-
-            _session = new ProxySession(_resolved.AsReactiveValue());
+            _session = new ProxySession(ImmutableList<IRenderFilter>.Empty);
         }
 
         /// <summary>
@@ -123,7 +117,7 @@ namespace nadena.dev.ndmf.preview
             var sequence = _sequence.Sequence;
             var filters = sequence.Select(p => _filters.GetValueOrDefault(p)).Where(f => f != null).ToImmutableList();
 
-            _resolved.Value = filters;
+            _session.Filters = filters;
         }
 
         /// <summary>

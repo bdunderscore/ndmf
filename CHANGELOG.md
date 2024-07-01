@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#273] Preview system now calls `Refresh` to avoid double computation
 
 ### Removed
+- [#277] The `ReactiveQuery` API has been removed to reduce the scope and complexity of this upcoming release
 
 ### Security
 

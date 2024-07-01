@@ -80,9 +80,9 @@ namespace nadena.dev.ndmf.preview
 
         private void SetupRendererMonitoring(Renderer r)
         {
-            _monitorRenderer = new ComputeContext(() => "ProxyObjectController.Renderer");
-            _monitorMaterials = new ComputeContext(() => "ProxyObjectController.Materials");
-            _monitorMesh = new ComputeContext(() => "ProxyObjectController.Mesh");
+            _monitorRenderer = new ComputeContext();
+            _monitorMaterials = new ComputeContext();
+            _monitorMesh = new ComputeContext();
 
             _monitorRenderer.Observe(r);
             if (r is SkinnedMeshRenderer smr)

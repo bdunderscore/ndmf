@@ -12,9 +12,8 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
 {
-    internal class ProxySession : IObserver<ImmutableList<IRenderFilter>>, IDisposable
+    internal class ProxySession : IDisposable
     {
-        private ReactiveValue<ImmutableList<IRenderFilter>> _filters;
         private ProxyPipeline _active, _next;
 
         private IDisposable _unsubscribe;
@@ -29,13 +28,27 @@ namespace nadena.dev.ndmf.preview
             _active?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ProxyObjectCache _proxyCache = new();
-        
-        public ProxySession(ReactiveValue<ImmutableList<IRenderFilter>> filters)
+
+        private ImmutableList<IRenderFilter> _filters;
+        public ImmutableList<IRenderFilter> Filters
         {
-            _filters = filters;
+            get => _filters;
+            set
+            {
+                if (_filters != null && _filters.SequenceEqual(value)) return;
+                
+                _active?.Invalidate();
+                _next?.Invalidate();
+
+                _filters = value;
+            } 
+        }
+        
+        public ProxySession(ImmutableList<IRenderFilter> filters)
+        {
+            Filters = filters;
 
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            _unsubscribe = filters.Subscribe(this);
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange obj)
@@ -58,21 +71,6 @@ namespace nadena.dev.ndmf.preview
             _proxyCache.Dispose();
         }
 
-        public void OnCompleted()
-        {
-        }
-
-        public void OnError(Exception error)
-        {
-            Debug.LogException(error);
-        }
-
-        public void OnNext(ImmutableList<IRenderFilter> filters)
-        {
-            _active?.Invalidate();
-            _next?.Invalidate();
-        }
-
         public IEnumerable<(Renderer, Renderer)> OnPreCull()
         {
             bool activeIsReady = _active?.IsReady == true;
@@ -85,9 +83,9 @@ namespace nadena.dev.ndmf.preview
                 _next = null;
             }
 
-            if (activeNeedsReplacement && _next == null && _filters.TryGetValue(out var filters))
+            if (activeNeedsReplacement && _next == null)
             {
-                _next = new ProxyPipeline(_proxyCache, filters.ToList(), _active);
+                _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _active);
             }
 
             if (activeNeedsReplacement && _next?.IsReady == true)
