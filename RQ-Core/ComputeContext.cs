@@ -1,7 +1,6 @@
 ﻿#region
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 #endregion
@@ -31,6 +30,15 @@ namespace nadena.dev.ndmf.rq
         {
             Invalidate = () => _invalidater.TrySetResult(null);
             OnInvalidate = _invalidater.Task;
+        }
+
+        /// <summary>
+        ///     Invalidate the `other` compute context when this compute context is invalidated.
+        /// </summary>
+        /// <param name="other"></param>
+        internal void Invalidates(ComputeContext other)
+        {
+            OnInvalidate.ContinueWith(_ => other.Invalidate());
         }
     }
 }
