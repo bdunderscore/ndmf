@@ -48,7 +48,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
             {
                 foreach (var asset in importedAssets)
                 {
-                    if (asset.EndsWith(".scene")) continue;
+                    if (asset.EndsWith(".unity")) continue;
                     var subassets = AssetDatabase.LoadAllAssetsAtPath(asset);
                     foreach (var subasset in subassets)
                     {

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changes
 
 ### Fixed
+- [#280] Console warnings issued whenever `.unity` (scene) files are saved
 
 ### Changed
 - [#273] Preview system now calls `Refresh` to avoid double computation
