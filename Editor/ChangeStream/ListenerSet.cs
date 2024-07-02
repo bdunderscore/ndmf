@@ -54,9 +54,16 @@ namespace nadena.dev.ndmf.rq.unity.editor
             else if (_filter(info))
             {
                 ctx.Invalidate();
-                EditorApplication.delayCall += SceneView.RepaintAll;
+                // We need to wait two frames before repainting: One to process task callbacks, then one to actually
+                // repaint (and update previews).
+                EditorApplication.delayCall += Delay2Repaint;
                 Dispose();
             }
+        }
+
+        private void Delay2Repaint()
+        {
+            EditorApplication.delayCall += SceneView.RepaintAll;
         }
     }
 
