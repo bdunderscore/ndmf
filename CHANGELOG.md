@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-alpha.3] - [2024-07-01]
+
+### Added
 - [#279] Added an `Observe` overload which checks for changes to an extracted value, to help respond to animation mode
   changes
 
@@ -16,15 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#273] Preview system now calls `Refresh` to avoid double computation
-
 - [#266] NDMF language defaults to being based on the system language.
 
 ### Removed
 - [#277] The `ReactiveQuery` API has been removed to reduce the scope and complexity of this upcoming release
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-alpha.2] - [2024-06-16]
 
