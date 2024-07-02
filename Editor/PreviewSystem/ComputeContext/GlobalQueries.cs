@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.rq.unity.editor
 {
-    public static class CommonQueries
+    public static partial class ComputeContextQueries
     {
         /// <summary>
         /// Returns a list of all root game objects in all loaded scenes. Excludes objects with

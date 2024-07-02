@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -9,7 +10,8 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.rq.unity.editor
 {
-    public static class ReactiveQueryExt
+    [PublicAPI]
+    public static partial class ComputeContextQueries
     {
         /// <summary>
         /// Monitors a given Unity object for changes, and recomputes when changes are detected.
