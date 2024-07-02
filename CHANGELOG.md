@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#279] Added an `Observe` overload which checks for changes to an extracted value, to help respond to animation mode
+  changes
 
 ### Fixed
 

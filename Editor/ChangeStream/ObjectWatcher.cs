@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -58,8 +59,9 @@ namespace nadena.dev.ndmf.rq.unity.editor
         //   Listeners come in two flavors: object listeners (asset/component watches as well as parent watches), and
         //   component search listeners, which can be local or recursive.
 
-        public static ObjectWatcher Instance { get; private set; } = new ObjectWatcher();
-        internal ShadowHierarchy Hierarchy = new ShadowHierarchy();
+        public static ObjectWatcher Instance { get; } = new();
+        internal ShadowHierarchy Hierarchy = new();
+        internal PropertyMonitor PropertyMonitor = new();
         private readonly SynchronizationContext _syncContext = SynchronizationContext.Current;
         private readonly int threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -73,31 +75,22 @@ namespace nadena.dev.ndmf.rq.unity.editor
             SceneManager.sceneLoaded += (_, _) => Instance.Hierarchy.InvalidateAll();
             SceneManager.sceneUnloaded += _ => Instance.Hierarchy.InvalidateAll();
             SceneManager.activeSceneChanged += (_, _) => Instance.Hierarchy.InvalidateAll();
+            Instance.PropertyMonitor.MaybeStartRefreshTimer();
         }
 
-        public ImmutableList<GameObject> MonitorSceneRoots<T>(out IDisposable cancel, Action<T> callback, T target)
-            where T : class
+        public ImmutableList<GameObject> MonitorSceneRoots(ComputeContext ctx)
         {
             ImmutableList<GameObject> rootSet = GetRootSet();
 
             // TODO scene load callbacks
 
-            cancel = Hierarchy.RegisterRootSetListener((t, e) =>
+            var cancel = Hierarchy.RegisterRootSetListener(_ =>
             {
                 ImmutableList<GameObject> newRootSet = GetRootSet();
-                if (!newRootSet.SequenceEqual(rootSet))
-                {
-                    InvokeCallback(callback, t);
+                return !newRootSet.SequenceEqual(rootSet);
+            }, ctx);
 
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }, target);
-
-            cancel = CancelWrapper(cancel);
+            BindCancel(ctx, cancel);
 
             return rootSet;
         }
@@ -125,63 +118,82 @@ namespace nadena.dev.ndmf.rq.unity.editor
             return roots.ToImmutable();
         }
 
-        public void MonitorObjectPath<T>(out IDisposable cancel, Transform t, Action<T> callback, T target)
-            where T : class
+        public void MonitorObjectPath(Transform t, ComputeContext ctx)
         {
-            cancel = Hierarchy.RegisterGameObjectListener(t.gameObject, (t, e) =>
+            var cancel = Hierarchy.RegisterGameObjectListener(t.gameObject, e =>
             {
                 switch (e)
                 {
                     case HierarchyEvent.PathChange:
                     case HierarchyEvent.ForceInvalidate:
-                        InvokeCallback(callback, t);
                         return true;
                     default:
                         return false;
                 }
-            }, target);
+            }, ctx);
+            
             Hierarchy.EnablePathMonitoring(t.gameObject);
 
-            cancel = CancelWrapper(cancel);
+            BindCancel(ctx, cancel);
         }
 
-        public void MonitorObjectProps<T>(out IDisposable cancel, UnityObject obj, Action<T> callback, T target)
-            where T : class
+        private void BindCancel(ComputeContext ctx, IDisposable cancel)
         {
-            cancel = default;
+            cancel = CancelWrapper(cancel);
+            ctx.OnInvalidate.ContinueWith(_ => cancel.Dispose());
+        }
+
+        public R MonitorObjectProps<T, R>(T obj, ComputeContext ctx, Func<T, R> extract, Func<R, R, bool> compare,
+            bool usePropMonitor)
+            where T : UnityObject
+        {
+            var curVal = extract(obj);
+
+            if (obj == null) return curVal;
+            if (compare == null) compare = EqualityComparer<R>.Default.Equals;
 
             if (obj is GameObject go)
             {
-                cancel = Hierarchy.RegisterGameObjectListener(go, (t, e) =>
+                var cancel = Hierarchy.RegisterGameObjectListener(go, e =>
                 {
                     switch (e)
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            InvokeCallback(callback, t);
-                            return true;
+                            return obj == null || !compare(curVal, extract(obj));
                         default:
                             return false;
                     }
-                }, target);
+                }, ctx);
+
+                BindCancel(ctx, cancel);
             }
             else
             {
-                cancel = Hierarchy.RegisterObjectListener(obj, (t, e) =>
+                var cancel = Hierarchy.RegisterObjectListener(obj, e =>
                 {
                     switch (e)
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            InvokeCallback(callback, t);
-                            return true;
+                            return obj == null || !compare(curVal, extract(obj));
                         default:
                             return false;
                     }
-                }, target);
+                }, ctx);
+
+                BindCancel(ctx, cancel);
+
+                if (usePropMonitor)
+                {
+                    var propsListeners = PropertyMonitor.MonitorObjectProps(obj);
+                    propsListeners.Register(_ => obj == null || !compare(curVal, extract(obj)), ctx);
+
+                    BindCancel(ctx, cancel);
+                }
             }
 
-            cancel = CancelWrapper(cancel);
+            return curVal;
         }
 
         private static void InvokeCallback<T>(Action<T> callback, object t) where T : class
@@ -196,19 +208,31 @@ namespace nadena.dev.ndmf.rq.unity.editor
             }
         }
 
-        public C[] MonitorGetComponents<T, C>(out IDisposable cancel, GameObject obj, Action<T> callback, T target,
-            Func<C[]> get0, bool includeChildren) where T : class
-        {
-            cancel = default;
 
+        private static bool InvokeCallback<T>(Func<T, bool> callback, object t) where T : class
+        {
+            try
+            {
+                return callback((T)t);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return true;
+            }
+        }
+
+        public C[] MonitorGetComponents<C>(GameObject obj, ComputeContext ctx,
+            Func<C[]> get0, bool includeChildren) where C : Component
+        {
             Func<C[]> get = () => get0().Where(c =>
-                (c as Component)?.hideFlags == 0 &&
-                (c as Component)?.gameObject.hideFlags == 0
+                c?.hideFlags == 0 &&
+                c?.gameObject.hideFlags == 0
             ).ToArray();
 
             C[] components = get();
 
-            Hierarchy.RegisterGameObjectListener(obj, (t, e) =>
+            var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
             {
                 if (e == HierarchyEvent.ChildComponentsChanged && !includeChildren) return false;
 
@@ -217,56 +241,38 @@ namespace nadena.dev.ndmf.rq.unity.editor
                     case HierarchyEvent.ChildComponentsChanged:
                     case HierarchyEvent.SelfComponentsChanged:
                     case HierarchyEvent.ForceInvalidate:
-                        if (obj != null && components.SequenceEqual(get()))
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            InvokeCallback(callback, t);
-                            return true;
-                        }
+                        return obj == null || !components.SequenceEqual(get());
                     default:
                         return false;
                 }
-            }, target);
+            }, ctx);
 
             if (includeChildren) Hierarchy.EnableComponentMonitoring(obj);
 
-            cancel = CancelWrapper(cancel);
+            BindCancel(ctx, cancel);
 
             return components;
         }
 
-        public C MonitorGetComponent<T, C>(out IDisposable cancel, GameObject obj, Action<T> callback, T target,
-            Func<C> get) where T : class
+        public C MonitorGetComponent<C>(GameObject obj, ComputeContext ctx,
+            Func<C> get) where C : Component
         {
-            cancel = default;
-
             C component = get();
 
-            Hierarchy.RegisterGameObjectListener(obj, (t, e) =>
+            var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
             {
                 switch (e)
                 {
                     case HierarchyEvent.SelfComponentsChanged:
                     case HierarchyEvent.ChildComponentsChanged:
                     case HierarchyEvent.ForceInvalidate:
-                        if (obj != null && ReferenceEquals(component, get()))
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            InvokeCallback(callback, t);
-                            return true;
-                        }
+                        return obj == null || !ReferenceEquals(component, get());
                     default:
                         return false;
                 }
-            }, target);
+            }, ctx);
 
-            cancel = CancelWrapper(cancel);
+            BindCancel(ctx, cancel);
 
             return component;
         }
@@ -275,9 +281,9 @@ namespace nadena.dev.ndmf.rq.unity.editor
         {
             private readonly int _targetThread;
             private readonly SynchronizationContext _syncContext;
-            private IDisposable _orig;
+            private IDisposable[] _orig;
 
-            public WrappedDisposable(IDisposable orig, SynchronizationContext syncContext)
+            public WrappedDisposable(IDisposable[] orig, SynchronizationContext syncContext)
             {
                 _orig = orig;
                 _targetThread = Thread.CurrentThread.ManagedThreadId;
@@ -292,20 +298,25 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
                     if (Thread.CurrentThread.ManagedThreadId == _targetThread)
                     {
-                        _orig.Dispose();
+                        DoDispose();
                     }
                     else
                     {
                         var orig = _orig;
-                        _syncContext.Post(_ => orig.Dispose(), null);
+                        _syncContext.Post(_ => DoDispose(), null);
                     }
 
                     _orig = null;
                 }
             }
+
+            private void DoDispose()
+            {
+                foreach (var orig in _orig) orig.Dispose();
+            }
         }
 
-        private IDisposable CancelWrapper(IDisposable orig)
+        private IDisposable CancelWrapper(params IDisposable[] orig)
         {
             return new WrappedDisposable(orig, _syncContext);
         }
