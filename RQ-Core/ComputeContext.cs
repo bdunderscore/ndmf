@@ -25,7 +25,9 @@ namespace nadena.dev.ndmf.rq
         /// guarantee that the underlying computation (e.g. ReactiveValue) is going to be recomputed.
         /// </summary>
         internal Task OnInvalidate { get; }
-        
+
+        public bool IsInvalidated => OnInvalidate.IsCompleted;
+
         internal ComputeContext()
         {
             Invalidate = () => _invalidater.TrySetResult(null);

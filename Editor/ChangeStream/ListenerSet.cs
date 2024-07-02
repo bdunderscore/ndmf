@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using UnityEditor;
 
 #endregion
 
@@ -8,22 +9,19 @@ namespace nadena.dev.ndmf.rq.unity.editor
 {
     internal class Listener<T> : IDisposable
     {
-        private ListenerSet<T> _owner;
         internal Listener<T> _next, _prev;
 
-        private readonly ListenerSet<T>.Invokee _callback;
-        private readonly WeakReference<object> _param;
+        private readonly ListenerSet<T>.Filter _filter;
+        private readonly WeakReference<ComputeContext> _ctx;
 
         internal Listener(
-            ListenerSet<T> owner,
-            ListenerSet<T>.Invokee callback,
-            object param
+            ListenerSet<T>.Filter filter,
+            ComputeContext ctx
         )
         {
-            _owner = owner;
             _next = _prev = this;
-            _callback = callback;
-            _param = new WeakReference<object>(param);
+            _filter = filter;
+            _ctx = ctx == null ? null : new WeakReference<ComputeContext>(ctx);
         }
 
         public void Dispose()
@@ -35,12 +33,12 @@ namespace nadena.dev.ndmf.rq.unity.editor
             }
 
             _next = _prev = null;
-            _param.SetTarget(null);
+            _ctx.SetTarget(null);
         }
 
         internal void MaybePrune()
         {
-            if (!_param.TryGetTarget(out _))
+            if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
             {
                 Dispose();
             }
@@ -49,8 +47,14 @@ namespace nadena.dev.ndmf.rq.unity.editor
         // Invoked under lock(_owner)
         internal void MaybeFire(T info)
         {
-            if (!_param.TryGetTarget(out var target) || _callback(target, info))
+            if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
             {
+                Dispose();
+            }
+            else if (_filter(info))
+            {
+                ctx.Invalidate();
+                EditorApplication.delayCall += SceneView.RepaintAll;
                 Dispose();
             }
         }
@@ -58,13 +62,13 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
     internal class ListenerSet<T>
     {
-        public delegate bool Invokee(object target, T info);
+        public delegate bool Filter(T info);
 
         private Listener<T> _head;
 
         public ListenerSet()
         {
-            _head = new Listener<T>(this, (object _, T _) => false, null);
+            _head = new Listener<T>(_ => false, null);
             _head._next = _head._prev = _head;
         }
 
@@ -73,9 +77,9 @@ namespace nadena.dev.ndmf.rq.unity.editor
             return _head._next != _head;
         }
 
-        public IDisposable Register(Invokee callback, object param)
+        public IDisposable Register(Filter filter, ComputeContext ctx)
         {
-            var listener = new Listener<T>(this, callback, param);
+            var listener = new Listener<T>(filter, ctx);
 
             listener._next = _head._next;
             listener._prev = _head;

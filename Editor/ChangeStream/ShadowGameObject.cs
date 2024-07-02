@@ -55,25 +55,28 @@ namespace nadena.dev.ndmf.rq.unity.editor
 
         int lastPruned = Int32.MinValue;
 
-        internal IDisposable RegisterRootSetListener(ListenerSet<HierarchyEvent>.Invokee invokee, object target)
+        internal IDisposable RegisterRootSetListener(ListenerSet<HierarchyEvent>.Filter filter, ComputeContext ctx)
         {
-            return _rootSetListener.Register(invokee, target);
+            return _rootSetListener.Register(filter, ctx);
         }
 
-        internal IDisposable RegisterGameObjectListener(GameObject targetObject,
-            ListenerSet<HierarchyEvent>.Invokee invokee,
-            object target)
+        internal IDisposable RegisterGameObjectListener(
+            GameObject targetObject,
+            ListenerSet<HierarchyEvent>.Filter filter,
+            ComputeContext ctx
+        )
         {
             if (targetObject == null) return new NullDisposable();
 
             ShadowGameObject shadowObject = ActivateShadowObject(targetObject);
 
-            return shadowObject._listeners.Register(invokee, target);
+            return shadowObject._listeners.Register(filter, ctx);
         }
 
         internal IDisposable RegisterObjectListener(UnityObject targetComponent,
-            ListenerSet<HierarchyEvent>.Invokee invokee,
-            object target)
+            ListenerSet<HierarchyEvent>.Filter filter,
+            ComputeContext ctx
+        )
         {
             if (targetComponent == null) return new NullDisposable();
 
@@ -83,7 +86,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
                 _otherObjects[targetComponent.GetInstanceID()] = shadowComponent;
             }
 
-            return shadowComponent._listeners.Register(invokee, target);
+            return shadowComponent._listeners.Register(filter, ctx);
         }
 
         internal class NullDisposable : IDisposable

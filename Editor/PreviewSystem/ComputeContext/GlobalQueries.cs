@@ -17,14 +17,7 @@ namespace nadena.dev.ndmf.rq.unity.editor
         /// </summary>
         public static ImmutableList<GameObject> GetSceneRoots(this ComputeContext ctx)
         {
-            var invalidate = ctx.Invalidate;
-            var onInvalidate = ctx.OnInvalidate;
-
-            var roots = ObjectWatcher.Instance.MonitorSceneRoots(out var dispose, _ => invalidate(),
-                onInvalidate);
-            onInvalidate.ContinueWith(_ => dispose.Dispose());
-
-            return roots;
+            return ObjectWatcher.Instance.MonitorSceneRoots(ctx);
         }
 
         /// <summary>
