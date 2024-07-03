@@ -27,9 +27,37 @@ namespace nadena.dev.ndmf.preview
         
         private Dictionary<Renderer, RendererState> _renderers = new(new ObjectIdentityComparer<Renderer>());
         private bool _cleanupPending = false;
-        
+        private bool _isRegistered = false;
+
+        private bool IsRegistered
+        {
+            get => _isRegistered;
+            set
+            {
+                if (_isRegistered == value) return;
+                if (value)
+                {
+                    EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+                }
+                else
+                {
+                    EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+                }
+
+                _isRegistered = value;
+            }
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange obj)
+        {
+            // Destroy all cached proxies when entering or exiting play mode
+            Dispose();
+        }
+
         public Renderer GetOrCreate(Renderer original, Func<Renderer> create)
         {
+            IsRegistered = true;
+            
             if (!_renderers.TryGetValue(original, out var state))
             {
                 state = new RendererState();
@@ -42,6 +70,7 @@ namespace nadena.dev.ndmf.preview
                 proxy = state.InactiveProxy;
                 state.InactiveProxy = null;
                 state.ActiveProxyCount++;
+                proxy.enabled = true;
                 return proxy;
             }
             
@@ -54,12 +83,14 @@ namespace nadena.dev.ndmf.preview
 
             state.ActiveProxyCount++;
             _proxyObjectInstanceIds.Add(proxy.gameObject.GetInstanceID());
-
+            
             return proxy;
         }
         
         public void ReturnProxy(Renderer original, Renderer proxy)
         {
+            IsRegistered = true;
+            
             if (!_renderers.TryGetValue(original, out var state))
             {
                 Debug.Log("ProxyObjectCache: Renderer not found in cache");
@@ -77,6 +108,7 @@ namespace nadena.dev.ndmf.preview
             if (state.ActiveProxyCount > 0 && state.InactiveProxy == null)
             {
                 state.InactiveProxy = proxy;
+                proxy.enabled = false;
                 return;
             }
             
@@ -104,10 +136,7 @@ namespace nadena.dev.ndmf.preview
             
             foreach (var entry in _renderers.Where(kv => kv.Key == null).ToList())
             {
-                if (entry.Value.InactiveProxy != null)
-                {
-                    Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
-                }
+                DestroyProxy(entry.Value.InactiveProxy);
                 _renderers.Remove(entry.Key);
             }
         }
@@ -116,12 +145,10 @@ namespace nadena.dev.ndmf.preview
         {
             foreach (var entry in _renderers)
             {
-                if (entry.Value.InactiveProxy != null)
-                {
-                    Object.DestroyImmediate(entry.Value.InactiveProxy.gameObject);
-                }
+                DestroyProxy(entry.Value.InactiveProxy);
             }
             _renderers.Clear();
+            IsRegistered = false;
         }
     }
 }
