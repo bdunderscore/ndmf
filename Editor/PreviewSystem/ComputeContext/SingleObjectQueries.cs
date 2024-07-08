@@ -14,6 +14,55 @@ namespace nadena.dev.ndmf.rq.unity.editor
     public static partial class ComputeContextQueries
     {
         /// <summary>
+        ///     Observes a value published via the given PublishedValue token. The calling computation will be re-executed
+        ///     whenever the value changes (as determined by IEquatable)
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="val"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T Observe<T>(this ComputeContext ctx, PublishedValue<T> val)
+            where T : IEquatable<T>
+        {
+            return ctx.Observe(val, v => v);
+        }
+
+        /// <summary>
+        ///     Observes a value published via the given PublishedValue token, and extracts a value from it using the given
+        ///     transformation. The calling computation will be re-executed whenever the extracted value changes
+        ///     (as determined by IEquatable)
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="val"></param>
+        /// <param name="extract"></param>
+        /// <typeparam name="T">Type of the value in the PublishedValue</typeparam>
+        /// <typeparam name="R">Type of the extracted value</typeparam>
+        /// <returns>The extracted value</returns>
+        public static R Observe<T, R>(this ComputeContext ctx, PublishedValue<T> val, Func<T, R> extract)
+            where R : IEquatable<R>
+        {
+            return ctx.Observe(val, extract, (a, b) => a.Equals(b));
+        }
+
+        /// <summary>
+        ///     Observes a value published via the given PublishedValue token, and extracts a value from it using the given
+        ///     transformation. The calling computation will be re-executed whenever the extracted value changes
+        ///     (as determined by the given equality function)
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="val"></param>
+        /// <param name="extract"></param>
+        /// <param name="eq"></param>
+        /// <typeparam name="T">Type of the value in the PublishedValue</typeparam>
+        /// <typeparam name="R">Type of the extracted value</typeparam>
+        /// <returns>The extracted value</returns>
+        public static R Observe<T, R>(this ComputeContext ctx, PublishedValue<T> val, Func<T, R> extract,
+            Func<R, R, bool> eq)
+        {
+            return val.Observe(ctx, extract, eq);
+        }
+
+        /// <summary>
         /// Monitors a given Unity object for changes, and recomputes when changes are detected.
         ///
         /// This will recompute when properties of the object change, when the object is destroyed, or (in the case of
