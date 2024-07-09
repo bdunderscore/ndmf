@@ -74,7 +74,6 @@ namespace nadena.dev.ndmf.preview
                 return proxy;
             }
             
-            Debug.Log("=== Creating new proxy for " + original.gameObject.name);
             proxy = create();
             if (proxy == null)
             {
