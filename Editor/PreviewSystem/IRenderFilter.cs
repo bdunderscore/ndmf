@@ -14,6 +14,32 @@ using UnityEngine;
 namespace nadena.dev.ndmf.preview
 {
     /// <summary>
+    ///     Various additional context data that is passed to render filters, which may or may not be helpful.
+    ///     Properties on this class have public setters for unit testing, but the instance that is passed to your code
+    ///     will throw if you attempt to change anything.
+    /// </summary>
+    [PublicAPI]
+    public sealed class RenderFilterContext
+    {
+        internal bool Sealed { get; set; }
+        private IObjectRegistry _objectRegistry;
+
+        /// <summary>
+        ///     An ObjectRegistry you should use to track objects that are replaced during the rendering process.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public IObjectRegistry ObjectRegistry
+        {
+            get => _objectRegistry;
+            set
+            {
+                if (Sealed) throw new InvalidOperationException("RenderContext is sealed");
+                _objectRegistry = value;
+            }
+        }
+    }
+    
+    /// <summary>
     /// A group of renderers that will be processed together.
     /// </summary>
     [PublicAPI]
@@ -117,8 +143,19 @@ namespace nadena.dev.ndmf.preview
         /// <param name="context">A compute context that is used to track which values your code depended on in
         ///     configuring this node. Changing these values will triger a recomputation of this node.</param>
         /// <returns></returns>
-        public Task<IRenderFilterNode> Instantiate(RenderGroup group, IEnumerable<(Renderer, Renderer)> proxyPairs,
-            ComputeContext context);
+        public Task<IRenderFilterNode> Instantiate(
+            RenderGroup group,
+            IEnumerable<(Renderer, Renderer)> proxyPairs,
+            ComputeContext context,
+            RenderFilterContext renderFilterContext
+        );
+
+        // Allow for future expansion
+        [ExcludeFromDocs]
+        [UsedImplicitly]
+        void __please_enable_dotnet_80_or_higher_for_default_methods()
+        {
+        }
     }
 
     [Flags]
@@ -148,12 +185,6 @@ namespace nadena.dev.ndmf.preview
     public interface IRenderFilterNode : IDisposable
     {
         /// <summary>
-        /// Indicates which static aspects of a renderer this node examines. Changes to these aspects will trigger a
-        /// rebuild or partial update of this node.
-        /// </summary>
-        public RenderAspects Reads { get; }
-
-        /// <summary>
         /// Indicates which aspects of a renderer this node changed, relative to the node prior to the last Update
         /// call. This may trigger updates of downstream nodes.
         ///
@@ -182,11 +213,13 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <param name="proxyPairs"></param>
         /// <param name="context"></param>
+        /// <param name="renderFilterContext"></param>
         /// <param name="updatedAspects"></param>
         /// <returns></returns>
         public Task<IRenderFilterNode> Refresh(
             IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context,
+            RenderFilterContext renderFilterContext,
             RenderAspects updatedAspects
         )
         {
@@ -208,6 +241,13 @@ namespace nadena.dev.ndmf.preview
         }
 
         void IDisposable.Dispose()
+        {
+        }
+
+        // Allow for future expansion
+        [ExcludeFromDocs]
+        [UsedImplicitly]
+        void __please_enable_dotnet_80_or_higher_for_default_methods()
         {
         }
     }

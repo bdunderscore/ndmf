@@ -133,7 +133,8 @@ namespace nadena.dev.ndmf.preview
                     {
                         if (nodeTasks.TryGetValue(r, out var task))
                         {
-                            return task.ContinueWith(task1 => (r, task1.Result.GetProxyFor(r)));
+                            return task.ContinueWith(task1 =>
+                                (r, task1.Result.GetProxyFor(r), task1.Result.ObjectRegistry));
                         }
                         else
                         {
@@ -149,8 +150,11 @@ namespace nadena.dev.ndmf.preview
                             OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
                             OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
                             ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
-                            
-                            return Task.FromResult((r, proxy));
+
+                            var registry = new ObjectRegistry(null);
+                            ((IObjectRegistry)registry).RegisterReplacedObject(r, proxy.Renderer);
+
+                            return Task.FromResult((r, proxy, registry));
                         }
                     });
 
@@ -163,7 +167,6 @@ namespace nadena.dev.ndmf.preview
                     var node = Task.WhenAll(resolved).ContinueWith(async items =>
                         {
                             var proxies = items.Result.ToList();
-                            var key = (group, filter);
 
                             if (priorNode != null)
                             {

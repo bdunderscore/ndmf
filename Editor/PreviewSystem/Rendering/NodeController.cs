@@ -31,6 +31,8 @@ namespace nadena.dev.ndmf.preview
         internal Task OnInvalidate => _context.OnInvalidate;
         internal bool IsInvalidated => OnInvalidate.IsCompleted;
 
+        internal ObjectRegistry ObjectRegistry { get; private set; }
+
         internal ProxyObjectController GetProxyFor(Renderer r)
         {
             return _proxies.Find(p => p.Item1 == r).Item2;
@@ -40,21 +42,21 @@ namespace nadena.dev.ndmf.preview
             IRenderFilter filter,
             RenderGroup group,
             IRenderFilterNode node,
-            List<(Renderer, ProxyObjectController)> proxies,
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
             RefCount refCount,
-            ComputeContext context
+            ComputeContext context,
+            ObjectRegistry registry
         )
         {
             _filter = filter;
             _group = group;
             _node = node;
-            _proxies = proxies;
+            _proxies = proxies.Select(tuple => (tuple.Item1, tuple.Item2)).ToList();
             _refCount = refCount;
             _context = context;
+            ObjectRegistry = registry;
             
             OnFrame();
-
-            ///OnInvalidate.ContinueWith(_ => Debug.Log("=== Node invalidated: " + _node.ToString()));
         }
 
         internal void OnFrame()
@@ -68,27 +70,50 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+        public static Task<NodeController> Create(
+            IRenderFilter filter,
+            RenderGroup group,
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies)
+        {
+            return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies);
+        }
+
         public static async Task<NodeController> Create(
             IRenderFilter filter,
             RenderGroup group,
-            List<(Renderer, ProxyObjectController)> proxies)
+            ObjectRegistry registry,
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies)
         {
             ComputeContext context = new ComputeContext();
          
             var node = await filter.Instantiate(
                 group,
                 proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                context
+                context,
+                BuildRenderContext(registry)
             );
 
-            return new NodeController(filter, group, node, proxies, new RefCount(), context);
+            return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
+        }
+
+        private static RenderFilterContext BuildRenderContext(IObjectRegistry registry)
+        {
+            var ctx = new RenderFilterContext
+            {
+                ObjectRegistry = registry
+            };
+
+            ctx.Sealed = true;
+
+            return ctx;
         }
 
         public async Task<NodeController> Refresh(
-            List<(Renderer, ProxyObjectController)> proxies,
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
             RenderAspects changes
         )
         {
+            var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
             ComputeContext context = new ComputeContext();
 
             IRenderFilterNode node;
@@ -105,6 +130,7 @@ namespace nadena.dev.ndmf.preview
                 node = await _node.Refresh(
                     proxies.Select(p => (p.Item1, p.Item2.Renderer)),
                     context,
+                    BuildRenderContext(registry),
                     changes
                 );
                 Debug.Log("=== Refreshing node " + _node + " with changes " + changes + "; success? " + (node != null) + " same? " + (node == _node));
@@ -118,14 +144,14 @@ namespace nadena.dev.ndmf.preview
             }
             else if (node == null)
             {
-                return await Create(_filter, _group, proxies);
+                return await Create(_filter, _group, registry, proxies);
             }
             else
             {
                 refCount = new RefCount();
             }
 
-            var controller = new NodeController(_filter, _group, node, proxies, refCount, context);
+            var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
             controller.WhatChanged = changes | node.WhatChanged;
 
             foreach (var proxy in proxies)
