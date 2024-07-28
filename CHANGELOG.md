@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#287] Added PublishedValue class
 - [#288] Added support for passing ObjectRegistry to IRenderFilter
+- [#289] Added support for binding multiple render filters to a single pass
 
 ### Fixed
 - [#283] Cached proxy objects are visible after exiting play mode 

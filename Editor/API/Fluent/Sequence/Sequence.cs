@@ -1,6 +1,5 @@
 ﻿#region
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.model;
@@ -52,14 +51,12 @@ namespace nadena.dev.ndmf.fluent
             _seq = seq;
         }
 
-        public DeclaringPass PreviewingWith(IRenderFilter filter)
+        public DeclaringPass PreviewingWith(params IRenderFilter[] filters)
         {
-            if (_pass.RenderFilter != null)
+            foreach (var filter in filters)
             {
-                throw new InvalidOperationException("Render filter already set");
+                _pass.RenderFilters.Add(filter);
             }
-
-            _pass.RenderFilter = filter;
 
             return this;
         }
