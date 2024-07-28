@@ -199,9 +199,9 @@ namespace nadena.dev.ndmf
                 concrete.Add(new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
                     toActivate.ToImmutableList()));
 
-                if (pass.RenderFilter != null)
+                foreach (var filter in pass.RenderFilters)
                 {
-                    PreviewSession.AddMutator(new SequencePoint(), pass.RenderFilter);
+                    PreviewSession.AddMutator(new SequencePoint(), filter);
                 }
             }
 

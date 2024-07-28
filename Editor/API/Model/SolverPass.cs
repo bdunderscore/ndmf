@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using nadena.dev.ndmf.preview;
 
@@ -23,7 +24,7 @@ namespace nadena.dev.ndmf.model
 
         internal IImmutableSet<Type> RequiredExtensions { get; set; }
         internal IImmutableSet<string> CompatibleExtensions { get; set; }
-        internal IRenderFilter RenderFilter { get; set; }
+        internal List<IRenderFilter> RenderFilters { get; } = new();
 
         internal bool IsExtensionCompatible(Type ty)
         {
