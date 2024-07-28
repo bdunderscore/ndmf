@@ -104,6 +104,8 @@ namespace nadena.dev.ndmf.preview
             foreach (var material in r.sharedMaterials)
             {
                 _monitorMaterials.Observe(material);
+                if (material == null) continue;
+                
                 var texPropIds = material.GetTexturePropertyNameIDs();
                 foreach (var texPropId in texPropIds)
                 {
