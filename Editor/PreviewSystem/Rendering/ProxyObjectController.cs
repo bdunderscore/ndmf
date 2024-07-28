@@ -160,7 +160,7 @@ namespace nadena.dev.ndmf.preview
             target.localBounds = original.localBounds;
             if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
             {
-                targetSMR.rootBone = originalSMR.rootBone;
+                targetSMR.rootBone = originalSMR.rootBone != null ? originalSMR.rootBone : originalSMR.transform;
                 targetSMR.quality = originalSMR.quality;
 
                 if (targetSMR.sharedMesh != null)

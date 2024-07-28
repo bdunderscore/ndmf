@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#283] Cached proxy objects are visible after exiting play mode 
 - [#285] Harmony patches break when keyboard is used to open/close objects in the hierarchy in some cases. 
+- [#284] Preview objects do not inherit scale when they are previewing a Skinned Mesh Renderer with no root bone.
 
 ### Changed
 
