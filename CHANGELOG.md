@@ -18,8 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#284] Preview objects do not inherit scale when they are previewing a Skinned Mesh Renderer with no root bone.
 
 ### Changed
+- [#XXX] Restructured namespace and assembly hierarchy to remove references to "Reactive Query".
 
 ### Removed
+- [#XXX] Removed some unimplemented APIs in preparation for 1.5.0 release.
 
 ### Security
 
