@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq
+namespace nadena.dev.ndmf.preview
 {
     /// <summary>
     /// Tracks dependencies around a single computation. Generally, this object should be retained as long as we need to

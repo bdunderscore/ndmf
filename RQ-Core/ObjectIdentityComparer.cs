@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq
+namespace nadena.dev.ndmf
 {
     internal class ObjectIdentityComparer<T> : IEqualityComparer<T>
     {

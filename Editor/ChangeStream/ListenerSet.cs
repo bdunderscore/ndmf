@@ -1,11 +1,12 @@
 ﻿#region
 
 using System;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.cs
 {
     internal class Listener<T> : IDisposable
     {

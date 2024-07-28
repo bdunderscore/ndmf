@@ -1,7 +1,8 @@
 ﻿using System;
+using nadena.dev.ndmf.cs;
 using UnityEngine;
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.preview
 {
     /// <summary>
     ///     A holder of a value which can be subscribed to (using ComputeContext) to receive invalidation events when the

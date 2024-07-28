@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.cs;
 using UnityEngine;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.preview
 {
     public static partial class ComputeContextQueries
     {

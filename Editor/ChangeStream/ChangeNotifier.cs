@@ -1,13 +1,15 @@
 ﻿#region
 
 using JetBrains.Annotations;
+using nadena.dev.ndmf.cs;
 using UnityEditor;
 using UnityEngine;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.preview
 {
+    [PublicAPI]
     public static class ChangeNotifier
     {
         /// <summary>
