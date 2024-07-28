@@ -4,8 +4,7 @@
     "references": [
       "nadena.dev.ndmf",
       "nadena.dev.ndmf.vrchat",
-      "nadena.dev.ndmf.runtime",
-      "nadena.dev.ndmf.reactive-query.core"
+      "nadena.dev.ndmf.runtime"
     ],
     "includePlatforms": [
         "Editor"

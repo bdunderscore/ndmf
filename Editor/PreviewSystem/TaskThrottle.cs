@@ -15,14 +15,12 @@ namespace nadena.dev.ndmf.preview
         public static async ValueTask MaybeThrottle()
         {
             if (ShouldThrottle.Value())
-            {
                 await Task.CompletedTask.ContinueWith(
                     _ => Task.CompletedTask,
                     CancellationToken.None,
                     TaskContinuationOptions.RunContinuationsAsynchronously,
                     TaskScheduler.Current
                 );
-            }
         }
 
         public static IDisposable WithThrottleCondition(Func<bool> condition)

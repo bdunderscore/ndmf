@@ -8,21 +8,21 @@ using System.Threading.Tasks;
 namespace nadena.dev.ndmf.preview
 {
     /// <summary>
-    /// Tracks dependencies around a single computation. Generally, this object should be retained as long as we need to
-    /// receive invalidation events (GCing this object may deregister invalidation events).
+    ///     Tracks dependencies around a single computation. Generally, this object should be retained as long as we need to
+    ///     receive invalidation events (GCing this object may deregister invalidation events).
     /// </summary>
     public sealed class ComputeContext
     {
-        private TaskCompletionSource<object> _invalidater = new();
+        private readonly TaskCompletionSource<object> _invalidater = new();
 
         /// <summary>
-        /// An Action which can be used to invalidate this compute context (possibly triggering a recompute).
+        ///     An Action which can be used to invalidate this compute context (possibly triggering a recompute).
         /// </summary>
         internal Action Invalidate { get; }
 
         /// <summary>
-        /// A Task which completes when this compute context is invalidated. Note that completing this task does not
-        /// guarantee that the underlying computation (e.g. ReactiveValue) is going to be recomputed.
+        ///     A Task which completes when this compute context is invalidated. Note that completing this task does not
+        ///     guarantee that the underlying computation (e.g. ReactiveValue) is going to be recomputed.
         /// </summary>
         internal Task OnInvalidate { get; }
 
