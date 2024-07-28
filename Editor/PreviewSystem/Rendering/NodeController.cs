@@ -85,27 +85,18 @@ namespace nadena.dev.ndmf.preview
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies)
         {
             ComputeContext context = new ComputeContext();
-         
-            var node = await filter.Instantiate(
-                group,
-                proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                context,
-                BuildRenderContext(registry)
-            );
+
+            IRenderFilterNode node;
+            using (var scope = new ObjectRegistryScope(registry))
+            {
+                node = await filter.Instantiate(
+                    group,
+                    proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                    context
+                );
+            }
 
             return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
-        }
-
-        private static RenderFilterContext BuildRenderContext(IObjectRegistry registry)
-        {
-            var ctx = new RenderFilterContext
-            {
-                ObjectRegistry = registry
-            };
-
-            ctx.Sealed = true;
-
-            return ctx;
         }
 
         public async Task<NodeController> Refresh(
@@ -127,12 +118,15 @@ namespace nadena.dev.ndmf.preview
             }
             else
             {
-                node = await _node.Refresh(
-                    proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                    context,
-                    BuildRenderContext(registry),
-                    changes
-                );
+                using (var scope = new ObjectRegistryScope(registry))
+                {
+                    node = await _node.Refresh(
+                        proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                        context,
+                        changes
+                    );
+                }
+
                 Debug.Log("=== Refreshing node " + _node + " with changes " + changes + "; success? " + (node != null) + " same? " + (node == _node));
             }
 

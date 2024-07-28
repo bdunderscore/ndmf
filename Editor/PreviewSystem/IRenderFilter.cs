@@ -14,32 +14,6 @@ using UnityEngine;
 namespace nadena.dev.ndmf.preview
 {
     /// <summary>
-    ///     Various additional context data that is passed to render filters, which may or may not be helpful.
-    ///     Properties on this class have public setters for unit testing, but the instance that is passed to your code
-    ///     will throw if you attempt to change anything.
-    /// </summary>
-    [PublicAPI]
-    public sealed class RenderFilterContext
-    {
-        internal bool Sealed { get; set; }
-        private IObjectRegistry _objectRegistry;
-
-        /// <summary>
-        ///     An ObjectRegistry you should use to track objects that are replaced during the rendering process.
-        /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
-        public IObjectRegistry ObjectRegistry
-        {
-            get => _objectRegistry;
-            set
-            {
-                if (Sealed) throw new InvalidOperationException("RenderContext is sealed");
-                _objectRegistry = value;
-            }
-        }
-    }
-    
-    /// <summary>
     /// A group of renderers that will be processed together.
     /// </summary>
     [PublicAPI]
@@ -146,8 +120,7 @@ namespace nadena.dev.ndmf.preview
         public Task<IRenderFilterNode> Instantiate(
             RenderGroup group,
             IEnumerable<(Renderer, Renderer)> proxyPairs,
-            ComputeContext context,
-            RenderFilterContext renderFilterContext
+            ComputeContext context
         );
 
         // Allow for future expansion
@@ -219,7 +192,6 @@ namespace nadena.dev.ndmf.preview
         public Task<IRenderFilterNode> Refresh(
             IEnumerable<(Renderer, Renderer)> proxyPairs,
             ComputeContext context,
-            RenderFilterContext renderFilterContext,
             RenderAspects updatedAspects
         )
         {

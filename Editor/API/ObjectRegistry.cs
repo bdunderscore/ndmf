@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using nadena.dev.ndmf.rq;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
@@ -83,7 +84,13 @@ namespace nadena.dev.ndmf
         private readonly Dictionary<Object, ObjectReference> _obj2ref = new(new ObjectIdentityComparer<UnityObject>());
 
         internal readonly Transform AvatarRoot;
-        public static IObjectRegistry ActiveRegistry { get; internal set; }
+        private static readonly AsyncLocal<IObjectRegistry> _activeRegistry = new();
+
+        public static IObjectRegistry ActiveRegistry
+        {
+            get => _activeRegistry.Value;
+            set => _activeRegistry.Value = value;
+        }
         private readonly ObjectRegistry _parent;
 
         internal static ObjectRegistry Merge(Transform avatarRoot, IEnumerable<ObjectRegistry> inputs)
