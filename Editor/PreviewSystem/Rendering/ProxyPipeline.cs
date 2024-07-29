@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 #endregion
@@ -190,7 +191,11 @@ namespace nadena.dev.ndmf.preview
             }
 
             await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
-                .ContinueWith(result => { _completedBuild.TrySetResult(null); });
+                .ContinueWith(result =>
+                {
+                    _completedBuild.TrySetResult(null);
+                    EditorApplication.delayCall += SceneView.RepaintAll;
+                });
 
             foreach (var stage in _stages)
             {
@@ -206,7 +211,7 @@ namespace nadena.dev.ndmf.preview
         public void OnFrame()
         {
             if (!IsReady) return;
-
+            
             foreach (var pair in _proxies)
             {
                 pair.Value.OnPreFrame();
@@ -247,7 +252,7 @@ namespace nadena.dev.ndmf.preview
 
         public void ShowError()
         {
-            Debug.LogException(_buildTask.Exception);
+            UnityEngine.Debug.LogException(_buildTask.Exception);
         }
     }
 }
