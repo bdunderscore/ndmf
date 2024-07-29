@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-beta.0] - [2024-07-28]
+
+### Added
 - [#287] Added PublishedValue class
 - [#288] Added support for passing ObjectRegistry to IRenderFilter
 - [#289] Added support for binding multiple render filters to a single pass
@@ -18,14 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#284] Preview objects do not inherit scale when they are previewing a Skinned Mesh Renderer with no root bone.
 
 ### Changed
-- [#XXX] Restructured namespace and assembly hierarchy to remove references to "Reactive Query".
+- [#294] Restructured namespace and assembly hierarchy to remove references to "Reactive Query".
 
 ### Removed
-- [#XXX] Removed some unimplemented APIs in preparation for 1.5.0 release.
-
-### Security
-
-### Deprecated
+- [#294] Removed some unimplemented APIs in preparation for 1.5.0 release.
 
 ## [1.5.0-alpha.3] - [2024-07-01]
 
