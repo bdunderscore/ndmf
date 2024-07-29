@@ -91,7 +91,6 @@ namespace nadena.dev.ndmf.preview
             
             if (!_renderers.TryGetValue(original, out var state))
             {
-                Debug.Log("ProxyObjectCache: Renderer not found in cache");
                 DestroyProxy(proxy);
                 return;
             }

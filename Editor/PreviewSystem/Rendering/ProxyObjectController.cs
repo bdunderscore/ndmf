@@ -65,12 +65,6 @@ namespace nadena.dev.ndmf.preview
                 {
                     ChangeFlags |= RenderAspects.Mesh;
                 }
-
-                if (ChangeFlags != 0)
-                {
-                    Debug.Log("=== ProxyObjectController for " + originalRenderer.gameObject.name + " flags=" +
-                              ChangeFlags);
-                }
             }
 
             CreateReplacementObject();

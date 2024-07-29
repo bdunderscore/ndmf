@@ -374,7 +374,6 @@ namespace nadena.dev.ndmf.cs
 
             if (_otherObjects.TryGetValue(instanceId, out var otherObj))
             {
-                Debug.Log("Invalidate OtherObject (" + instanceId + " " + otherObj.Object.GetType() + ")");
                 _otherObjects.Remove(instanceId);
                 otherObj._listeners.Fire(HierarchyEvent.ForceInvalidate);
             }
