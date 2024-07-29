@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="root">
+        <engine:VisualElement name="topHeader">
+            <engine:Label text="PreviewEnable:Title" class="ndmf-tr"/>
+            <engine:VisualElement class="filler"/>
+        </engine:VisualElement>
+
+        <engine:TreeView name="PreviewEnableTree"/>
+    </engine:VisualElement>
+</engine:UXML>

@@ -1,0 +1,55 @@
+VisualElement {
+
+}
+
+.WindowRoot {
+    padding: 5px;
+}
+
+.WindowRoot > TemplateContainer {
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+#topHeader {
+    flex-direction: row;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+#topHeader > Label {
+    border-color: black;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 0px;
+    padding: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#topHeader > .filler {
+    flex-grow: 1;
+    border-bottom-width: 1px;
+    border-color: black;
+}
+
+#PreviewEnableTree {
+    border-color: black;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 0px;
+    border-bottom-width: 1px;
+    margin: 4px;
+    margin-top: 0px;
+    padding: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    flex-grow: 1;
+    height: auto;
+}
+
+#PreviewEnableTree Toggle {
+    margin: 3px;
+}
