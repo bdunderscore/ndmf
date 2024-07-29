@@ -113,7 +113,6 @@ namespace nadena.dev.ndmf.preview
                 // Reuse the old node in its entirety
                 node = _node;
                 context = _context;
-                Debug.Log("=== Reusing node " + _node);
             }
             else
             {
@@ -125,8 +124,6 @@ namespace nadena.dev.ndmf.preview
                         changes
                     );
                 }
-
-                Debug.Log("=== Refreshing node " + _node + " with changes " + changes + "; success? " + (node != null) + " same? " + (node == _node));
             }
 
             RefCount refCount;
