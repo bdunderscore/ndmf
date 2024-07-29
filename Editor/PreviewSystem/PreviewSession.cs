@@ -15,14 +15,14 @@ namespace nadena.dev.ndmf.preview
     ///
     /// (For now, this isn't very useful; use  `DeclaringPass.PreviewingWith` instead)
     /// </summary>
-    public class PreviewSession // : IDisposable
+    internal class PreviewSession // : IDisposable
     {
         #region Static State
 
         /// <summary>
         /// The PreviewSession used for any cameras not overriden using `OverrideCamera`.
         /// </summary>
-        public static PreviewSession Current { get; set; } = null;
+        public static PreviewSession Current { get; set; }
 
 #if FUTURE_API
         /// <summary>
@@ -48,27 +48,27 @@ namespace nadena.dev.ndmf.preview
 
         internal IEnumerable<(Renderer, Renderer)> GetReplacements()
         {
-            return _session?.OnPreCull() ?? Enumerable.Empty<(Renderer, Renderer)>();
+            return _proxySession?.OnPreCull() ?? Enumerable.Empty<(Renderer, Renderer)>();
         }
         
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>
-            _session?.OriginalToProxyRenderer ?? ImmutableDictionary<Renderer, Renderer>.Empty;
+            _proxySession?.OriginalToProxyRenderer ?? ImmutableDictionary<Renderer, Renderer>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =>
-            _session?.OriginalToProxyObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
+            _proxySession?.OriginalToProxyObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =>
-            _session?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
+            _proxySession?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
         
         private readonly Sequencer _sequence = new Sequencer();
 
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
 
-        private ProxySession _session;
+        private readonly ProxySession _proxySession;
         
         public PreviewSession()
         {
-            _session = new ProxySession(ImmutableList<IRenderFilter>.Empty);
+            _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace nadena.dev.ndmf.preview
             var sequence = _sequence.Sequence;
             var filters = sequence.Select(p => _filters.GetValueOrDefault(p)).Where(f => f != null).ToImmutableList();
 
-            _session.Filters = filters;
+            _proxySession.Filters = filters;
         }
 
 #if FUTURE_API
@@ -131,11 +131,11 @@ namespace nadena.dev.ndmf.preview
         {
             throw new NotImplementedException();
         }
-
+#endif
+        
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _proxySession.Dispose();
         }
-#endif
     }
 }

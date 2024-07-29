@@ -1,6 +1,7 @@
 ﻿#region
 
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.UI;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 
@@ -19,6 +20,15 @@ namespace nadena.dev.ndmf
             {
                 var resolver = new PluginResolver();
                 PreviewSession.Current = resolver.PreviewSession;
+
+                PreviewPrefs.instance.OnPreviewConfigChanged += () =>
+                {
+                    var oldSession = PreviewSession.Current;
+                    PreviewSession.Current = resolver.PreviewSession;
+                    oldSession.Dispose();
+
+                    SceneView.RepaintAll();
+                };
             };
         }
     }

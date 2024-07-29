@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.UI;
 
 #endregion
 
@@ -30,6 +31,7 @@ namespace nadena.dev.ndmf
         internal IPass InstantiatedPass { get; }
         internal ImmutableList<Type> DeactivatePlugins { get; }
         internal ImmutableList<Type> ActivatePlugins { get; }
+        internal bool HasPreviews { get; set; }
 
         public void Execute(BuildContext context)
         {
@@ -49,9 +51,10 @@ namespace nadena.dev.ndmf
 
     internal class PluginResolver
     {
-        internal PreviewSession PreviewSession { get; private set; }
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
+        private readonly List<SolverPass> _allPasses = new();
+        
         public PluginResolver() : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                     assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
@@ -71,8 +74,6 @@ namespace nadena.dev.ndmf
 
         public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates)
         {
-            PreviewSession = new PreviewSession();
-
             var solverContext = new SolverContext();
 
             foreach (var plugin in pluginTemplates)
@@ -156,6 +157,7 @@ namespace nadena.dev.ndmf
 #endif
                 
                 var sorted = TopoSort.DoSort(passes, constraints);
+                _allPasses.AddRange(sorted);
 
                 var concrete = ToConcretePasses(phase, sorted);
 
@@ -196,13 +198,11 @@ namespace nadena.dev.ndmf
                     }
                 }
 
-                concrete.Add(new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
-                    toActivate.ToImmutableList()));
+                var concretePass = new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
+                    toActivate.ToImmutableList());
+                concretePass.HasPreviews = pass.RenderFilters.Count > 0;
 
-                foreach (var filter in pass.RenderFilters)
-                {
-                    PreviewSession.AddMutator(new SequencePoint(), filter);
-                }
+                concrete.Add(concretePass);
             }
 
             if (activeExtensions.Count > 0)
@@ -218,6 +218,25 @@ namespace nadena.dev.ndmf
             }
 
             return concrete.ToImmutableList();
+        }
+
+        internal PreviewSession PreviewSession
+        {
+            get
+            {
+                var session = new PreviewSession();
+
+                foreach (var pass in _allPasses)
+                {
+                    if (!PreviewPrefs.instance.IsPreviewPluginEnabled(pass.Plugin.QualifiedName)) continue;
+
+                    if (PreviewPrefs.instance.IsPreviewPassEnabled(pass.Pass.QualifiedName))
+                        foreach (var filter in pass.RenderFilters)
+                            session.AddMutator(new SequencePoint(), filter);
+                }
+
+                return session;
+            }
         }
     }
 }
