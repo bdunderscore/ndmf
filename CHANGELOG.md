@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.5.0-beta.1] - [2024-07-28]
+
+### Added
+- [#297] Added UI for turning preview on/off at a plugin or pass level
+
+### Fixed
+- [#298] Fixed issue where the scene view was sometimes not refreshed when the pipeline build completes
+
 ## [1.5.0-beta.0] - [2024-07-28]
 
 ### Added
