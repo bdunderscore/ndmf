@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.ndmf.rq;
 using UnityEngine;
 
 #endregion
@@ -16,7 +15,7 @@ namespace nadena.dev.ndmf.preview
     ///
     /// (For now, this isn't very useful; use  `DeclaringPass.PreviewingWith` instead)
     /// </summary>
-    public class PreviewSession : IDisposable
+    public class PreviewSession // : IDisposable
     {
         #region Static State
 
@@ -25,7 +24,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         public static PreviewSession Current { get; set; } = null;
 
-
+#if FUTURE_API
         /// <summary>
         /// Applies this PreviewSession to the `target` camera.
         /// </summary>
@@ -43,6 +42,7 @@ namespace nadena.dev.ndmf.preview
         {
             throw new NotImplementedException();
         }
+#endif
 
         #endregion
 
@@ -120,6 +120,7 @@ namespace nadena.dev.ndmf.preview
             _session.Filters = filters;
         }
 
+#if FUTURE_API
         /// <summary>
         /// Returns a new PreviewSession which inherits all mutators from the parent session. Any mutators added to this
         /// new session run after the parent session's mutators.
@@ -135,5 +136,6 @@ namespace nadena.dev.ndmf.preview
         {
             throw new NotImplementedException();
         }
+#endif
     }
 }

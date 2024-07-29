@@ -6,23 +6,21 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq
+namespace nadena.dev.ndmf.preview
 {
-    public static class TaskThrottle
+    internal static class TaskThrottle // TODO: make this a public API?
     {
         public static readonly ThreadLocal<Func<bool>> ShouldThrottle = new(() => () => false);
 
         public static async ValueTask MaybeThrottle()
         {
             if (ShouldThrottle.Value())
-            {
                 await Task.CompletedTask.ContinueWith(
                     _ => Task.CompletedTask,
                     CancellationToken.None,
                     TaskContinuationOptions.RunContinuationsAsynchronously,
                     TaskScheduler.Current
                 );
-            }
         }
 
         public static IDisposable WithThrottleCondition(Func<bool> condition)

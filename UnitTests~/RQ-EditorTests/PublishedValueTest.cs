@@ -1,5 +1,4 @@
-﻿using nadena.dev.ndmf.rq;
-using nadena.dev.ndmf.rq.unity.editor;
+﻿using nadena.dev.ndmf.preview;
 using NUnit.Framework;
 
 namespace UnitTests.EditorTests

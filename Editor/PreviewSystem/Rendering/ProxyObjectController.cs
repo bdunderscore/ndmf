@@ -3,8 +3,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using nadena.dev.ndmf.rq;
-using nadena.dev.ndmf.rq.unity.editor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;

@@ -5,11 +5,11 @@ using System.Runtime.CompilerServices;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq
+namespace nadena.dev.ndmf
 {
     internal class ObjectIdentityComparer<T> : IEqualityComparer<T>
     {
-        public static ObjectIdentityComparer<T> Instance { get; } = new ObjectIdentityComparer<T>();
+        public static ObjectIdentityComparer<T> Instance { get; } = new();
 
 
         public bool Equals(T x, T y)

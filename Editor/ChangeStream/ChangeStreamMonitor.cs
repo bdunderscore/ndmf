@@ -1,14 +1,13 @@
 ﻿#region
 
 using System;
-using System.Diagnostics;
 using UnityEditor;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.cs
 {
     internal class ChangeStreamMonitor
     {

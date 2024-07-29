@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.cs;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 #endregion
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.preview
 {
     [PublicAPI]
     public static partial class ComputeContextQueries

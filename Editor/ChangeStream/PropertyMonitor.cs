@@ -9,7 +9,7 @@ using UnityEngine.Profiling;
 using Stopwatch = System.Diagnostics.Stopwatch;
 using Object = UnityEngine.Object;
 
-namespace nadena.dev.ndmf.rq.unity.editor
+namespace nadena.dev.ndmf.cs
 {
     internal class PropertyMonitor
     {
