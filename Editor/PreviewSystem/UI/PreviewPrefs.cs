@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,25 +9,47 @@ namespace nadena.dev.ndmf.preview.UI
 {
     internal class PreviewPrefs : ScriptableSingleton<PreviewPrefs>
     {
-        [SerializeField] private List<string> _disabledPreviewPasses = new();
-        private ImmutableHashSet<string> _disabledPreviewPassesSet;
-
         [SerializeField] private List<string> _disabledPreviewPlugins = new();
         private ImmutableHashSet<string> _disabledPreviewPluginsSet;
 
+        [Serializable]
+        private struct KeyValue
+        {
+            public string key;
+            public bool value;
+        }
+
+        [SerializeField] private List<KeyValue> _savedNodeStates = new();
+        private Dictionary<string, bool> _nodeStates = new();
+        
         public event Action OnPreviewConfigChanged;
 
         private void OnValidate()
         {
-            _disabledPreviewPassesSet = _disabledPreviewPasses.ToImmutableHashSet();
+            if (_disabledPreviewPlugins == null)
+                _disabledPreviewPlugins = new List<string>();
+            if (_savedNodeStates == null)
+                _savedNodeStates = new List<KeyValue>();
+            
             _disabledPreviewPluginsSet = _disabledPreviewPlugins.ToImmutableHashSet();
+            _nodeStates = _savedNodeStates.ToDictionary(kv => kv.key, kv => kv.value);
         }
 
-        public bool IsPreviewPassEnabled(string qualifiedName)
+        public bool GetNodeState(string qualifiedName, bool defaultValue)
         {
-            if (_disabledPreviewPassesSet == null) OnValidate();
+            if (_nodeStates == null) OnValidate();
 
-            return !_disabledPreviewPassesSet.Contains(qualifiedName);
+            return _nodeStates.TryGetValue(qualifiedName, out var value) ? value : defaultValue;
+        }
+
+        public void SetNodeState(string qualifiedName, bool value)
+        {
+            if (_nodeStates == null) OnValidate();
+
+            _nodeStates[qualifiedName] = value;
+            _savedNodeStates = _nodeStates.Select(kv => new KeyValue { key = kv.Key, value = kv.Value }).ToList();
+
+            EditorUtility.SetDirty(this);
         }
 
         public bool IsPreviewPluginEnabled(string qualifiedName)
@@ -34,18 +57,6 @@ namespace nadena.dev.ndmf.preview.UI
             if (_disabledPreviewPluginsSet == null) OnValidate();
 
             return !_disabledPreviewPluginsSet.Contains(qualifiedName);
-        }
-
-        public void SetPreviewPassEnabled(string qualifiedName, bool enabled)
-        {
-            if (enabled)
-                _disabledPreviewPasses.Remove(qualifiedName);
-            else
-                _disabledPreviewPasses.Add(qualifiedName);
-
-            OnValidate();
-
-            OnPreviewConfigChanged?.Invoke();
         }
 
         public void SetPreviewPluginEnabled(string qualifiedName, bool enabled)

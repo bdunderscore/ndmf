@@ -122,6 +122,26 @@ namespace nadena.dev.ndmf.preview
             ComputeContext context
         );
 
+        /// <summary>
+        ///     Evaluate whether the filter as a whole should be enabled. Returns true by default.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public bool IsEnabled(ComputeContext context)
+        {
+            return true;
+        }
+
+        /// <summary>
+        ///     Returns a set of control nodes that can be used to modify the behavior of this filter. By default, returns an
+        ///     empty set.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<TogglablePreviewNode> GetPreviewControlNodes()
+        {
+            yield break;
+        }
+
         // Allow for future expansion
         [ExcludeFromDocs]
         [UsedImplicitly]

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 #endregion
 
@@ -106,8 +107,7 @@ namespace nadena.dev.ndmf.preview
             var context = new ComputeContext();
             _ctx = context; // prevent GC
 
-            List<IRenderFilter> filterList = filters.ToList();
-            List<StageDescriptor> priorStages = priorPipeline?._stages;
+            var filterList = filters.Where(f => f.IsEnabled(context)).ToList();
 
             Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
 
@@ -194,7 +194,7 @@ namespace nadena.dev.ndmf.preview
                 .ContinueWith(result =>
                 {
                     _completedBuild.TrySetResult(null);
-                    EditorApplication.delayCall += SceneView.RepaintAll;
+                    EditorApplication.delayCall += () => { EditorApplication.delayCall += SceneView.RepaintAll; };
                 });
 
             foreach (var stage in _stages)
@@ -211,6 +211,8 @@ namespace nadena.dev.ndmf.preview
         public void OnFrame()
         {
             if (!IsReady) return;
+
+            Debug.WriteLine("OnFrame");
             
             foreach (var pair in _proxies)
             {

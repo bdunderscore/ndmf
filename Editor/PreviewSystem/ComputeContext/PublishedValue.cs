@@ -13,6 +13,8 @@ namespace nadena.dev.ndmf.preview
     {
         private T _value;
 
+        public event Action<T> OnChange;
+
         public T Value
         {
             get => _value;
@@ -21,7 +23,16 @@ namespace nadena.dev.ndmf.preview
                 if (ReferenceEquals(_value, value)) return;
                 _value = value;
                 _listeners.Fire(null);
+                var listeners = OnChange;
+                OnChange = default;
+
+                listeners?.Invoke(value);
             }
+        }
+
+        public void SetWithoutNotify(T value)
+        {
+            _value = value;
         }
 
         public PublishedValue(T value)
