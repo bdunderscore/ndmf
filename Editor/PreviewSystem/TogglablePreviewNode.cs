@@ -1,5 +1,6 @@
 ﻿using System;
 using nadena.dev.ndmf.preview.UI;
+using UnityEditor;
 
 namespace nadena.dev.ndmf.preview
 {
@@ -8,6 +9,14 @@ namespace nadena.dev.ndmf.preview
     /// </summary>
     public sealed class TogglablePreviewNode
     {
+        private static bool IN_STATIC_INIT = true;
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.delayCall += () => IN_STATIC_INIT = false;
+        }
+        
         /// <summary>
         ///     The name that will be shown to the user. Will be re-invoked on language change.
         /// </summary>
@@ -22,7 +31,7 @@ namespace nadena.dev.ndmf.preview
         }
         
         /// <summary>
-        /// Creates a togglable preview node. Must not be invoked during static initialization.
+        /// Creates a togglable preview node.
         /// </summary>
         /// <param name="displayName">A function which returns the localized display name for this switch</param>
         /// <param name="qualifiedName">If not null, a name which will be used to save this configuration</param>
@@ -30,12 +39,22 @@ namespace nadena.dev.ndmf.preview
         public static TogglablePreviewNode Create(Func<string> displayName, string qualifiedName = null,
             bool initialState = true)
         {
-            if (qualifiedName != null) initialState = PreviewPrefs.instance.GetNodeState(qualifiedName, initialState);
-
             var node = new TogglablePreviewNode(displayName, initialState);
+            
 
             if (qualifiedName != null)
-                node.IsEnabled.OnChange += value => PreviewPrefs.instance.SetNodeState(qualifiedName, value);
+            {
+                EditorApplication.CallbackFunction loadSaved = () =>
+                {
+                    node.IsEnabled.Value = PreviewPrefs.instance.GetNodeState(qualifiedName, initialState);
+                    node.IsEnabled.OnChange += value => PreviewPrefs.instance.SetNodeState(qualifiedName, value);
+                };
+
+                if (IN_STATIC_INIT)
+                    EditorApplication.delayCall += loadSaved;
+                else
+                    loadSaved();
+            }
 
             return node;
         }
