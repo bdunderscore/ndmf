@@ -25,7 +25,7 @@ namespace nadena.dev.ndmf
         
         private EnhancerDatabase()
         {
-            _resolved = new Dictionary<Type, EnhancerDatabase<T, Interface>.Creator>();
+            _resolved = new Dictionary<Type, Creator>();
         }
         
         
@@ -89,6 +89,10 @@ namespace nadena.dev.ndmf
         
         private bool DoQuery(Component c, out Creator creator)
         {
+            creator = default;
+
+            if (c == null) return false;
+            
             if (_resolved.TryGetValue(c.GetType(), out creator))
             {
                 return true;

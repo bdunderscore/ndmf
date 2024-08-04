@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#298] Fixed issue where the scene view was sometimes not refreshed when the pipeline build completes
+- [#309] NullReferenceException from GetParametersForObject when encountering a missing component
 
 ### Changed
 
