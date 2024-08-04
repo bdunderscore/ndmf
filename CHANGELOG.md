@@ -8,14 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#297] Added UI for turning preview on/off at a plugin or pass level
-- [#301] [#302] Added API for changing the controls used to manipulate preview enable/disable state
-
 
 ### Fixed
-- [#298] Fixed issue where the scene view was sometimes not refreshed when the pipeline build completes
-- [#309] NullReferenceException from GetParametersForObject when encountering a missing component
-- [#311] Fix issue where MeshRenderers are shown with incorrect scale
 
 ### Changed
 
@@ -24,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-beta.2] - [2024-08-03]
+
+### Added
+
+- [#297] Added UI for turning preview on/off at a plugin or pass level
+- [#301] [#302] Added API for changing the controls used to manipulate preview enable/disable state
+
+### Fixed
+
+- [#298] Fixed issue where the scene view was sometimes not refreshed when the pipeline build completes
+- [#309] NullReferenceException from GetParametersForObject when encountering a missing component
+- [#311] Fix issue where MeshRenderers are shown with incorrect scale
 
 ## [1.5.0-beta.1] - [2024-07-28]
 
