@@ -119,6 +119,9 @@ namespace nadena.dev.ndmf.preview
                 return false;
             }
 
+            var target = _replacementRenderer;
+            var original = _originalRenderer;
+
             SkinnedMeshRenderer smr = null;
             if (_originalRenderer is SkinnedMeshRenderer smr_)
             {
@@ -127,18 +130,28 @@ namespace nadena.dev.ndmf.preview
                 var replacementSMR = (SkinnedMeshRenderer)_replacementRenderer;
                 replacementSMR.sharedMesh = smr_.sharedMesh;
                 replacementSMR.bones = smr_.bones;
+                
+                target.transform.position = original.transform.position;
+                target.transform.rotation = original.transform.rotation;
             }
             else
             {
                 var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
                 var filter = _replacementRenderer.GetComponent<MeshFilter>();
                 filter.sharedMesh = originalFilter.sharedMesh;
+
+                var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
+                
+                var rendererTransform = _replacementRenderer.transform;
+                if (shadowBone != rendererTransform.parent)
+                {
+                    rendererTransform.SetParent(shadowBone, false);
+                    rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                    rendererTransform.localScale = Vector3.one;
+                }
             }
 
             _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
-
-            var target = _replacementRenderer;
-            var original = _originalRenderer;
 
             if (target.gameObject.scene != original.gameObject.scene &&
                 original.gameObject.scene.IsValid())
@@ -146,8 +159,6 @@ namespace nadena.dev.ndmf.preview
                 SceneManager.MoveGameObjectToScene(target.gameObject, original.gameObject.scene);
             }
 
-            target.transform.position = original.transform.position;
-            target.transform.rotation = original.transform.rotation;
 
             target.localBounds = original.localBounds;
             if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)

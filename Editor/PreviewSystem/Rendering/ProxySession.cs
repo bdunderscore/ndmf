@@ -72,6 +72,8 @@ namespace nadena.dev.ndmf.preview
 
         public IEnumerable<(Renderer, Renderer)> OnPreCull()
         {
+            ShadowBoneManager.Instance.Update();
+            
             bool activeIsReady = _active?.IsReady == true;
             bool activeNeedsReplacement = _active?.IsInvalidated != false;
 
