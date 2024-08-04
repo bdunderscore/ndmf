@@ -31,7 +31,8 @@ namespace nadena.dev.ndmf
         internal IPass InstantiatedPass { get; }
         internal ImmutableList<Type> DeactivatePlugins { get; }
         internal ImmutableList<Type> ActivatePlugins { get; }
-        internal bool HasPreviews { get; set; }
+        internal ImmutableList<IRenderFilter> RenderFilters { get; }
+        internal bool HasPreviews => RenderFilters.Any();
 
         public void Execute(BuildContext context)
         {
@@ -39,13 +40,14 @@ namespace nadena.dev.ndmf
         }
 
         internal ConcretePass(IPluginInternal plugin, IPass pass, ImmutableList<Type> deactivatePlugins,
-            ImmutableList<Type> activatePlugins)
+            ImmutableList<Type> activatePlugins, ImmutableList<IRenderFilter> renderFilters)
         {
             Plugin = plugin;
             Description = pass.DisplayName;
             InstantiatedPass = pass;
             DeactivatePlugins = deactivatePlugins;
             ActivatePlugins = activatePlugins;
+            RenderFilters = renderFilters;
         }
     }
 
@@ -199,8 +201,7 @@ namespace nadena.dev.ndmf
                 }
 
                 var concretePass = new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
-                    toActivate.ToImmutableList());
-                concretePass.HasPreviews = pass.RenderFilters.Count > 0;
+                    toActivate.ToImmutableList(), pass.RenderFilters.ToImmutableList());
 
                 concrete.Add(concretePass);
             }
@@ -213,7 +214,8 @@ namespace nadena.dev.ndmf
 
                 concrete.Add(new ConcretePass(InternalPasses.Instance, cleanup,
                     activeExtensions.ToImmutableList(),
-                    ImmutableList<Type>.Empty
+                    ImmutableList<Type>.Empty,
+                    ImmutableList<IRenderFilter>.Empty
                 ));
             }
 
@@ -230,9 +232,8 @@ namespace nadena.dev.ndmf
                 {
                     if (!PreviewPrefs.instance.IsPreviewPluginEnabled(pass.Plugin.QualifiedName)) continue;
 
-                    if (PreviewPrefs.instance.IsPreviewPassEnabled(pass.Pass.QualifiedName))
-                        foreach (var filter in pass.RenderFilters)
-                            session.AddMutator(new SequencePoint(), filter);
+                    foreach (var filter in pass.RenderFilters)
+                        session.AddMutator(new SequencePoint(), filter);
                 }
 
                 return session;

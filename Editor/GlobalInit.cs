@@ -26,8 +26,6 @@ namespace nadena.dev.ndmf
                     var oldSession = PreviewSession.Current;
                     PreviewSession.Current = resolver.PreviewSession;
                     oldSession.Dispose();
-
-                    SceneView.RepaintAll();
                 };
             };
         }
