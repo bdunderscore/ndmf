@@ -315,6 +315,7 @@ namespace nadena.dev.ndmf.cs
 
             private void DoDispose()
             {
+                if (_orig == null) return;
                 foreach (var orig in _orig) orig.Dispose();
             }
         }

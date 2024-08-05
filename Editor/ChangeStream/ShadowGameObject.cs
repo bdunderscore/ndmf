@@ -58,6 +58,8 @@ namespace nadena.dev.ndmf.cs
 
         internal IDisposable RegisterRootSetListener(ListenerSet<HierarchyEvent>.Filter filter, ComputeContext ctx)
         {
+            if (ctx.IsInvalidated) return new NullDisposable();
+            
             return _rootSetListener.Register(filter, ctx);
         }
 
@@ -67,7 +69,7 @@ namespace nadena.dev.ndmf.cs
             ComputeContext ctx
         )
         {
-            if (targetObject == null) return new NullDisposable();
+            if (targetObject == null || ctx.IsInvalidated) return new NullDisposable();
 
             ShadowGameObject shadowObject = ActivateShadowObject(targetObject);
 
@@ -79,7 +81,7 @@ namespace nadena.dev.ndmf.cs
             ComputeContext ctx
         )
         {
-            if (targetComponent == null) return new NullDisposable();
+            if (targetComponent == null || ctx.IsInvalidated) return new NullDisposable();
 
             if (!_otherObjects.TryGetValue(targetComponent.GetInstanceID(), out var shadowComponent))
             {
