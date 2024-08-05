@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#312] Added a default value field to ProvidedParameter
+- [#312] Added support for invalidating ComputeContext to ParameterInfo
 
 ### Fixed
+- [#312] Fix issues preventing preview overrides from changing object enable states
 
 ### Changed
 
