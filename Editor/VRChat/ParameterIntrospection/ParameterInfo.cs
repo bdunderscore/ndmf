@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -17,14 +18,20 @@ namespace nadena.dev.ndmf
     /// </summary>
     public sealed class ParameterInfo
     {
-        public static readonly ParameterInfo ForUI = new ParameterInfo(null);
+        public static readonly ParameterInfo ForUI = new((BuildContext)null);
 
         public static ParameterInfo ForContext(BuildContext context)
         {
             return context.GetState(ctx => new ParameterInfo(ctx));
         }
 
+        public static ParameterInfo ForPreview(ComputeContext context)
+        {
+            return new ParameterInfo(context);
+        }
+
         private readonly BuildContext _context;
+        private readonly ComputeContext _computeContext;
 
         public enum ConflictType
         {
@@ -46,6 +53,12 @@ namespace nadena.dev.ndmf
         private ParameterInfo(BuildContext context)
         {
             _context = context;
+            _computeContext = ComputeContext.NullContext;
+        }
+
+        private ParameterInfo(ComputeContext ctx)
+        {
+            _computeContext = ctx;
         }
 
         private long _parameterCount; // used to maintain declaration order
@@ -95,13 +108,15 @@ namespace nadena.dev.ndmf
 
             if (!RuntimeUtil.IsAvatarRoot(obj.transform))
             {
+                _computeContext.ObservePath(obj.transform);
                 mappings = GetParameterRemappingsAt(obj.transform.parent.gameObject);
             }
 
-            foreach (var component in obj.GetComponents(typeof(Component)))
+            foreach (var component in _computeContext.GetComponents(obj, typeof(Component)))
             {
                 if (EnhancerDatabase<ParameterProviderFor, IParameterProvider>.Query(component, out var provider))
                 {
+                    _computeContext.Observe(component); // TODO: Can we add an extract condition here?
                     provider.RemapParameters(ref mappings, _context);
                 }
             }
@@ -124,10 +139,11 @@ namespace nadena.dev.ndmf
 
             if (!RuntimeUtil.IsAvatarRoot(c.transform))
             {
+                _computeContext.ObservePath(c.transform);
                 mappings = GetParameterRemappingsAt(c.transform.parent.gameObject);
             }
 
-            foreach (var component in c.GetComponents(typeof(Component)))
+            foreach (var component in _computeContext.GetComponents(c.gameObject, typeof(Component)))
             {
                 if (component == c && !includeSelf)
                 {
@@ -136,6 +152,7 @@ namespace nadena.dev.ndmf
 
                 if (EnhancerDatabase<ParameterProviderFor, IParameterProvider>.Query(component, out var provider))
                 {
+                    _computeContext.Observe(component); // TODO: Can we add an extract condition here?
                     provider.RemapParameters(ref mappings, _context);
                 }
 
@@ -157,6 +174,8 @@ namespace nadena.dev.ndmf
                 {
                     continue;
                 }
+
+                _computeContext.Observe(component); // TODO: Can we add an extract condition here?
 
                 // Apply mappings first
                 provider.RemapParameters(ref remaps, _context);
@@ -255,6 +274,8 @@ namespace nadena.dev.ndmf
             oldP.Parameter.IsAnimatorOnly &= newP.IsAnimatorOnly;
             oldP.Parameter.IsHidden &= newP.IsHidden;
             oldP.Parameter.WantSynced = oldP.Parameter.WantSynced || newP.WantSynced;
+
+            oldP.Parameter.DefaultValue = newP.DefaultValue ?? oldP.Parameter.DefaultValue;
         }
     }
 }

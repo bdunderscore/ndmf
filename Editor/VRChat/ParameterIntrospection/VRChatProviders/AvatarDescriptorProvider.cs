@@ -38,6 +38,7 @@ namespace nadena.dev.ndmf.VRChatProviders
                 )
                 {
                     WantSynced = p.networkSynced,
+                    DefaultValue = p.defaultValue
                 };
             });
         }

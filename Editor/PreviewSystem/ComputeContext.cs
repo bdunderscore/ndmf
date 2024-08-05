@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 #endregion
 
@@ -13,7 +14,13 @@ namespace nadena.dev.ndmf.preview
     /// </summary>
     public sealed class ComputeContext
     {
+        [PublicAPI] public static ComputeContext NullContext { get; }
         private readonly TaskCompletionSource<object> _invalidater = new();
+
+        static ComputeContext()
+        {
+            NullContext = new ComputeContext(null);
+        }
 
         /// <summary>
         ///     An Action which can be used to invalidate this compute context (possibly triggering a recompute).
@@ -32,6 +39,12 @@ namespace nadena.dev.ndmf.preview
         {
             Invalidate = () => _invalidater.TrySetResult(null);
             OnInvalidate = _invalidater.Task;
+        }
+
+        private ComputeContext(object nullToken)
+        {
+            Invalidate = () => { };
+            OnInvalidate = Task.CompletedTask;
         }
 
         /// <summary>

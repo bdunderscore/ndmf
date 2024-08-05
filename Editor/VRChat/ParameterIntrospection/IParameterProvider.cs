@@ -188,6 +188,11 @@ namespace nadena.dev.ndmf
         /// </summary>
         public bool WantSynced { get; set; }
 
+        /// <summary>
+        ///     The default value of this parameter, if known.
+        /// </summary>
+        public float? DefaultValue { get; set; }
+
         public IEnumerable<ProvidedParameter> SubParameters()
         {
             if (Namespace == ParameterNamespace.Animator)
