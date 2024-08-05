@@ -122,6 +122,8 @@ namespace nadena.dev.ndmf.preview
             var target = _replacementRenderer;
             var original = _originalRenderer;
 
+            target.gameObject.SetActive(original.enabled && original.gameObject.activeInHierarchy);
+
             SkinnedMeshRenderer smr = null;
             if (_originalRenderer is SkinnedMeshRenderer smr_)
             {
@@ -154,7 +156,7 @@ namespace nadena.dev.ndmf.preview
             _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
 
             if (target.gameObject.scene != original.gameObject.scene &&
-                original.gameObject.scene.IsValid())
+                original.gameObject.scene.IsValid() && target.transform.parent == null)
             {
                 SceneManager.MoveGameObjectToScene(target.gameObject, original.gameObject.scene);
             }

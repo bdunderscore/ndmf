@@ -41,8 +41,8 @@ namespace nadena.dev.ndmf.preview
 
             foreach (var (original, replacement) in sess.GetReplacements())
             {
-                if (original == null || replacement == null || !original.enabled ||
-                    !original.gameObject.activeInHierarchy)
+                // TODO: Optimize to cull meshes that don't have an active-state override registered
+                if (original == null || replacement == null || !original.enabled)
                 {
                     if (replacement != null) replacement.forceRenderingOff = true;
                     continue;

@@ -155,7 +155,10 @@ namespace nadena.dev.ndmf.preview
             entry.proxy.localPosition = t.localPosition;
             entry.proxy.localRotation = t.localRotation;
             entry.proxy.localScale = t.localScale;
-            
+
+            if (entry.proxy.parent == null && entry.proxy.gameObject.scene != t.gameObject.scene)
+                SceneManager.MoveGameObjectToScene(entry.proxy.gameObject, t.gameObject.scene);
+
             return parent;
         }
     }
