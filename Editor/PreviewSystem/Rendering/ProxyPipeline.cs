@@ -211,8 +211,6 @@ namespace nadena.dev.ndmf.preview
         public void OnFrame()
         {
             if (!IsReady) return;
-
-            Debug.WriteLine("OnFrame");
             
             foreach (var pair in _proxies)
             {
