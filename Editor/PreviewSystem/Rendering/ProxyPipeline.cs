@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Debug = System.Diagnostics.Debug;
 
 #endregion
@@ -104,12 +105,16 @@ namespace nadena.dev.ndmf.preview
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
             ProxyPipeline priorPipeline)
         {
+            Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
             var context = new ComputeContext();
             _ctx = context; // prevent GC
 
             var filterList = filters.Where(f => f.IsEnabled(context)).ToList();
 
             Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
+            int total_nodes = 0;
+            int reused = 0;
+            int refresh_failed = 0;
 
             for (int i = 0; i < filterList.Count(); i++)
             {
@@ -126,8 +131,11 @@ namespace nadena.dev.ndmf.preview
                 }
 
                 int groupIndex = -1;
-                foreach (var group in stage.Originals)
+                foreach (var group in stage.Originals.OrderBy(g => g.GetHashCode()))
                 {
+                    total_nodes++;
+                    
+                    
                     groupIndex++;
                     var resolved = group.Renderers.Select(r =>
                     {
@@ -159,8 +167,10 @@ namespace nadena.dev.ndmf.preview
                     });
 
                     var priorNode = prior?.NodeTasks.ElementAtOrDefault(groupIndex);
-                    if (priorNode?.IsCompletedSuccessfully != true || !Equals(priorNode?.Result.Group, group))
+                    var sameGroup = Equals(priorNode?.Result.Group, group);
+                    if (priorNode?.IsCompletedSuccessfully != true || !sameGroup)
                     {
+                        //System.Diagnostics.Debug.WriteLine("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
                         priorNode = null;
                     }
 
@@ -174,7 +184,13 @@ namespace nadena.dev.ndmf.preview
                                     .Aggregate((a, b) => a | b);
 
                                 var node = await priorNode.Result.Refresh(proxies, changeFlags);
-                                if (node != null) return node;
+                                if (node != null)
+                                {
+                                    reused++;
+                                    return node;
+                                }
+
+                                refresh_failed++;
                             }
                             
                             return await NodeController.Create(filter, group, items.Result.ToList());
@@ -189,6 +205,8 @@ namespace nadena.dev.ndmf.preview
                     }
                 }
             }
+            
+            Profiler.EndSample();
 
             await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
                 .ContinueWith(result =>
@@ -196,6 +214,8 @@ namespace nadena.dev.ndmf.preview
                     _completedBuild.TrySetResult(null);
                     EditorApplication.delayCall += () => { EditorApplication.delayCall += SceneView.RepaintAll; };
                 });
+            
+            //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
             foreach (var stage in _stages)
             {
