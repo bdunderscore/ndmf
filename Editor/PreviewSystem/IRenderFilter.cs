@@ -1,11 +1,13 @@
 ﻿#region
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using NUnit.Framework;
 using UnityEngine;
 
 #endregion
@@ -52,7 +54,7 @@ namespace nadena.dev.ndmf.preview
 
         protected bool Equals(RenderGroup other)
         {
-            return Equals(Renderers, other.Renderers);
+            return Renderers.SequenceEqual(other.Renderers);
         }
 
         public override bool Equals(object obj)
@@ -65,7 +67,13 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            return (Renderers != null ? Renderers.GetHashCode() : 0);
+            var hashCode = 0;
+            foreach (var renderer in Renderers)
+            {
+                hashCode = HashCode.Combine(hashCode, renderer.GetInstanceID());
+            }
+
+            return hashCode;
         }
     }
 
@@ -80,6 +88,13 @@ namespace nadena.dev.ndmf.preview
 
         private bool Equals(RenderGroup<T> other)
         {
+            if (Context is IEnumerable l && other.Context is IEnumerable ol)
+            {
+                // This is a common mistake; List does not implement a useful Equals for us. Work around it
+                // on behalf of our consumers...
+                return base.Equals(other) && l.Cast<object>().SequenceEqual(ol.Cast<object>());
+            }
+            
             return base.Equals(other) && EqualityComparer<T>.Default.Equals(Context, other.Context);
         }
 
@@ -90,10 +105,12 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            unchecked
+            if (Context is IEnumerable l)
             {
-                return (base.GetHashCode() * 397) ^ EqualityComparer<T>.Default.GetHashCode(Context);
+                return l.Cast<object>().Aggregate(base.GetHashCode(), (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
             }
+            
+            return HashCode.Combine(base.GetHashCode(), EqualityComparer<T>.Default.GetHashCode(Context));
         }
     }
 
