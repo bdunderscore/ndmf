@@ -9,7 +9,7 @@ namespace UnitTests.EditorTests
         public void BasicObserve()
         {
             PublishedValue<string> val = new PublishedValue<string>("foo");
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             
             string observed = ctx.Observe(val);
             Assert.AreEqual("foo", observed);
@@ -25,7 +25,7 @@ namespace UnitTests.EditorTests
         public void ObserveWithExtract()
         {
             PublishedValue<string> val = new PublishedValue<string>("foo");
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             
             int len = ctx.Observe(val, s => s.Length);
             Assert.AreEqual(3, len);
@@ -43,7 +43,7 @@ namespace UnitTests.EditorTests
         public void ObserveWithExtractAndEquals()
         {
             PublishedValue<string> val = new PublishedValue<string>("foo");
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
 
             string observed = ctx.Observe(val, a => a, (a, b) => a.ToLowerInvariant().Equals(b.ToLowerInvariant()));
             Assert.AreEqual("foo", observed);

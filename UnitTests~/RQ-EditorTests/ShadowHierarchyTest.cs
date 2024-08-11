@@ -41,7 +41,7 @@ namespace UnitTests.EditorTests
 
             var gameObject = c(new GameObject("tmp"));
 
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             bool wasFired = false;
             bool doInvalidate = false;
             
@@ -75,7 +75,7 @@ namespace UnitTests.EditorTests
 
             var gameObject = c(new GameObject("tmp"));
 
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             bool wasFired = false;
             
             shadow.RegisterGameObjectListener(gameObject, e =>
@@ -98,7 +98,7 @@ namespace UnitTests.EditorTests
             var gameObject = c(new GameObject("tmp"));
 
             int count = 0;
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             
             shadow.RegisterGameObjectListener(gameObject, (e) =>
             {
@@ -118,7 +118,7 @@ namespace UnitTests.EditorTests
             {
                 wasFired[0] = true;
                 return false;
-            }, new ComputeContext());
+            }, new ComputeContext(""));
         }
         [Test]
         public void WhenTargetGCd_ListenerIsRemoved()
@@ -148,7 +148,7 @@ namespace UnitTests.EditorTests
 
             var gameObject = c(new GameObject("tmp"));
 
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             bool wasFired = false;
             
             var listener = shadow.RegisterGameObjectListener(gameObject, e =>
@@ -170,7 +170,7 @@ namespace UnitTests.EditorTests
             var p1 = c("p1");
             var p2 = c("p2");
             
-            var target = new ComputeContext();
+            var target = new ComputeContext("");
             bool wasFired = false;
             
             shadow.RegisterGameObjectListener(p2, e =>
@@ -199,7 +199,7 @@ namespace UnitTests.EditorTests
             var p2 = c("p2");
             var p3 = c("p3");
             
-            var target = new ComputeContext();
+            var target = new ComputeContext("");
             bool wasFired = false;
             
             p1.transform.SetParent(p2.transform);
@@ -228,7 +228,7 @@ namespace UnitTests.EditorTests
             var shadow = new ShadowHierarchy();
             var obj = c("obj");
 
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             List<HierarchyEvent> events = new List<HierarchyEvent>();
             
             shadow.RegisterGameObjectListener(obj, e =>
@@ -252,7 +252,7 @@ namespace UnitTests.EditorTests
             
             child.transform.SetParent(parent.transform);
             
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             List<HierarchyEvent> events = new List<HierarchyEvent>();
             
             shadow.RegisterGameObjectListener(parent, e =>
@@ -278,7 +278,7 @@ namespace UnitTests.EditorTests
             
             p3.transform.SetParent(p2.transform);
             
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             List<HierarchyEvent> events = new List<HierarchyEvent>();
             
             shadow.RegisterGameObjectListener(p1, e =>
@@ -313,7 +313,7 @@ namespace UnitTests.EditorTests
             
             c1.transform.SetParent(p.transform);
             
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             List<HierarchyEvent> events = new List<HierarchyEvent>();
             
             shadow.RegisterGameObjectListener(p, e =>
@@ -342,7 +342,7 @@ namespace UnitTests.EditorTests
             o2.transform.SetParent(o1.transform);
             o3.transform.SetParent(o2.transform);
             
-            ComputeContext ctx = new ComputeContext();
+            ComputeContext ctx = new ComputeContext("");
             List<(int, HierarchyEvent)> events = new List<(int, HierarchyEvent)>();
             shadow.RegisterGameObjectListener(o1, e =>
             {
@@ -386,7 +386,7 @@ namespace UnitTests.EditorTests
         {
             var shadow = new ShadowHierarchy();
             
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             
             var o1 = c("o1");
             var o2 = c("o2");
@@ -417,7 +417,7 @@ namespace UnitTests.EditorTests
         {
             var shadow = new ShadowHierarchy();
                         
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             
             var o1 = c("o1");
             var o2 = c("o2");
@@ -445,7 +445,7 @@ namespace UnitTests.EditorTests
         {
             var shadow = new ShadowHierarchy();
             
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
             
             var o1 = c("o1");
             var component = o1.AddComponent<Camera>();
@@ -463,7 +463,7 @@ namespace UnitTests.EditorTests
         {
             var shadow = new ShadowHierarchy();
             
-            var ctx = new ComputeContext();
+            var ctx = new ComputeContext("");
 
             var o1 = c("o1");
             var o2 = c("o2");

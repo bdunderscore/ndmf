@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using nadena.dev.ndmf.preview;
 using UnityEditor;
 
@@ -25,6 +26,13 @@ namespace nadena.dev.ndmf.cs
             _ctx = ctx == null ? null : new WeakReference<ComputeContext>(ctx);
         }
 
+        public override string ToString()
+        {
+            if (_ctx.TryGetTarget(out var target))
+                return $"Listener for {target}";
+            return "Listener (GC'd)";
+        }
+
         public void Dispose()
         {
             if (_next != null)
@@ -41,6 +49,9 @@ namespace nadena.dev.ndmf.cs
         {
             if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
             {
+#if NDMF_DEBUG
+                System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
+#endif
                 Dispose();
             }
         }
@@ -50,10 +61,17 @@ namespace nadena.dev.ndmf.cs
         {
             if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
             {
+#if NDMF_DEBUG
+                System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
+#endif
                 Dispose();
             }
             else if (_filter(info))
             {
+#if NDMF_DEBUG
+                System.Diagnostics.Debug.WriteLine($"{this} is firing");
+#endif
+                
                 ctx.Invalidate();
                 // We need to wait two frames before repainting: One to process task callbacks, then one to actually
                 // repaint (and update previews).
@@ -114,6 +132,16 @@ namespace nadena.dev.ndmf.cs
                 var next = listener._next;
                 listener.MaybePrune();
                 listener = next;
+            }
+        }
+
+        internal IEnumerable<string> GetListeners()
+        {
+            var ptr = _head._next;
+            while (ptr != _head)
+            {
+                yield return ptr.ToString();
+                ptr = ptr._next;
             }
         }
     }

@@ -19,9 +19,11 @@ namespace nadena.dev.ndmf.preview
 
         static ComputeContext()
         {
-            NullContext = new ComputeContext(null);
+            NullContext = new ComputeContext("null", null);
         }
 
+        internal string Description { get; }
+        
         /// <summary>
         ///     An Action which can be used to invalidate this compute context (possibly triggering a recompute).
         /// </summary>
@@ -35,16 +37,18 @@ namespace nadena.dev.ndmf.preview
 
         public bool IsInvalidated => OnInvalidate.IsCompleted;
 
-        internal ComputeContext()
+        internal ComputeContext(string description)
         {
             Invalidate = () => _invalidater.TrySetResult(null);
             OnInvalidate = _invalidater.Task;
+            Description = description;
         }
 
-        private ComputeContext(object nullToken)
+        private ComputeContext(string description, object nullToken)
         {
             Invalidate = () => { };
             OnInvalidate = Task.CompletedTask;
+            Description = description;
         }
 
         /// <summary>
@@ -54,6 +58,11 @@ namespace nadena.dev.ndmf.preview
         internal void Invalidates(ComputeContext other)
         {
             OnInvalidate.ContinueWith(_ => other.Invalidate());
+        }
+
+        public override string ToString()
+        {
+            return "<context: " + Description + ">";
         }
     }
 }

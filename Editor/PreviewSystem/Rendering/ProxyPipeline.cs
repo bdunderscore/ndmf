@@ -35,7 +35,7 @@ namespace nadena.dev.ndmf.preview
         {
             Filter = filter;
             
-            Context = new ComputeContext();
+            Context = new ComputeContext("StageDescriptor for " + Filter + " on " + parentContext);
             Context.Invalidates(parentContext);
 
             var unsorted = filter.GetTargetGroups(Context);
@@ -51,7 +51,7 @@ namespace nadena.dev.ndmf.preview
         public StageDescriptor(StageDescriptor prior, ComputeContext parentContext)
         {
             Filter = prior.Filter;
-            Context = new ComputeContext();
+            Context = new ComputeContext("StageDescriptor for " + Filter + " on " + parentContext);
             Context.Invalidates(parentContext);
 
             Originals = prior.Originals;
@@ -84,9 +84,11 @@ namespace nadena.dev.ndmf.preview
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
             ImmutableDictionary<GameObject, GameObject>.Empty;
 
+        private readonly long _generation;
+        
         // ReSharper disable once NotAccessedField.Local
         // needed to prevent GC of the ComputeContext
-        private ComputeContext _ctx = new();
+        private ComputeContext _ctx;
         internal bool IsInvalidated => _ctx.OnInvalidate.IsCompleted;
         
         internal void Invalidate()
@@ -104,6 +106,7 @@ namespace nadena.dev.ndmf.preview
 
         public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
         {
+            _generation = (priorPipeline?._generation ?? 0) + 1;
             InvalidateAction = Invalidate;
             
             _buildTask = Task.Factory.StartNew(
@@ -119,8 +122,12 @@ namespace nadena.dev.ndmf.preview
             ProxyPipeline priorPipeline)
         {
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
-            var context = new ComputeContext();
+            var context = new ComputeContext($"ProxyPipeline {_generation}");
             _ctx = context; // prevent GC
+
+#if NDMF_DEBUG
+            System.Diagnostics.Debug.WriteLine($"Building pipeline {_generation}");
+#endif
 
             var filterList = filters.Where(f => f.IsEnabled(context)).ToList();
 
@@ -205,6 +212,10 @@ namespace nadena.dev.ndmf.preview
                         {
                             var proxies = items.Result.ToList();
 
+#if NDMF_DEBUG
+                            System.Diagnostics.Debug.WriteLine($"Creating node for {filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
+#endif
+                            
                             if (priorNode != null)
                             {
                                 RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
@@ -243,6 +254,10 @@ namespace nadena.dev.ndmf.preview
                 });
             
             //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
+
+#if NDMF_DEBUG
+            System.Diagnostics.Debug.WriteLine($"Pipeline {_generation} is ready");
+#endif
 
             foreach (var stage in _stages)
             {
