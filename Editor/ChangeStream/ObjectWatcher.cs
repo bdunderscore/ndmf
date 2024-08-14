@@ -9,6 +9,7 @@ using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = System.Diagnostics.Debug;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -73,10 +74,56 @@ namespace nadena.dev.ndmf.cs
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            SceneManager.sceneLoaded += (_, _) => Instance.Hierarchy.InvalidateAll();
-            SceneManager.sceneUnloaded += _ => Instance.Hierarchy.InvalidateAll();
-            SceneManager.activeSceneChanged += (_, _) => Instance.Hierarchy.InvalidateAll();
-            Instance.PropertyMonitor.MaybeStartRefreshTimer();
+            EditorApplication.delayCall += () =>
+            {
+                SceneManager.sceneLoaded += (_, _) =>
+                {
+                    Debug.WriteLine("=== Scene loaded ===");
+                    Instance.Hierarchy.InvalidateAll();
+                };
+                SceneManager.sceneUnloaded += _ =>
+                {
+                    Debug.WriteLine("=== Scene unloaded ===");
+                    Instance.Hierarchy.InvalidateAll();
+                };
+                SceneManager.activeSceneChanged += (_, _) =>
+                {
+                    Debug.WriteLine("=== Active scene changed ===");
+                    Instance.Hierarchy.InvalidateAll();
+                };
+                Instance.PropertyMonitor.MaybeStartRefreshTimer();
+
+                // These SceneManager callbacks are never invoked, for some reason. Workaround this with a periodic check.
+                EditorApplication.update += Instance.CheckActiveScenes;
+            };
+        }
+
+        private Scene[] _activeScenes = Array.Empty<Scene>();
+
+        private void CheckActiveScenes()
+        {
+            if (SceneManager.sceneCount != _activeScenes.Length)
+            {
+                InvalidateScenes();
+
+                return;
+            }
+
+            for (var i = 0; i < _activeScenes.Length; i++)
+                if (_activeScenes[i] != SceneManager.GetSceneAt(i))
+                {
+                    InvalidateScenes();
+
+                    return;
+                }
+
+            void InvalidateScenes()
+            {
+                _activeScenes = new Scene[SceneManager.sceneCount];
+                for (var i = 0; i < _activeScenes.Length; i++) _activeScenes[i] = SceneManager.GetSceneAt(i);
+
+                Hierarchy.InvalidateAll();
+            }
         }
 
         public ImmutableList<GameObject> MonitorSceneRoots(ComputeContext ctx)
@@ -207,7 +254,7 @@ namespace nadena.dev.ndmf.cs
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
         }
 
@@ -220,7 +267,7 @@ namespace nadena.dev.ndmf.cs
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
                 return true;
             }
         }
