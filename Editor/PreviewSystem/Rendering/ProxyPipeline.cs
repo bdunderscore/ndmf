@@ -29,12 +29,16 @@ namespace nadena.dev.ndmf.preview
 
         public readonly IRenderFilter Filter;
         public readonly ImmutableList<RenderGroup> Originals;
+        public readonly ComputeContext Context;
 
-        public StageDescriptor(IRenderFilter filter, ComputeContext context)
+        public StageDescriptor(IRenderFilter filter, ComputeContext parentContext)
         {
             Filter = filter;
+            
+            Context = new ComputeContext();
+            Context.Invalidates(parentContext);
 
-            var unsorted = filter.GetTargetGroups(context);
+            var unsorted = filter.GetTargetGroups(Context);
 
             if (unsorted == null) unsorted = ImmutableList<RenderGroup>.Empty;
             Originals = unsorted;
@@ -42,6 +46,15 @@ namespace nadena.dev.ndmf.preview
             Originals = unsorted
                 .OrderBy(group => group.Renderers.First().GetInstanceID())
                 .ToImmutableList();
+        }
+        
+        public StageDescriptor(StageDescriptor prior, ComputeContext parentContext)
+        {
+            Filter = prior.Filter;
+            Context = new ComputeContext();
+            Context.Invalidates(parentContext);
+
+            Originals = prior.Originals;
         }
 
         #endregion
@@ -121,7 +134,21 @@ namespace nadena.dev.ndmf.preview
                 // TODO: Reuse logic
 
                 var filter = filterList[i];
-                var stage = new StageDescriptor(filter, context);
+                
+                Profiler.BeginSample("new StageDescriptor");
+                var priorStageDescriptor = priorPipeline?._stages.ElementAtOrDefault(i);
+                StageDescriptor stage;
+                if (priorStageDescriptor?.Filter == filter && (priorStageDescriptor?.Context.IsInvalidated == false))
+                {
+                    stage = new StageDescriptor(priorStageDescriptor, context);
+                }
+                else
+                {
+                    stage = new StageDescriptor(filter, context);
+                }
+
+                Profiler.EndSample();
+                
                 _stages.Add(stage);
 
                 var prior = priorPipeline?._stages.ElementAtOrDefault(i);

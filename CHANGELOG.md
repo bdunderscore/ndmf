@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#320] Render nodes are not correctly reused across frames
+- [#321] Fix GetTargetGroup being called on every pipeline invalidation
 
 ### Changed
 
