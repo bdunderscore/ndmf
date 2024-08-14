@@ -417,7 +417,9 @@ namespace UnitTests.EditorTests
         {
             var shadow = new ShadowHierarchy();
                         
-            var ctx = new ComputeContext("");
+            var ctx1 = new ComputeContext("");
+            var ctx2 = new ComputeContext("");
+            var ctx3 = new ComputeContext("");
             
             var o1 = c("o1");
             var o2 = c("o2");
@@ -427,17 +429,16 @@ namespace UnitTests.EditorTests
             o3.transform.SetParent(o2.transform);
             
             List<(int, HierarchyEvent)> events = new List<(int, HierarchyEvent)>();
-            shadow.RegisterGameObjectListener(o1, AddToList(events, 1), ctx);
-            shadow.RegisterGameObjectListener(o2, AddToList(events, 2), ctx);
-            shadow.RegisterGameObjectListener(o3, AddToList(events, 3), ctx);
+            shadow.RegisterGameObjectListener(o1, AddToList(events, 1), ctx1);
+            shadow.RegisterGameObjectListener(o2, AddToList(events, 2), ctx2);
+            shadow.RegisterGameObjectListener(o3, AddToList(events, 3), ctx3);
             
             shadow.InvalidateAll();
             shadow.FireObjectChangeNotification(o1.GetInstanceID()); // should be ignored
             
-            Assert.Contains((1, HierarchyEvent.ForceInvalidate), events);
-            Assert.Contains((2, HierarchyEvent.ForceInvalidate), events);
-            Assert.Contains((3, HierarchyEvent.ForceInvalidate), events);
-            Assert.IsFalse(events.Contains((1, HierarchyEvent.ObjectDirty)));
+            Assert.IsTrue(ctx1.IsInvalidated);
+            Assert.IsTrue(ctx2.IsInvalidated);
+            Assert.IsTrue(ctx3.IsInvalidated);
         }
 
         [Test]

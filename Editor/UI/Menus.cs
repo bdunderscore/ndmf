@@ -5,11 +5,11 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using nadena.dev.ndmf.config;
+using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
-using UnityObject = UnityEngine.Object;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -63,6 +63,20 @@ namespace nadena.dev.ndmf.ui
         {
             Menu.SetChecked(APPLY_ON_PLAY_MENU_NAME, Config.ApplyOnPlay);
         }
+
+#if NDMF_DEBUG
+        [MenuItem("Tools/NDM Framework/Debug Tools/Domain Reload", false, 101)]
+        private static void DomainReload()
+        {
+            EditorUtility.RequestScriptReload();
+        }
+
+        [MenuItem("Tools/NDM Framework/Debug Tools/Invalidate shadow hierarchy", false, 101)]
+        private static void InvalidateShadowHierarchy()
+        {
+            ObjectWatcher.Instance.Hierarchy.InvalidateAll();
+        }
+#endif
         
 #if UNITY_2022_1_OR_NEWER
         [MenuItem("Tools/NDM Framework/Debug Tools/Profile build", false, 101)]
@@ -116,7 +130,7 @@ namespace nadena.dev.ndmf.ui
 
             if (av == null) yield break;
 
-            var clone = UnityEngine.Object.Instantiate(av);
+            var clone = Object.Instantiate(av);
 
             try
             {
@@ -132,7 +146,7 @@ namespace nadena.dev.ndmf.ui
             m_SetRecordingEnabled.Invoke(profWindow, new object[] { false });
             yield return null;
             
-            UnityEngine.Object.DestroyImmediate(clone);
+            Object.DestroyImmediate(clone);
             AvatarProcessor.CleanTemporaryAssets();
         }
 #endif

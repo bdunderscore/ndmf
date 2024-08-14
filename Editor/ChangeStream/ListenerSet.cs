@@ -84,6 +84,11 @@ namespace nadena.dev.ndmf.cs
         {
             EditorApplication.delayCall += SceneView.RepaintAll;
         }
+
+        public void ForceFire()
+        {
+            if (_ctx.TryGetTarget(out var ctx) && !ctx.IsInvalidated) ctx.Invalidate();
+        }
     }
 
     internal class ListenerSet<T>
@@ -134,7 +139,7 @@ namespace nadena.dev.ndmf.cs
                 listener = next;
             }
         }
-
+        
         internal IEnumerable<string> GetListeners()
         {
             var ptr = _head._next;
@@ -143,6 +148,18 @@ namespace nadena.dev.ndmf.cs
                 yield return ptr.ToString();
                 ptr = ptr._next;
             }
+        }
+
+        public void FireAll()
+        {
+            for (var listener = _head._next; listener != _head;)
+            {
+                var next = listener._next;
+                listener.ForceFire();
+                listener = next;
+            }
+
+            _head._next = _head._prev = _head;
         }
     }
 }
