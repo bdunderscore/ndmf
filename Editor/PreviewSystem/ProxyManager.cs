@@ -36,6 +36,9 @@ namespace nadena.dev.ndmf.preview
 
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
+            // TODO: fully support prefab isolation view
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null) return;
+
             var sess = PreviewSession.Current;
             if (sess == null) return;
 

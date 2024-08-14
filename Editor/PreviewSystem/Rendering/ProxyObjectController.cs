@@ -72,9 +72,10 @@ namespace nadena.dev.ndmf.preview
 
         private void SetupRendererMonitoring(Renderer r)
         {
-            _monitorRenderer = new ComputeContext();
-            _monitorMaterials = new ComputeContext();
-            _monitorMesh = new ComputeContext();
+            var gameObjectName = r.gameObject.name;
+            _monitorRenderer = new ComputeContext("Renderer Monitor for " + gameObjectName);
+            _monitorMaterials = new ComputeContext("Material Monitor for " + gameObjectName);
+            _monitorMesh = new ComputeContext("Mesh Monitor for " + gameObjectName);
 
             _monitorRenderer.Observe(r);
             if (r is SkinnedMeshRenderer smr)

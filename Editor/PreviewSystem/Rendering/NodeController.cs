@@ -81,9 +81,11 @@ namespace nadena.dev.ndmf.preview
             IRenderFilter filter,
             RenderGroup group,
             ObjectRegistry registry,
-            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies)
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies
+        )
         {
-            ComputeContext context = new ComputeContext();
+            var context =
+                new ComputeContext("NodeController for " + filter + " on " + group.Renderers[0].gameObject.name);
 
             IRenderFilterNode node;
             using (var scope = new ObjectRegistryScope(registry))
@@ -104,7 +106,8 @@ namespace nadena.dev.ndmf.preview
         )
         {
             var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
-            ComputeContext context = new ComputeContext();
+            var context = new ComputeContext("NodeController (refresh) for " + _filter + " on " +
+                                             _group.Renderers[0].gameObject.name);
 
             IRenderFilterNode node;
 

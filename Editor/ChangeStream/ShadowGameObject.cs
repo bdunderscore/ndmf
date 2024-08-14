@@ -1,5 +1,8 @@
 ﻿#region
 
+#if NDMF_DEBUG
+using System.Text;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -56,6 +59,91 @@ namespace nadena.dev.ndmf.cs
 
         int lastPruned = Int32.MinValue;
 
+#if NDMF_DEBUG
+        [MenuItem("Tools/NDM Framework/Debug: Dump shadow hierarchy")]
+        static void StaticDumpShadowHierarchy()
+        {
+            ObjectWatcher.Instance.Hierarchy.DumpShadowHierarchy();
+        }
+        
+        void DumpShadowHierarchy()
+        {
+            int indent = 0;
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("[Shadow Hierarchy Dump]");
+            sb.AppendLine("Root set listeners:");
+            indent += 2;
+            DumpListenerSet(_rootSetListener);
+            sb.AppendLine();
+            indent -= 2;
+            
+            sb.AppendLine("GameObjects:");
+            foreach (var obj in _gameObjects.Values)
+            {
+                if (obj.Parent == null)
+                {
+                    DumpShadowGameObject(obj);
+                }
+            }
+            
+            sb.AppendLine("Other objects:");
+            foreach (var obj in _otherObjects.Values)
+            {
+                DumpShadowObject(obj);
+            }
+            
+            sb.AppendLine("[End Shadow Hierarchy Dump]");
+            
+            Debug.Log(sb.ToString());
+            
+            
+            void DumpShadowObject(ShadowObject obj)
+            {
+                sb.Append(' ', indent);
+                sb.Append("+ ");
+                if (obj.Object == null)
+                {
+                    sb.AppendLine("<" + obj.InstanceID + ">");
+                }
+                else if (obj.Object is Component c)
+                {
+                    sb.AppendLine(c.gameObject.name + " (" + c.GetType().Name + ")");
+                }
+                else
+                {
+                    sb.AppendLine(obj.Object.name);
+                }
+            }
+            
+            void DumpShadowGameObject(ShadowGameObject obj)
+            {
+                sb.Append(' ', indent);
+                sb.Append("+ ");
+                sb.AppendLine(obj.GameObject == null ? "<" + obj.InstanceID + ">" : obj.GameObject.name);
+                indent += 2;
+                DumpListenerSet(obj._listeners);
+                sb.AppendLine();
+                sb.Append(' ', indent);
+                sb.AppendLine("Children:");
+                foreach (var child in obj.Children)
+                {
+                    DumpShadowGameObject(child);
+                }
+                indent -= 2;
+            }
+
+            void DumpListenerSet<T>(ListenerSet<T> set)
+            {
+                foreach (var listener in set.GetListeners())
+                {
+                    sb.Append(' ', indent);
+                    sb.AppendLine(listener.ToString());
+                }
+            }
+        }
+#endif
+        
         internal IDisposable RegisterRootSetListener(ListenerSet<HierarchyEvent>.Filter filter, ComputeContext ctx)
         {
             if (ctx.IsInvalidated) return new NullDisposable();
@@ -290,6 +378,10 @@ namespace nadena.dev.ndmf.cs
 
         void ForceInvalidateHierarchy(ShadowGameObject obj)
         {
+#if NDMF_DEBUG
+            Debug.Log("=== Force invalidate: " + (obj.GameObject?.name ?? "<null>"));
+#endif
+            
             obj._listeners.Fire(HierarchyEvent.ForceInvalidate);
             _gameObjects.Remove(obj.InstanceID);
 
@@ -322,6 +414,10 @@ namespace nadena.dev.ndmf.cs
 
         internal void InvalidateAll()
         {
+#if NDMF_DEBUG
+            Debug.Log("=== Invalidate all ===");
+#endif
+            
             var oldDict = _gameObjects;
             _gameObjects = new Dictionary<int, ShadowGameObject>();
 
