@@ -15,7 +15,7 @@ namespace nadena.dev.ndmf.preview
         {
             HandleUtilityPatches.Patch_FilterInstanceIDs,
             PickingObjectPatch.Patch,
-            HierarchyViewPatches.Patch
+            //HierarchyViewPatches.Patch
         };
 
         [InitializeOnLoadMethod]

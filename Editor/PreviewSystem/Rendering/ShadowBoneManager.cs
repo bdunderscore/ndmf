@@ -56,12 +56,9 @@ namespace nadena.dev.ndmf.preview
             if (!force) return null;
 
             var proxyObj = new GameObject(src.name);
-            proxyObj.hideFlags = HideFlags.HideAndDontSave;
+            SceneManager.MoveGameObjectToScene(proxyObj, NDMFPreviewSceneManager.GetPreviewScene());
             proxyObj.AddComponent<SelfDestructComponent>().KeepAlive = this;
-
-#if MODULAR_AVATAR_DEBUG_HIDDEN
             proxyObj.hideFlags = HideFlags.DontSave;
-#endif
 
             var boneState = new BoneState();
             boneState.original = src;
@@ -119,12 +116,6 @@ namespace nadena.dev.ndmf.preview
                     continue;
                 }
 
-                if (entry.original.gameObject.scene != entry.proxy.gameObject.scene &&
-                    entry.proxy.transform.parent == null)
-                {
-                    SceneManager.MoveGameObjectToScene(entry.proxy.gameObject, entry.original.gameObject.scene);
-                }
-
                 Transform parent = CopyState(entry);
 
                 CheckParent(parent, entry);
@@ -155,9 +146,6 @@ namespace nadena.dev.ndmf.preview
             entry.proxy.localPosition = t.localPosition;
             entry.proxy.localRotation = t.localRotation;
             entry.proxy.localScale = t.localScale;
-
-            if (entry.proxy.parent == null && entry.proxy.gameObject.scene != t.gameObject.scene)
-                SceneManager.MoveGameObjectToScene(entry.proxy.gameObject, t.gameObject.scene);
 
             return parent;
         }

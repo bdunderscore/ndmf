@@ -156,12 +156,6 @@ namespace nadena.dev.ndmf.preview
 
             _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
 
-            if (target.gameObject.scene != original.gameObject.scene &&
-                original.gameObject.scene.IsValid() && target.transform.parent == null)
-            {
-                SceneManager.MoveGameObjectToScene(target.gameObject, original.gameObject.scene);
-            }
-
 
             target.localBounds = original.localBounds;
             if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
@@ -198,6 +192,7 @@ namespace nadena.dev.ndmf.preview
             {
                 var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
                 replacementGameObject.hideFlags = HideFlags.DontSave;
+                SceneManager.MoveGameObjectToScene(replacementGameObject, NDMFPreviewSceneManager.GetPreviewScene());
 
 #if MODULAR_AVATAR_DEBUG_HIDDEN
                 replacementGameObject.hideFlags = HideFlags.DontSave;
