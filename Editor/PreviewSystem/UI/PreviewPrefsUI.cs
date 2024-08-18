@@ -215,10 +215,6 @@ namespace nadena.dev.ndmf.preview.UI
                 _isPass = itemData.IsPass;
                 _qualifiedName = itemData.QualifiedName;
 
-                var isEnabled = !itemData.IsPass ||
-                                PreviewPrefs.instance.IsPreviewPluginEnabled(itemData.PluginQualifiedName);
-                _toggle.SetEnabled(isEnabled);
-
                 if (itemData.IsPass)
                     _toggle.AddToClassList("ndmf-pass-item");
                 else
