@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#327] Z-fighting occurs in prefab isolation view
 - [#328] Fix issue where preview system is not reinitialized after a scene change
 - [#329] Fix issue where scene root monitoring breaks after a domain reload
+- [#334] Fix objects under preview not respecting scene visibility state
 
 ### Changed
 
