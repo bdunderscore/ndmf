@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 #endregion
 
@@ -24,6 +25,8 @@ namespace nadena.dev.ndmf.preview
         private readonly RefCount _refCount;
 
         private readonly ComputeContext _context;
+
+        private CustomSampler _profileSampler_onFrame;
         
         internal RenderAspects WhatChanged = RenderAspects.Everything;
         internal RenderGroup Group => _group;
@@ -55,6 +58,8 @@ namespace nadena.dev.ndmf.preview
             _context = context;
             ObjectRegistry = registry;
             
+            _profileSampler_onFrame = CustomSampler.Create(filter.GetType() + ".OnFrame");
+            
             OnFrame();
         }
 
@@ -64,7 +69,15 @@ namespace nadena.dev.ndmf.preview
             {
                 if (original != null && proxy.Renderer != null)
                 {
-                    _node.OnFrame(original, proxy.Renderer);
+                    _profileSampler_onFrame.Begin(original.gameObject);
+                    try
+                    {
+                        _node.OnFrame(original, proxy.Renderer);
+                    }
+                    finally
+                    {
+                        _profileSampler_onFrame.End();
+                    }
                 }
             }
         }
