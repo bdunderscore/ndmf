@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#330] `NDMFPreviewSceneManager` added, allowing other libraries to easily hide temporary objects.
+
 ### Fixed
 - [#320] Render nodes are not correctly reused across frames
 - [#321] Fix GetTargetGroup being called on every pipeline invalidation
@@ -17,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#329] Fix issue where scene root monitoring breaks after a domain reload
 
 ### Changed
+
+- [#330] Preview objects are now hidden by placing them in a hidden subscene, instead of harmony patching the hierarchy.
+  This should improve stability in general.
 
 ### Removed
 

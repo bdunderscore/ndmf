@@ -1,14 +1,14 @@
 ﻿#if UNITY_EDITOR
 
 using System.Linq;
-#if NDMF_LYUMA_AV3EMU
-using Lyuma.Av3Emulator.Runtime;
-#endif
 using nadena.dev.ndmf.config.runtime;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if NDMF_LYUMA_AV3EMU
+using Lyuma.Av3Emulator.Runtime;
+#endif
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -89,7 +89,7 @@ namespace nadena.dev.ndmf.runtime
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
-                if (scene.IsValid() && scene.isLoaded)
+                if (scene.IsValid() && scene.isLoaded && !scene.isSubScene)
                 {
                     CreateIfNotPresent(scene);                        
                 }
