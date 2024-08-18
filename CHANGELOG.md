@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-beta.4] - [2024-08-18]
+
+### Added
+
 - [#330] `NDMFPreviewSceneManager` added, allowing other libraries to easily hide temporary objects.
 
 ### Fixed
@@ -25,12 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This should improve stability in general.
 - [#335] Skip preview rendering on all cameras except the scene view camera and the VRCSDK thumbnail camera. 
 - [#338] Don't disable sub-options when a preview plugin is disabled.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-beta.3] - [2024-08-04]
 
