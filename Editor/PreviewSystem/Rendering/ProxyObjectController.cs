@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -26,6 +27,8 @@ namespace nadena.dev.ndmf.preview
         internal ComputeContext _monitorRenderer, _monitorMaterials, _monitorMesh;
 
         internal Task OnInvalidate;
+        
+        private static CustomSampler _onPreFrameSampler = CustomSampler.Create("ProxyObjectController.OnPreFrame");
 
         public static bool IsProxyObject(GameObject obj)
         {
@@ -120,68 +123,77 @@ namespace nadena.dev.ndmf.preview
                 return false;
             }
 
-            var target = _replacementRenderer;
-            var original = _originalRenderer;
+            _onPreFrameSampler.Begin(_originalRenderer.gameObject);
 
-            target.gameObject.SetActive(original.enabled && original.gameObject.activeInHierarchy);
-
-            SkinnedMeshRenderer smr = null;
-            if (_originalRenderer is SkinnedMeshRenderer smr_)
+            try
             {
-                smr = smr_;
+                var target = _replacementRenderer;
+                var original = _originalRenderer;
 
-                var replacementSMR = (SkinnedMeshRenderer)_replacementRenderer;
-                replacementSMR.sharedMesh = smr_.sharedMesh;
-                replacementSMR.bones = smr_.bones;
-                
-                target.transform.position = original.transform.position;
-                target.transform.rotation = original.transform.rotation;
-            }
-            else
-            {
-                var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
-                var filter = _replacementRenderer.GetComponent<MeshFilter>();
-                filter.sharedMesh = originalFilter.sharedMesh;
+                target.gameObject.SetActive(original.enabled && original.gameObject.activeInHierarchy);
 
-                var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
-                
-                var rendererTransform = _replacementRenderer.transform;
-                if (shadowBone != rendererTransform.parent)
+                SkinnedMeshRenderer smr = null;
+                if (_originalRenderer is SkinnedMeshRenderer smr_)
                 {
-                    rendererTransform.SetParent(shadowBone, false);
-                    rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                    rendererTransform.localScale = Vector3.one;
+                    smr = smr_;
+
+                    var replacementSMR = (SkinnedMeshRenderer)_replacementRenderer;
+                    replacementSMR.sharedMesh = smr_.sharedMesh;
+                    replacementSMR.bones = smr_.bones;
+
+                    target.transform.position = original.transform.position;
+                    target.transform.rotation = original.transform.rotation;
                 }
-            }
-
-            _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
-
-
-            target.localBounds = original.localBounds;
-            if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
-            {
-                targetSMR.rootBone = originalSMR.rootBone != null ? originalSMR.rootBone : originalSMR.transform;
-                targetSMR.quality = originalSMR.quality;
-
-                if (targetSMR.sharedMesh != null)
+                else
                 {
-                    var blendShapeCount = targetSMR.sharedMesh.blendShapeCount;
-                    for (var i = 0; i < blendShapeCount; i++)
+                    var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
+                    var filter = _replacementRenderer.GetComponent<MeshFilter>();
+                    filter.sharedMesh = originalFilter.sharedMesh;
+
+                    var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
+
+                    var rendererTransform = _replacementRenderer.transform;
+                    if (shadowBone != rendererTransform.parent)
                     {
-                        targetSMR.SetBlendShapeWeight(i, originalSMR.GetBlendShapeWeight(i));
+                        rendererTransform.SetParent(shadowBone, false);
+                        rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                        rendererTransform.localScale = Vector3.one;
                     }
                 }
+
+                _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
+
+
+                target.localBounds = original.localBounds;
+                if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
+                {
+                    targetSMR.rootBone = originalSMR.rootBone != null ? originalSMR.rootBone : originalSMR.transform;
+                    targetSMR.quality = originalSMR.quality;
+
+                    if (targetSMR.sharedMesh != null)
+                    {
+                        var blendShapeCount = targetSMR.sharedMesh.blendShapeCount;
+                        for (var i = 0; i < blendShapeCount; i++)
+                        {
+                            targetSMR.SetBlendShapeWeight(i, originalSMR.GetBlendShapeWeight(i));
+                        }
+                    }
+                }
+
+                target.shadowCastingMode = original.shadowCastingMode;
+                target.receiveShadows = original.receiveShadows;
+                target.lightProbeUsage = original.lightProbeUsage;
+                target.reflectionProbeUsage = original.reflectionProbeUsage;
+                target.probeAnchor = original.probeAnchor;
+                target.motionVectorGenerationMode = original.motionVectorGenerationMode;
+                target.allowOcclusionWhenDynamic = original.allowOcclusionWhenDynamic;
+
+                return true;
             }
-
-            target.shadowCastingMode = original.shadowCastingMode;
-            target.receiveShadows = original.receiveShadows;
-            target.lightProbeUsage = original.lightProbeUsage;
-            target.reflectionProbeUsage = original.reflectionProbeUsage;
-            target.probeAnchor = original.probeAnchor;
-            target.motionVectorGenerationMode = original.motionVectorGenerationMode;
-            target.allowOcclusionWhenDynamic = original.allowOcclusionWhenDynamic;
-
-            return true;
+            finally
+            {
+                _onPreFrameSampler.End();
+            }
         }
 
         private void CreateReplacementObject()
