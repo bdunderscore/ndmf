@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#330] Preview objects are now hidden by placing them in a hidden subscene, instead of harmony patching the hierarchy.
   This should improve stability in general.
+- [#335] Skip preview rendering on all cameras except the scene view camera and the VRCSDK thumbnail camera. 
 
 ### Removed
 

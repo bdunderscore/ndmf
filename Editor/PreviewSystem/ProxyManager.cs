@@ -25,6 +25,14 @@ namespace nadena.dev.ndmf.preview
 
         private static List<(Renderer, bool)> _resetActions = new();
 
+        private static bool ShouldHookCamera(Camera cam)
+        {
+            if (cam.name == "SceneCamera" && cam.gameObject.hideFlags == HideFlags.HideAndDontSave) return true;
+            if (cam.name == "TempCamera" && cam.targetTexture?.name == "ThumbnailCapture") return true;
+
+            return false;
+        }
+
         private static void OnPostRender(Camera cam)
         {
             ResetStates();
@@ -33,6 +41,8 @@ namespace nadena.dev.ndmf.preview
         private static void OnPreCull(Camera cam)
         {
             ResetStates();
+
+            if (!ShouldHookCamera(cam)) return;
 
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
