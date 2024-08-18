@@ -1,4 +1,4 @@
-﻿#region
+#region
 
 using System;
 using System.Collections.Generic;
@@ -274,6 +274,31 @@ namespace nadena.dev.ndmf.preview
         {
             if (!IsReady) return;
             
+            var manager = SceneVisibilityManager.instance;
+            foreach (var pair in _proxies)
+            {
+                var originalRenderer = pair.Key;
+                var proxyRenderer = pair.Value.Renderer;
+                if (originalRenderer == null || proxyRenderer == null) { continue; }
+                var originalObject = originalRenderer.gameObject;
+                var proxyObject = proxyRenderer.gameObject;
+
+                var isOriginHidden = manager.IsHidden(originalObject, true);
+                var needHiddenStateChange = isOriginHidden != manager.IsHidden(proxyObject, true);
+                if (needHiddenStateChange)
+                {
+                    if (isOriginHidden) manager.Hide(proxyObject, true);
+                    else manager.Show(proxyObject, true);
+                }
+
+                var isOriginPickingDisabled = manager.IsPickingDisabled(originalObject, true);
+                var needPickableStateChange = isOriginPickingDisabled != manager.IsPickingDisabled(proxyObject, true);
+                if (needPickableStateChange)
+                {
+                    if (isOriginPickingDisabled) manager.DisablePicking(proxyObject, true);
+                    else manager.EnablePicking(proxyObject, true);
+                }
+            }
             foreach (var pair in _proxies)
             {
                 pair.Value.OnPreFrame();
