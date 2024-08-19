@@ -192,7 +192,7 @@ namespace nadena.dev.ndmf.preview
                             var proxies = items.Result.ToList();
 
 #if NDMF_DEBUG
-                            System.Diagnostics.Debug.WriteLine($"Creating node for {filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
+                            System.Diagnostics.Debug.WriteLine($"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
                             
                             if (priorNode != null)
