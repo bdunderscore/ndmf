@@ -46,9 +46,9 @@ namespace nadena.dev.ndmf.preview
 
         #endregion
 
-        internal IEnumerable<(Renderer, Renderer)> GetReplacements()
+        internal IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
         {
-            return _proxySession?.OnPreCull() ?? Enumerable.Empty<(Renderer, Renderer)>();
+            return _proxySession?.OnPreCull(isSceneCamera) ?? Enumerable.Empty<(Renderer, Renderer)>();
         }
         
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>

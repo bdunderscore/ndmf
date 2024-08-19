@@ -21,6 +21,8 @@ namespace nadena.dev.ndmf.preview
     public class RenderGroup
     {
         public ImmutableList<Renderer> Renderers { get; }
+        
+        public bool IsEmpty => Renderers.IsEmpty;
 
         internal RenderGroup(ImmutableList<Renderer> renderers)
         {
@@ -45,6 +47,11 @@ namespace nadena.dev.ndmf.preview
         public RenderGroup WithData<T>(T data)
         {
             return new RenderGroup<T>(Renderers, data);
+        }
+
+        internal virtual RenderGroup Filter(HashSet<Renderer> activeRenderers)
+        {
+            return new RenderGroup(Renderers.RemoveAll(r => !activeRenderers.Contains(r)));
         }
 
         public T GetData<T>()
@@ -85,7 +92,12 @@ namespace nadena.dev.ndmf.preview
         {
             Context = context;
         }
-
+        
+        internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
+        {
+            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), Context);
+        }
+        
         private bool Equals(RenderGroup<T> other)
         {
             if (Context is IEnumerable l && other.Context is IEnumerable ol)
@@ -117,6 +129,27 @@ namespace nadena.dev.ndmf.preview
     [PublicAPI]
     public interface IRenderFilter
     {
+        /// <summary>
+        /// Set to true if this RenderFilter might enable a renderer which is otherwise disabled. If you do, this should
+        /// be performed by changing the `enabled` property of the proxy renderer.
+        ///
+        /// Note that when enabling proxy renderers, it's up to you to consider the state of parent objects of the
+        /// original; if you set enabled to true, it'll be displayed.
+        ///
+        /// If all render filters interacting with a particular renderer have CanEnableRenderers set to false, the
+        /// preview pipeline might skip all preview processing for that renderer.
+        /// </summary>
+        public virtual bool CanEnableRenderers => false;
+
+        /// <summary>
+        /// Indicates that the preview system must not remove renderers from a multi-node render group, even if they
+        /// are disabled. If this is set to true, then all renderers you return in a group from GetTargetGroups will be
+        /// included when that group is instantiated.
+        ///
+        /// Note that even if this is true, the preview system can eliminate nodes where _all_ renderers are disabled.
+        /// </summary>
+        public virtual bool StrictRenderGroup => false;
+        
         public ImmutableList<RenderGroup> GetTargetGroups(ComputeContext context);
         
         /// <summary>

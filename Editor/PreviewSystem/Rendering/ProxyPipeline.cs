@@ -29,31 +29,16 @@ namespace nadena.dev.ndmf.preview
 
         public readonly IRenderFilter Filter;
         public readonly ImmutableList<RenderGroup> Originals;
-        public readonly ComputeContext Context;
 
-        public StageDescriptor(IRenderFilter filter, ComputeContext parentContext)
+        public StageDescriptor(TargetSet.Stage targetStage)
         {
-            Filter = filter;
-            
-            Context = new ComputeContext("StageDescriptor for " + Filter + " on " + parentContext);
-            Context.Invalidates(parentContext);
-
-            var unsorted = filter.GetTargetGroups(Context);
-
-            if (unsorted == null) unsorted = ImmutableList<RenderGroup>.Empty;
-            Originals = unsorted;
-
-            Originals = unsorted
-                .OrderBy(group => group.Renderers.First().GetInstanceID())
-                .ToImmutableList();
+            Filter = targetStage.Filter;
+            Originals = targetStage.Groups;
         }
         
-        public StageDescriptor(StageDescriptor prior, ComputeContext parentContext)
+        public StageDescriptor(StageDescriptor prior)
         {
             Filter = prior.Filter;
-            Context = new ComputeContext("StageDescriptor for " + Filter + " on " + parentContext);
-            Context.Invalidates(parentContext);
-
             Originals = prior.Originals;
         }
 
@@ -67,6 +52,7 @@ namespace nadena.dev.ndmf.preview
     /// </summary>
     internal class ProxyPipeline
     {
+        private TargetSet _targetSet;
         private List<StageDescriptor> _stages = new();
         private Dictionary<Renderer, ProxyObjectController> _proxies = new();
         private List<NodeController> _nodes = new(); // in OnFrame execution order
@@ -129,37 +115,29 @@ namespace nadena.dev.ndmf.preview
             System.Diagnostics.Debug.WriteLine($"Building pipeline {_generation}");
 #endif
 
-            var filterList = filters.Where(f => f.IsEnabled(context)).ToList();
+            var filterList = filters.ToImmutableList();
+            _targetSet = priorPipeline?._targetSet?.Refresh(filterList) ?? new TargetSet(filterList);
+
+            var activeStages = _targetSet.ResolveActiveStages(context);
 
             Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
             int total_nodes = 0;
             int reused = 0;
             int refresh_failed = 0;
 
-            for (int i = 0; i < filterList.Count(); i++)
+            for (int i = 0; i < activeStages.Count(); i++)
             {
-                // TODO: Reuse logic
-
-                var filter = filterList[i];
+                var stageTemplate = activeStages[i];
                 
                 Profiler.BeginSample("new StageDescriptor");
-                var priorStageDescriptor = priorPipeline?._stages.ElementAtOrDefault(i);
-                StageDescriptor stage;
-                if (priorStageDescriptor?.Filter == filter && (priorStageDescriptor?.Context.IsInvalidated == false))
-                {
-                    stage = new StageDescriptor(priorStageDescriptor, context);
-                }
-                else
-                {
-                    stage = new StageDescriptor(filter, context);
-                }
+                StageDescriptor stage = new StageDescriptor(stageTemplate);
 
                 Profiler.EndSample();
                 
                 _stages.Add(stage);
 
                 var prior = priorPipeline?._stages.ElementAtOrDefault(i);
-                if (prior?.Filter != filter)
+                if (prior?.Filter != stage.Filter)
                 {
                     prior = null;
                 }
@@ -168,7 +146,6 @@ namespace nadena.dev.ndmf.preview
                 foreach (var group in stage.Originals.OrderBy(g => g.GetHashCode()))
                 {
                     total_nodes++;
-                    
                     
                     groupIndex++;
                     var resolved = group.Renderers.Select(r =>
@@ -187,6 +164,8 @@ namespace nadena.dev.ndmf.preview
                             proxy.OnInvalidate.ContinueWith(_ => InvalidateAction(),
                                 TaskContinuationOptions.ExecuteSynchronously);
                             proxy.OnPreFrame();
+                            // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
+                            // we render for real).
                             _proxies.Add(r, proxy);
 
                             OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
@@ -231,7 +210,7 @@ namespace nadena.dev.ndmf.preview
                                 refresh_failed++;
                             }
                             
-                            return await NodeController.Create(filter, group, items.Result.ToList());
+                            return await NodeController.Create(stage.Filter, group, items.Result.ToList());
                         })
                         .Unwrap();
 
@@ -270,35 +249,10 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        public void OnFrame()
+        public void OnFrame(bool isSceneView)
         {
             if (!IsReady) return;
             
-            var manager = SceneVisibilityManager.instance;
-            foreach (var pair in _proxies)
-            {
-                var originalRenderer = pair.Key;
-                var proxyRenderer = pair.Value.Renderer;
-                if (originalRenderer == null || proxyRenderer == null) { continue; }
-                var originalObject = originalRenderer.gameObject;
-                var proxyObject = proxyRenderer.gameObject;
-
-                var isOriginHidden = manager.IsHidden(originalObject, true);
-                var needHiddenStateChange = isOriginHidden != manager.IsHidden(proxyObject, true);
-                if (needHiddenStateChange)
-                {
-                    if (isOriginHidden) manager.Hide(proxyObject, true);
-                    else manager.Show(proxyObject, true);
-                }
-
-                var isOriginPickingDisabled = manager.IsPickingDisabled(originalObject, true);
-                var needPickableStateChange = isOriginPickingDisabled != manager.IsPickingDisabled(proxyObject, true);
-                if (needPickableStateChange)
-                {
-                    if (isOriginPickingDisabled) manager.DisablePicking(proxyObject, true);
-                    else manager.EnablePicking(proxyObject, true);
-                }
-            }
             foreach (var pair in _proxies)
             {
                 pair.Value.OnPreFrame();
@@ -307,6 +261,11 @@ namespace nadena.dev.ndmf.preview
             foreach (var node in _nodes)
             {
                 node.OnFrame();
+            }
+            
+            foreach (var pair in _proxies)
+            {
+                pair.Value.FinishPreFrame(isSceneView);
             }
         }
 

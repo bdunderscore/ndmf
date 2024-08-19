@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
@@ -27,6 +28,10 @@ namespace nadena.dev.ndmf.preview
         internal ComputeContext _monitorRenderer, _monitorMaterials, _monitorMesh;
 
         internal Task OnInvalidate;
+
+        private bool _visibilityOffOriginal;
+        private bool _pickingOffOriginal, _pickingOffReplacement;
+        private long _lastVisibilityCheck = long.MinValue;
         
         private static CustomSampler _onPreFrameSampler = CustomSampler.Create("ProxyObjectController.OnPreFrame");
 
@@ -130,7 +135,27 @@ namespace nadena.dev.ndmf.preview
                 var target = _replacementRenderer;
                 var original = _originalRenderer;
 
-                target.gameObject.SetActive(original.enabled && original.gameObject.activeInHierarchy);
+                if (VisibilityMonitor.Sequence != _lastVisibilityCheck)
+                {
+                    _pickingOffOriginal = SceneVisibilityManager.instance.IsPickingDisabled(original.gameObject);
+                    _visibilityOffOriginal = SceneVisibilityManager.instance.IsHidden(original.gameObject);
+                }
+                
+                target.enabled = original.enabled && original.gameObject.activeInHierarchy;
+
+                bool shouldDisablePicking = _pickingOffOriginal || _visibilityOffOriginal;
+
+                if (shouldDisablePicking != _pickingOffReplacement)
+                {
+                    if (shouldDisablePicking)
+                    {
+                        SceneVisibilityManager.instance.DisablePicking(target.gameObject, false);
+                    }
+                    else
+                    {
+                        SceneVisibilityManager.instance.EnablePicking(target.gameObject, false);
+                    }
+                }
 
                 SkinnedMeshRenderer smr = null;
                 if (_originalRenderer is SkinnedMeshRenderer smr_)
@@ -196,6 +221,11 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+        internal void FinishPreFrame(bool isSceneViewCamera)
+        {
+            if (_replacementRenderer != null) _replacementRenderer.enabled &= !(isSceneViewCamera && _visibilityOffOriginal);
+        }
+
         private void CreateReplacementObject()
         {
             if (_originalRenderer == null) return;
@@ -229,6 +259,8 @@ namespace nadena.dev.ndmf.preview
                     return null;
                 }
 
+                renderer.forceRenderingOff = true;
+                
                 return renderer;
             });
         }
