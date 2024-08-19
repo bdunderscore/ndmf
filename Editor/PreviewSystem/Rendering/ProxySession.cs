@@ -70,7 +70,7 @@ namespace nadena.dev.ndmf.preview
             _proxyCache.Dispose();
         }
 
-        public IEnumerable<(Renderer, Renderer)> OnPreCull()
+        public IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
         {
             ShadowBoneManager.Instance.Update();
             
@@ -98,7 +98,7 @@ namespace nadena.dev.ndmf.preview
 
             if (activeIsReady)
             {
-                _active.OnFrame();
+                _active.OnFrame(isSceneCamera);
                 return _active.Renderers;
             }
             else

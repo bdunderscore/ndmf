@@ -25,10 +25,15 @@ namespace nadena.dev.ndmf.preview
 
         private static List<(Renderer, bool)> _resetActions = new();
 
+        private static bool IsSceneCamera(Camera cam)
+        {
+            return cam != null && SceneView.currentDrawingSceneView?.camera == cam;
+        }
+        
         private static bool ShouldHookCamera(Camera cam)
         {
-            if (cam.name == "SceneCamera" && cam.gameObject.hideFlags == HideFlags.HideAndDontSave) return true;
             if (cam.name == "TempCamera" && cam.targetTexture?.name == "ThumbnailCapture") return true;
+            if (cam.transform.parent == null) return true;
 
             return false;
         }
@@ -42,7 +47,8 @@ namespace nadena.dev.ndmf.preview
         {
             ResetStates();
 
-            if (!ShouldHookCamera(cam)) return;
+            bool sceneCam = IsSceneCamera(cam);
+            if (!sceneCam && !ShouldHookCamera(cam)) return;
 
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
@@ -52,7 +58,7 @@ namespace nadena.dev.ndmf.preview
             var sess = PreviewSession.Current;
             if (sess == null) return;
 
-            foreach (var (original, replacement) in sess.GetReplacements())
+            foreach (var (original, replacement) in sess.OnPreCull(sceneCam))
             {
                 // TODO: Optimize to cull meshes that don't have an active-state override registered
                 if (original == null || replacement == null || !original.enabled)
@@ -63,7 +69,8 @@ namespace nadena.dev.ndmf.preview
 
                 _resetActions.Add((original, false));
                 _resetActions.Add((replacement, true));
-
+                
+                // Note: don't set replacement.forceRenderingOff to false, as we might have culled it in sess.OnPreCull
                 replacement.forceRenderingOff = false;
                 original.forceRenderingOff = true;
             }
