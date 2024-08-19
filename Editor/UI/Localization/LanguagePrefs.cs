@@ -9,10 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 #if UNITY_2022_1_OR_NEWER
 using UnityEngine.TextCore.Text;
 #endif
-using UnityEngine.UIElements;
 
 #endregion
 
@@ -42,6 +42,8 @@ namespace nadena.dev.ndmf.localization
                     fontCallback();
                 }
             };
+
+            EditorApplication.update += MaybeRefreshActiveFont;
         }
 
         private static string GetSystemLanguage()
@@ -231,18 +233,42 @@ namespace nadena.dev.ndmf.localization
             RegisteredLanguages = RegisteredLanguages.Add(languageCode.ToLowerInvariant());
         }
 
-        #if UNITY_2022_1_OR_NEWER
         private static IDictionary<string, StyleFontDefinition> FontCache =
-            new Dictionary<string, StyleFontDefinition>(); 
+            new Dictionary<string, StyleFontDefinition>();
 
-        private static StyleFontDefinition PreferredFont => TryLoadFontForLanguage(Language);
+        private static string _activeFontLanguage;
+        private static StyleFontDefinition _activeFont;
+
+        private static bool ActiveFontValid => _activeFont.value.fontAsset != null;
+
+        private static StyleFontDefinition ActiveFont
+        {
+            get
+            {
+                if (ActiveFontValid) return _activeFont;
+
+                _activeFontLanguage = Language;
+                return TryLoadFontForLanguage(Language);
+            }
+        }
+
+        private static void MaybeRefreshActiveFont()
+        {
+            // the active font can be invalidated on scene change. unfortunately unity callbacks are unreliable at
+            // detecting this, so we need to check every frame.
+            if (ActiveFontValid && _activeFontLanguage == Language) return;
+
+            _activeFont = TryLoadFontForLanguage(Language);
+
+            foreach (var fontCallback in _fontUpdateCallbacks.Values) fontCallback();
+        }
 
         private static StyleFontDefinition TryLoadFontForLanguage(string lang)
         {
             if (FontCache.TryGetValue(lang, out var font)
                 && (font.keyword != StyleKeyword.Undefined || font.value.fontAsset != null)) return font;
-            
-            var definitions = System.IO.File.ReadAllLines("Packages/nadena.dev.ndmf/Editor/UI/Localization/font_preferences.txt");
+
+            var definitions = File.ReadAllLines("Packages/nadena.dev.ndmf/Editor/UI/Localization/font_preferences.txt");
 
             FontAsset currentFont = null;
             foreach (var line in definitions)
@@ -320,12 +346,7 @@ namespace nadena.dev.ndmf.localization
 
         private static void UpdateElementFont(VisualElement elem)
         {
-            elem.style.unityFontDefinition = PreferredFont;
+            elem.style.unityFontDefinition = ActiveFont;
         }
-        #else
-        public static void ApplyFontPreferences(VisualElement elem) {
-            // Unity 2019 users will need to deal with garbage font rendering, sorry.
-        }
-        #endif
     }
 }

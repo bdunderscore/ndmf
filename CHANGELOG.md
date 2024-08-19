@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#341] Font rendering breaks on scene change
+
 ### Changed
 
 ### Removed
