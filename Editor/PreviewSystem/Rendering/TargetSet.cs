@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.ndmf.cs;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -39,6 +36,7 @@ namespace nadena.dev.ndmf.preview
                     if (!filter.IsEnabled(_targetSetContext)) continue;
                     
                     var ctx = new ComputeContext("StageDescriptor for " + filter);
+                    ctx.Invalidates(_targetSetContext);
                     
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
                     var groups = filter.GetTargetGroups(ctx);
