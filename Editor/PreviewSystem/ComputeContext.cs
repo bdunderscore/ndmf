@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using UnityEngine;
 
 #endregion
 
@@ -39,7 +40,13 @@ namespace nadena.dev.ndmf.preview
 
         internal ComputeContext(string description)
         {
-            Invalidate = () => _invalidater.TrySetResult(null);
+            Invalidate = () =>
+            {
+#if NDMF_TRACE
+                Debug.Log("Invalidating " + Description);
+#endif
+                _invalidater.TrySetResult(null);
+            };
             OnInvalidate = _invalidater.Task;
             Description = description;
         }
