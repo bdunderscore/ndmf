@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-
 - [#343] [#346] TargetSet is not invalidated when GetTargetGroups context is invalidated
+- [#347] NullReferenceException from SetupRenderingMonitoring on scene change
 
 ### Changed
 
