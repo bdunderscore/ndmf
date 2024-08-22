@@ -34,12 +34,9 @@ namespace nadena.dev.ndmf.preview
                 foreach (var filter in _filters)
                 {
                     if (!filter.IsEnabled(_targetSetContext)) continue;
-                    
-                    var ctx = new ComputeContext("StageDescriptor for " + filter);
-                    ctx.Invalidates(_targetSetContext);
-                    
+
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
-                    var groups = filter.GetTargetGroups(ctx);
+                    var groups = filter.GetTargetGroups(_targetSetContext);
                     if (groups.IsEmpty) continue;
                     
                     builder.Add(new Stage
