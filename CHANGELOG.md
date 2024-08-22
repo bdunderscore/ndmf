@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#343] [#346] TargetSet is not invalidated when GetTargetGroups context is invalidated
-- [#347] NullReferenceException from SetupRenderingMonitoring on scene change
 
 ### Changed
 
@@ -20,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.0] - [2024-08-21]
+
+### Fixed
+- [#343] [#346] TargetSet is not invalidated when GetTargetGroups context is invalidated
+  (new preview components were sometimes ignored)
+- [#347] NullReferenceException from SetupRenderingMonitoring on scene change
 
 ## [1.5.0-beta.5] - [2024-08-18]
 
