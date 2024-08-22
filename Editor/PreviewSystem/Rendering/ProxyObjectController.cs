@@ -80,6 +80,12 @@ namespace nadena.dev.ndmf.preview
 
         private void SetupRendererMonitoring(Renderer r)
         {
+            if (r == null)
+            {
+                OnInvalidate = Task.CompletedTask;
+                return;
+            }
+            
             var gameObjectName = r.gameObject.name;
             _monitorRenderer = new ComputeContext("Renderer Monitor for " + gameObjectName);
             _monitorMaterials = new ComputeContext("Material Monitor for " + gameObjectName);
