@@ -13,41 +13,63 @@ namespace nadena.dev.ndmf.cs
     {
         internal Listener<T> _next, _prev;
 
+        private readonly ListenerSet<T> _owner;
         private readonly ListenerSet<T>.Filter _filter;
-        private readonly WeakReference<ComputeContext> _ctx;
+        private readonly WeakReference<object> _target;
+        private readonly Action<object> _receiver;
 
         internal Listener(
+            ListenerSet<T> owner,
             ListenerSet<T>.Filter filter,
             ComputeContext ctx
+        ) : this(owner, filter, ctx, InvalidateContext)
+        {
+        }
+        
+        private static void InvalidateContext(object ctx)
+        {
+            ((ComputeContext) ctx).Invalidate();
+        }
+        
+        internal Listener(
+            ListenerSet<T> owner,
+            ListenerSet<T>.Filter filter,
+            object target,
+            Action<object> receiver
         )
         {
+            _owner = owner;
             _next = _prev = this;
             _filter = filter;
-            _ctx = ctx == null ? null : new WeakReference<ComputeContext>(ctx);
+            _target = new WeakReference<object>(target);
+            _receiver = receiver;
         }
 
         public override string ToString()
         {
-            if (_ctx.TryGetTarget(out var target))
+            if (_target.TryGetTarget(out var target))
                 return $"Listener for {target}";
             return "Listener (GC'd)";
         }
 
         public void Dispose()
         {
-            if (_next != null)
+            lock (_owner)
             {
-                _next._prev = _prev;
-                _prev._next = _next;
-            }
+                if (_next != null)
+                {
+                    _next._prev = _prev;
+                    _prev._next = _next;
+                }
 
-            _next = _prev = null;
-            _ctx.SetTarget(null);
+                _next = _prev = null;
+                _target.SetTarget(null);
+            }
         }
 
         internal void MaybePrune()
         {
-            if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
+            if (!_target.TryGetTarget(out _))
             {
 #if NDMF_DEBUG
                 System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
@@ -59,7 +81,7 @@ namespace nadena.dev.ndmf.cs
         // Invoked under lock(_owner)
         internal void MaybeFire(T info)
         {
-            if (!_ctx.TryGetTarget(out var ctx) || ctx.IsInvalidated)
+            if (!_target.TryGetTarget(out var target))
             {
 #if NDMF_DEBUG
                 System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
@@ -71,8 +93,8 @@ namespace nadena.dev.ndmf.cs
 #if NDMF_DEBUG
                 System.Diagnostics.Debug.WriteLine($"{this} is firing");
 #endif
-                
-                ctx.Invalidate();
+
+                _receiver(target);
                 // We need to wait two frames before repainting: One to process task callbacks, then one to actually
                 // repaint (and update previews).
                 EditorApplication.delayCall += Delay2Repaint;
@@ -87,7 +109,8 @@ namespace nadena.dev.ndmf.cs
 
         public void ForceFire()
         {
-            if (_ctx.TryGetTarget(out var ctx) && !ctx.IsInvalidated) ctx.Invalidate();
+            if (_target.TryGetTarget(out var ctx)) _receiver(ctx);
+            _target.SetTarget(null);
         }
     }
 
@@ -99,7 +122,7 @@ namespace nadena.dev.ndmf.cs
 
         public ListenerSet()
         {
-            _head = new Listener<T>(_ => false, null);
+            _head = new Listener<T>(this, _ => false, null);
             _head._next = _head._prev = _head;
         }
 
@@ -110,15 +133,45 @@ namespace nadena.dev.ndmf.cs
 
         public IDisposable Register(Filter filter, ComputeContext ctx)
         {
-            var listener = new Listener<T>(filter, ctx);
+            var listener = new Listener<T>(this, filter, ctx);
 
-            listener._next = _head._next;
-            listener._prev = _head;
-            _head._next._prev = listener;
-            _head._next = listener;
+            lock (this)
+            {
+                listener._next = _head._next;
+                listener._prev = _head;
+                _head._next._prev = listener;
+                _head._next = listener;
+            }
 
             return listener;
         }
+        
+        public IDisposable Register(Filter filter, object target, Action<object> receiver)
+        {
+            var listener = new Listener<T>(this, filter, target, receiver);
+
+            lock (this)
+            {
+                listener._next = _head._next;
+                listener._prev = _head;
+                _head._next._prev = listener;
+                _head._next = listener;
+            }
+
+            return listener;
+        }
+
+        public IDisposable Register(ComputeContext ctx)
+        {
+            return Register(PassAll, ctx);
+        }
+        
+        public IDisposable Register(object target, Action<object> receiver)
+        {
+            return Register(PassAll, target, receiver);
+        }
+        
+        private static bool PassAll(T _) => true;
 
         public void Fire(T info)
         {

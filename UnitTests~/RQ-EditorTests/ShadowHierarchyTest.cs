@@ -69,29 +69,6 @@ namespace UnitTests.EditorTests
         }
 
         [Test]
-        public void ListenerDeregisteredWhenContextInvalidated()
-        {
-            var shadow = new ShadowHierarchy();
-
-            var gameObject = c(new GameObject("tmp"));
-
-            var ctx = new ComputeContext("");
-            bool wasFired = false;
-            
-            shadow.RegisterGameObjectListener(gameObject, e =>
-            {
-                wasFired = true;
-                return true;
-            }, ctx);
-            
-            ctx.Invalidate();
-            
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
-            
-            Assert.IsFalse(wasFired);
-        }
-
-        [Test]
         public void ListenerDeregisteredAfterTrueReturn()
         {
             var shadow = new ShadowHierarchy();

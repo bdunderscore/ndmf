@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.runtime;
 using UnityEngine;
 
 #endregion
@@ -46,6 +47,20 @@ namespace nadena.dev.ndmf.preview
                 roots.SelectMany(root => ctx.GetComponentsInChildren(root, type, true));
 
             return components.ToImmutableList();
+        }
+
+        public static ImmutableList<GameObject> GetAvatarRoots(this ComputeContext ctx)
+        {
+            // TODO: multiple platform support
+#if NDMF_VRCSDK3_AVATARS
+            return ctx.GetComponentsByType<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>()
+                .Select(c => c.gameObject).ToImmutableList();
+#else
+            return ctx.GetComponentsByType<Animator>()
+                .Select(c => c.gameObject)
+                .Where(g => RuntimeUtil.IsAvatarRoot(g.transform))
+                .ToImmutableList();
+#endif
         }
     }
 }
