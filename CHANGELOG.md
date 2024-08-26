@@ -8,10 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#350] Added additional ComputeContext-related APIs.
-  - `ComputeContext.Invalidate`, the `ComputeContext(string)` constructor, `ComputeContext.Invalidates`, and 
-    `ComputeContext.InvokeOnInvalidate` are now public.
-  - Added the `GetAvatarRoots(this ComputeContext)` and `GetAvatarRoot(this ComputeContext, GameObject)` extension methods.
 
 ### Fixed
 
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.1] - [2024-08-25]
+
+### Added
+- [#350] Added additional ComputeContext-related APIs.
+  - `ComputeContext.Invalidate`, the `ComputeContext(string)` constructor, `ComputeContext.Invalidates`, and
+    `ComputeContext.InvokeOnInvalidate` are now public.
+  - Added the `GetAvatarRoots(this ComputeContext)` and `GetAvatarRoot(this ComputeContext, GameObject)` extension methods.
 
 ## [1.5.0-rc.0] - [2024-08-21]
 
