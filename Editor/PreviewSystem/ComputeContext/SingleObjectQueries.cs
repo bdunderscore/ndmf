@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
 using UnityEngine;
+#if NDMF_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+#endif
 using Object = UnityEngine.Object;
 
 #endregion
@@ -14,6 +17,36 @@ namespace nadena.dev.ndmf.preview
     [PublicAPI]
     public static partial class ComputeContextQueries
     {
+        /// <summary>
+        /// Gets the avatar root for a game object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static GameObject GetAvatarRoot(this ComputeContext context, GameObject obj)
+        {
+            if (obj == null) return null;
+
+            GameObject candidate = null;
+            foreach (var elem in context.ObservePath(obj.transform))
+            {
+#if NDMF_VRCSDK3_AVATARS
+                if (context.GetComponent<VRCAvatarDescriptor>(elem.gameObject) != null)
+                {
+                    candidate = elem.gameObject;
+                    break;
+                }
+#else
+                if (context.GetComponent<Animator>(elem.gameObject) != null)
+                {
+                    candidate = elem.gameObject;
+                }
+#endif
+            }
+
+            return candidate;
+        }
+        
         /// <summary>
         ///     Observes a value published via the given PublishedValue token. The calling computation will be re-executed
         ///     whenever the value changes (as determined by IEquatable)
