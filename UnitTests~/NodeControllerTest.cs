@@ -98,7 +98,8 @@ namespace UnitTests
                 {
                     (r1, poc1, or1),
                     (r2, poc2, or2)
-                }
+                },
+                ""
             ).Result;
 
             IObjectRegistry reg2 = nodeController.ObjectRegistry;

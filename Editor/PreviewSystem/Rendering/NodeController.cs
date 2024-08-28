@@ -85,37 +85,64 @@ namespace nadena.dev.ndmf.preview
         public static Task<NodeController> Create(
             IRenderFilter filter,
             RenderGroup group,
-            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies)
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
+            string trace
+        )
         {
-            return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies);
+            return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies, trace);
         }
 
         public static async Task<NodeController> Create(
             IRenderFilter filter,
             RenderGroup group,
             ObjectRegistry registry,
-            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies
+            List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
+            string trace
         )
         {
             var context =
-                new ComputeContext("NodeController for " + filter + " on " + group.Renderers[0].gameObject.name);
-
+                new ComputeContext("NodeController " + trace + " for " + filter + " on " +
+                                   group.Renderers[0].gameObject.name);
+#if NDMF_TRACE_FILTERS
+            UnityEngine.Debug.Log("[NodeController Create] " + trace + " Filter=" + filter + " Group=" +
+                      group.Renderers[0].gameObject.name +
+                      " Registry dump:\n" + registry.RegistryDump());
+#endif
             IRenderFilterNode node;
             using (var scope = new ObjectRegistryScope(registry))
             {
+                var savedMaterials = group.Renderers.Select(r => r.sharedMaterials).ToArray();
+                
                 node = await filter.Instantiate(
                     group,
                     proxies.Select(p => (p.Item1, p.Item2.Renderer)),
                     context
                 );
+
+                for (var i = 0; i < group.Renderers.Count; i++)
+                {
+                    if (group.Renderers[i].sharedMaterials.SequenceEqual(savedMaterials[i])) continue;
+
+                    Debug.LogWarning("[NodeController Create] Renderer " + group.Renderers[i].gameObject.name +
+                                     " sharedMaterials changed during instantiation of " + filter + " in " +
+                                     " group " + group + ". Restoring original materials.");
+                    group.Renderers[i].sharedMaterials = savedMaterials[i];
+                }
             }
 
+#if NDMF_TRACE_FILTERS
+            Debug.Log("[NodeController Post-Create] " + trace + " Filter=" + filter + " Group=" +
+                      group.Renderers[0].gameObject.name +
+                      " Registry dump:\n" + registry.RegistryDump());
+#endif
+            
             return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
         }
 
         public async Task<NodeController> Refresh(
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
-            RenderAspects changes
+            RenderAspects changes,
+            string trace
         )
         {
             var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)
@@ -151,7 +178,7 @@ namespace nadena.dev.ndmf.preview
             }
             else if (node == null)
             {
-                return await Create(_filter, _group, registry, proxies);
+                return await Create(_filter, _group, registry, proxies, trace);
             }
             else
             {

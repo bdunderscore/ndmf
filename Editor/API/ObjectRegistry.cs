@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
@@ -117,6 +118,22 @@ namespace nadena.dev.ndmf
             _parent = parent;
         }
 
+        internal string RegistryDump()
+        {
+            var sb = new StringBuilder();
+
+            foreach (var group in _obj2ref.GroupBy(kvp => kvp.Value))
+            {
+                var source = group.Key.Object == null ? "<null>" : group.Key.Object.name;
+                var instances = group.Select(kvp => kvp.Key.GetInstanceID() + " [" + kvp.Key.name + "]").ToArray();
+
+                sb.Append("\tGroup source ").Append(source).Append(": ").Append(string.Join(", ", instances))
+                    .Append("\n");
+            }
+
+            return sb.ToString();
+        }
+
         /// <summary>
         ///     Returns the ObjectReference for the given object, using the ambient ObjectRegistry.
         /// </summary>
@@ -135,6 +152,17 @@ namespace nadena.dev.ndmf
 
             if (objref != null || !create)
             {
+#if NDMF_TRACE_OBJREG
+                if (objref != null)
+                {
+                    Debug.Log("[ObjectRegistry] Returning reference for " + obj.GetInstanceID() + " [" + obj.name +
+                              "]: " + objref.GetHashCode());
+                }
+                else
+                {
+                    Debug.Log("[ObjectRegistry] No reference for " + obj.GetInstanceID() + " [" + obj.name + "]");
+                }
+#endif
                 return objref;
             }
 
@@ -148,6 +176,9 @@ namespace nadena.dev.ndmf
             objref = new ObjectReference(obj, path);
             _obj2ref[obj] = objref;
 
+#if NDMF_TRACE_OBJREG
+            Debug.Log("[ObjectRegistry] Created reference for " + obj.GetInstanceID() + " [" + obj.name + "]: " + objref.GetHashCode());
+#endif
             return objref;
         }
 
@@ -193,6 +224,14 @@ namespace nadena.dev.ndmf
                 throw new ArgumentException(
                     "RegisterReplacedObject must be called before GetReference is called on the new object");
 
+            var oldObj = "<" + oldObject.GetHashCode() + ">";
+            if (oldObject.Object != null)
+                oldObj = oldObject.Object.GetInstanceID() + " [" + oldObject.Object.name + "]";
+
+#if NDMF_TRACE_OBJREG
+            Debug.Log("[ObjectRegistry] Registering replacement for " + oldObj + " -> " + newObject.GetInstanceID() + " [" + newObject.name + "]");
+#endif
+            
             _obj2ref[newObject] = oldObject;
 
             return oldObject;

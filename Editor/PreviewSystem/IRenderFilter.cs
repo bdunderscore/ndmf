@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using NUnit.Framework;
 using UnityEngine;
 
 #endregion
@@ -81,6 +80,11 @@ namespace nadena.dev.ndmf.preview
             }
 
             return hashCode;
+        }
+
+        public string ToString()
+        {
+            return "RenderGroup(" + string.Join(", ", Renderers.Select(r => r.name)) + ")";
         }
     }
 
