@@ -1,4 +1,4 @@
-﻿#region
+#region
 
 using System;
 using System.Collections.Generic;
@@ -125,7 +125,7 @@ namespace nadena.dev.ndmf
             foreach (var group in _obj2ref.GroupBy(kvp => kvp.Value))
             {
                 var source = group.Key.Object == null ? "<null>" : group.Key.Object.name;
-                var instances = group.Select(kvp => kvp.Key.GetInstanceID() + " [" + kvp.Key.name + "]").ToArray();
+                var instances = group.Select(kvp => kvp.Key != null ? kvp.Key.GetInstanceID() + " [" + kvp.Key.name + "]" : "Destroyed [Unknown]").ToArray();
 
                 sb.Append("\tGroup source ").Append(source).Append(": ").Append(string.Join(", ", instances))
                     .Append("\n");
