@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#351] Fix issue where ObjectRegistry contents are not properly inherited across filter node refreshes.
 
 ### Changed
 
