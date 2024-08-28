@@ -112,13 +112,22 @@ namespace nadena.dev.ndmf.preview
             _ctx = context; // prevent GC
 
 #if NDMF_DEBUG
-            System.Diagnostics.Debug.WriteLine($"Building pipeline {_generation}");
+            Debug.WriteLine($"Building pipeline {_generation}");
 #endif
 
             var filterList = filters.ToImmutableList();
             _targetSet = priorPipeline?._targetSet?.Refresh(filterList) ?? new TargetSet(filterList);
 
             var activeStages = _targetSet.ResolveActiveStages(context);
+
+#if NDMF_TRACE_FILTERS
+            var sb = new System.Text.StringBuilder();
+            foreach (var stage in activeStages)
+            {
+                sb.Append("\t").Append(stage.Filter).Append(" on ").Append(stage.Groups).Append("\n");
+            }
+            UnityEngine.Debug.Log($"[ProxyPipeline] Active stages for pipeline {_generation}:\n{sb}");
+#endif
 
             Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
             int total_nodes = 0;
@@ -148,6 +157,9 @@ namespace nadena.dev.ndmf.preview
                     total_nodes++;
                     
                     groupIndex++;
+
+                    var trace = $"Gen{_generation}/Stage{i}/Group{groupIndex}";
+                    
                     var resolved = group.Renderers.Select(r =>
                     {
                         if (nodeTasks.TryGetValue(r, out var task))
@@ -192,7 +204,8 @@ namespace nadena.dev.ndmf.preview
                             var proxies = items.Result.ToList();
 
 #if NDMF_DEBUG
-                            System.Diagnostics.Debug.WriteLine($"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
+                            Debug.WriteLine(
+                                $"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
                             
                             if (priorNode != null)
@@ -200,7 +213,7 @@ namespace nadena.dev.ndmf.preview
                                 RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
                                     .Aggregate((a, b) => a | b);
 
-                                var node = await priorNode.Result.Refresh(proxies, changeFlags);
+                                var node = await priorNode.Result.Refresh(proxies, changeFlags, trace);
                                 if (node != null)
                                 {
                                     reused++;
@@ -209,8 +222,8 @@ namespace nadena.dev.ndmf.preview
 
                                 refresh_failed++;
                             }
-                            
-                            return await NodeController.Create(stage.Filter, group, items.Result.ToList());
+
+                            return await NodeController.Create(stage.Filter, group, items.Result.ToList(), trace);
                         })
                         .Unwrap();
 
@@ -235,7 +248,7 @@ namespace nadena.dev.ndmf.preview
             //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
 #if NDMF_DEBUG
-            System.Diagnostics.Debug.WriteLine($"Pipeline {_generation} is ready");
+            Debug.WriteLine($"Pipeline {_generation} is ready");
 #endif
 
             foreach (var stage in _stages)

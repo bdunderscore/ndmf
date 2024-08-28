@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
+using UnityEngine;
 
 #endregion
 
@@ -28,7 +29,7 @@ namespace nadena.dev.ndmf.preview
         ~ComputeContext()
         {
             if (!IsInvalidated)
-                UnityEngine.Debug.LogError("ComputeContext " + Description + " was GCed without being invalidated!");
+                Debug.LogError("ComputeContext " + Description + " was GCed without being invalidated!");
         }
         
         #endif
