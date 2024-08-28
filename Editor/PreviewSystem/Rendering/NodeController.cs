@@ -118,7 +118,8 @@ namespace nadena.dev.ndmf.preview
             RenderAspects changes
         )
         {
-            var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
+            var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)
+                .Append(ObjectRegistry));
             var context = new ComputeContext("NodeController (refresh) for " + _filter + " on " +
                                              _group.Renderers[0].gameObject.name);
 
