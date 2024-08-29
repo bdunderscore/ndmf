@@ -1,4 +1,4 @@
-﻿using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.cs;
 using UnityEditor;
 
 namespace nadena.dev.ndmf.preview
@@ -14,7 +14,7 @@ namespace nadena.dev.ndmf.preview
         {
             SceneVisibilityManager.visibilityChanged += () =>
             {
-                OnVisibilityChange.FireAll();
+                OnVisibilityChange.Fire(true);
                 
                 Sequence++;
             };

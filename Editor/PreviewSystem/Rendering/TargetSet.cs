@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -76,7 +77,13 @@ namespace nadena.dev.ndmf.preview
         {
             Profiler.BeginSample("TargetSet.ResolveActiveStages");
             _targetSetContext.Invalidates(context);
-            VisibilityMonitor.OnVisibilityChange.Register(_ => true, context);
+
+            foreach (var renderer in _stages.SelectMany(s => s.Groups).SelectMany(g => g.Renderers))
+            {
+                var nowVisibleState = SceneVisibilityManager.instance.IsHidden(renderer.gameObject, true);
+                cs.ListenerSet<bool>.Filter filter = _ => { return nowVisibleState != SceneVisibilityManager.instance.IsHidden(renderer.gameObject, true); };
+                VisibilityMonitor.OnVisibilityChange.Register(filter, context);
+            }
 
             HashSet<Renderer> maybeActiveRenderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
             
