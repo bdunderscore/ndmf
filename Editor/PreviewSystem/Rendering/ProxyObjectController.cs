@@ -126,7 +126,7 @@ namespace nadena.dev.ndmf.preview
             
             OnInvalidate = Task.WhenAny(_monitorRenderer.OnInvalidate, _monitorMaterials.OnInvalidate, _monitorMesh.OnInvalidate);
         }
-
+        
         internal bool OnPreFrame()
         {
             if (_replacementRenderer == null || _originalRenderer == null)
@@ -146,8 +146,8 @@ namespace nadena.dev.ndmf.preview
                     _pickingOffOriginal = SceneVisibilityManager.instance.IsPickingDisabled(original.gameObject);
                     _visibilityOffOriginal = SceneVisibilityManager.instance.IsHidden(original.gameObject);
                 }
-                
-                target.enabled = original.enabled && original.gameObject.activeInHierarchy;
+
+                target.enabled = false;
 
                 bool shouldDisablePicking = _pickingOffOriginal || _visibilityOffOriginal;
 
@@ -192,6 +192,8 @@ namespace nadena.dev.ndmf.preview
                     }
                 }
 
+                target.enabled = original.enabled && original.gameObject.activeInHierarchy;
+
                 _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
 
 
@@ -229,7 +231,20 @@ namespace nadena.dev.ndmf.preview
 
         internal void FinishPreFrame(bool isSceneViewCamera)
         {
-            if (_replacementRenderer != null) _replacementRenderer.enabled &= !(isSceneViewCamera && _visibilityOffOriginal);
+            if (_replacementRenderer != null)
+            {
+                var shouldEnable = _replacementRenderer.enabled & !(isSceneViewCamera && _visibilityOffOriginal);
+                Mesh currentSharedMesh = null;
+
+                if (_replacementRenderer is SkinnedMeshRenderer smr)
+                    currentSharedMesh = smr.sharedMesh;
+                else if (_replacementRenderer is MeshRenderer mr)
+                    currentSharedMesh = mr.GetComponent<MeshFilter>().sharedMesh;
+
+                if (currentSharedMesh != _initialSharedMesh) _replacementRenderer.enabled = false;
+
+                _replacementRenderer.enabled = shouldEnable;
+            }
         }
 
         private void CreateReplacementObject()
