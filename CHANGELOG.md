@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#351] Fix issue where ObjectRegistry contents are not properly inherited across filter node refreshes.
-- [#354] Fix "rendering stopped" errors on Mac editors
 
 ### Changed
 
@@ -20,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.2] - [2024-08-28]
+
+### Fixed
+
+- [#351] Fix issue where ObjectRegistry contents are not properly inherited across filter node refreshes.
+- [#354] Fix "rendering stopped" errors on Mac editors
 
 ## [1.5.0-rc.1] - [2024-08-25]
 
