@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#351] Fix issue where ObjectRegistry contents are not properly inherited across filter node refreshes.
+- [#354] Fix "rendering stopped" errors on Mac editors
 
 ### Changed
 
