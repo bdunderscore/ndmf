@@ -295,5 +295,12 @@ namespace nadena.dev.ndmf.preview
         void __please_enable_dotnet_80_or_higher_for_default_methods()
         {
         }
+
+        /// <summary>
+        ///     Invoked on each frame, once per render group.
+        /// </summary>
+        void OnFrameGroup()
+        {
+        }
     }
 }

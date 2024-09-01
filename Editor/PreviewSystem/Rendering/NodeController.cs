@@ -65,6 +65,10 @@ namespace nadena.dev.ndmf.preview
 
         internal void OnFrame()
         {
+            _profileSampler_onFrame.Begin();
+            _node.OnFrameGroup();
+            _profileSampler_onFrame.End();
+            
             foreach (var (original, proxy) in _proxies)
             {
                 if (original != null && proxy.Renderer != null)
