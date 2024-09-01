@@ -21,8 +21,10 @@ namespace nadena.dev.ndmf.ui
     {
         private const string APPLY_ON_PLAY_MENU_NAME = "Tools/NDM Framework/Apply on Play";
         private const string TOPLEVEL_MANUAL_BAKE_MENU_NAME = "Tools/NDM Framework/Manual bake avatar";
+        internal const string ENABLE_PREVIEW_MENU_NAME = "Tools/NDM Framework/Enable Previews";
         private const int APPLY_ON_PLAY_PRIO = 1;
         private const int TOPLEVEL_MANUAL_BAKE_PRIO = 2;
+        internal const int ENABLE_PREVIEW_PRIO = 3;
 
         [InitializeOnLoadMethod]
         static void Init()
