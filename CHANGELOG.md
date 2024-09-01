@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#360] Added `AsyncProfiler` to help profile code running in Tasks
+  - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`. 
 - [#361] Added `IRenderFilterNode.OnFrameGroup`
 
 ### Fixed
