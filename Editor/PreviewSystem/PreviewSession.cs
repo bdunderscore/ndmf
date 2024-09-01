@@ -64,11 +64,19 @@ namespace nadena.dev.ndmf.preview
 
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
 
-        private readonly ProxySession _proxySession;
+        private ProxySession _proxySession;
         
         public PreviewSession()
         {
             _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
+        }
+
+        public void ForceRebuild()
+        {
+            _proxySession.Dispose();
+            _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
+
+            RebuildSequence();
         }
 
         /// <summary>
