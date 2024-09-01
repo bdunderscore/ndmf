@@ -273,12 +273,10 @@ namespace nadena.dev.ndmf.cs
         }
 
         public C[] MonitorGetComponents<C>(GameObject obj, ComputeContext ctx,
-            Func<C[]> get0, bool includeChildren) where C : Component
+            Func<C[]> get0, bool includeChildren)
         {
-            Func<C[]> get = () => get0().Where(c =>
-                c?.hideFlags == 0 &&
-                c?.gameObject.hideFlags == 0
-            ).ToArray();
+            var previewScene = NDMFPreviewSceneManager.GetPreviewScene();
+            Func<C[]> get = () => get0().Where(c => (c as Component)?.gameObject.scene != previewScene).ToArray();
 
             C[] components = get();
 
@@ -305,7 +303,7 @@ namespace nadena.dev.ndmf.cs
         }
 
         public C MonitorGetComponent<C>(GameObject obj, ComputeContext ctx,
-            Func<C> get) where C : Component
+            Func<C> get) where C : class
         {
             C component = get();
 

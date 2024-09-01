@@ -200,7 +200,7 @@ namespace nadena.dev.ndmf.preview
             return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c, c2 => c2.enabled);
         }
 
-        private static C InternalGetComponent<C>(GameObject obj) where C : Component
+        private static C InternalGetComponent<C>(GameObject obj) where C : class
         {
             if (obj != null && obj.TryGetComponent<C>(out var c)) return c;
             return null;
@@ -211,8 +211,8 @@ namespace nadena.dev.ndmf.preview
             if (obj != null && obj.TryGetComponent(type, out var c)) return c;
             return null;
         }
-        
-        public static C GetComponent<C>(this ComputeContext ctx, GameObject obj) where C : Component
+
+        public static C GetComponent<C>(this ComputeContext ctx, GameObject obj) where C : class
         {
             if (obj == null) return null;
 
@@ -228,7 +228,7 @@ namespace nadena.dev.ndmf.preview
                 () => obj != null ? InternalGetComponent(obj, type) : null);
         }
 
-        public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj) where C : Component
+        public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj) where C : class
         {
             if (obj == null) return Array.Empty<C>();
 
@@ -245,7 +245,7 @@ namespace nadena.dev.ndmf.preview
         }
 
         public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive)
-            where C : Component
+            where C : class
         {
             if (obj == null) return Array.Empty<C>();
 
