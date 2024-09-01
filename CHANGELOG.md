@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
 
 ### Changed
+- [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
 
 ### Removed
 

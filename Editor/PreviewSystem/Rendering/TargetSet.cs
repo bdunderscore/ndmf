@@ -40,6 +40,17 @@ namespace nadena.dev.ndmf.preview
                     var groups = filter.GetTargetGroups(_targetSetContext);
                     Profiler.EndSample();
                     if (groups.IsEmpty) continue;
+
+                    var duplicateRenderers = groups.SelectMany(g => g.Renderers)
+                        .GroupBy(r => r)
+                        .FirstOrDefault(agg => agg.Count() > 1);
+                    if (duplicateRenderers != null)
+                    {
+                        Debug.LogError("[" + filter + "] Duplicate renderer " + duplicateRenderers.Key +
+                                       " in groups: " + string.Join(", ", groups));
+                        // Suppress this filter
+                        continue;
+                    }
                     
                     builder.Add(new Stage
                     {
