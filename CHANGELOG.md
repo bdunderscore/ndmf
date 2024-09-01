@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#360] Added `AsyncProfiler` to help profile code running in Tasks
   - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`. 
+- [#361] Added `IRenderFilterNode.OnFrameGroup`
 
 ### Fixed
-
+- [#362] Fixed unclosed profiler scope in TargetSet
 - [#355] Excessive invalidation when scene view visibility states change
+- [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
 
 ### Changed
+- [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
 
 ### Removed
 
