@@ -100,6 +100,7 @@ namespace nadena.dev.ndmf.preview
             string trace
         )
         {
+            AsyncProfiler.PushProfilerContext("NodeController.Create[" + filter + "]", group.Renderers[0].gameObject);
             var context =
                 new ComputeContext("NodeController " + trace + " for " + filter + " on " +
                                    group.Renderers[0].gameObject.name);
@@ -145,6 +146,7 @@ namespace nadena.dev.ndmf.preview
             string trace
         )
         {
+            AsyncProfiler.PushProfilerContext("NodeController.Refresh[" + _filter + "]", _group.Renderers[0].gameObject);
             var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)
                 .Append(ObjectRegistry));
             var context = new ComputeContext("NodeController (refresh) for " + _filter + " on " +
