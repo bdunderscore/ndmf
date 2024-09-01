@@ -1,13 +1,13 @@
 ﻿#region
 
+#if NDMF_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+#endif
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
 using UnityEngine;
-#if NDMF_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-#endif
 using Object = UnityEngine.Object;
 
 #endregion
@@ -200,12 +200,24 @@ namespace nadena.dev.ndmf.preview
             return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c, c2 => c2.enabled);
         }
 
+        private static C InternalGetComponent<C>(GameObject obj) where C : Component
+        {
+            if (obj != null && obj.TryGetComponent<C>(out var c)) return c;
+            return null;
+        }
+
+        private static Component InternalGetComponent(GameObject obj, Type type)
+        {
+            if (obj != null && obj.TryGetComponent(type, out var c)) return c;
+            return null;
+        }
+        
         public static C GetComponent<C>(this ComputeContext ctx, GameObject obj) where C : Component
         {
             if (obj == null) return null;
 
             return ObjectWatcher.Instance.MonitorGetComponent(obj, ctx,
-                () => obj != null ? obj.GetComponent<C>() : null);
+                () => obj != null ? InternalGetComponent<C>(obj) : null);
         }
 
         public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type)
@@ -213,7 +225,7 @@ namespace nadena.dev.ndmf.preview
             if (obj == null) return null;
 
             return ObjectWatcher.Instance.MonitorGetComponent(obj, ctx,
-                () => obj != null ? obj.GetComponent(type) : null);
+                () => obj != null ? InternalGetComponent(obj, type) : null);
         }
 
         public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj) where C : Component
