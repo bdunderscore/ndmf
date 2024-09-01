@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#355] Excessive invalidation when scene view visibility states change
+
 ### Changed
 
 ### Removed
