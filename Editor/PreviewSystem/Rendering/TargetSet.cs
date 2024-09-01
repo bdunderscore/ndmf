@@ -38,6 +38,7 @@ namespace nadena.dev.ndmf.preview
 
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
                     var groups = filter.GetTargetGroups(_targetSetContext);
+                    Profiler.EndSample();
                     if (groups.IsEmpty) continue;
                     
                     builder.Add(new Stage

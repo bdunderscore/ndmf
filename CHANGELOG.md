@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#361] Added `IRenderFilterNode.OnFrameGroup`
 
 ### Fixed
-
+- [#362] Fixed unclosed profiler scope in TargetSet
 - [#355] Excessive invalidation when scene view visibility states change
 
 ### Changed
