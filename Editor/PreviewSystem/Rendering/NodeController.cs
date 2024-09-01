@@ -96,7 +96,7 @@ namespace nadena.dev.ndmf.preview
             return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies, trace);
         }
 
-        public static async Task<NodeController> Create(
+        private static async Task<NodeController> Create(
             IRenderFilter filter,
             RenderGroup group,
             ObjectRegistry registry,
@@ -184,6 +184,9 @@ namespace nadena.dev.ndmf.preview
             }
             else if (node == null)
             {
+                // rebuild registry so we forget any garbage left by the aborted Refresh call
+                registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
+                
                 return await Create(_filter, _group, registry, proxies, trace);
             }
             else

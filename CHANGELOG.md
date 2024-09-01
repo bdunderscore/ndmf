@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#362] Fixed unclosed profiler scope in TargetSet
 - [#355] Excessive invalidation when scene view visibility states change
 - [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
+- [#367] When `IRenderFilter.Create` is invoked when refreshing a filter node, it would get an `ObjectRegistry`
+  containing items registered in the prior generation of the node.
 
 ### Changed
 - [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
