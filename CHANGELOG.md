@@ -8,13 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-rc.3] - [2024-09-01]
+
+### Added
+
 - [#360] Added `AsyncProfiler` to help profile code running in Tasks
-  - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`. 
+  - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`.
 - [#361] Added `IRenderFilterNode.OnFrameGroup`
 - [#365] Added debug tool to profile long editor frames
 - [#368] Relaxed generic constraints on `ComputeContext.GetComponent*<>` to allow interfaces to be queried for
 
 ### Fixed
+
 - [#362] Fixed unclosed profiler scope in TargetSet
 - [#355] Excessive invalidation when scene view visibility states change
 - [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
@@ -22,13 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   containing items registered in the prior generation of the node.
 
 ### Changed
+
 - [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-rc.2] - [2024-08-28]
 
