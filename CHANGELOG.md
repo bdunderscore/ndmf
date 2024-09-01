@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`. 
 - [#361] Added `IRenderFilterNode.OnFrameGroup`
 - [#365] Added debug tool to profile long editor frames
+- [#368] Relaxed generic constraints on `ComputeContext.GetComponent*<>` to allow interfaces to be queried for
 
 ### Fixed
 - [#362] Fixed unclosed profiler scope in TargetSet
