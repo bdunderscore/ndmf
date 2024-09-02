@@ -11,14 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#372] Fix an issue where the preview pipeline would be rebuilt every editor frame
-- [#369] Fix a `NullReferenceException` generated when previewed renderers are destroyed
-- [#371] Performance improvements in change monitoring
-- [#374] Suppress processing of renderers deleted during pipeline processing
-
 ### Changed
-
-- [#373] Set time limits for preview processing to avoid editor freezes
 
 ### Removed
 
@@ -26,10 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.5.0-rc.4] - [2024-09-02]
+
+### Fixed
+- [#372] Fix an issue where the preview pipeline would be rebuilt every editor frame
+- [#369] Fix a `NullReferenceException` generated when previewed renderers are destroyed
+- [#371] Performance improvements in change monitoring
+- [#374] Suppress processing of renderers deleted during pipeline processing
+
+### Changed
+- [#373] Set time limits for preview processing to avoid editor freezes
+
 ## [1.5.0-rc.3] - [2024-09-01]
 
 ### Added
-
 - [#360] Added `AsyncProfiler` to help profile code running in Tasks
   - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`.
 - [#361] Added `IRenderFilterNode.OnFrameGroup`
@@ -37,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#368] Relaxed generic constraints on `ComputeContext.GetComponent*<>` to allow interfaces to be queried for
 
 ### Fixed
-
 - [#362] Fixed unclosed profiler scope in TargetSet
 - [#355] Excessive invalidation when scene view visibility states change
 - [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
@@ -45,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   containing items registered in the prior generation of the node.
 
 ### Changed
-
 - [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
 
 ## [1.5.0-rc.2] - [2024-08-28]
