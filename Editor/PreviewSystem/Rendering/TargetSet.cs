@@ -93,8 +93,9 @@ namespace nadena.dev.ndmf.preview
             var targetRenderers = _stages
                 .SelectMany(s => s.Groups)
                 .SelectMany(g => g.Renderers)
+                .Where(r => r != null)
                 .Select(r => (r, SceneVisibilityManager.instance.IsHidden(r.gameObject, true))).ToArray();
-            VisibilityMonitor.OnVisibilityChange.Register(_ => targetRenderers.Any(rp => rp.Item2 != SceneVisibilityManager.instance.IsHidden(rp.r.gameObject, true)), context);
+            VisibilityMonitor.OnVisibilityChange.Register(_ => targetRenderers.Any(rp => rp.r == null || rp.Item2 != SceneVisibilityManager.instance.IsHidden(rp.r.gameObject, true)), context);
 
             HashSet<Renderer> maybeActiveRenderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
             
