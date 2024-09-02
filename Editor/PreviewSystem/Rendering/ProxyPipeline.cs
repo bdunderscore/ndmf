@@ -152,8 +152,9 @@ namespace nadena.dev.ndmf.preview
                 }
 
                 int groupIndex = -1;
-                foreach (var group in stage.Originals.OrderBy(g => g.GetHashCode()))
+                foreach (var group_raw in stage.Originals.OrderBy(g => g.GetHashCode()))
                 {
+                    var group = group_raw.FilterLive();
                     total_nodes++;
                     
                     groupIndex++;

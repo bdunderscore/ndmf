@@ -86,6 +86,13 @@ namespace nadena.dev.ndmf.preview
         {
             return "RenderGroup(" + string.Join(", ", Renderers.Select(r => r.name)) + ")";
         }
+
+        internal virtual RenderGroup FilterLive()
+        {
+            if (Renderers.All(r => r != null)) return this;
+
+            return new RenderGroup(Renderers.Where(r => r != null).ToImmutableList());
+        }
     }
 
     internal sealed class RenderGroup<T> : RenderGroup
@@ -127,6 +134,13 @@ namespace nadena.dev.ndmf.preview
             }
             
             return HashCode.Combine(base.GetHashCode(), EqualityComparer<T>.Default.GetHashCode(Context));
+        }
+
+        internal override RenderGroup FilterLive()
+        {
+            if (Renderers.All(r => r != null)) return this;
+
+            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), Context);
         }
     }
 
