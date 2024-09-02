@@ -30,6 +30,8 @@ namespace nadena.dev.ndmf.preview
                     PreviewSession.Current = resolver.PreviewSession;
                     oldSession.Dispose();
                 };
+
+                SetPreviewState();
             };
 
             EditorApplication.playModeStateChanged += state =>
@@ -68,7 +70,7 @@ namespace nadena.dev.ndmf.preview
             SceneView.RepaintAll();
         }
 
-        private static bool EnablePreviewsUI
+        internal static bool EnablePreviewsUI
         {
             get => NDMFPreviewPrefs.instance.EnablePreview;
             set
