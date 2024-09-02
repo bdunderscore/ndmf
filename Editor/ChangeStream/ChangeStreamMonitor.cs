@@ -11,6 +11,9 @@ namespace nadena.dev.ndmf.cs
 {
     internal class ChangeStreamMonitor
     {
+        private static readonly CustomSampler _handleEventSampler =
+            CustomSampler.Create("ChangeStreamMonitor.HandleEvent");
+        
         [InitializeOnLoadMethod]
         static void Init()
         {
@@ -20,17 +23,24 @@ namespace nadena.dev.ndmf.cs
         private static void OnChange(ref ObjectChangeEventStream stream)
         {
             Profiler.BeginSample("ChangeStreamMonitor.OnChange");
+            Debug.Log("CSM.OnChange: " + stream.length + " events");
 
             int length = stream.length;
             for (int i = 0; i < length; i++)
             {
                 try
                 {
+                    _handleEventSampler.Begin();
+                    
                     HandleEvent(stream, i);
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"Error handling event {i}: {e}");
+                }
+                finally
+                {
+                    _handleEventSampler.End();
                 }
             }
 

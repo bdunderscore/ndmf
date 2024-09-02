@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#369] Fix a `NullReferenceException` generated when previewed renderers are destroyed
+- [#371] Performance improvements in change monitoring
 
 ### Changed
 
