@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEditor;
+using nadena.dev.ndmf.cs;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Debug = System.Diagnostics.Debug;
@@ -107,6 +107,8 @@ namespace nadena.dev.ndmf.preview
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
             ProxyPipeline priorPipeline)
         {
+            await TaskThrottle.MaybeThrottle();
+            
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
             var context = new ComputeContext($"ProxyPipeline {_generation}");
             _ctx = context; // prevent GC
@@ -201,6 +203,8 @@ namespace nadena.dev.ndmf.preview
 
                     var node = Task.WhenAll(resolved).ContinueWith(async items =>
                         {
+                            await TaskThrottle.MaybeThrottle();
+                            
                             var proxies = items.Result.ToList();
 
 #if NDMF_DEBUG
@@ -242,7 +246,7 @@ namespace nadena.dev.ndmf.preview
                 .ContinueWith(result =>
                 {
                     _completedBuild.TrySetResult(null);
-                    EditorApplication.delayCall += () => { EditorApplication.delayCall += SceneView.RepaintAll; };
+                    RepaintTrigger.RequestRepaint();
                 });
             
             //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
@@ -265,20 +269,42 @@ namespace nadena.dev.ndmf.preview
         public void OnFrame(bool isSceneView)
         {
             if (!IsReady) return;
-            
-            foreach (var pair in _proxies)
-            {
-                pair.Value.OnPreFrame();
-            }
 
-            foreach (var node in _nodes)
+            using (var scope = FrameTimeLimiter.OpenFrameScope())
             {
-                node.OnFrame();
-            }
-            
-            foreach (var pair in _proxies)
-            {
-                pair.Value.FinishPreFrame(isSceneView);
+                if (!scope.ShouldContinue()) return;
+
+                foreach (var pair in _proxies)
+                {
+                    pair.Value.OnPreFrame();
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+                }
+
+                foreach (var node in _nodes)
+                {
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+
+                    node.OnFrame();
+                }
+
+                foreach (var pair in _proxies)
+                {
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+
+                    pair.Value.FinishPreFrame(isSceneView);
+                }
             }
         }
 
