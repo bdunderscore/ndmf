@@ -82,7 +82,7 @@ namespace nadena.dev.ndmf.preview
             if (renderer == null) return false;
             if (!context.ActiveInHierarchy(renderer.gameObject)) return false;
 
-            return context.Observe(renderer, r => r.enabled && !r.forceRenderingOff);
+            return context.Observe(renderer, r => r.enabled);
         }
         
         public ImmutableList<Stage> ResolveActiveStages(ComputeContext context)
