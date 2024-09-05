@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.5.0-rc.5] - [2024-09-04]
+
+### Fixed
+
+- [#379] Fix CurrentThreadIsMainThread assertion in AsyncProfiler
+
 ## [1.5.0-rc.4] - [2024-09-02]
 
 ### Fixed
