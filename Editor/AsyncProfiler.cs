@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using UnityEditor;
 using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
@@ -7,6 +8,14 @@ namespace nadena.dev.ndmf
 {
     public static class AsyncProfiler
     {
+        private static int _mainThreadId;
+
+        [InitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            _mainThreadId = Thread.CurrentThread.ManagedThreadId;
+        }
+        
         private class ProfilerFrame
         {
             public ProfilerFrame Parent;
@@ -21,6 +30,8 @@ namespace nadena.dev.ndmf
 
         private static void OnFrameChange(AsyncLocalValueChangedArgs<ProfilerFrame> obj)
         {
+            if (Thread.CurrentThread.ManagedThreadId != _mainThreadId) return;
+            
             var currentFrame = obj.PreviousValue;
             var newFrame = obj.CurrentValue;
 
@@ -61,11 +72,6 @@ namespace nadena.dev.ndmf
             _currentFrame.Value = newFrame;
 
             return new PopFrame(newFrame);
-        }
-
-        public static void PopProfilerContext()
-        {
-            _currentFrame.Value = _currentFrame.Value?.Parent;
         }
 
         private class PopFrame : IDisposable
