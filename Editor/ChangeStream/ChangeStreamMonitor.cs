@@ -23,7 +23,6 @@ namespace nadena.dev.ndmf.cs
         private static void OnChange(ref ObjectChangeEventStream stream)
         {
             Profiler.BeginSample("ChangeStreamMonitor.OnChange");
-            Debug.Log("CSM.OnChange: " + stream.length + " events");
 
             int length = stream.length;
             for (int i = 0; i < length; i++)
