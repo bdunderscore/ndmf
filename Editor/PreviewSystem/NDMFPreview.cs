@@ -45,6 +45,11 @@ namespace nadena.dev.ndmf.preview
                         break;
                 }
             };
+            
+            EditorSceneManager.sceneOpened += (_, _) =>
+            {
+                SetPreviewState();
+            };
         }
 
         private static int _disablePreviewDepth;
