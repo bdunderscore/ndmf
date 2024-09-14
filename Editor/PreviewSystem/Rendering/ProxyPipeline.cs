@@ -165,6 +165,14 @@ namespace nadena.dev.ndmf.preview
                     
                     var resolved = group.Renderers.Select(r =>
                     {
+                        if (r == null)
+                        {
+                            UnityEngine.Debug.Log("Renderer deleted during proxy pipeline construction: " +
+                                                  group.DebugNames[r]);
+                            Invalidate();
+                            return null;
+                        }
+
                         if (nodeTasks.TryGetValue(r, out var task))
                         {
                             return task.ContinueWith(task1 =>
@@ -192,7 +200,12 @@ namespace nadena.dev.ndmf.preview
 
                             return Task.FromResult((r, proxy, registry));
                         }
-                    });
+                    }).Where(r => r != null).ToList();
+
+                    if (resolved.Count == 0)
+                    {
+                        continue;
+                    }
 
                     var priorNode = prior?.NodeTasks.ElementAtOrDefault(groupIndex);
                     var sameGroup = Equals(priorNode?.Result.Group, group);

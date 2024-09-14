@@ -73,7 +73,7 @@ namespace UnitTests
             var poc1 = new ProxyObjectController(_cache, r1, null);
             var poc2 = new ProxyObjectController(_cache, r2, null);
             
-            var group = new RenderGroup(ImmutableList.Create<Renderer>(r1, r2));
+            var group = new RenderGroup(ImmutableList.Create<Renderer>(r1, r2), ImmutableDictionary<Renderer, string>.Empty);
 
             var or1 = new ObjectRegistry(null);
             var or2 = new ObjectRegistry(null);

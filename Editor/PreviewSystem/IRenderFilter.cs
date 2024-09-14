@@ -20,37 +20,45 @@ namespace nadena.dev.ndmf.preview
     public class RenderGroup
     {
         public ImmutableList<Renderer> Renderers { get; }
+        internal ImmutableDictionary<Renderer, string> DebugNames { get; }
         
         public bool IsEmpty => Renderers.IsEmpty;
 
-        internal RenderGroup(ImmutableList<Renderer> renderers)
+        internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> debugNames)
         {
             Renderers = renderers;
+            DebugNames = debugNames;
         }
 
         internal RenderGroup WithoutData()
         {
-            return new RenderGroup(Renderers);
+            return new RenderGroup(Renderers, DebugNames);
         }
 
         public static RenderGroup For(IEnumerable<Renderer> renderers)
         {
-            return new(renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList());
+            var frozen = renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList();
+            var names = frozen.ToImmutableDictionary(r => r, r => r.name, new ObjectIdentityComparer<Renderer>());
+            return new RenderGroup(frozen, names);
         }
 
         public static RenderGroup For(Renderer renderer)
         {
-            return new(ImmutableList.Create(renderer));
+            return new RenderGroup(
+                ImmutableList.Create(renderer),
+                ImmutableDictionary.Create<Renderer, string>(new ObjectIdentityComparer<Renderer>())
+                    .Add(renderer, renderer.name)
+            );
         }
 
         public RenderGroup WithData<T>(T data)
         {
-            return new RenderGroup<T>(Renderers, data);
+            return new RenderGroup<T>(Renderers, DebugNames, data);
         }
 
         internal virtual RenderGroup Filter(HashSet<Renderer> activeRenderers)
         {
-            return new RenderGroup(Renderers.RemoveAll(r => !activeRenderers.Contains(r)));
+            return new RenderGroup(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), DebugNames);
         }
 
         public T GetData<T>()
@@ -91,7 +99,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (Renderers.All(r => r != null)) return this;
 
-            return new RenderGroup(Renderers.Where(r => r != null).ToImmutableList());
+            return new RenderGroup(Renderers.Where(r => r != null).ToImmutableList(), DebugNames);
         }
     }
 
@@ -99,14 +107,15 @@ namespace nadena.dev.ndmf.preview
     {
         public T Context { get; }
 
-        internal RenderGroup(ImmutableList<Renderer> renderers, T context) : base(renderers)
+        internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> DebugNames,
+            T context) : base(renderers, DebugNames)
         {
             Context = context;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
         {
-            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), Context);
+            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), DebugNames, Context);
         }
         
         private bool Equals(RenderGroup<T> other)
@@ -140,7 +149,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (Renderers.All(r => r != null)) return this;
 
-            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), Context);
+            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), DebugNames, Context);
         }
     }
 
