@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#386]
   Workaround [VRCSDK bug](https://feedback.vrchat.com/sdk-bug-reports/p/string-conversion-errors-from-runtimeassemblygetcodebase-with-japanese-locale-an)
   caused by non-ASCII project paths.
+- [#388] Improve handling for renderers which are destroyed during preview pipeline construction
 
 ### Changed
 
