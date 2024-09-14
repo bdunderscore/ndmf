@@ -275,7 +275,7 @@ namespace nadena.dev.ndmf
             oldP.Parameter.IsHidden &= newP.IsHidden;
             oldP.Parameter.WantSynced = oldP.Parameter.WantSynced || newP.WantSynced;
 
-            oldP.Parameter.DefaultValue = newP.DefaultValue ?? oldP.Parameter.DefaultValue;
+            oldP.Parameter.DefaultValue ??= newP.DefaultValue;
         }
     }
 }

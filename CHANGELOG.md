@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#385] Fix: parameter introspection used default value from child, not parent
 - [#379] Fix CurrentThreadIsMainThread assertion in AsyncProfiler
 - [#386]
   Workaround [VRCSDK bug](https://feedback.vrchat.com/sdk-bug-reports/p/string-conversion-errors-from-runtimeassemblygetcodebase-with-japanese-locale-an)

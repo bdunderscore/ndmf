@@ -185,6 +185,62 @@ namespace UnitTests.Parameters
         }
 
         [Test]
+        public void DefaultValueMerge()
+        {
+            var outParam = DefaultValueMerge(null, null);
+            Assert.AreEqual(null, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(null, 0);
+            Assert.AreEqual(0, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(0, null);
+            Assert.AreEqual(0, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(0, 0);
+            Assert.AreEqual(0, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(0, 1);
+            Assert.AreEqual(0, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(1, 0);
+            Assert.AreEqual(1, outParam.DefaultValue);
+
+            outParam = DefaultValueMerge(1, 1);
+            Assert.AreEqual(1, outParam.DefaultValue);
+        }
+
+        ProvidedParameter DefaultValueMerge(
+            float? defaultValueParent,
+            float? defaultValueChild
+        )
+        {
+            var av = CreateRoot("avatar");
+
+            var desc = av.GetComponent<VRCAvatarDescriptor>();
+            desc.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+
+            var parent = CreateChild(av, "parent");
+            var child = CreateChild(parent, "child");
+
+            var tParent = parent.AddComponent<ParamTestComponent>();
+            var tChild = child.AddComponent<ParamTestComponent>();
+
+            var pParent = new ProvidedParameter("param", ParameterNamespace.Animator, tParent, InternalPasses.Instance, AnimatorControllerParameterType.Float);
+            pParent.DefaultValue = defaultValueParent;
+            var pChild = new ProvidedParameter("param", ParameterNamespace.Animator, tChild, InternalPasses.Instance, AnimatorControllerParameterType.Float);
+            pChild.DefaultValue = defaultValueChild;
+
+            ParamTestComponentProvider.SetParameters(tParent, pParent);
+            ParamTestComponentProvider.SetParameters(tChild, pChild);
+
+            var parameters = ParameterInfo.ForUI.GetParametersForObject(av).ToList();
+
+            Assert.AreEqual(1, parameters.Count());
+
+            return parameters[0];
+        }
+
+        [Test]
         public void ForBuildContext()
         {
             var av = CreateRoot("avatar");
