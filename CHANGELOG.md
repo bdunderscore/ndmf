@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused by non-ASCII project paths.
 - [#388] Improve handling for renderers which are destroyed during preview pipeline construction
 - [#390] Suppress IRenderFilter with unsupported renderers
+- [#395] Fix performance issues when enabling/disabling many objects at once
 - [#394] Scenes which are unloaded and reloaded do not trigger preview processing
 
 ### Changed

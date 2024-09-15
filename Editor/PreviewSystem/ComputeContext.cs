@@ -1,9 +1,11 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
+using UnityEditor;
 using UnityEngine;
 
 #endregion
@@ -18,6 +20,36 @@ namespace nadena.dev.ndmf.preview
     {
         [PublicAPI] public static ComputeContext NullContext { get; }
         private readonly TaskCompletionSource<object> _invalidater = new();
+
+        private static object _pendingInvalidatesLock = new();
+        private static bool _pendingInvalidatesScheduled;
+        private static List<ComputeContext> _pendingInvalidates = new();
+
+        private static void ScheduleInvalidate(ComputeContext ctx)
+        {
+            lock (_pendingInvalidatesLock)
+            {
+                _pendingInvalidates.Add(ctx);
+                
+                if (_pendingInvalidatesScheduled) return;
+                
+                _pendingInvalidatesScheduled = true;
+                EditorApplication.delayCall += FlushInvalidates;
+            }
+        }
+
+        internal static void FlushInvalidates()
+        {
+            var list = _pendingInvalidates;
+            _pendingInvalidates = new List<ComputeContext>();
+            
+            System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
+            
+            foreach (var ctx in list)
+            {
+                InvalidateInternal(ctx);
+            }
+        }
 
         static ComputeContext()
         {
@@ -49,7 +81,8 @@ namespace nadena.dev.ndmf.preview
 
         private ListenerSet<object> _onInvalidateListeners = new();
 
-        public bool IsInvalidated => OnInvalidate.IsCompleted;
+        public bool IsInvalidated => _invalidatePending || OnInvalidate.IsCompleted;
+        private bool _invalidatePending;
 
         public ComputeContext(string description)
         {
@@ -68,9 +101,17 @@ namespace nadena.dev.ndmf.preview
         {
             lock (ctx)
             {
-                ctx._invalidater.TrySetResult(null);
-                ctx._onInvalidateListeners.FireAll();
+                if (ctx._invalidatePending) return;
+                ctx._invalidatePending = true;
+
+                ScheduleInvalidate(ctx);
             }
+        }
+
+        private static void InvalidateInternal(ComputeContext ctx)
+        {
+            ctx._invalidater.TrySetResult(null);
+            ctx._onInvalidateListeners.FireAll();
         }
 
         private ComputeContext(string description, object nullToken)
@@ -86,7 +127,7 @@ namespace nadena.dev.ndmf.preview
         /// <param name="other"></param>
         public void Invalidates(ComputeContext other)
         {
-            OnInvalidate.ContinueWith(_ => other.Invalidate());
+            OnInvalidate.ContinueWith(_ => InvalidateInternal(other));
         }
 
         /// <summary>

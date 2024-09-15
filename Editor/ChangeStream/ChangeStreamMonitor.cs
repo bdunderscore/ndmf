@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
@@ -42,6 +43,10 @@ namespace nadena.dev.ndmf.cs
                     _handleEventSampler.End();
                 }
             }
+                        
+            Profiler.BeginSample("ComputeContext.FlushInvalidates");
+            ComputeContext.FlushInvalidates();
+            Profiler.EndSample();
 
             Profiler.EndSample();
         }
