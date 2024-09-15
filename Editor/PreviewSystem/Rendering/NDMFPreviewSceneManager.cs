@@ -21,7 +21,7 @@ namespace nadena.dev.ndmf.preview
     
     public static class NDMFPreviewSceneManager
     {
-        private static string PreviewSceneName = "___NDMF Preview___";
+        internal static string PreviewSceneName = "___NDMF Preview___";
         private const string PreviewSceneGuid = "8cbd3f19cef3477439841053ced0661b";
 
         private static Scene _previewScene;
