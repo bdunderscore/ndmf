@@ -351,7 +351,7 @@ namespace nadena.dev.ndmf.cs
                     else
                     {
                         var orig = _orig;
-                        _syncContext.Post(_ => DoDispose(), null);
+                        EditorApplication.delayCall += DoDispose;
                     }
 
                     _orig = null;
