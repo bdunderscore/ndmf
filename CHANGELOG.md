@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-rc.6] - [2024-09-14]
+
+### Fixed
 - [#385] Fix: parameter introspection used default value from child, not parent
 - [#379] Fix CurrentThreadIsMainThread assertion in AsyncProfiler
 - [#386]
@@ -19,14 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#390] Suppress IRenderFilter with unsupported renderers
 - [#395] Fix performance issues when enabling/disabling many objects at once
 - [#394] Scenes which are unloaded and reloaded do not trigger preview processing
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-rc.5] - [2024-09-04]
 
