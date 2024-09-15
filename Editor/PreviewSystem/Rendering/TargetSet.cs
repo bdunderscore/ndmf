@@ -41,6 +41,16 @@ namespace nadena.dev.ndmf.preview
                     Profiler.EndSample();
                     if (groups.IsEmpty) continue;
 
+                    var unsupportedRenderer = groups.SelectMany(g => g.Renderers)
+                        .FirstOrDefault(x => x is not MeshRenderer and not SkinnedMeshRenderer);
+                    if (unsupportedRenderer != null)
+                    {
+                        Debug.LogError("[" + filter + "] Unsupported renderer " + unsupportedRenderer +
+                                       " in groups: " + string.Join(", ", groups));
+                        // Suppress this filter
+                        continue;
+                    }
+
                     var duplicateRenderers = groups.SelectMany(g => g.Renderers)
                         .GroupBy(r => r)
                         .FirstOrDefault(agg => agg.Count() > 1);
