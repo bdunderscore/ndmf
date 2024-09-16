@@ -228,6 +228,11 @@ namespace nadena.dev.ndmf
 
             foreach (Transform childTransform in root.transform)
             {
+                if (childTransform.gameObject.CompareTag("EditorOnly"))
+                {
+                    continue;
+                }
+                
                 var childParams = GetParametersForObject(childTransform.gameObject, onConflict, remaps);
 
                 foreach (var rp in childParams)

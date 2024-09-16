@@ -63,6 +63,34 @@ namespace UnitTests.Parameters
         }
 
         [Test]
+        public void EditorOnly()
+        {
+            var av = CreateRoot("avatar");
+            
+            var desc = av.GetComponent<VRCAvatarDescriptor>();
+            desc.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+
+            var obj1 = CreateChild(av, "obj1");
+            var obj2 = CreateChild(av, "obj2");
+
+            var tc = obj1.AddComponent<ParamTestComponent>();
+            var p1 = new ProvidedParameter("p1", ParameterNamespace.Animator, tc, InternalPasses.Instance,
+                AnimatorControllerParameterType.Bool);
+            ParamTestComponentProvider.SetParameters(tc, p1);
+
+            var tc2 = obj2.AddComponent<ParamTestComponent>();
+            var p2 = new ProvidedParameter("p2", ParameterNamespace.Animator, tc2, InternalPasses.Instance,
+                AnimatorControllerParameterType.Bool);
+            ParamTestComponentProvider.SetParameters(tc2, p2);
+            
+            obj1.tag = "EditorOnly";
+            
+            var parameters = ParameterInfo.ForUI.GetParametersForObject(av).ToList();
+            Assert.AreEqual(1, parameters.Count());
+            Assert.AreEqual(p2, parameters[0]);
+        }
+
+        [Test]
         public void SimpleRemap()
         {
             var av = CreateRoot("avatar");
