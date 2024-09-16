@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#397] `ComputeContext.FlushInvalidates` API
 
 ### Fixed
+- [#399] Fix: Parameter introspection did not skip EditorOnly objects
 - [#397] Fix: issues where `ComputeContext` flushes might not be processed at all
 - [#398] Fix: NullReferenceError in `GetParameterRemappingsAt`
 
