@@ -49,7 +49,7 @@ namespace nadena.dev.ndmf.preview
             
             if (_priorController != null)
             {
-                if (_priorController._monitorRenderer.OnInvalidate.IsCompleted)
+                if (_priorController._monitorRenderer.IsInvalidated)
                 {
                     ChangeFlags |= RenderAspects.Shapes;
                     
@@ -64,12 +64,12 @@ namespace nadena.dev.ndmf.preview
                     }
                 }
 
-                if (_priorController._monitorMaterials.OnInvalidate.IsCompleted)
+                if (_priorController._monitorMaterials.IsInvalidated)
                 {
                     ChangeFlags |= RenderAspects.Material | RenderAspects.Texture;
                 }
                 
-                if (_priorController._monitorMesh.OnInvalidate.IsCompleted)
+                if (_priorController._monitorMesh.IsInvalidated)
                 {
                     ChangeFlags |= RenderAspects.Mesh;
                 }
