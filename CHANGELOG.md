@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#397] Fix: issues where `ComputeContext` flushes might not be processed at all
+- [#398] Fix: NullReferenceError in `GetParameterRemappingsAt`
 
 ### Changed
 
