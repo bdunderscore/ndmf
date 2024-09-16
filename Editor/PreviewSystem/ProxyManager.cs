@@ -17,10 +17,13 @@ namespace nadena.dev.ndmf.preview
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
-            Camera.onPreCull += OnPreCull;
-            Camera.onPostRender += OnPostRender;
-            EditorSceneManager.sceneSaving += (_, _) => ResetStates();
-            AssemblyReloadEvents.beforeAssemblyReload += ResetStates;
+            EditorApplication.delayCall += () =>
+            {
+                Camera.onPreCull += OnPreCull;
+                Camera.onPostRender += OnPostRender;
+                EditorSceneManager.sceneSaving += (_, _) => ResetStates();
+                AssemblyReloadEvents.beforeAssemblyReload += ResetStates;
+            };
         }
 
         private static List<(Renderer, bool)> _resetActions = new();
