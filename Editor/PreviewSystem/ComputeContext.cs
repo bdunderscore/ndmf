@@ -38,16 +38,27 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        internal static void FlushInvalidates()
+        /// <summary>
+        /// ComputeContext deferres some processing until EditorApplication.delayCall on invalidate. Invoke this function
+        /// to flush and execute all pending invalidates immediately.
+        /// </summary>
+        public static void FlushInvalidates()
         {
-            var list = _pendingInvalidates;
-            _pendingInvalidates = new List<ComputeContext>();
+            _pendingInvalidatesScheduled = false;
             
-            System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
+            var list = _pendingInvalidates;
+            _pendingInvalidates = new();
+            
+            //System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
             
             foreach (var ctx in list)
             {
-                InvalidateInternal(ctx);
+                // We need to take the lock here to ensure that any final registrations complete
+                lock (ctx)
+                {
+                    ctx._onInvalidateListeners.FireAll();
+                    ctx._onInvalidateTask.TrySetResult(true);
+                }
             }
         }
 
@@ -77,12 +88,20 @@ namespace nadena.dev.ndmf.preview
         ///     A Task which completes when this compute context is invalidated. Note that completing this task does not
         ///     guarantee that the underlying computation (e.g. ReactiveValue) is going to be recomputed.
         /// </summary>
-        internal Task OnInvalidate { get; }
+        //
+        // Note: This is different from the _invalidator task; we add a delay to ensure that we defer any outside
+        // callbacks until after all change stream events are processed.
+        internal Task OnInvalidate
+        {
+            get => _onInvalidateTask.Task;
+        }
+        private TaskCompletionSource<bool> _onInvalidateTask = new();
 
         private ListenerSet<object> _onInvalidateListeners = new();
 
-        public bool IsInvalidated => _invalidatePending || OnInvalidate.IsCompleted;
+        public bool IsInvalidated => _invalidatePending || _invalidater.Task.IsCompleted;
         private bool _invalidatePending;
+
 
         public ComputeContext(string description)
         {
@@ -93,8 +112,9 @@ namespace nadena.dev.ndmf.preview
 #endif
                 TaskUtil.OnMainThread(this, DoInvalidate);
             };
-            OnInvalidate = _invalidater.Task;
             Description = description;
+
+            _invalidater.Task.ContinueWith(_ => ScheduleInvalidate(this));
         }
 
         private static void DoInvalidate(ComputeContext ctx)
@@ -104,20 +124,20 @@ namespace nadena.dev.ndmf.preview
                 if (ctx._invalidatePending) return;
                 ctx._invalidatePending = true;
 
-                ScheduleInvalidate(ctx);
+                ctx._invalidater.TrySetResult(null);
             }
         }
 
         private static void InvalidateInternal(ComputeContext ctx)
         {
             ctx._invalidater.TrySetResult(null);
-            ctx._onInvalidateListeners.FireAll();
         }
 
         private ComputeContext(string description, object nullToken)
         {
             Invalidate = () => { };
-            OnInvalidate = Task.CompletedTask;
+            _onInvalidateTask.TrySetResult(true);
+            _invalidater.TrySetResult(null);
             Description = description;
         }
 
@@ -127,7 +147,10 @@ namespace nadena.dev.ndmf.preview
         /// <param name="other"></param>
         public void Invalidates(ComputeContext other)
         {
-            OnInvalidate.ContinueWith(_ => InvalidateInternal(other));
+            _invalidater.Task.ContinueWith(_ =>
+            {
+                InvalidateInternal(other);
+            });
         }
 
         /// <summary>
@@ -142,6 +165,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <param name="target"></param>
         /// <param name="receiver"></param>
+        [PublicAPI]
         public IDisposable InvokeOnInvalidate<T>(T target, Action<T> receiver)
         {
             lock (this)

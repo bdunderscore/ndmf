@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#397] `ComputeContext.FlushInvalidates` API
 
 ### Fixed
+- [#397] Fix: issues where `ComputeContext` flushes might not be processed at all
 
 ### Changed
 
