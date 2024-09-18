@@ -28,7 +28,8 @@ namespace nadena.dev.ndmf.preview
 
             public bool ShouldContinue()
             {
-                return !_forceStop && _frameTimer.ElapsedMilliseconds < MAX_SINGLE_FRAME_TIME_MS;
+                return Debugger.IsAttached ||
+                       (!_forceStop && _frameTimer.ElapsedMilliseconds < MAX_SINGLE_FRAME_TIME_MS);
             }
 
             public void Dispose()
@@ -37,7 +38,7 @@ namespace nadena.dev.ndmf.preview
                 _frameTimes[_frameTimeIndex] = (int)_frameTimer.ElapsedMilliseconds;
                 _frameTimeIndex = (_frameTimeIndex + 1) % FRAME_TIME_WINDOW;
 
-                if (_frameTimes.Sum() > MAX_AVG_FRAME_TIME_MS * FRAME_TIME_WINDOW)
+                if (!Debugger.IsAttached && _frameTimes.Sum() > MAX_AVG_FRAME_TIME_MS * FRAME_TIME_WINDOW)
                 {
                     Debug.LogError(
                         "[NDMF Preview] Disabled previews due to performance issues. / プレビューが重すぎるため自動敵に無効化しました。");

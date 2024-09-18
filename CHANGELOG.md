@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#405] Fix: NullReferenceException when toggling plugin preview enable state
 
 ### Changed
-
+- [#406] Don't enforce time limits for previews when a debugger is attached
 - [#402] Minor performance improvements
 
 ### Removed
