@@ -177,11 +177,11 @@ namespace nadena.dev.ndmf.cs
             ComputeContext ctx
         )
         {
+            if (targetComponent == null || ctx.IsInvalidated) return new NullDisposable();
+            
 #if NDMF_TRACE
             Debug.WriteLine($"[ShadowHierarchy] RegisterObjectListener({targetComponent.GetInstanceID()})");
 #endif
-            
-            if (targetComponent == null || ctx.IsInvalidated) return new NullDisposable();
 
             if (!_otherObjects.TryGetValue(targetComponent.GetInstanceID(), out var shadowComponent))
             {
@@ -208,7 +208,7 @@ namespace nadena.dev.ndmf.cs
         internal void EnableComponentMonitoring(GameObject root)
         {
 #if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] EnableComponentMonitoring({root.GetInstanceID()})");
+            //Debug.WriteLine($"[ShadowHierarchy] EnableComponentMonitoring({root.GetInstanceID()})");
 #endif
             
             var obj = ActivateShadowObject(root);

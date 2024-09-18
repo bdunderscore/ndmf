@@ -147,6 +147,8 @@ namespace nadena.dev.ndmf.preview
         /// <param name="other"></param>
         public void Invalidates(ComputeContext other)
         {
+            if (other.IsInvalidated) return;
+            
             _invalidater.Task.ContinueWith(_ =>
             {
                 InvalidateInternal(other);
