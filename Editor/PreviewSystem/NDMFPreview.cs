@@ -28,7 +28,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     var oldSession = PreviewSession.Current;
                     PreviewSession.Current = resolver.PreviewSession;
-                    oldSession.Dispose();
+                    oldSession?.Dispose();
                 };
 
                 SetPreviewState();
