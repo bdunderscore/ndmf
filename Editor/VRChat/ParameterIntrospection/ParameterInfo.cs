@@ -168,7 +168,7 @@ namespace nadena.dev.ndmf
             Dictionary<(ParameterNamespace, string), RegisteredParameter> parameters
                 = new Dictionary<(ParameterNamespace, string), RegisteredParameter>();
 
-            foreach (var component in root.GetComponents<Component>())
+            foreach (var component in _computeContext.GetComponents(root, typeof(Component)))
             {
                 if (!EnhancerDatabase<ParameterProviderFor, IParameterProvider>.Query(component, out var provider))
                 {
