@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#403] Fix: `ParameterInfo.GetParametersForObject` does not register GetComponents with compute context
 
 ### Changed
-
+- [#406] Don't enforce time limits for previews when a debugger is attached
 - [#402] Minor performance improvements
 
 ### Removed
