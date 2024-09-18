@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-rc.7] - [2024-09-17]
+
+### Added
 - [#397] `ComputeContext.FlushInvalidates` API
 
 ### Fixed
@@ -21,12 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#406] Don't enforce time limits for previews when a debugger is attached
 - [#402] Minor performance improvements
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-rc.6] - [2024-09-14]
 
