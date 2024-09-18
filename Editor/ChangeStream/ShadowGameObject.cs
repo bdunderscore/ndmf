@@ -10,7 +10,6 @@ using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = System.Diagnostics.Debug;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -92,11 +91,12 @@ namespace nadena.dev.ndmf.cs
             foreach (var obj in _otherObjects.Values)
             {
                 DumpShadowObject(obj);
+                DumpListenerSet(obj._listeners);
             }
             
             sb.AppendLine("[End Shadow Hierarchy Dump]");
-            
-            UnityEngine.Debug.Log(sb.ToString());
+
+            Debug.Log(sb.ToString());
             
             void DumpShadowObject(ShadowObject obj)
             {
