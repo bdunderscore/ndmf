@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#398] Fix: NullReferenceError in `GetParameterRemappingsAt`
 - [#400] Fix: Spurious complaints about not being on the main thread in OnPreCull
 - [#403] Fix: `ParameterInfo.GetParametersForObject` does not register GetComponents with compute context
+- [#405] Fix: NullReferenceException when toggling plugin preview enable state
 
 ### Changed
 
