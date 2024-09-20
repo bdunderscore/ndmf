@@ -175,13 +175,59 @@ namespace UnitTests.Parameters
             (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, true, true);
             Assert.AreEqual(0, conflicts.Count);
             Assert.AreEqual(AnimatorControllerParameterType.Bool, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, false, false, true);
+            Assert.AreEqual(1, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, false, false, false, true);
+            Assert.AreEqual(1, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Int, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Int, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Int, AnimatorControllerParameterType.Bool, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Int, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Int, AnimatorControllerParameterType.Float, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Float, AnimatorControllerParameterType.Bool, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Float, AnimatorControllerParameterType.Int, false, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, true, false, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, false, true, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, outParam.ParameterType);
+
+            (outParam, conflicts) = TypeMerge(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Float, true, true, true, true);
+            Assert.AreEqual(0, conflicts.Count);
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, outParam.ParameterType);
         }
 
         (ProvidedParameter, List<ParameterInfo.ConflictType>) TypeMerge(
             AnimatorControllerParameterType? ty1,
             AnimatorControllerParameterType? ty2,
             bool animOnly1 = false,
-            bool animOnly2 = false
+            bool animOnly2 = false,
+            bool allowMismatch1 = false,
+            bool allowMismatch2 = false
         )
         {
             var av = CreateRoot("avatar");
@@ -197,8 +243,10 @@ namespace UnitTests.Parameters
             
             var p1 = new ProvidedParameter("p1", ParameterNamespace.Animator, t1, InternalPasses.Instance, ty1);
             p1.IsAnimatorOnly = animOnly1;
+            p1.AllowTypeMismatch = allowMismatch1;
             var p2 = new ProvidedParameter("p1", ParameterNamespace.Animator, t2, InternalPasses.Instance, ty2);
             p2.IsAnimatorOnly = animOnly2;
+            p2.AllowTypeMismatch = allowMismatch2;
             
             ParamTestComponentProvider.SetParameters(t1, p1);
             ParamTestComponentProvider.SetParameters(t2, p2);
