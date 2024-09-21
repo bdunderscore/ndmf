@@ -213,6 +213,8 @@ namespace nadena.dev.ndmf
                 return; // unit tests with no serialized assets
             }
 
+            Profiler.BeginSample("BuildContext.Serialize");
+            
             HashSet<UnityObject> _savedObjects =
                 new HashSet<UnityObject>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)));
 
@@ -280,6 +282,8 @@ namespace nadena.dev.ndmf
 
                 UnityEngine.Object.DestroyImmediate(asset);
             }
+            
+            Profiler.EndSample();
         }
 
         public void DeactivateExtensionContext<T>() where T : IExtensionContext
