@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#408] Improved performance of `BuildContext.Serialize`
 
 ### Changed
+- [#408] Unserialized assets will be serialized after the Transforming phase completes (before e.g. VRCFury runs)
 
 ### Removed
 

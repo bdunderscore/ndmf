@@ -1,8 +1,12 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -92,22 +96,142 @@ namespace nadena.dev.ndmf.util
                     continue;
                 }
 
-                foreach (var prop in new SerializedObject(next).ObjectProperties())
+                
+                if (!SamplerCache.TryGetValue(next.GetType(), out var sampler))
                 {
-                    var value = prop.objectReferenceValue;
-                    if (value == null) continue;
+                    sampler = CustomSampler.Create("ObjectReferences." + next.GetType());
+                    SamplerCache[next.GetType()] = sampler;
+                }
+                
+                sampler.Begin(next);
+                foreach (var referenced in ObjectReferences(next))
+                {
+                    MaybeEnqueueObject(referenced);
+                }
+                sampler.End();
+            }
 
-                    var objIsScene = value is GameObject || value is Component;
+            void MaybeEnqueueObject(Object value)
+            {
+                if (value == null) return;
+                
+                var objIsScene = value is GameObject || value is Component;
 
-                    if (value != null
-                        && !objIsScene
-                        && (traverseSaved || !EditorUtility.IsPersistent(value))
-                        && visited.Add(value)
-                        && traversalFilter(value)
-                       )
+                if (!objIsScene
+                    && (traverseSaved || !EditorUtility.IsPersistent(value))
+                    && visited.Add(value)
+                    && traversalFilter(value)
+                   )
+                {
+                    queue.Enqueue((index++, value));
+                }
+            }
+        }
+
+        private static Dictionary<Type, CustomSampler> SamplerCache = new();
+        
+        private static IEnumerable<Object> ObjectReferences(Object obj)
+        {
+            if (obj == null) yield break;
+
+            // We have special cases here for a bunch of popular asset types, because SerializedObject traversal is slow.
+            // For unrecognized stuff (e.g. VRChat MonoBehaviors) we fall back to SerializedObject.
+            switch (obj)
+            {
+                case Mesh:
+                case Shader:
+                case Avatar: // Humanoid avatar descriptors have no subassets
+                    break;
+                case AnimationClip clip:
+                {
+                    var pptrCurves = AnimationUtility.GetObjectReferenceCurveBindings(clip);
+                    foreach (var curve in pptrCurves)
                     {
-                        queue.Enqueue((index++, value));
+                        var frames = AnimationUtility.GetObjectReferenceCurve(clip, curve);
+                        foreach (var frame in frames)
+                        {
+                            yield return frame.value;
+                        }
                     }
+
+                    break;
+                }
+                case BlendTree tree:
+                {
+                    foreach (var child in tree.children)
+                    {
+                        yield return child.motion;
+                    }
+
+                    break;
+                }
+                case AnimatorState state:
+                {
+                    yield return state.motion;
+                    foreach (var b in state.behaviours ?? Array.Empty<StateMachineBehaviour>())
+                    {
+                        yield return b;
+                    }
+
+                    foreach (var t in state.transitions ?? Array.Empty<AnimatorStateTransition>())
+                    {
+                        yield return t;
+                    }
+
+                    break;
+                }
+                case Material m:
+                {
+                    /* This approach actually seems slower than using SerializedProperty...
+                     var ids = m.GetTexturePropertyNameIDs();
+                    foreach (var id in ids)
+                    {
+                        yield return m.GetTexture(id);
+                    }*/
+                    
+                    // But we can be more efficient and only look at texture props
+                    var so = new SerializedObject(m);
+                    var texEnvs = so.FindProperty("m_SavedProperties")
+                        ?.FindPropertyRelative("m_TexEnvs");
+
+                    if (texEnvs == null || !texEnvs.isArray)
+                    {
+                        break;
+                    }
+                    
+                    var size = texEnvs.arraySize;
+
+                    for (var i = 0; i < size; ++i)
+                    {
+                        var texEnv = texEnvs.GetArrayElementAtIndex(i).FindPropertyRelative("second");
+                        var texture = texEnv.FindPropertyRelative("m_Texture");
+
+                        yield return texture.objectReferenceValue;
+                    }
+                    
+                    break;
+                }
+                case AnimatorStateTransition t:
+                {
+                    yield return t.destinationState;
+                    yield return t.destinationStateMachine;
+                    break;
+                }
+                default:
+                {
+                    if (obj is ParticleSystem ps)
+                    {
+                        Debug.Log("ps");
+                    }
+                    
+                    foreach (var prop in new SerializedObject(obj).ObjectProperties())
+                    {
+                        var value = prop.objectReferenceValue;
+
+                        yield return value;
+                    }
+
+                    break;
                 }
             }
         }
@@ -152,7 +276,7 @@ namespace nadena.dev.ndmf.util
                     enterChildren = false;
                 }
 
-                if (prop.propertyType == SerializedPropertyType.String)
+                if (prop.propertyType == SerializedPropertyType.String || prop.propertyType == SerializedPropertyType.AnimationCurve)
                 {
                     enterChildren = false;
                 }
