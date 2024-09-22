@@ -59,7 +59,7 @@ namespace nadena.dev.ndmf
                    Equals(Source, other.Source) &&
                    Equals(Plugin, other.Plugin) &&
                    ParameterType == other.ParameterType &&
-                   AllowTypeMismatch == other.AllowTypeMismatch &&
+                   ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
                    WantSynced == other.WantSynced;
         }
@@ -80,7 +80,7 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ (Source != null ? Source.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Plugin != null ? Plugin.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ ParameterType.GetHashCode();
-                hashCode = (hashCode * 397) ^ AllowTypeMismatch.GetHashCode();
+                hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
                 return hashCode;
@@ -161,9 +161,9 @@ namespace nadena.dev.ndmf
         public AnimatorControllerParameterType? ParameterType { get; set; }
 
         /// <summary>
-        /// If true, mismatched parameter types will be merged automatically
+        /// If true, conflicting parameter types will be expanded to Bool --> Int --> Float.
         /// </summary>
-        public bool AllowTypeMismatch { get; set; }
+        public bool ExpandTypeOnConflict { get; set; }
 
         /// <summary>
         /// If true, this parameter will not be registered in the VRC Expressions Parameters asset. Forced to true for

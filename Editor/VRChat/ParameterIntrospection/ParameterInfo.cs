@@ -263,9 +263,9 @@ namespace nadena.dev.ndmf
 
         private void ResolveParameterType(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
         {
-            if (oldP.ParameterType == newP.ParameterType ||
-                oldP.ParameterType != null && newP.ParameterType == null ||
-                oldP.ParameterType != null && newP.IsAnimatorOnly)
+            if ((oldP.ParameterType == newP.ParameterType) ||
+                (oldP.ParameterType != null && newP.ParameterType == null) ||
+                (oldP.ParameterType != null && newP.IsAnimatorOnly))
             {
                 return;
             }
@@ -277,8 +277,8 @@ namespace nadena.dev.ndmf
                 return;
             }
 
-            if (!oldP.AllowTypeMismatch ||
-                !newP.AllowTypeMismatch)
+            if (!oldP.ExpandTypeOnConflict ||
+                !newP.ExpandTypeOnConflict)
             {
                 onConflict(ConflictType.TypeMismatch, oldP, newP);
                 return;

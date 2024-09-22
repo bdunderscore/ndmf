@@ -243,10 +243,10 @@ namespace UnitTests.Parameters
             
             var p1 = new ProvidedParameter("p1", ParameterNamespace.Animator, t1, InternalPasses.Instance, ty1);
             p1.IsAnimatorOnly = animOnly1;
-            p1.AllowTypeMismatch = allowMismatch1;
+            p1.ExpandTypeOnConflict = allowMismatch1;
             var p2 = new ProvidedParameter("p1", ParameterNamespace.Animator, t2, InternalPasses.Instance, ty2);
             p2.IsAnimatorOnly = animOnly2;
-            p2.AllowTypeMismatch = allowMismatch2;
+            p2.ExpandTypeOnConflict = allowMismatch2;
             
             ParamTestComponentProvider.SetParameters(t1, p1);
             ParamTestComponentProvider.SetParameters(t2, p2);
