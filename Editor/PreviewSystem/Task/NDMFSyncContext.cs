@@ -59,18 +59,26 @@ namespace nadena.dev.ndmf.preview
             {
                 if (isRegistered) return;
                 isRegistered = true;
-                EditorApplication.delayCall += _turnDelegate;
+                EditorApplication.update += _turnDelegate;
             }
 
-            public void Turn()
+            private void Turn()
             {
                 lock (_lock)
                 {
-                    unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
-                    localQueue.AddRange(asyncQueue);
-                    asyncQueue.Clear();
                     isRegistered = false;
-                    isTurning = true;
+                    EditorApplication.update -= _turnDelegate;
+                    try
+                    {
+                        unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
+                        localQueue.AddRange(asyncQueue);
+                        asyncQueue.Clear();
+                        isTurning = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
 
                 while (localQueue.Count > 0 && !TaskThrottle.ShouldThrottle)
