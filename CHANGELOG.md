@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#410] Added `NDMFSyncContext` API
+
 ### Fixed
 - [#408] Improved performance of `BuildContext.Serialize`
+- [#410] Sometimes R/O meshes cannot be accessed from preview context
 
 ### Changed
 - [#408] Unserialized assets will be serialized after the Transforming phase completes (before e.g. VRCFury runs)

@@ -94,14 +94,17 @@ namespace nadena.dev.ndmf.preview
         {
             _generation = (priorPipeline?._generation ?? 0) + 1;
             InvalidateAction = Invalidate;
-            
-            _buildTask = Task.Factory.StartNew(
-                _ => Build(proxyCache, filters, priorPipeline),
-                null,
-                CancellationToken.None,
-                0,
-                TaskScheduler.FromCurrentSynchronizationContext()
-            ).Unwrap();
+
+            using (var scope = NDMFSyncContext.Scope())
+            {
+                _buildTask = Task.Factory.StartNew(
+                    _ => Build(proxyCache, filters, priorPipeline),
+                    null,
+                    CancellationToken.None,
+                    0,
+                    TaskScheduler.FromCurrentSynchronizationContext()
+                ).Unwrap();
+            }
         }
 
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
