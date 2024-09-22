@@ -47,6 +47,23 @@ namespace nadena.dev.ndmf.preview
         }
 
         private static int index;
+
+        public static bool ShouldThrottle
+        {
+            get
+            {
+                lock (_taskTime)
+                {
+                    if (!_taskTime.IsRunning)
+                    {
+                        _taskTime.Start();
+                        return false;
+                    }
+
+                    return _taskTime.ElapsedMilliseconds > TASK_TIME_LIMIT_MS;
+                }
+            }
+        }
         
         public static async ValueTask MaybeThrottle()
         {

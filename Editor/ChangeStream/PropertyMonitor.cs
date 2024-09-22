@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using nadena.dev.ndmf.preview;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -19,12 +20,15 @@ namespace nadena.dev.ndmf.cs
 
         internal void MaybeStartRefreshTimer()
         {
-            _activeRefreshTask = Task.Factory.StartNew(
-                CheckAllObjectsLoop,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                TaskScheduler.FromCurrentSynchronizationContext()
-            );
+            using (var scope = NDMFSyncContext.Scope())
+            {
+                _activeRefreshTask = Task.Factory.StartNew(
+                    CheckAllObjectsLoop,
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.FromCurrentSynchronizationContext()
+                );
+            }
         }
 
         public enum PropertyMonitorEvent
