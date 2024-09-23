@@ -191,7 +191,7 @@ namespace nadena.dev.ndmf
 
                     if (parameters.TryGetValue(newParameter.NamePair, out var existingParam))
                     {
-                        ResolveConflict(onConflict, existingParam, newParameter, false);
+                        ResolveConflict(existingParam.Parameter, newParameter, onConflict);
                     }
                     else
                     {
@@ -210,7 +210,7 @@ namespace nadena.dev.ndmf
             {
                 if (parameters.TryGetValue(kvp.Key, out var existingParam))
                 {
-                    ResolveConflict(onConflict, existingParam, kvp.Value.Parameter, true);
+                    ResolveConflict(existingParam.Parameter, kvp.Value.Parameter, onConflict);
                 }
                 else
                 {
@@ -239,7 +239,7 @@ namespace nadena.dev.ndmf
                 {
                     if (parameters.TryGetValue(rp.Parameter.NamePair, out var existingParam))
                     {
-                        ResolveConflict(onConflict, existingParam, rp.Parameter, false);
+                        ResolveConflict(existingParam.Parameter, rp.Parameter, onConflict);
                     }
                     else
                     {
@@ -251,36 +251,45 @@ namespace nadena.dev.ndmf
             return parameters;
         }
 
-        private void ResolveConflict(ConflictHandler onConflict, RegisteredParameter oldP, ProvidedParameter newP,
-            bool isParentChild)
+        private void ResolveConflict(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
         {
-            if (oldP.Parameter.ParameterType != newP.ParameterType)
+            ResolveParameterType(oldP, newP, onConflict);
+
+            oldP.IsAnimatorOnly &= newP.IsAnimatorOnly;
+            oldP.IsHidden &= newP.IsHidden;
+            oldP.WantSynced |= newP.WantSynced;
+            oldP.DefaultValue ??= newP.DefaultValue;
+        }
+
+        private void ResolveParameterType(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
+        {
+            if ((oldP.ParameterType == newP.ParameterType) ||
+                (oldP.ParameterType != null && newP.ParameterType == null) ||
+                (oldP.ParameterType != null && newP.IsAnimatorOnly))
             {
-                if ((oldP.Parameter.ParameterType == null) != (newP.ParameterType == null))
-                {
-                    oldP.Parameter.ParameterType = oldP.Parameter.ParameterType ?? newP.ParameterType;
-                }
-                else if (oldP.Parameter.IsAnimatorOnly && newP.IsAnimatorOnly)
-                {
-                    // ignore the conflict; we'll resolve everything to float in the animator if needed
-                }
-                else if (!oldP.Parameter.IsAnimatorOnly && !newP.IsAnimatorOnly)
-                {
-                    // Flag conflict and resolve to oldP's parameter type
-                    onConflict(ConflictType.TypeMismatch, oldP.Parameter, newP);
-                }
-                else if (!newP.IsAnimatorOnly)
-                {
-                    // Update type to match the non-animator-only value in newP
-                    oldP.Parameter.ParameterType = newP.ParameterType;
-                }
+                return;
             }
 
-            oldP.Parameter.IsAnimatorOnly &= newP.IsAnimatorOnly;
-            oldP.Parameter.IsHidden &= newP.IsHidden;
-            oldP.Parameter.WantSynced = oldP.Parameter.WantSynced || newP.WantSynced;
+            if (oldP.ParameterType == null ||
+                oldP.IsAnimatorOnly)
+            {
+                oldP.ParameterType = newP.ParameterType;
+                return;
+            }
 
-            oldP.Parameter.DefaultValue ??= newP.DefaultValue;
+            if (!oldP.ExpandTypeOnConflict ||
+                !newP.ExpandTypeOnConflict)
+            {
+                onConflict(ConflictType.TypeMismatch, oldP, newP);
+                return;
+            }
+
+            if (oldP.ParameterType == AnimatorControllerParameterType.Bool ||
+                newP.ParameterType == AnimatorControllerParameterType.Float)
+            {
+                oldP.ParameterType = newP.ParameterType;
+                return;
+            }
         }
     }
 }

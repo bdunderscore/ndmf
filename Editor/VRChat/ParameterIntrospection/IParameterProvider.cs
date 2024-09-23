@@ -59,6 +59,7 @@ namespace nadena.dev.ndmf
                    Equals(Source, other.Source) &&
                    Equals(Plugin, other.Plugin) &&
                    ParameterType == other.ParameterType &&
+                   ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
                    WantSynced == other.WantSynced;
         }
@@ -79,6 +80,7 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ (Source != null ? Source.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Plugin != null ? Plugin.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ ParameterType.GetHashCode();
+                hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
                 return hashCode;
@@ -157,6 +159,11 @@ namespace nadena.dev.ndmf
         /// (e.g. with contact receivers).
         /// </summary>
         public AnimatorControllerParameterType? ParameterType { get; set; }
+
+        /// <summary>
+        /// If true, conflicting parameter types will be expanded to Bool --> Int --> Float.
+        /// </summary>
+        public bool ExpandTypeOnConflict { get; set; }
 
         /// <summary>
         /// If true, this parameter will not be registered in the VRC Expressions Parameters asset. Forced to true for
