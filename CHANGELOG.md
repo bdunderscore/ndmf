@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-rc.8] - [2024-09-22]
+
+### Added
 - [#407] Added `ProvidedParameter.ExpandTypeOnConflict` to resolve parameter type mismatch automatically
 - [#410] Added `NDMFSyncContext` API
 
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#408] Unserialized assets will be serialized after the Transforming phase completes (before e.g. VRCFury runs)
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.0-rc.7] - [2024-09-17]
 
