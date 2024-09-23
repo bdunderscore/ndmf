@@ -8,8 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#407] Added `ProvidedParameter.AllowTypeMismatch` to resolve parameter type mismatch automatically
-
+- [#407] Added `ProvidedParameter.ExpandTypeOnConflict` to resolve parameter type mismatch automatically
 - [#410] Added `NDMFSyncContext` API
 
 ### Fixed
