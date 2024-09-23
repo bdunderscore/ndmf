@@ -60,6 +60,9 @@ namespace nadena.dev.ndmf.preview
                 if (isRegistered) return;
                 isRegistered = true;
                 EditorApplication.update += _turnDelegate;
+                // We also trigger a delayCall here as update won't run unless there's user interaction. The purpose
+                // of also calling update is to ensure we recover if delayCall is cleared somehow.
+                EditorApplication.delayCall += _turnDelegate;
             }
 
             private void Turn()
