@@ -107,6 +107,11 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+        private static void OnInvalidateRedraw(ProxyPipeline obj)
+        {
+            RepaintTrigger.RequestRepaint();
+        }
+
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
             ProxyPipeline priorPipeline)
         {
@@ -115,6 +120,8 @@ namespace nadena.dev.ndmf.preview
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
             var context = new ComputeContext($"ProxyPipeline {_generation}");
             _ctx = context; // prevent GC
+            
+            _ctx.InvokeOnInvalidate(this, OnInvalidateRedraw);
 
 #if NDMF_DEBUG
             Debug.WriteLine($"Building pipeline {_generation}");
