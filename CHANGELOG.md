@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#414] ProxyPipeline invalidations don't trigger a redraw in some cases
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.9] - [2024-09-24]
+
+### Fixed
+- [#414] ProxyPipeline invalidations don't trigger a redraw in some cases
 
 ## [1.5.0-rc.8] - [2024-09-22]
 
