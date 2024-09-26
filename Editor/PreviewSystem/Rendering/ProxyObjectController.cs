@@ -131,6 +131,10 @@ namespace nadena.dev.ndmf.preview
         {
             if (_replacementRenderer == null || _originalRenderer == null)
             {
+                if (_replacementRenderer == null)
+                {
+                    Debug.LogWarning("Proxy object was destroyed improperly! Resetting pipeline...");
+                }
                 return false;
             }
 
