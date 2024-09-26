@@ -146,8 +146,8 @@ namespace nadena.dev.ndmf.cs
         
         internal IDisposable RegisterRootSetListener(ListenerSet<HierarchyEvent>.Filter filter, ComputeContext ctx)
         {
-#if NDMF_TRACE
-            Debug.WriteLine("[ShadowHierarchy] RegisterRootSetListener()");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine("[ShadowHierarchy] RegisterRootSetListener()");
 #endif
             
             if (ctx.IsInvalidated) return new NullDisposable();
@@ -161,8 +161,8 @@ namespace nadena.dev.ndmf.cs
             ComputeContext ctx
         )
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] RegisterGameObjectListener({targetObject.GetInstanceID()})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] RegisterGameObjectListener({targetObject.GetInstanceID()})");
 #endif
             
             if (targetObject == null || ctx.IsInvalidated) return new NullDisposable();
@@ -179,8 +179,8 @@ namespace nadena.dev.ndmf.cs
         {
             if (targetComponent == null || ctx.IsInvalidated) return new NullDisposable();
             
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] RegisterObjectListener({targetComponent.GetInstanceID()})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] RegisterObjectListener({targetComponent.GetInstanceID()})");
 #endif
 
             if (!_otherObjects.TryGetValue(targetComponent.GetInstanceID(), out var shadowComponent))
@@ -207,8 +207,8 @@ namespace nadena.dev.ndmf.cs
         /// <param name="root"></param>
         internal void EnableComponentMonitoring(GameObject root)
         {
-#if NDMF_TRACE
-            //Debug.WriteLine($"[ShadowHierarchy] EnableComponentMonitoring({root.GetInstanceID()})");
+#if NDMF_TRACE_SHADOW
+            //System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] EnableComponentMonitoring({root.GetInstanceID()})");
 #endif
             
             var obj = ActivateShadowObject(root);
@@ -231,8 +231,8 @@ namespace nadena.dev.ndmf.cs
 
         internal void EnablePathMonitoring(GameObject root)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] EnablePathMonitoring({root.GetInstanceID()})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] EnablePathMonitoring({root.GetInstanceID()})");
 #endif
             
             var obj = ActivateShadowObject(root);
@@ -285,8 +285,8 @@ namespace nadena.dev.ndmf.cs
         /// <param name="instanceId"></param>
         internal void FireObjectChangeNotification(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireObjectChangeNotification({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireObjectChangeNotification({instanceId})");
 #endif
             
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
@@ -320,8 +320,8 @@ namespace nadena.dev.ndmf.cs
         /// <param name="instanceId"></param>
         internal void FireReparentNotification(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireReparentNotification({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireReparentNotification({instanceId})");
 #endif
             
             // Always activate on reparent. This is because we might be reparenting _into_ an active hierarchy.
@@ -397,8 +397,8 @@ namespace nadena.dev.ndmf.cs
 
         internal void FireDestroyNotification(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireDestroyNotification({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireDestroyNotification({instanceId})");
 #endif
             
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
@@ -410,9 +410,9 @@ namespace nadena.dev.ndmf.cs
 
         void ForceInvalidateHierarchy(ShadowGameObject obj)
         {
-#if NDMF_TRACE
+#if NDMF_TRACE_SHADOW
             var resolvedName = obj.GameObject == null ? "<null>" : obj.GameObject.name;
-            Debug.WriteLine($"[ShadowHierarchy] ForceInvalidateHierarchy({obj.InstanceID}:{resolvedName})");
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] ForceInvalidateHierarchy({obj.InstanceID}:{resolvedName})");
 #endif
             
             obj._listeners.Fire(HierarchyEvent.ForceInvalidate);
@@ -426,8 +426,8 @@ namespace nadena.dev.ndmf.cs
 
         internal void FireReorderNotification(int parentInstanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireReorderNotification({parentInstanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireReorderNotification({parentInstanceId})");
 #endif
             
             if (!_gameObjects.TryGetValue(parentInstanceId, out var shadow))
@@ -440,8 +440,8 @@ namespace nadena.dev.ndmf.cs
 
         internal void FireStructureChangeEvent(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireStructureChangeEvent({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireStructureChangeEvent({instanceId})");
 #endif
             
             if (!_gameObjects.TryGetValue(instanceId, out var shadow))
@@ -455,8 +455,8 @@ namespace nadena.dev.ndmf.cs
 
         internal void InvalidateAll()
         {
-#if NDMF_TRACE
-            Debug.WriteLine("[ShadowHierarchy] InvalidateAll()");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine("[ShadowHierarchy] InvalidateAll()");
 #endif
             
             var oldDict = _gameObjects;
@@ -486,8 +486,8 @@ namespace nadena.dev.ndmf.cs
         /// <exception cref="NotImplementedException"></exception>
         public void InvalidateTree(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] InvalidateTree({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] InvalidateTree({instanceId})");
 #endif
             
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
@@ -524,8 +524,8 @@ namespace nadena.dev.ndmf.cs
 
         public void FireGameObjectCreate(int instanceId)
         {
-#if NDMF_TRACE
-            Debug.WriteLine($"[ShadowHierarchy] FireGameObjectCreate({instanceId})");
+#if NDMF_TRACE_SHADOW
+            System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireGameObjectCreate({instanceId})");
 #endif
             
             var obj = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
