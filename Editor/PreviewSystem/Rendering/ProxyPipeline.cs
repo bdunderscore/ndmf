@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using nadena.dev.ndmf.cs;
 using UnityEngine;
 using UnityEngine.Profiling;
-using Debug = System.Diagnostics.Debug;
 
 #endregion
 
@@ -124,7 +123,7 @@ namespace nadena.dev.ndmf.preview
             _ctx.InvokeOnInvalidate(this, OnInvalidateRedraw);
 
 #if NDMF_DEBUG
-            Debug.WriteLine($"Building pipeline {_generation}");
+            Debug.Log($"Building pipeline {_generation}");
 #endif
 
             var filterList = filters.ToImmutableList();
@@ -177,8 +176,8 @@ namespace nadena.dev.ndmf.preview
                     {
                         if (r == null)
                         {
-                            UnityEngine.Debug.Log("Renderer deleted during proxy pipeline construction: " +
-                                                  group.DebugNames[r]);
+                            Debug.Log("Renderer deleted during proxy pipeline construction: " +
+                                      group.DebugNames[r]);
                             Invalidate();
                             return null;
                         }
@@ -196,7 +195,7 @@ namespace nadena.dev.ndmf.preview
                             var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
                             proxy.OnInvalidate.ContinueWith(_ => InvalidateAction(),
                                 TaskContinuationOptions.ExecuteSynchronously);
-                            proxy.OnPreFrame();
+                            if (!proxy.OnPreFrame()) Invalidate();
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
                             // we render for real).
                             _proxies.Add(r, proxy);
@@ -221,7 +220,7 @@ namespace nadena.dev.ndmf.preview
                     var sameGroup = Equals(priorNode?.Result.Group, group);
                     if (priorNode?.IsCompletedSuccessfully != true || !sameGroup)
                     {
-                        //System.Diagnostics.Debug.WriteLine("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
+                        //System.Diagnostics.UnityEngine.Debug.Log("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
                         priorNode = null;
                     }
 
@@ -232,7 +231,7 @@ namespace nadena.dev.ndmf.preview
                             var proxies = items.Result.ToList();
 
 #if NDMF_DEBUG
-                            Debug.WriteLine(
+                            Debug.Log(
                                 $"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
                             
@@ -272,11 +271,11 @@ namespace nadena.dev.ndmf.preview
                     _completedBuild.TrySetResult(null);
                     RepaintTrigger.RequestRepaint();
                 });
-            
-            //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
+
+            //UnityEngine.Debug.Log($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
 #if NDMF_DEBUG
-            Debug.WriteLine($"Pipeline {_generation} is ready");
+            Debug.Log($"Pipeline {_generation} is ready");
 #endif
 
             foreach (var stage in _stages)
@@ -300,7 +299,11 @@ namespace nadena.dev.ndmf.preview
 
                 foreach (var pair in _proxies)
                 {
-                    pair.Value.OnPreFrame();
+                    if (!pair.Value.OnPreFrame())
+                    {
+                        Invalidate();
+                    }
+                    
                     if (!scope.ShouldContinue())
                     {
                         RepaintTrigger.RequestRepaint();
@@ -361,7 +364,7 @@ namespace nadena.dev.ndmf.preview
 
         public void ShowError()
         {
-            UnityEngine.Debug.LogException(_buildTask.Exception);
+            Debug.LogException(_buildTask.Exception);
         }
     }
 }
