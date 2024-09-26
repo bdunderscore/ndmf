@@ -38,7 +38,7 @@ namespace nadena.dev.ndmf.preview
         public static RenderGroup For(IEnumerable<Renderer> renderers)
         {
             var frozen = renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList();
-            var names = frozen.ToImmutableDictionary(r => r, r => r.name, new ObjectIdentityComparer<Renderer>());
+            var names = frozen.ToImmutableDictionary(r => r, r => r.name);
             return new RenderGroup(frozen, names);
         }
 
@@ -46,7 +46,7 @@ namespace nadena.dev.ndmf.preview
         {
             return new RenderGroup(
                 ImmutableList.Create(renderer),
-                ImmutableDictionary.Create<Renderer, string>(new ObjectIdentityComparer<Renderer>())
+                ImmutableDictionary.Create<Renderer, string>()
                     .Add(renderer, renderer.name)
             );
         }

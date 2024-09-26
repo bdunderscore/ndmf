@@ -61,13 +61,13 @@ namespace nadena.dev.ndmf.preview
         private TaskCompletionSource<object> _completedBuild = new();
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
-            ImmutableDictionary<Renderer, Renderer>.Empty.WithComparers(new ObjectIdentityComparer<Renderer>());
+            ImmutableDictionary<Renderer, Renderer>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty.WithComparers(new ObjectIdentityComparer<GameObject>());
+            ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty.WithComparers(new ObjectIdentityComparer<GameObject>());
+            ImmutableDictionary<GameObject, GameObject>.Empty;
 
         private readonly long _generation;
         

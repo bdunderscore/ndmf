@@ -23,8 +23,8 @@ namespace nadena.dev.ndmf.preview
             public Renderer InactiveProxy;
             public int ActiveProxyCount = 0;
         }
-        
-        private Dictionary<Renderer, RendererState> _renderers = new(new ObjectIdentityComparer<Renderer>());
+
+        private readonly Dictionary<Renderer, RendererState> _renderers = new();
         private bool _cleanupPending = false;
         private bool _isRegistered = false;
 
