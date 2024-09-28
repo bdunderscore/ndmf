@@ -57,8 +57,6 @@ namespace nadena.dev.ndmf.cs
         internal Dictionary<int, ShadowObject> _otherObjects = new();
         internal ListenerSet<HierarchyEvent> _rootSetListener = new();
 
-        int lastPruned = Int32.MinValue;
-
 #if NDMF_DEBUG
         [MenuItem("Tools/NDM Framework/Debug Tools/Dump shadow hierarchy")]
         static void StaticDumpShadowHierarchy()
