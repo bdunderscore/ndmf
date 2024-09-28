@@ -90,7 +90,7 @@ namespace nadena.dev.ndmf.preview
             return hashCode;
         }
 
-        public string ToString()
+        public override string ToString()
         {
             return "RenderGroup(" + string.Join(", ", Renderers.Select(r => r.name)) + ")";
         }

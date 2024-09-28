@@ -21,8 +21,10 @@ namespace nadena.dev.ndmf.ui
         [MenuItem("Tools/NDM Framework/Debug Tools/Dump Scene Objects")]
         public static void DumpSceneObjects()
         {
-            foreach (var scene in SceneManager.GetAllScenes())
+            var sceneCount = SceneManager.sceneCount;
+            for (var i = 0; i < sceneCount; i++)
             {
+                var scene = SceneManager.GetSceneAt(i);
                 Debug.Log($"Scene {scene.name}:");
                 foreach (var gameObject in scene.GetRootGameObjects())
                 {
@@ -70,7 +72,7 @@ namespace nadena.dev.ndmf.ui
         public static void ReloadDomain()
         {
             Debug.Log("Reloading domain...");
-            UnityEditor.EditorUtility.RequestScriptReload();
+            EditorUtility.RequestScriptReload();
         }
         #endif
     }
