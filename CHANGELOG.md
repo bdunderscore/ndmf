@@ -10,10 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#417] Automatically recover when proxy renderers are destroyed unexpectedly
-
-- [#416] Fixed issues where assets would not properly be tracked due to C# object recreation edge cases
-  (removed ObjectIdentityComparer)
 
 ### Changed
 
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.10]
+
+### Fixed
+
+- [#417] Automatically recover when proxy renderers are destroyed unexpectedly
+- [#416] Fixed issues where assets would not properly be tracked due to C# object recreation edge cases
+  (removed ObjectIdentityComparer)
 
 ## [1.5.0-rc.9] - [2024-09-24]
 
