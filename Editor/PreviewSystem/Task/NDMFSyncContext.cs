@@ -95,6 +95,8 @@ namespace nadena.dev.ndmf.preview
 
                     if (!TaskThrottle.ShouldThrottle)
                     {
+                        ComputeContext.FlushInvalidates();
+                        
                         lock (_lock)
                         {
                             localQueue.AddRange(asyncQueue);
