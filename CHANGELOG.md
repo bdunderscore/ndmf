@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#425] PublishedValue changes now immediately trigger repaint
 
 ### Changed
 
@@ -18,6 +19,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0-rc.11] - [2024-09-28]
+
+### Added
+- [#424] Added tracing system for the preview/invalidation system
+
+### Fixed
+- [#422] Fixed race condition in `ComputeContext.FlushInvalidates` that could cause invalidates to be missed
+
+### Changed
+- [#423] Improved preview processing delays by flushing invalidates in the same frame they are triggered
+
+## [1.5.0-rc.10] - [2024-09-27]
+
+### Fixed
+
+- [#417] Automatically recover when proxy renderers are destroyed unexpectedly
+- [#416] Fixed issues where assets would not properly be tracked due to C# object recreation edge cases
+  (removed ObjectIdentityComparer)
+
+## [1.5.0-rc.9] - [2024-09-24]
+
+### Fixed
+- [#414] ProxyPipeline invalidations don't trigger a redraw in some cases
+
+## [1.5.0-rc.8] - [2024-09-22]
+
+### Added
+- [#407] Added `ProvidedParameter.ExpandTypeOnConflict` to resolve parameter type mismatch automatically
+- [#410] Added `NDMFSyncContext` API
+
+### Fixed
+- [#408] Improved performance of `BuildContext.Serialize`
+- [#410] Sometimes R/O meshes cannot be accessed from preview context
+
+### Changed
+- [#408] Unserialized assets will be serialized after the Transforming phase completes (before e.g. VRCFury runs)
+
+## [1.5.0-rc.7] - [2024-09-17]
+
+### Added
+- [#397] `ComputeContext.FlushInvalidates` API
+
+### Fixed
+- [#399] Fix: Parameter introspection did not skip EditorOnly objects
+- [#397] Fix: issues where `ComputeContext` flushes might not be processed at all
+- [#398] Fix: NullReferenceError in `GetParameterRemappingsAt`
+- [#400] Fix: Spurious complaints about not being on the main thread in OnPreCull
+- [#403] Fix: `ParameterInfo.GetParametersForObject` does not register GetComponents with compute context
+- [#405] Fix: NullReferenceException when toggling plugin preview enable state
+
+### Changed
+- [#406] Don't enforce time limits for previews when a debugger is attached
+- [#402] Minor performance improvements
+
+## [1.5.0-rc.6] - [2024-09-14]
+
+### Fixed
+- [#385] Fix: parameter introspection used default value from child, not parent
+- [#379] Fix CurrentThreadIsMainThread assertion in AsyncProfiler
+- [#386]
+  Workaround [VRCSDK bug](https://feedback.vrchat.com/sdk-bug-reports/p/string-conversion-errors-from-runtimeassemblygetcodebase-with-japanese-locale-an)
+  caused by non-ASCII project paths.
+- [#388] Improve handling for renderers which are destroyed during preview pipeline construction
+- [#390] Suppress IRenderFilter with unsupported renderers
+- [#395] Fix performance issues when enabling/disabling many objects at once
+- [#394] Scenes which are unloaded and reloaded do not trigger preview processing
+
+## [1.5.0-rc.5] - [2024-09-04]
+
+### Fixed
+
+- [#379] Fix CurrentThreadIsMainThread assertion in AsyncProfiler
+
+## [1.5.0-rc.4] - [2024-09-02]
+
+### Fixed
+- [#372] Fix an issue where the preview pipeline would be rebuilt every editor frame
+- [#369] Fix a `NullReferenceException` generated when previewed renderers are destroyed
+- [#371] Performance improvements in change monitoring
+- [#374] Suppress processing of renderers deleted during pipeline processing
+
+### Changed
+- [#373] Set time limits for preview processing to avoid editor freezes
+
+## [1.5.0-rc.3] - [2024-09-01]
+
+### Added
+- [#360] Added `AsyncProfiler` to help profile code running in Tasks
+  - Also added profiler scopes for `IRenderFilter.Create`/`IRenderFilterNode.Refresh`.
+- [#361] Added `IRenderFilterNode.OnFrameGroup`
+- [#365] Added debug tool to profile long editor frames
+- [#368] Relaxed generic constraints on `ComputeContext.GetComponent*<>` to allow interfaces to be queried for
+
+### Fixed
+- [#362] Fixed unclosed profiler scope in TargetSet
+- [#355] Excessive invalidation when scene view visibility states change
+- [#363] Reduce GC pressure caused by `ComputeContext.GetComponent`
+- [#367] When `IRenderFilter.Create` is invoked when refreshing a filter node, it would get an `ObjectRegistry`
+  containing items registered in the prior generation of the node.
+
+### Changed
+- [#364] Prevent creation of overlapping render groups in the same `IRenderFilter`
 
 ## [1.5.0-rc.2] - [2024-08-28]
 

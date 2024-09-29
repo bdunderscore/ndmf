@@ -1,0 +1,34 @@
+﻿ScrollView {
+    flex-grow: 1;
+    flex-shrink: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+    margin: 4px;
+}
+
+ScrollView Foldout {
+    flex-shrink: 0;
+}
+
+#events {
+    flex-grow: 1;
+}
+
+#buttons Button {
+    flex-grow: 1;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+#buttons {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+ScrollView TextElement {
+    -unity-text-align: upper-left;
+}
+
+#root-box {
+    height: 100%;
+    padding: 2px;
+}

@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = System.Diagnostics.Debug;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -76,54 +78,18 @@ namespace nadena.dev.ndmf.cs
         {
             EditorApplication.delayCall += () =>
             {
-                SceneManager.sceneLoaded += (_, _) =>
+                EditorSceneManager.sceneOpened += (scene, _) =>
                 {
-                    Debug.WriteLine("=== Scene loaded ===");
+                    if (scene.name == NDMFPreviewSceneManager.PreviewSceneName) return;
                     Instance.Hierarchy.InvalidateAll();
                 };
-                SceneManager.sceneUnloaded += _ =>
-                {
-                    Debug.WriteLine("=== Scene unloaded ===");
-                    Instance.Hierarchy.InvalidateAll();
-                };
-                SceneManager.activeSceneChanged += (_, _) =>
-                {
-                    Debug.WriteLine("=== Active scene changed ===");
-                    Instance.Hierarchy.InvalidateAll();
-                };
+
+                EditorSceneManager.sceneClosed += _ => Instance.Hierarchy.InvalidateAll();
+
+                EditorSceneManager.newSceneCreated += (_, _, _) => { Instance.Hierarchy.InvalidateAll(); };
+                
                 Instance.PropertyMonitor.MaybeStartRefreshTimer();
-
-                // These SceneManager callbacks are never invoked, for some reason. Workaround this with a periodic check.
-                EditorApplication.update += Instance.CheckActiveScenes;
             };
-        }
-
-        private Scene[] _activeScenes = Array.Empty<Scene>();
-
-        private void CheckActiveScenes()
-        {
-            if (SceneManager.sceneCount != _activeScenes.Length)
-            {
-                InvalidateScenes();
-
-                return;
-            }
-
-            for (var i = 0; i < _activeScenes.Length; i++)
-                if (_activeScenes[i] != SceneManager.GetSceneAt(i))
-                {
-                    InvalidateScenes();
-
-                    return;
-                }
-
-            void InvalidateScenes()
-            {
-                _activeScenes = new Scene[SceneManager.sceneCount];
-                for (var i = 0; i < _activeScenes.Length; i++) _activeScenes[i] = SceneManager.GetSceneAt(i);
-
-                Hierarchy.InvalidateAll();
-            }
         }
 
         public ImmutableList<GameObject> MonitorSceneRoots(ComputeContext ctx)
@@ -192,7 +158,7 @@ namespace nadena.dev.ndmf.cs
         }
 
         public R MonitorObjectProps<T, R>(T obj, ComputeContext ctx, Func<T, R> extract, Func<R, R, bool> compare,
-            bool usePropMonitor)
+            bool usePropMonitor, [CanBeNull] string file, int? line)
             where T : UnityObject
         {
             var curVal = extract(obj);
@@ -208,7 +174,19 @@ namespace nadena.dev.ndmf.cs
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            return obj == null || !compare(curVal, extract(obj));
+                            if (obj != null && compare(curVal, extract(obj)))
+                            {
+                                TraceBuffer.RecordTraceEvent(
+                                    "ObjectWatcher.MonitorObjectProps",
+                                    ev => $"[{ev.FilePath}:{ev.Line}] Object {ev.Arg0} unchanged",
+                                    go.name,
+                                    filename: file ?? "???",
+                                    line: line ?? 0
+                                );
+                                return false;
+                            }
+
+                            return true;
                         default:
                             return false;
                     }
@@ -218,13 +196,27 @@ namespace nadena.dev.ndmf.cs
             }
             else
             {
+                object objName = (obj is Component c_) ? c_.gameObject.name : obj;
+                
                 var cancel = Hierarchy.RegisterObjectListener(obj, e =>
                 {
                     switch (e)
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            return obj == null || !compare(curVal, extract(obj));
+                            if (obj != null && compare(curVal, extract(obj)))
+                            {
+                                TraceBuffer.RecordTraceEvent(
+                                    "ObjectWatcher.MonitorObjectProps",
+                                    ev => $"[{ev.FilePath}:{ev.Line}] Object {ev.Arg0} unchanged",
+                                    objName,
+                                    filename: file ?? "???",
+                                    line: line ?? 0
+                                );
+                                return false;
+                            }
+
+                            return true;
                         default:
                             return false;
                     }
@@ -254,7 +246,7 @@ namespace nadena.dev.ndmf.cs
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
             }
         }
 
@@ -267,18 +259,16 @@ namespace nadena.dev.ndmf.cs
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 return true;
             }
         }
 
         public C[] MonitorGetComponents<C>(GameObject obj, ComputeContext ctx,
-            Func<C[]> get0, bool includeChildren) where C : Component
+            Func<C[]> get0, bool includeChildren)
         {
-            Func<C[]> get = () => get0().Where(c =>
-                c?.hideFlags == 0 &&
-                c?.gameObject.hideFlags == 0
-            ).ToArray();
+            var previewScene = NDMFPreviewSceneManager.GetPreviewScene();
+            Func<C[]> get = () => get0().Where(c => (c as Component)?.gameObject.scene != previewScene).ToArray();
 
             C[] components = get();
 
@@ -305,7 +295,7 @@ namespace nadena.dev.ndmf.cs
         }
 
         public C MonitorGetComponent<C>(GameObject obj, ComputeContext ctx,
-            Func<C> get) where C : Component
+            Func<C> get) where C : class
         {
             C component = get();
 
@@ -353,7 +343,7 @@ namespace nadena.dev.ndmf.cs
                     else
                     {
                         var orig = _orig;
-                        _syncContext.Post(_ => DoDispose(), null);
+                        EditorApplication.delayCall += DoDispose;
                     }
 
                     _orig = null;

@@ -1,6 +1,8 @@
 ﻿#region
 
 using System;
+using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
@@ -11,6 +13,9 @@ namespace nadena.dev.ndmf.cs
 {
     internal class ChangeStreamMonitor
     {
+        private static readonly CustomSampler _handleEventSampler =
+            CustomSampler.Create("ChangeStreamMonitor.HandleEvent");
+        
         [InitializeOnLoadMethod]
         static void Init()
         {
@@ -26,19 +31,37 @@ namespace nadena.dev.ndmf.cs
             {
                 try
                 {
+                    _handleEventSampler.Begin();
+                    
                     HandleEvent(stream, i);
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"Error handling event {i}: {e}");
                 }
+                finally
+                {
+                    _handleEventSampler.End();
+                }
             }
+                        
+            Profiler.BeginSample("ComputeContext.FlushInvalidates");
+            ComputeContext.FlushInvalidates();
+            Profiler.EndSample();
 
             Profiler.EndSample();
         }
 
         private static void HandleEvent(ObjectChangeEventStream stream, int i)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ChangeStreamMonitor.HandleEvent",
+                (ev) => $"Handling event {ev.Arg0}",
+                stream.GetEventType(i),
+                level: TraceEventLevel.Trace
+            );
+            
+            using (trace.Scope())
             switch (stream.GetEventType(i))
             {
                 case ObjectChangeKind.None: break;

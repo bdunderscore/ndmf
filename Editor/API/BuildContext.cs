@@ -213,73 +213,88 @@ namespace nadena.dev.ndmf
                 return; // unit tests with no serialized assets
             }
 
-            HashSet<UnityObject> _savedObjects =
-                new HashSet<UnityObject>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)));
+            Profiler.BeginSample("BuildContext.Serialize");
 
-            _savedObjects.Remove(AssetContainer);
-
-            int index = 0;
-            foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
+            try
             {
-                if (asset is MonoScript)
-                {
-                    // MonoScripts aren't considered to be a Main or Sub-asset, but they can't be added to asset
-                    // containers either.
-                    continue;
-                }
+                AssetDatabase.StartAssetEditing();
 
-                if (_savedObjects.Contains(asset))
-                {
-                    _savedObjects.Remove(asset);
-                    continue;
-                }
+                HashSet<UnityObject> _savedObjects =
+                    new HashSet<UnityObject>(
+                        AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)));
 
-                if (asset == null)
-                {
-                    Debug.Log($"Asset {index} is null");
-                }
+                _savedObjects.Remove(AssetContainer);
 
-                index++;
-
-                if (!EditorUtility.IsPersistent(asset))
+                int index = 0;
+                foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
                 {
-                    try
+                    if (asset is MonoScript)
                     {
-                        AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+                        // MonoScripts aren't considered to be a Main or Sub-asset, but they can't be added to asset
+                        // containers either.
+                        continue;
                     }
-                    catch (UnityException ex)
+
+                    if (_savedObjects.Contains(asset))
                     {
-                        Debug.Log(
-                            $"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
-                            $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
-                        throw ex;
+                        _savedObjects.Remove(asset);
+                        continue;
+                    }
+
+                    if (asset == null)
+                    {
+                        Debug.Log($"Asset {index} is null");
+                    }
+
+                    index++;
+
+                    if (!EditorUtility.IsPersistent(asset))
+                    {
+                        try
+                        {
+                            AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+                        }
+                        catch (UnityException ex)
+                        {
+                            Debug.Log(
+                                $"Error adding asset {asset} p={AssetDatabase.GetAssetOrScenePath(asset)} isMain={AssetDatabase.IsMainAsset(asset)} " +
+                                $"isSub={AssetDatabase.IsSubAsset(asset)} isForeign={AssetDatabase.IsForeignAsset(asset)} isNative={AssetDatabase.IsNativeAsset(asset)}");
+                            throw ex;
+                        }
                     }
                 }
-            }
 
-            // SaveAssets to make sub-assets visible on the Project window
-            AssetDatabase.SaveAssets();
-            
-            foreach (var assetToHide in AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)))
-            {
-                if (assetToHide != AssetContainer && 
-                    GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
+                foreach (var assetToHide in AssetDatabase.LoadAllAssetsAtPath(
+                             AssetDatabase.GetAssetPath(AssetContainer)))
                 {
-                    assetToHide.hideFlags = HideFlags.HideInHierarchy;
-                }
-            }
-            
-            // Remove obsolete temporary assets
-            foreach (var asset in _savedObjects)
-            {
-                if (!(asset is Component || asset is GameObject))
-                {
-                    // Traversal can't currently handle prefabs, so this must have been manually added. Avoid purging it.
-                    continue;
+                    if (assetToHide != AssetContainer &&
+                        GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
+                    {
+                        assetToHide.hideFlags = HideFlags.HideInHierarchy;
+                    }
                 }
 
-                UnityEngine.Object.DestroyImmediate(asset);
+                // Remove obsolete temporary assets
+                foreach (var asset in _savedObjects)
+                {
+                    if (!(asset is Component || asset is GameObject))
+                    {
+                        // Traversal can't currently handle prefabs, so this must have been manually added. Avoid purging it.
+                        continue;
+                    }
+
+                    UnityEngine.Object.DestroyImmediate(asset);
+                }
             }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+                
+                // SaveAssets to make sub-assets visible on the Project window
+                AssetDatabase.SaveAssets();
+            }
+
+            Profiler.EndSample();
         }
 
         public void DeactivateExtensionContext<T>() where T : IExtensionContext

@@ -81,7 +81,7 @@ namespace nadena.dev.ndmf
     public sealed class ObjectRegistry : IObjectRegistry
     {
         // Reference hash code => objects
-        private readonly Dictionary<Object, ObjectReference> _obj2ref = new(new ObjectIdentityComparer<UnityObject>());
+        private readonly Dictionary<Object, ObjectReference> _obj2ref = new();
 
         internal readonly Transform AvatarRoot;
         private static readonly AsyncLocal<IObjectRegistry> _activeRegistry = new();

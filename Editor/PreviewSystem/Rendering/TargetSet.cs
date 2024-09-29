@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview.trace;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -27,6 +29,8 @@ namespace nadena.dev.ndmf.preview
         {
             _filters = filters;
             
+            TraceBuffer.RecordTraceEvent("TargetSet.ctor", (ev) => "Get target groups");
+            
             Profiler.BeginSample("TargetSet.ctor");
             try
             {
@@ -34,10 +38,32 @@ namespace nadena.dev.ndmf.preview
                 foreach (var filter in _filters)
                 {
                     if (!filter.IsEnabled(_targetSetContext)) continue;
-
+                    
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
                     var groups = filter.GetTargetGroups(_targetSetContext);
+                    Profiler.EndSample();
                     if (groups.IsEmpty) continue;
+
+                    var unsupportedRenderer = groups.SelectMany(g => g.Renderers)
+                        .FirstOrDefault(x => x is not MeshRenderer and not SkinnedMeshRenderer);
+                    if (unsupportedRenderer != null)
+                    {
+                        Debug.LogError("[" + filter + "] Unsupported renderer " + unsupportedRenderer +
+                                       " in groups: " + string.Join(", ", groups));
+                        // Suppress this filter
+                        continue;
+                    }
+
+                    var duplicateRenderers = groups.SelectMany(g => g.Renderers)
+                        .GroupBy(r => r)
+                        .FirstOrDefault(agg => agg.Count() > 1);
+                    if (duplicateRenderers != null)
+                    {
+                        Debug.LogError("[" + filter + "] Duplicate renderer " + duplicateRenderers.Key +
+                                       " in groups: " + string.Join(", ", groups));
+                        // Suppress this filter
+                        continue;
+                    }
                     
                     builder.Add(new Stage
                     {
@@ -69,16 +95,25 @@ namespace nadena.dev.ndmf.preview
             if (renderer == null) return false;
             if (!context.ActiveInHierarchy(renderer.gameObject)) return false;
 
-            return context.Observe(renderer, r => r.enabled && !r.forceRenderingOff);
+            return context.Observe(renderer, r => r.enabled);
         }
         
         public ImmutableList<Stage> ResolveActiveStages(ComputeContext context)
         {
             Profiler.BeginSample("TargetSet.ResolveActiveStages");
+            
+            TraceBuffer.RecordTraceEvent("TargetSet.ResolveActiveStages", (ev) => "TargetSet: Resolve active stages");
+            
             _targetSetContext.Invalidates(context);
-            VisibilityMonitor.OnVisibilityChange.Register(_ => true, context);
 
-            HashSet<Renderer> maybeActiveRenderers = new HashSet<Renderer>(new ObjectIdentityComparer<Renderer>());
+            var targetRenderers = _stages
+                .SelectMany(s => s.Groups)
+                .SelectMany(g => g.Renderers)
+                .Where(r => r != null)
+                .Select(r => (r, SceneVisibilityManager.instance.IsHidden(r.gameObject, true))).ToArray();
+            VisibilityMonitor.OnVisibilityChange.Register(_ => targetRenderers.Any(rp => rp.r == null || rp.Item2 != SceneVisibilityManager.instance.IsHidden(rp.r.gameObject, true)), context);
+
+            var maybeActiveRenderers = new HashSet<Renderer>();
             
             // Register all visible (or potentially forced) renderers first
             foreach (var stage in _stages)

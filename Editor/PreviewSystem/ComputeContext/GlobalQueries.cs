@@ -4,8 +4,13 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.cs;
-using nadena.dev.ndmf.runtime;
 using UnityEngine;
+#if NDMF_VRCSDK3_AVATARS
+using VRC.SDK3.Avatars.Components;
+
+#else
+using nadena.dev.ndmf.runtime;
+#endif
 
 #endregion
 
@@ -29,7 +34,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <typeparam name="T">The type to search for</typeparam>
         /// <returns></returns>
-        public static ImmutableList<T> GetComponentsByType<T>(this ComputeContext ctx) where T : Component
+        public static ImmutableList<T> GetComponentsByType<T>(this ComputeContext ctx) where T : class
         {
             var roots = ctx.GetSceneRoots();
 
@@ -53,7 +58,7 @@ namespace nadena.dev.ndmf.preview
         {
             // TODO: multiple platform support
 #if NDMF_VRCSDK3_AVATARS
-            return ctx.GetComponentsByType<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>()
+            return ctx.GetComponentsByType<VRCAvatarDescriptor>()
                 .Select(c => c.gameObject).ToImmutableList();
 #else
             return ctx.GetComponentsByType<Animator>()

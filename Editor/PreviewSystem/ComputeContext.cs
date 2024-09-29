@@ -1,10 +1,14 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.preview.trace;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools.Constraints;
 
 #endregion
 
@@ -19,20 +23,80 @@ namespace nadena.dev.ndmf.preview
         [PublicAPI] public static ComputeContext NullContext { get; }
         private readonly TaskCompletionSource<object> _invalidater = new();
 
+        private static object _pendingInvalidatesLock = new();
+        private static bool _pendingInvalidatesScheduled;
+        private static List<ComputeContext> _pendingInvalidates = new();
+
+        private static void ScheduleInvalidate(ComputeContext ctx)
+        {
+            lock (_pendingInvalidatesLock)
+            {
+                _pendingInvalidates.Add(ctx);
+                
+                if (_pendingInvalidatesScheduled) return;
+                
+                _pendingInvalidatesScheduled = true;
+                EditorApplication.delayCall += FlushInvalidates;
+            }
+        }
+
+        /// <summary>
+        /// ComputeContext deferres some processing until EditorApplication.delayCall on invalidate. Invoke this function
+        /// to flush and execute all pending invalidates immediately.
+        /// </summary>
+        public static void FlushInvalidates()
+        {
+            _pendingInvalidatesScheduled = false;
+            
+            List<ComputeContext> list;
+
+            lock (_pendingInvalidatesLock)
+            {
+                list = new(_pendingInvalidates.Count);
+                list.AddRange(_pendingInvalidates);
+                _pendingInvalidates.Clear();
+            }
+
+            while (list.Count > 0)
+            {
+                //System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
+                foreach (var ctx in list)
+                {
+                    // We need to take the lock here to ensure that any final registrations complete
+                    lock (ctx)
+                    {
+                        ctx._onInvalidateListeners.FireAll();
+                        ctx._onInvalidateTask.TrySetResult(true);
+                    }
+                }
+
+                lock (_pendingInvalidatesLock)
+                {
+                    list.Clear();
+                    
+                    list.AddRange(_pendingInvalidates);
+                    _pendingInvalidates.Clear();
+                }
+            }
+        }
+
         static ComputeContext()
         {
             NullContext = new ComputeContext("null", null);
         }
-        
-        #if NDMF_TRACE
-        
+
         ~ComputeContext()
         {
             if (!IsInvalidated)
-                Debug.LogError("ComputeContext " + Description + " was GCed without being invalidated!");
+            {
+                TraceBuffer.RecordTraceEvent(
+                    "ComputeContext.Leak",
+                    (ev) => "Leaked context: " + ev.Arg0,
+                    arg0: this
+                );
+            }
         }
         
-        #endif
 
         internal string Description { get; }
         
@@ -45,38 +109,66 @@ namespace nadena.dev.ndmf.preview
         ///     A Task which completes when this compute context is invalidated. Note that completing this task does not
         ///     guarantee that the underlying computation (e.g. ReactiveValue) is going to be recomputed.
         /// </summary>
-        internal Task OnInvalidate { get; }
+        //
+        // Note: This is different from the _invalidator task; we add a delay to ensure that we defer any outside
+        // callbacks until after all change stream events are processed.
+        internal Task OnInvalidate
+        {
+            get => _onInvalidateTask.Task;
+        }
+        private TaskCompletionSource<bool> _onInvalidateTask = new();
 
         private ListenerSet<object> _onInvalidateListeners = new();
 
-        public bool IsInvalidated => OnInvalidate.IsCompleted;
+        public bool IsInvalidated => _invalidatePending || _invalidater.Task.IsCompleted;
+        private bool _invalidatePending;
+
+        private long? _invalidateTriggerEvent;
 
         public ComputeContext(string description)
         {
+            if (string.IsNullOrEmpty(description))
+            {
+                Debug.LogWarning("ComputeContext created with empty description");
+            }
+            
             Invalidate = () =>
             {
 #if NDMF_TRACE
                 Debug.Log("Invalidating " + Description);
 #endif
+
+                if (_invalidatePending || IsInvalidated) return;
+                
+                _invalidateTriggerEvent = TraceBuffer.RecordTraceEvent(
+                    "ComputeContext.Invalidate",
+                    (ev) => "Invalidate: " + ev.Arg0,
+                    arg0: this
+                ).EventId;
+                
                 TaskUtil.OnMainThread(this, DoInvalidate);
             };
-            OnInvalidate = _invalidater.Task;
             Description = description;
+
+            _invalidater.Task.ContinueWith(_ => ScheduleInvalidate(this));
         }
 
         private static void DoInvalidate(ComputeContext ctx)
         {
             lock (ctx)
             {
+                if (ctx._invalidatePending) return;
+                ctx._invalidatePending = true;
+
                 ctx._invalidater.TrySetResult(null);
-                ctx._onInvalidateListeners.FireAll();
             }
         }
 
         private ComputeContext(string description, object nullToken)
         {
             Invalidate = () => { };
-            OnInvalidate = Task.CompletedTask;
+            _onInvalidateTask.TrySetResult(true);
+            _invalidater.TrySetResult(null);
             Description = description;
         }
 
@@ -86,7 +178,14 @@ namespace nadena.dev.ndmf.preview
         /// <param name="other"></param>
         public void Invalidates(ComputeContext other)
         {
-            OnInvalidate.ContinueWith(_ => other.Invalidate());
+            if (other.IsInvalidated) return;
+
+            InvokeOnInvalidate(other, ForwardInvalidation);
+        }
+
+        private void ForwardInvalidation(ComputeContext obj)
+        {
+            obj.Invalidate();
         }
 
         /// <summary>
@@ -101,6 +200,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <param name="target"></param>
         /// <param name="receiver"></param>
+        [PublicAPI]
         public IDisposable InvokeOnInvalidate<T>(T target, Action<T> receiver)
         {
             lock (this)

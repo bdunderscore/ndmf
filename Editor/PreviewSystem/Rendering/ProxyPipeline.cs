@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEditor;
+using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
 using UnityEngine.Profiling;
-using Debug = System.Diagnostics.Debug;
 
 #endregion
 
@@ -62,13 +62,13 @@ namespace nadena.dev.ndmf.preview
         private TaskCompletionSource<object> _completedBuild = new();
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
-            ImmutableDictionary<Renderer, Renderer>.Empty.WithComparers(new ObjectIdentityComparer<Renderer>());
+            ImmutableDictionary<Renderer, Renderer>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> OriginalToProxyObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty.WithComparers(new ObjectIdentityComparer<GameObject>());
+            ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ImmutableDictionary<GameObject, GameObject> ProxyToOriginalObject =
-            ImmutableDictionary<GameObject, GameObject>.Empty.WithComparers(new ObjectIdentityComparer<GameObject>());
+            ImmutableDictionary<GameObject, GameObject>.Empty;
 
         private readonly long _generation;
         
@@ -90,29 +90,49 @@ namespace nadena.dev.ndmf.preview
         public IEnumerable<(Renderer, Renderer)> Renderers
             => _proxies.Select(kvp => (kvp.Key, kvp.Value.Renderer));
 
-        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
+        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
+            ProxyPipeline priorPipeline = null)
         {
             _generation = (priorPipeline?._generation ?? 0) + 1;
             InvalidateAction = Invalidate;
-            
-            _buildTask = Task.Factory.StartNew(
-                _ => Build(proxyCache, filters, priorPipeline),
-                null,
-                CancellationToken.None,
-                0,
-                TaskScheduler.FromCurrentSynchronizationContext()
-            ).Unwrap();
+
+            var buildEvent = TraceBuffer.RecordTraceEvent(
+                "ProxyPipeline.Build",
+                (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Start build",
+                arg0: this
+            );
+
+            using (var scope = NDMFSyncContext.Scope())
+            using (var evScope = buildEvent.Scope())
+            {
+                _buildTask = Task.Factory.StartNew(
+                    _ => Build(proxyCache, filters, priorPipeline),
+                    null,
+                    CancellationToken.None,
+                    0,
+                    TaskScheduler.FromCurrentSynchronizationContext()
+                ).Unwrap();
+            }
+        }
+
+        private static void OnInvalidateRedraw(ProxyPipeline obj)
+        {
+            RepaintTrigger.RequestRepaint();
         }
 
         private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
             ProxyPipeline priorPipeline)
         {
+            await TaskThrottle.MaybeThrottle();
+            
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
             var context = new ComputeContext($"ProxyPipeline {_generation}");
             _ctx = context; // prevent GC
+            
+            _ctx.InvokeOnInvalidate(this, OnInvalidateRedraw);
 
 #if NDMF_DEBUG
-            Debug.WriteLine($"Building pipeline {_generation}");
+            Debug.Log($"Building pipeline {_generation}");
 #endif
 
             var filterList = filters.ToImmutableList();
@@ -152,8 +172,9 @@ namespace nadena.dev.ndmf.preview
                 }
 
                 int groupIndex = -1;
-                foreach (var group in stage.Originals.OrderBy(g => g.GetHashCode()))
+                foreach (var group_raw in stage.Originals.OrderBy(g => g.GetHashCode()))
                 {
+                    var group = group_raw.FilterLive();
                     total_nodes++;
                     
                     groupIndex++;
@@ -162,6 +183,14 @@ namespace nadena.dev.ndmf.preview
                     
                     var resolved = group.Renderers.Select(r =>
                     {
+                        if (r == null)
+                        {
+                            Debug.Log("Renderer deleted during proxy pipeline construction: " +
+                                      group.DebugNames[r]);
+                            Invalidate();
+                            return null;
+                        }
+
                         if (nodeTasks.TryGetValue(r, out var task))
                         {
                             return task.ContinueWith(task1 =>
@@ -173,9 +202,9 @@ namespace nadena.dev.ndmf.preview
                             priorPipeline?._proxies.TryGetValue(r, out priorProxy);
                             
                             var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
-                            proxy.OnInvalidate.ContinueWith(_ => InvalidateAction(),
-                                TaskContinuationOptions.ExecuteSynchronously);
-                            proxy.OnPreFrame();
+                            proxy.InvalidateMonitor.Invalidates(context);
+
+                            if (!proxy.OnPreFrame()) Invalidate();
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
                             // we render for real).
                             _proxies.Add(r, proxy);
@@ -189,22 +218,29 @@ namespace nadena.dev.ndmf.preview
 
                             return Task.FromResult((r, proxy, registry));
                         }
-                    });
+                    }).Where(r => r != null).ToList();
+
+                    if (resolved.Count == 0)
+                    {
+                        continue;
+                    }
 
                     var priorNode = prior?.NodeTasks.ElementAtOrDefault(groupIndex);
                     var sameGroup = Equals(priorNode?.Result.Group, group);
                     if (priorNode?.IsCompletedSuccessfully != true || !sameGroup)
                     {
-                        //System.Diagnostics.Debug.WriteLine("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
+                        //System.Diagnostics.UnityEngine.Debug.Log("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
                         priorNode = null;
                     }
 
                     var node = Task.WhenAll(resolved).ContinueWith(async items =>
                         {
+                            await TaskThrottle.MaybeThrottle();
+                            
                             var proxies = items.Result.ToList();
 
 #if NDMF_DEBUG
-                            Debug.WriteLine(
+                            Debug.Log(
                                 $"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
                             
@@ -241,14 +277,19 @@ namespace nadena.dev.ndmf.preview
             await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
                 .ContinueWith(result =>
                 {
+                    TraceBuffer.RecordTraceEvent(
+                        "ProxyPipeline.Build",
+                        (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Build complete",
+                        arg0: this
+                    );
                     _completedBuild.TrySetResult(null);
-                    EditorApplication.delayCall += () => { EditorApplication.delayCall += SceneView.RepaintAll; };
+                    RepaintTrigger.RequestRepaint();
                 });
-            
-            //Debug.WriteLine($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
+
+            //UnityEngine.Debug.Log($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
 #if NDMF_DEBUG
-            Debug.WriteLine($"Pipeline {_generation} is ready");
+            Debug.Log($"Pipeline {_generation} is ready");
 #endif
 
             foreach (var stage in _stages)
@@ -265,20 +306,46 @@ namespace nadena.dev.ndmf.preview
         public void OnFrame(bool isSceneView)
         {
             if (!IsReady) return;
-            
-            foreach (var pair in _proxies)
-            {
-                pair.Value.OnPreFrame();
-            }
 
-            foreach (var node in _nodes)
+            using (var scope = FrameTimeLimiter.OpenFrameScope())
             {
-                node.OnFrame();
-            }
-            
-            foreach (var pair in _proxies)
-            {
-                pair.Value.FinishPreFrame(isSceneView);
+                if (!scope.ShouldContinue()) return;
+
+                foreach (var pair in _proxies)
+                {
+                    if (!pair.Value.OnPreFrame())
+                    {
+                        Invalidate();
+                    }
+                    
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+                }
+
+                foreach (var node in _nodes)
+                {
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+
+                    node.OnFrame();
+                }
+
+                foreach (var pair in _proxies)
+                {
+                    if (!scope.ShouldContinue())
+                    {
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+
+                    pair.Value.FinishPreFrame(isSceneView);
+                }
             }
         }
 
@@ -311,7 +378,7 @@ namespace nadena.dev.ndmf.preview
 
         public void ShowError()
         {
-            UnityEngine.Debug.LogException(_buildTask.Exception);
+            Debug.LogException(_buildTask.Exception);
         }
     }
 }

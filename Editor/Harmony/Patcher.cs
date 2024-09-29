@@ -15,6 +15,7 @@ namespace nadena.dev.ndmf.preview
         {
             HandleUtilityPatches.Patch_FilterInstanceIDs,
             PickingObjectPatch.Patch,
+            VRCSDKBug_AssemblyGetNameExceptionHandling.Patch
             //HierarchyViewPatches.Patch
         };
 

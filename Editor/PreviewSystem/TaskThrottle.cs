@@ -1,47 +1,98 @@
 ﻿#region
 
-using System;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using UnityEditor;
 
 #endregion
 
 namespace nadena.dev.ndmf.preview
 {
+    using Stopwatch = Stopwatch;
+    
     internal static class TaskThrottle // TODO: make this a public API?
     {
-        public static readonly ThreadLocal<Func<bool>> ShouldThrottle = new(() => () => false);
+        private const int TASK_TIME_LIMIT_MS = 200;
+        private static readonly Stopwatch _taskTime = new();
 
+        private static TaskCompletionSource<bool> _nextFrame { get; set; }
+
+        private static Task RequestFrame()
+        {
+            lock (_taskTime)
+            {
+                if (_nextFrame == null || _nextFrame.Task.IsCompleted) _nextFrame = new TaskCompletionSource<bool>();
+
+                return _nextFrame.Task;
+            }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            EditorApplication.update += () =>
+            {
+                lock (_taskTime)
+                {
+                    _taskTime.Reset();
+                    if (_nextFrame != null)
+                    {
+                        var frameReleaser = _nextFrame;
+                        _nextFrame = null;
+
+                        EditorApplication.delayCall += () => frameReleaser.TrySetResult(true);
+                    }
+                }
+            };
+        }
+
+        private static int index;
+
+        public static bool ShouldThrottle
+        {
+            get
+            {
+                lock (_taskTime)
+                {
+                    if (!_taskTime.IsRunning)
+                    {
+                        _taskTime.Start();
+                        return false;
+                    }
+
+                    return _taskTime.ElapsedMilliseconds > TASK_TIME_LIMIT_MS;
+                }
+            }
+        }
+        
         public static async ValueTask MaybeThrottle()
         {
-            if (ShouldThrottle.Value())
-                await Task.CompletedTask.ContinueWith(
-                    _ => Task.CompletedTask,
-                    CancellationToken.None,
-                    TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.Current
-                );
-        }
-
-        public static IDisposable WithThrottleCondition(Func<bool> condition)
-        {
-            return new ThrottleConditionScope(condition);
-        }
-
-        private class ThrottleConditionScope : IDisposable
-        {
-            private readonly Func<bool> _previousCondition;
-
-            public ThrottleConditionScope(Func<bool> condition)
+            lock (_taskTime)
             {
-                _previousCondition = ShouldThrottle.Value;
-                ShouldThrottle.Value = condition;
+                if (!_taskTime.IsRunning)
+                {
+                    _taskTime.Start();
+                    return;
+                }
+
+                if (_taskTime.ElapsedMilliseconds < TASK_TIME_LIMIT_MS) return;
             }
 
-            public void Dispose()
+            do
             {
-                ShouldThrottle.Value = _previousCondition;
-            }
+                lock (_taskTime)
+                {
+                    if (!_taskTime.IsRunning)
+                    {
+                        _taskTime.Start();
+                        break;
+                    }
+
+                    if (_taskTime.ElapsedMilliseconds < TASK_TIME_LIMIT_MS) break;
+                }
+
+                await RequestFrame();
+            } while (true);
         }
     }
 }

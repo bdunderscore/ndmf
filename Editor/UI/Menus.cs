@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using nadena.dev.ndmf.config;
@@ -9,6 +10,7 @@ using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -19,8 +21,10 @@ namespace nadena.dev.ndmf.ui
     {
         private const string APPLY_ON_PLAY_MENU_NAME = "Tools/NDM Framework/Apply on Play";
         private const string TOPLEVEL_MANUAL_BAKE_MENU_NAME = "Tools/NDM Framework/Manual bake avatar";
+        internal const string ENABLE_PREVIEW_MENU_NAME = "Tools/NDM Framework/Enable Previews";
         private const int APPLY_ON_PLAY_PRIO = 1;
         private const int TOPLEVEL_MANUAL_BAKE_PRIO = 2;
+        internal const int ENABLE_PREVIEW_PRIO = 3;
 
         [InitializeOnLoadMethod]
         static void Init()
@@ -101,6 +105,50 @@ namespace nadena.dev.ndmf.ui
             EditorApplication.update += updateCall;
         }
 
+        private static bool _profilerArmed;
+
+        private static bool ProfilerArmed
+        {
+            get => _profilerArmed;
+            set
+            {
+                if (value == _profilerArmed) return;
+                _profilerArmed = value;
+                if (value)
+                {
+                    ProfilerRecording = true;
+                    frameTimer = new Stopwatch();
+                    frameTimer.Start();
+                    EditorApplication.update += CheckFrameTimeForProfiler;
+                }
+                else
+                {
+                    EditorApplication.update -= CheckFrameTimeForProfiler;
+                }
+
+                Menu.SetChecked("Tools/NDM Framework/Debug Tools/Arm frametime profiler", value);
+            }
+        }
+
+        private static Stopwatch frameTimer;
+
+        private static void CheckFrameTimeForProfiler()
+        {
+            if (frameTimer.ElapsedMilliseconds > 5000)
+            {
+                EditorApplication.delayCall += () => { ProfilerRecording = false; };
+                ProfilerArmed = false;
+            }
+
+            frameTimer.Restart();
+        }
+
+        [MenuItem("Tools/NDM Framework/Debug Tools/Arm frametime profiler", false, 101)]
+        private static void ArmProfiler()
+        {
+            ProfilerArmed = !ProfilerArmed;
+        }
+
         [MenuItem("Tools/NDM Framework/Debug Tools/Profile build", true, 101)]
         private static bool ProfileBuild_Validate()
         {
@@ -108,23 +156,52 @@ namespace nadena.dev.ndmf.ui
                    && RuntimeUtil.IsAvatarRoot(Selection.activeGameObject.transform);
         }
 
+        private static Func<bool> GetProfilerRecordingState;
+        private static Action<bool> SetProfilerRecordingState;
+
+        [InitializeOnLoadMethod]
+        private static void InitProfilerAccess()
+        {
+            GetProfilerRecordingState = () => false;
+            SetProfilerRecordingState = _ => { };
+
+            var ty_PW = typeof(ProfilerWindow);
+
+            var m_OnTargetedEditorConnectionChanged =
+                ty_PW.GetMethod("OnTargetedEditorConnectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var m_SetRecordingEnabled =
+                ty_PW.GetMethod("SetRecordingEnabled", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var ty_EditorConnectionTarget = m_OnTargetedEditorConnectionChanged?.GetParameters()[0].ParameterType;
+            if (ty_EditorConnectionTarget == null) return;
+
+            var MainEditorProcessEditmode = Enum.Parse(ty_EditorConnectionTarget, "MainEditorProcessEditmode");
+
+            GetProfilerRecordingState = () =>
+            {
+                var profWindow = EditorWindow.GetWindow<ProfilerWindow>();
+                return (bool)m_SetRecordingEnabled.Invoke(profWindow, new object[] { null });
+            };
+
+            SetProfilerRecordingState = state =>
+            {
+                var profWindow = EditorWindow.GetWindow<ProfilerWindow>();
+                m_OnTargetedEditorConnectionChanged.Invoke(profWindow, new[] { MainEditorProcessEditmode });
+                m_SetRecordingEnabled.Invoke(profWindow, new object[] { state });
+            };
+        }
+
+        private static bool ProfilerRecording
+        {
+            get => GetProfilerRecordingState();
+            set => SetProfilerRecordingState(value);
+        }
+        
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         private static IEnumerator ProfileBuildCoro(GameObject av)
         {
-            Type ty_PW = typeof(ProfilerWindow);
-
-            MethodInfo m_OnTargetedEditorConnectionChanged =
-                ty_PW.GetMethod("OnTargetedEditorConnectionChanged", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            MethodInfo m_SetRecordingEnabled =
-                ty_PW.GetMethod("SetRecordingEnabled", BindingFlags.Instance | BindingFlags.NonPublic);
-            
-            Type ty_EditorConnectionTarget = m_OnTargetedEditorConnectionChanged.GetParameters()[0].ParameterType;
-            var MainEditorProcessEditmode = Enum.Parse(ty_EditorConnectionTarget, "MainEditorProcessEditmode");
-            var profWindow = EditorWindow.GetWindow<ProfilerWindow>();
-
-            m_OnTargetedEditorConnectionChanged.Invoke(profWindow, new object[] { MainEditorProcessEditmode });
-            m_SetRecordingEnabled.Invoke(profWindow, new object[] { true });
+            ProfilerRecording = true;
             
             yield return null; // wait one frame
 
@@ -143,7 +220,7 @@ namespace nadena.dev.ndmf.ui
             }
 
             //yield return null;
-            m_SetRecordingEnabled.Invoke(profWindow, new object[] { false });
+            ProfilerRecording = false;
             yield return null;
             
             Object.DestroyImmediate(clone);

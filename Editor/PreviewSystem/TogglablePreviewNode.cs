@@ -27,7 +27,7 @@ namespace nadena.dev.ndmf.preview
         private TogglablePreviewNode(Func<string> displayName, bool initialState)
         {
             DisplayName = displayName;
-            IsEnabled = new PublishedValue<bool>(initialState);
+            IsEnabled = new PublishedValue<bool>(initialState, debugName: "PreviewToggle/" + displayName());
         }
         
         /// <summary>

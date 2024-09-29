@@ -2,145 +2,187 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.preview;
-using UnityEditor;
+using nadena.dev.ndmf.preview.trace;
+using UnityEngine;
 
 #endregion
 
 namespace nadena.dev.ndmf.cs
 {
-    internal class Listener<T> : IDisposable
-    {
-        internal Listener<T> _next, _prev;
-
-        private readonly ListenerSet<T> _owner;
-        private readonly ListenerSet<T>.Filter _filter;
-        private readonly WeakReference<object> _target;
-        private readonly Action<object> _receiver;
-
-        internal Listener(
-            ListenerSet<T> owner,
-            ListenerSet<T>.Filter filter,
-            ComputeContext ctx
-        ) : this(owner, filter, ctx, InvalidateContext)
-        {
-        }
-        
-        private static void InvalidateContext(object ctx)
-        {
-            ((ComputeContext) ctx).Invalidate();
-        }
-        
-        internal Listener(
-            ListenerSet<T> owner,
-            ListenerSet<T>.Filter filter,
-            object target,
-            Action<object> receiver
-        )
-        {
-            _owner = owner;
-            _next = _prev = this;
-            _filter = filter;
-            _target = new WeakReference<object>(target);
-            _receiver = receiver;
-        }
-
-        public override string ToString()
-        {
-            if (_target.TryGetTarget(out var target))
-                return $"Listener for {target}";
-            return "Listener (GC'd)";
-        }
-
-        public void Dispose()
-        {
-            lock (_owner)
-            {
-                if (_next != null)
-                {
-                    _next._prev = _prev;
-                    _prev._next = _next;
-                }
-
-                _next = _prev = null;
-                _target.SetTarget(null);
-            }
-        }
-
-        internal void MaybePrune()
-        {
-            if (!_target.TryGetTarget(out _))
-            {
-#if NDMF_DEBUG
-                System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
-#endif
-                Dispose();
-            }
-        }
-
-        // Invoked under lock(_owner)
-        internal void MaybeFire(T info)
-        {
-            if (!_target.TryGetTarget(out var target))
-            {
-#if NDMF_DEBUG
-                System.Diagnostics.Debug.WriteLine($"{this} is invalid, disposing");
-#endif
-                Dispose();
-            }
-            else if (_filter(info))
-            {
-#if NDMF_DEBUG
-                System.Diagnostics.Debug.WriteLine($"{this} is firing");
-#endif
-
-                _receiver(target);
-                // We need to wait two frames before repainting: One to process task callbacks, then one to actually
-                // repaint (and update previews).
-                EditorApplication.delayCall += Delay2Repaint;
-                Dispose();
-            }
-        }
-
-        private void Delay2Repaint()
-        {
-            EditorApplication.delayCall += SceneView.RepaintAll;
-        }
-
-        public void ForceFire()
-        {
-            if (_target.TryGetTarget(out var ctx)) _receiver(ctx);
-            _target.SetTarget(null);
-        }
-    }
-
     internal class ListenerSet<T>
     {
         public delegate bool Filter(T info);
 
-        private Listener<T> _head;
+        private static readonly Action<object> InvalidateContextAction = InvalidateContext;
 
+        private static void InvalidateContext(object ctx)
+        {
+            ((ComputeContext)ctx).Invalidate();
+        }
+
+        private sealed class Listener : IDisposable
+        {
+            private readonly ListenerSet<T> _owner;
+            private readonly WeakReference<object> _targetRef;
+            private readonly Action<object> _receiver;
+            private readonly Filter _filter;
+            private readonly int _targetIdentityHashCode;
+
+            public Listener(ListenerSet<T> owner, object target, Action<object> receiver, Filter filter)
+            {
+                _owner = owner;
+                _targetRef = new WeakReference<object>(target);
+                _receiver = receiver;
+                _filter = filter;
+                _targetIdentityHashCode = RuntimeHelpers.GetHashCode(target);
+            }
+
+            public void Dispose()
+            {
+                _owner.Deregister(this);
+            }
+
+            /// <summary>
+            ///     Attempts to fire this listener. Returns true if the listener has been expended.
+            /// </summary>
+            /// <param name="ev"></param>
+            /// <returns></returns>
+            public bool TryFire(T ev)
+            {
+                if (_targetRef.TryGetTarget(out var target))
+                {
+                    if (TargetIsExpended(target))
+                    {
+                        TraceBuffer.RecordTraceEvent(
+                            eventType: "ListenerSet.Expired",
+                            formatEvent: e => $"Listener for {e.Arg0} expired",
+                            arg0: target
+                        );
+                        return true;
+                    }
+
+                    try
+                    {
+                        if (!_filter(ev))
+                        {
+                            return false;
+                        }
+
+                        var tev = TraceBuffer.RecordTraceEvent(
+                            eventType: "ListenerSet.Fire",
+                            formatEvent: e => $"Listener for {e.Arg0} fired with {e.Arg1}",
+                            arg0: target,
+                            arg1: ev
+                        );
+                        using (tev.Scope())
+                        {
+                            _receiver(target);
+                        }
+
+                        RepaintTrigger.RequestRepaint();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        return true;
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    TraceBuffer.RecordTraceEvent(
+                        eventType: "ListenerSet.GC",
+                        formatEvent: e => "Listener expired"
+                    );
+                }
+
+                return true;
+            }
+
+            public bool TryPrune()
+            {
+                return !_targetRef.TryGetTarget(out var target) || TargetIsExpended(target);
+            }
+
+            public void ForceFire()
+            {
+                if (_targetRef.TryGetTarget(out var target))
+                {
+                    _receiver(target);
+
+                    RepaintTrigger.RequestRepaint();
+                }
+            }
+
+            private bool TargetIsExpended(object target)
+            {
+                return target is ComputeContext ctx && _receiver == InvalidateContext && ctx.IsInvalidated;
+            }
+
+            public override string ToString()
+            {
+                if (_targetRef.TryGetTarget(out var target)) return $"Listener for {target}";
+
+                return "Listener (GC'd)";
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(_targetIdentityHashCode, _receiver.GetHashCode(), _filter.GetHashCode());
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(this, obj)) return true;
+                if (!(obj is Listener other)) return false;
+                if (_targetIdentityHashCode != other._targetIdentityHashCode) return false;
+                if (_receiver != other._receiver) return false;
+                if (_filter != other._filter) return false;
+
+                if (_targetRef.TryGetTarget(out var target) && other._targetRef.TryGetTarget(out var otherTarget))
+                    return ReferenceEquals(target, otherTarget);
+                return false;
+            }
+        }
+
+        private int highWater;
+        private HashSet<Listener> _listeners;
+
+        private void Deregister(Listener l)
+        {
+            lock (this)
+            {
+                _listeners.Remove(l);
+            }
+        }
+        
         public ListenerSet()
         {
-            _head = new Listener<T>(this, _ => false, null);
-            _head._next = _head._prev = _head;
+            highWater = 4;
         }
 
         public bool HasListeners()
         {
-            return _head._next != _head;
+            lock (this)
+            {
+                return _listeners != null && _listeners.Count > 0;
+            }
         }
 
         public IDisposable Register(Filter filter, ComputeContext ctx)
         {
-            var listener = new Listener<T>(this, filter, ctx);
+            var listener = new Listener(this, ctx, InvalidateContextAction, filter);
 
             lock (this)
             {
-                listener._next = _head._next;
-                listener._prev = _head;
-                _head._next._prev = listener;
-                _head._next = listener;
+                if (_listeners == null) _listeners = new HashSet<Listener>();
+
+                _listeners.Add(listener);
+                MaybePrune();
             }
 
             return listener;
@@ -148,14 +190,14 @@ namespace nadena.dev.ndmf.cs
         
         public IDisposable Register(Filter filter, object target, Action<object> receiver)
         {
-            var listener = new Listener<T>(this, filter, target, receiver);
+            var listener = new Listener(this, target, receiver, filter);
 
             lock (this)
             {
-                listener._next = _head._next;
-                listener._prev = _head;
-                _head._next._prev = listener;
-                _head._next = listener;
+                if (_listeners == null) _listeners = new HashSet<Listener>();
+
+                _listeners.Add(listener);
+                MaybePrune();
             }
 
             return listener;
@@ -175,44 +217,66 @@ namespace nadena.dev.ndmf.cs
 
         public void Fire(T info)
         {
-            for (var listener = _head._next; listener != _head;)
+            lock (this)
             {
-                var next = listener._next;
-                listener.MaybeFire(info);
-                listener = next;
+                if (_listeners == null || _listeners.Count == 0) return;
+
+                // It's possible we might recurse back and try to register listeners while this is running.
+                // To help avoid issues here, we create a new set, swap the two, and remove on the old set. If we
+                // find there were listeners registered, we merge them after the Fire call completes.
+
+                var tmp = _listeners;
+                _listeners = null;
+
+                tmp.RemoveWhere(l => l.TryFire(info));
+
+                if (_listeners != null)
+                    _listeners.UnionWith(tmp);
+                else
+                    _listeners = tmp;
             }
         }
 
-        public void Prune()
+        private void MaybePrune()
         {
-            for (var listener = _head._next; listener != _head;)
+            lock (this)
             {
-                var next = listener._next;
-                listener.MaybePrune();
-                listener = next;
+                if (_listeners == null) return;
+                if (_listeners.Count < highWater) return;
+
+                _listeners.RemoveWhere(l => l.TryPrune());
+
+                highWater = Math.Max(highWater, _listeners.Count * 2);
             }
         }
         
         internal IEnumerable<string> GetListeners()
         {
-            var ptr = _head._next;
-            while (ptr != _head)
+            lock (this)
             {
-                yield return ptr.ToString();
-                ptr = ptr._next;
+                if (_listeners == null) return Enumerable.Empty<string>();
+
+                return _listeners.Select(l => l.ToString()).ToList();
             }
         }
 
         public void FireAll()
         {
-            for (var listener = _head._next; listener != _head;)
+            lock (this)
             {
-                var next = listener._next;
-                listener.ForceFire();
-                listener = next;
-            }
+                if (_listeners == null) return;
 
-            _head._next = _head._prev = _head;
+                var tmp = _listeners;
+                _listeners = null;
+
+                foreach (var listener in tmp) listener.ForceFire();
+
+                if (_listeners == null)
+                {
+                    tmp.Clear();
+                    _listeners = tmp;
+                }
+            }
         }
     }
 }
