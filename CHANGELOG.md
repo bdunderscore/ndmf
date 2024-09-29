@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#423] Improved preview processing delays by flushing invalidates in the same frame they are triggered
 
 ### Removed
 
