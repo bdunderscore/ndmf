@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -156,7 +158,7 @@ namespace nadena.dev.ndmf.cs
         }
 
         public R MonitorObjectProps<T, R>(T obj, ComputeContext ctx, Func<T, R> extract, Func<R, R, bool> compare,
-            bool usePropMonitor)
+            bool usePropMonitor, [CanBeNull] string file, int? line)
             where T : UnityObject
         {
             var curVal = extract(obj);
@@ -172,7 +174,19 @@ namespace nadena.dev.ndmf.cs
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            return obj == null || !compare(curVal, extract(obj));
+                            if (obj != null && compare(curVal, extract(obj)))
+                            {
+                                TraceBuffer.RecordTraceEvent(
+                                    "ObjectWatcher.MonitorObjectProps",
+                                    ev => $"[{ev.FilePath}:{ev.Line}] Object {ev.Arg0} unchanged",
+                                    go.name,
+                                    filename: file ?? "???",
+                                    line: line ?? 0
+                                );
+                                return false;
+                            }
+
+                            return true;
                         default:
                             return false;
                     }
@@ -182,13 +196,27 @@ namespace nadena.dev.ndmf.cs
             }
             else
             {
+                object objName = (obj is Component c_) ? c_.gameObject.name : obj;
+                
                 var cancel = Hierarchy.RegisterObjectListener(obj, e =>
                 {
                     switch (e)
                     {
                         case HierarchyEvent.ObjectDirty:
                         case HierarchyEvent.ForceInvalidate:
-                            return obj == null || !compare(curVal, extract(obj));
+                            if (obj != null && compare(curVal, extract(obj)))
+                            {
+                                TraceBuffer.RecordTraceEvent(
+                                    "ObjectWatcher.MonitorObjectProps",
+                                    ev => $"[{ev.FilePath}:{ev.Line}] Object {ev.Arg0} unchanged",
+                                    objName,
+                                    filename: file ?? "???",
+                                    line: line ?? 0
+                                );
+                                return false;
+                            }
+
+                            return true;
                         default:
                             return false;
                     }

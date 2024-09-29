@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -89,12 +90,20 @@ namespace nadena.dev.ndmf.preview
         public IEnumerable<(Renderer, Renderer)> Renderers
             => _proxies.Select(kvp => (kvp.Key, kvp.Value.Renderer));
 
-        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters, ProxyPipeline priorPipeline = null)
+        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
+            ProxyPipeline priorPipeline = null)
         {
             _generation = (priorPipeline?._generation ?? 0) + 1;
             InvalidateAction = Invalidate;
 
+            var buildEvent = TraceBuffer.RecordTraceEvent(
+                "ProxyPipeline.Build",
+                (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Start build",
+                arg0: this
+            );
+
             using (var scope = NDMFSyncContext.Scope())
+            using (var evScope = buildEvent.Scope())
             {
                 _buildTask = Task.Factory.StartNew(
                     _ => Build(proxyCache, filters, priorPipeline),
@@ -193,8 +202,8 @@ namespace nadena.dev.ndmf.preview
                             priorPipeline?._proxies.TryGetValue(r, out priorProxy);
                             
                             var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
-                            proxy.OnInvalidate.ContinueWith(_ => InvalidateAction(),
-                                TaskContinuationOptions.ExecuteSynchronously);
+                            proxy.InvalidateMonitor.Invalidates(context);
+
                             if (!proxy.OnPreFrame()) Invalidate();
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
                             // we render for real).
@@ -268,6 +277,11 @@ namespace nadena.dev.ndmf.preview
             await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
                 .ContinueWith(result =>
                 {
+                    TraceBuffer.RecordTraceEvent(
+                        "ProxyPipeline.Build",
+                        (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Build complete",
+                        arg0: this
+                    );
                     _completedBuild.TrySetResult(null);
                     RepaintTrigger.RequestRepaint();
                 });

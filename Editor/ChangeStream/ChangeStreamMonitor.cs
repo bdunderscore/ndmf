@@ -2,6 +2,7 @@
 
 using System;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
@@ -53,6 +54,14 @@ namespace nadena.dev.ndmf.cs
 
         private static void HandleEvent(ObjectChangeEventStream stream, int i)
         {
+            var trace = TraceBuffer.RecordTraceEvent(
+                "ChangeStreamMonitor.HandleEvent",
+                (ev) => $"Handling event {ev.Arg0}",
+                stream.GetEventType(i),
+                level: TraceEventLevel.Trace
+            );
+            
+            using (trace.Scope())
             switch (stream.GetEventType(i))
             {
                 case ObjectChangeKind.None: break;

@@ -27,7 +27,7 @@ namespace nadena.dev.ndmf.preview
         internal Mesh _initialSharedMesh;
         internal ComputeContext _monitorRenderer, _monitorMaterials, _monitorMesh;
 
-        internal Task OnInvalidate;
+        internal ComputeContext InvalidateMonitor;
 
         private bool _visibilityOffOriginal;
         private bool _pickingOffOriginal, _pickingOffReplacement;
@@ -82,7 +82,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (r == null)
             {
-                OnInvalidate = Task.CompletedTask;
+                InvalidateMonitor = ComputeContext.NullContext;
                 return;
             }
             
@@ -124,7 +124,10 @@ namespace nadena.dev.ndmf.preview
                 }
             }
             
-            OnInvalidate = Task.WhenAny(_monitorRenderer.OnInvalidate, _monitorMaterials.OnInvalidate, _monitorMesh.OnInvalidate);
+            InvalidateMonitor = new ComputeContext("ProxyObjectController for " + gameObjectName);
+            _monitorMesh.Invalidates(InvalidateMonitor);
+            _monitorMaterials.Invalidates(InvalidateMonitor);
+            _monitorRenderer.Invalidates(InvalidateMonitor);
         }
         
         internal bool OnPreFrame()

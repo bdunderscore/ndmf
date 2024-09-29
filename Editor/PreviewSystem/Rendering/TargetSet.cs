@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -28,6 +29,8 @@ namespace nadena.dev.ndmf.preview
         {
             _filters = filters;
             
+            TraceBuffer.RecordTraceEvent("TargetSet.ctor", (ev) => "Get target groups");
+            
             Profiler.BeginSample("TargetSet.ctor");
             try
             {
@@ -35,7 +38,7 @@ namespace nadena.dev.ndmf.preview
                 foreach (var filter in _filters)
                 {
                     if (!filter.IsEnabled(_targetSetContext)) continue;
-
+                    
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
                     var groups = filter.GetTargetGroups(_targetSetContext);
                     Profiler.EndSample();
@@ -98,6 +101,9 @@ namespace nadena.dev.ndmf.preview
         public ImmutableList<Stage> ResolveActiveStages(ComputeContext context)
         {
             Profiler.BeginSample("TargetSet.ResolveActiveStages");
+            
+            TraceBuffer.RecordTraceEvent("TargetSet.ResolveActiveStages", (ev) => "TargetSet: Resolve active stages");
+            
             _targetSetContext.Invalidates(context);
 
             var targetRenderers = _stages

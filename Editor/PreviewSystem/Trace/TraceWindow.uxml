@@ -1,0 +1,17 @@
+﻿<UXML xmlns:ui="UnityEngine.UIElements" xmlns:ed="UnityEditor.UIElements"
+      xmlns:ma="nadena.dev.modular_avatar.core.editor">
+    <ui:VisualElement name="root-box">
+        <ui:Label text="Trace events" name="title" />
+        <ui:ScrollView>
+            <ui:VisualElement name="events"/> 
+        </ui:ScrollView>
+        
+        <ui:VisualElement name="buttons">
+            <ui:Button text="Refresh" name="btn_refresh"/>
+            <ui:Button text="Copy" name="btn_copy"/>
+            <ui:Button text="Clear" name="btn_clear"/>
+        </ui:VisualElement>
+        
+        <ui:Toggle name="tgl_propmon" label="Enable property monitor loop"/>
+    </ui:VisualElement>
+</UXML>
