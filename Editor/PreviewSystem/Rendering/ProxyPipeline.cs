@@ -243,23 +243,38 @@ namespace nadena.dev.ndmf.preview
                             Debug.Log(
                                 $"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
+                            NodeController node = null;
                             
                             if (priorNode != null)
                             {
                                 RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
                                     .Aggregate((a, b) => a | b);
 
-                                var node = await priorNode.Result.Refresh(proxies, changeFlags, trace);
+                                node = await priorNode.Result.Refresh(proxies, changeFlags, trace);
                                 if (node != null)
                                 {
                                     reused++;
-                                    return node;
-                                }
 
-                                refresh_failed++;
+                                }
+                                else
+                                {
+                                    refresh_failed++;
+                                }
                             }
 
-                            return await NodeController.Create(stage.Filter, group, items.Result.ToList(), trace);
+                            if (node == null)
+                            {
+                                node = await NodeController.Create(stage.Filter, group, items.Result.ToList(), trace);
+                                // Force a rebuild of downstream nodes
+                                node.WhatChanged = RenderAspects.Everything;
+                            }
+                            
+                            foreach (var proxy in proxies)
+                            {
+                                proxy.Item2.ChangeFlags |= node.WhatChanged;
+                            }
+
+                            return node;
                         })
                         .Unwrap();
 

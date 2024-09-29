@@ -208,10 +208,7 @@ namespace nadena.dev.ndmf.preview
                 }
                 else if (node == null)
                 {
-                    // rebuild registry so we forget any garbage left by the aborted Refresh call
-                    registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
-
-                    return await Create(_filter, _group, registry, proxies, trace);
+                    return null;
                 }
                 else
                 {

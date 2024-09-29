@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#425] PublishedValue changes now immediately trigger repaint
 - [#428] Preview trace window copy button doesn't work
+- [#429] Downstream nodes are not refreshed after recreating a node
 
 ### Changed
 
