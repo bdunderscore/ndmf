@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
@@ -14,6 +16,7 @@ namespace nadena.dev.ndmf.preview
         private T _value;
 
         public event Action<T> OnChange;
+        public string DebugName;
 
         public T Value
         {
@@ -21,12 +24,23 @@ namespace nadena.dev.ndmf.preview
             set
             {
                 if (ReferenceEquals(_value, value)) return;
-                _value = value;
-                _listeners.Fire(null);
-                var listeners = OnChange;
-                OnChange = default;
+                
+                var ev = TraceBuffer.RecordTraceEvent(
+                    "PublishedValue.Set",
+                    (ev) => $"[PublishedValue/{ev.Arg0}] Set value to {ev.Arg1}",
+                    DebugName,
+                    value
+                );
 
-                listeners?.Invoke(value);
+                using (ev.Scope())
+                {
+                    _value = value;
+                    _listeners.Fire(null);
+                    var listeners = OnChange;
+                    OnChange = default;
+
+                    listeners?.Invoke(value);
+                }
             }
         }
 
@@ -35,9 +49,10 @@ namespace nadena.dev.ndmf.preview
             _value = value;
         }
 
-        public PublishedValue(T value)
+        public PublishedValue(T value, string debugName = null)
         {
             _value = value;
+            DebugName = debugName ?? typeof(T).Name;
         }
 
         private readonly ListenerSet<object> _listeners = new();
@@ -45,7 +60,9 @@ namespace nadena.dev.ndmf.preview
         internal R Observe<R>(
             ComputeContext context,
             Func<T, R> extract,
-            Func<R, R, bool> eq
+            Func<R, R, bool> eq,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
         )
         {
             var initialValue = extract(_value);
@@ -54,7 +71,17 @@ namespace nadena.dev.ndmf.preview
             {
                 try
                 {
-                    return !eq(initialValue, extract(_value));
+                    if (eq(initialValue, extract(_value)))
+                    {
+                        TraceBuffer.RecordTraceEvent(
+                            "PublishedValue.Observe",
+                            (ev) => $"[PublishedValue/{ev.Arg0}] No change detected",
+                            DebugName
+                        );
+                        return false;
+                    }
+
+                    return true;
                 }
                 catch (Exception e)
                 {

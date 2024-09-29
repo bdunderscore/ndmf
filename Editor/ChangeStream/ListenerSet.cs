@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
 
 #endregion
@@ -53,13 +54,33 @@ namespace nadena.dev.ndmf.cs
             {
                 if (_targetRef.TryGetTarget(out var target))
                 {
-                    if (TargetIsExpended(target)) return true;
+                    if (TargetIsExpended(target))
+                    {
+                        TraceBuffer.RecordTraceEvent(
+                            eventType: "ListenerSet.Expired",
+                            formatEvent: e => $"Listener for {e.Arg0} expired",
+                            arg0: target
+                        );
+                        return true;
+                    }
 
                     try
                     {
-                        if (!_filter(ev)) return false;
+                        if (!_filter(ev))
+                        {
+                            return false;
+                        }
 
-                        _receiver(target);
+                        var tev = TraceBuffer.RecordTraceEvent(
+                            eventType: "ListenerSet.Fire",
+                            formatEvent: e => $"Listener for {e.Arg0} fired with {e.Arg1}",
+                            arg0: target,
+                            arg1: ev
+                        );
+                        using (tev.Scope())
+                        {
+                            _receiver(target);
+                        }
 
                         RepaintTrigger.RequestRepaint();
                     }
@@ -70,6 +91,13 @@ namespace nadena.dev.ndmf.cs
                     }
 
                     return true;
+                }
+                else
+                {
+                    TraceBuffer.RecordTraceEvent(
+                        eventType: "ListenerSet.GC",
+                        formatEvent: e => "Listener expired"
+                    );
                 }
 
                 return true;

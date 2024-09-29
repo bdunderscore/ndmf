@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine;
 
@@ -72,38 +73,48 @@ namespace nadena.dev.ndmf.preview
 
         public IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
         {
-            ShadowBoneManager.Instance.Update();
-            
-            bool activeIsReady = _active?.IsReady == true;
-            bool activeNeedsReplacement = _active?.IsInvalidated != false;
+            var ev = TraceBuffer.RecordTraceEvent(
+                "ProxySession.OnPreCull",
+                (ev) => $"Camera render (scene camera: {ev.Arg0})",
+                arg0: isSceneCamera,
+                collapse: true
+            );
 
-            if (_next?.IsFailed == true)
+            using (var scope = ev.Scope())
             {
-                _next.ShowError();
-                _next?.Dispose();
-                _next = null;
-            }
+                ShadowBoneManager.Instance.Update();
 
-            if (activeNeedsReplacement && _next == null)
-            {
-                _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _active);
-            }
+                bool activeIsReady = _active?.IsReady == true;
+                bool activeNeedsReplacement = _active?.IsInvalidated != false;
 
-            if (activeNeedsReplacement && _next?.IsReady == true)
-            {
-                _active?.Dispose();
-                _active = _next;
-                _next = null;
-            }
+                if (_next?.IsFailed == true)
+                {
+                    _next.ShowError();
+                    _next?.Dispose();
+                    _next = null;
+                }
 
-            if (activeIsReady)
-            {
-                _active.OnFrame(isSceneCamera);
-                return _active.Renderers;
-            }
-            else
-            {
-                return Array.Empty<(Renderer, Renderer)>();
+                if (activeNeedsReplacement && _next == null)
+                {
+                    _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _active);
+                }
+
+                if (activeNeedsReplacement && _next?.IsReady == true)
+                {
+                    _active?.Dispose();
+                    _active = _next;
+                    _next = null;
+                }
+
+                if (activeIsReady)
+                {
+                    _active.OnFrame(isSceneCamera);
+                    return _active.Renderers;
+                }
+                else
+                {
+                    return Array.Empty<(Renderer, Renderer)>();
+                }
             }
         }
     }

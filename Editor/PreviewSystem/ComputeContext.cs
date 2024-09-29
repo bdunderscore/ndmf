@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools.Constraints;
 
 #endregion
 
@@ -59,6 +61,19 @@ namespace nadena.dev.ndmf.preview
                     ctx._onInvalidateListeners.FireAll();
                     ctx._onInvalidateTask.TrySetResult(true);
                 }
+                
+                lock (_pendingInvalidatesLock)
+                {
+                    if (_pendingInvalidates.Count > 0)
+                    {
+                        list = _pendingInvalidates;
+                        _pendingInvalidates = new();
+                    }
+                    else
+                    {
+                        list.Clear();
+                    }
+                }
             }
         }
 
@@ -66,16 +81,19 @@ namespace nadena.dev.ndmf.preview
         {
             NullContext = new ComputeContext("null", null);
         }
-        
-        #if NDMF_TRACE
-        
+
         ~ComputeContext()
         {
             if (!IsInvalidated)
-                Debug.LogError("ComputeContext " + Description + " was GCed without being invalidated!");
+            {
+                TraceBuffer.RecordTraceEvent(
+                    "ComputeContext.Leak",
+                    (ev) => "Leaked context: " + ((ComputeContext)ev.Arg0).Description,
+                    arg0: this
+                );
+            }
         }
         
-        #endif
 
         internal string Description { get; }
         
@@ -102,14 +120,29 @@ namespace nadena.dev.ndmf.preview
         public bool IsInvalidated => _invalidatePending || _invalidater.Task.IsCompleted;
         private bool _invalidatePending;
 
+        private long? _invalidateTriggerEvent;
 
         public ComputeContext(string description)
         {
+            if (string.IsNullOrEmpty(description))
+            {
+                Debug.LogWarning("ComputeContext created with empty description");
+            }
+            
             Invalidate = () =>
             {
 #if NDMF_TRACE
                 Debug.Log("Invalidating " + Description);
 #endif
+
+                if (_invalidatePending || IsInvalidated) return;
+                
+                _invalidateTriggerEvent = TraceBuffer.RecordTraceEvent(
+                    "ComputeContext.Invalidate",
+                    (ev) => "Invalidate: " + ev.Arg0,
+                    arg0: this
+                ).EventId;
+                
                 TaskUtil.OnMainThread(this, DoInvalidate);
             };
             Description = description;
@@ -128,11 +161,6 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        private static void InvalidateInternal(ComputeContext ctx)
-        {
-            ctx._invalidater.TrySetResult(null);
-        }
-
         private ComputeContext(string description, object nullToken)
         {
             Invalidate = () => { };
@@ -148,11 +176,13 @@ namespace nadena.dev.ndmf.preview
         public void Invalidates(ComputeContext other)
         {
             if (other.IsInvalidated) return;
-            
-            _invalidater.Task.ContinueWith(_ =>
-            {
-                InvalidateInternal(other);
-            });
+
+            InvokeOnInvalidate(other, ForwardInvalidation);
+        }
+
+        private void ForwardInvalidation(ComputeContext obj)
+        {
+            obj.Invalidate();
         }
 
         /// <summary>

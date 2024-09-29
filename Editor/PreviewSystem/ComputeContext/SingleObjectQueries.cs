@@ -5,6 +5,8 @@ using VRC.SDK3.Avatars.Components;
 #endif
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
 using UnityEngine;
@@ -15,6 +17,7 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.ndmf.preview
 {
     [PublicAPI]
+    [SuppressMessage("ReSharper", "ExplicitCallerInfoArgument")]
     public static partial class ComputeContextQueries
     {
         /// <summary>
@@ -23,7 +26,11 @@ namespace nadena.dev.ndmf.preview
         /// <param name="obj"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static GameObject GetAvatarRoot(this ComputeContext context, GameObject obj)
+        public static GameObject GetAvatarRoot(
+            this ComputeContext context, GameObject obj,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
             if (obj == null) return null;
 
@@ -55,10 +62,14 @@ namespace nadena.dev.ndmf.preview
         /// <param name="val"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Observe<T>(this ComputeContext ctx, PublishedValue<T> val)
+        public static T Observe<T>(
+            this ComputeContext ctx, PublishedValue<T> val,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
             where T : IEquatable<T>
         {
-            return ctx.Observe(val, v => v);
+            return ctx.Observe(val, v => v, callerPath: callerPath, callerLine: callerLine);
         }
 
         /// <summary>
@@ -72,10 +83,14 @@ namespace nadena.dev.ndmf.preview
         /// <typeparam name="T">Type of the value in the PublishedValue</typeparam>
         /// <typeparam name="R">Type of the extracted value</typeparam>
         /// <returns>The extracted value</returns>
-        public static R Observe<T, R>(this ComputeContext ctx, PublishedValue<T> val, Func<T, R> extract)
+        public static R Observe<T, R>(
+            this ComputeContext ctx, PublishedValue<T> val, Func<T, R> extract,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
             where R : IEquatable<R>
         {
-            return ctx.Observe(val, extract, (a, b) => a.Equals(b));
+            return ctx.Observe(val, extract, (a, b) => a.Equals(b), callerPath: callerPath, callerLine: callerLine);
         }
 
         /// <summary>
@@ -91,9 +106,12 @@ namespace nadena.dev.ndmf.preview
         /// <typeparam name="R">Type of the extracted value</typeparam>
         /// <returns>The extracted value</returns>
         public static R Observe<T, R>(this ComputeContext ctx, PublishedValue<T> val, Func<T, R> extract,
-            Func<R, R, bool> eq)
+            Func<R, R, bool> eq,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+            )
         {
-            return val.Observe(ctx, extract, eq);
+            return val.Observe(ctx, extract, eq, callerPath: callerPath, callerLine: callerLine);
         }
 
         /// <summary>
@@ -108,9 +126,14 @@ namespace nadena.dev.ndmf.preview
         /// <param name="obj"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Observe<T>(this ComputeContext ctx, T obj) where T : Object
+        public static T Observe<T>(this ComputeContext ctx, T obj,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        ) where T : Object
         {
-            ObjectWatcher.Instance.MonitorObjectProps(obj, ctx, _ => 0, (_, _) => false, false);
+            ObjectWatcher.Instance.MonitorObjectProps(obj, ctx, _ => 0, (_, _) => false, false,
+                callerPath, callerLine
+            );
 
             return obj;
         }
@@ -128,10 +151,11 @@ namespace nadena.dev.ndmf.preview
         /// <typeparam name="R"></typeparam>
         /// <returns></returns>
         public static R Observe<T, R>(this ComputeContext ctx, T obj, Func<T, R> extract,
-            Func<R, R, bool> compare = null)
+            Func<R, R, bool> compare = null, [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0)
             where T : Object
         {
-            return ObjectWatcher.Instance.MonitorObjectProps(obj, ctx, extract, compare, true);
+            return ObjectWatcher.Instance.MonitorObjectProps(obj, ctx, extract, compare, true, callerPath, callerLine);
         }
 
         /// <summary>
@@ -183,9 +207,12 @@ namespace nadena.dev.ndmf.preview
         /// <param name="ctx"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static bool ActiveInHierarchy(this ComputeContext ctx, GameObject obj)
+        public static bool ActiveInHierarchy(this ComputeContext ctx, GameObject obj,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
-            foreach (var node in ObservePath(ctx, obj.transform)) ctx.Observe(node, n => n.gameObject.activeSelf);
+            foreach (var node in ObservePath(ctx, obj.transform)) ctx.Observe(node, n => n.gameObject.activeSelf, callerPath: callerPath, callerLine: callerLine);
             return obj.activeInHierarchy;
         }
 
@@ -195,9 +222,12 @@ namespace nadena.dev.ndmf.preview
         /// <param name="ctx"></param>
         /// <param name="c"></param>
         /// <returns></returns>
-        public static bool ActiveAndEnabled(this ComputeContext ctx, Behaviour c)
+        public static bool ActiveAndEnabled(this ComputeContext ctx, Behaviour c,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
-            return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c, c2 => c2.enabled);
+            return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c, c2 => c2.enabled, callerPath: callerPath, callerLine: callerLine);
         }
 
         private static C InternalGetComponent<C>(GameObject obj) where C : class
@@ -212,7 +242,10 @@ namespace nadena.dev.ndmf.preview
             return null;
         }
 
-        public static C GetComponent<C>(this ComputeContext ctx, GameObject obj) where C : class
+        public static C GetComponent<C>(this ComputeContext ctx, GameObject obj,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        ) where C : class
         {
             if (obj == null) return null;
 
@@ -220,7 +253,10 @@ namespace nadena.dev.ndmf.preview
                 () => obj != null ? InternalGetComponent<C>(obj) : null);
         }
 
-        public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type)
+        public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
             if (obj == null) return null;
 
@@ -228,7 +264,10 @@ namespace nadena.dev.ndmf.preview
                 () => obj != null ? InternalGetComponent(obj, type) : null);
         }
 
-        public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj) where C : class
+        public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        ) where C : class
         {
             if (obj == null) return Array.Empty<C>();
 
@@ -236,7 +275,10 @@ namespace nadena.dev.ndmf.preview
                 () => obj != null ? obj.GetComponents<C>() : Array.Empty<C>(), false);
         }
 
-        public static Component[] GetComponents(this ComputeContext ctx, GameObject obj, Type type)
+        public static Component[] GetComponents(this ComputeContext ctx, GameObject obj, Type type,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
             if (obj == null) return Array.Empty<Component>();
 
@@ -244,7 +286,10 @@ namespace nadena.dev.ndmf.preview
                 () => obj != null ? obj.GetComponents(type) : Array.Empty<Component>(), false);
         }
 
-        public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive)
+        public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
             where C : class
         {
             if (obj == null) return Array.Empty<C>();
@@ -254,7 +299,10 @@ namespace nadena.dev.ndmf.preview
         }
 
         public static Component[] GetComponentsInChildren(this ComputeContext ctx, GameObject obj, Type type,
-            bool includeInactive)
+            bool includeInactive,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
         {
             if (obj == null) return Array.Empty<Component>();
 

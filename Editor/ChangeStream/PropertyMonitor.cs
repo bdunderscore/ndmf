@@ -18,17 +18,40 @@ namespace nadena.dev.ndmf.cs
         private Task _activeRefreshTask = Task.CompletedTask;
         private Task _pendingRefreshTask = Task.CompletedTask;
 
+        private bool _isEnabled;
+        internal bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                if (_isEnabled == value) return;
+                
+                _isEnabled = value;
+
+                if (_isEnabled)
+                {
+                    using (var scope = NDMFSyncContext.Scope())
+                    {
+
+                        var curRefreshTask = _activeRefreshTask;
+                        _activeRefreshTask = Task.Factory.StartNew(
+                            async () =>
+                            {
+                                await curRefreshTask;
+                                await CheckAllObjectsLoop();
+                            },
+                            CancellationToken.None,
+                            TaskCreationOptions.None,
+                            TaskScheduler.FromCurrentSynchronizationContext()
+                        ).Unwrap();
+                    }
+                }
+            }
+        }
+
         internal void MaybeStartRefreshTimer()
         {
-            using (var scope = NDMFSyncContext.Scope())
-            {
-                _activeRefreshTask = Task.Factory.StartNew(
-                    CheckAllObjectsLoop,
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.FromCurrentSynchronizationContext()
-                );
-            }
+            IsEnabled = true;
         }
 
         public enum PropertyMonitorEvent
@@ -62,7 +85,7 @@ namespace nadena.dev.ndmf.cs
 
         private async Task CheckAllObjectsLoop()
         {
-            while (true)
+            while (_isEnabled)
             {
                 await CheckAllObjects();
                 await NextFrame();
@@ -81,6 +104,8 @@ namespace nadena.dev.ndmf.cs
 
                 foreach (var pair in _registeredObjects.ToList())
                 {
+                    if (!_isEnabled) break;
+                    
                     var (instanceId, reg) = pair;
 
                     // Wake up all listeners to see if their monitored value has changed

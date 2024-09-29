@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -104,44 +105,56 @@ namespace nadena.dev.ndmf.preview
             string trace
         )
         {
-            AsyncProfiler.PushProfilerContext("NodeController.Create[" + filter + "]", group.Renderers[0].gameObject);
-            var context =
-                new ComputeContext("NodeController " + trace + " for " + filter + " on " +
-                                   group.Renderers[0].gameObject.name);
+            var ev = TraceBuffer.RecordTraceEvent(
+                "NodeController.Create", 
+                (ev) => $"NodeController: Create for {ev.Arg0} on {ev.Arg1}",
+                arg0: filter,
+                arg1: group
+            );
+
+            using (ev.Scope())
+            {
+
+                AsyncProfiler.PushProfilerContext("NodeController.Create[" + filter + "]",
+                    group.Renderers[0].gameObject);
+                var context =
+                    new ComputeContext("NodeController " + trace + " for " + filter + " on " +
+                                       group.Renderers[0].gameObject.name);
 #if NDMF_TRACE_FILTERS
             UnityEngine.Debug.Log("[NodeController Create] " + trace + " Filter=" + filter + " Group=" +
                       group.Renderers[0].gameObject.name +
                       " Registry dump:\n" + registry.RegistryDump());
 #endif
-            IRenderFilterNode node;
-            using (var scope = new ObjectRegistryScope(registry))
-            {
-                var savedMaterials = group.Renderers.Select(r => r.sharedMaterials).ToArray();
-                
-                node = await filter.Instantiate(
-                    group,
-                    proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                    context
-                );
-
-                for (var i = 0; i < group.Renderers.Count; i++)
+                IRenderFilterNode node;
+                using (var scope = new ObjectRegistryScope(registry))
                 {
-                    if (group.Renderers[i].sharedMaterials.SequenceEqual(savedMaterials[i])) continue;
+                    var savedMaterials = group.Renderers.Select(r => r.sharedMaterials).ToArray();
 
-                    Debug.LogWarning("[NodeController Create] Renderer " + group.Renderers[i].gameObject.name +
-                                     " sharedMaterials changed during instantiation of " + filter + " in " +
-                                     " group " + group + ". Restoring original materials.");
-                    group.Renderers[i].sharedMaterials = savedMaterials[i];
+                    node = await filter.Instantiate(
+                        group,
+                        proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                        context
+                    );
+
+                    for (var i = 0; i < group.Renderers.Count; i++)
+                    {
+                        if (group.Renderers[i].sharedMaterials.SequenceEqual(savedMaterials[i])) continue;
+
+                        Debug.LogWarning("[NodeController Create] Renderer " + group.Renderers[i].gameObject.name +
+                                         " sharedMaterials changed during instantiation of " + filter + " in " +
+                                         " group " + group + ". Restoring original materials.");
+                        group.Renderers[i].sharedMaterials = savedMaterials[i];
+                    }
                 }
-            }
 
 #if NDMF_TRACE_FILTERS
             Debug.Log("[NodeController Post-Create] " + trace + " Filter=" + filter + " Group=" +
                       group.Renderers[0].gameObject.name +
                       " Registry dump:\n" + registry.RegistryDump());
 #endif
-            
-            return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
+
+                return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
+            }
         }
 
         public async Task<NodeController> Refresh(
@@ -150,59 +163,71 @@ namespace nadena.dev.ndmf.preview
             string trace
         )
         {
-            AsyncProfiler.PushProfilerContext("NodeController.Refresh[" + _filter + "]", _group.Renderers[0].gameObject);
-            var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)
-                .Append(ObjectRegistry));
-            var context = new ComputeContext("NodeController (refresh) for " + _filter + " on " +
-                                             _group.Renderers[0].gameObject.name);
+            var ev = TraceBuffer.RecordTraceEvent(
+                "NodeController.Refresh", 
+                (ev) => $"NodeController: Refresh for {ev.Arg0} on {ev.Arg1}",
+                arg0: _filter,
+                arg1: _group
+            );
 
-            IRenderFilterNode node;
+            using (ev.Scope())
+            {
 
-            if (changes == 0 && !IsInvalidated)
-            {
-                // Reuse the old node in its entirety
-                node = _node;
-                context = _context;
-            }
-            else
-            {
-                using (var scope = new ObjectRegistryScope(registry))
+                AsyncProfiler.PushProfilerContext("NodeController.Refresh[" + _filter + "]",
+                    _group.Renderers[0].gameObject);
+                var registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)
+                    .Append(ObjectRegistry));
+                var context = new ComputeContext("NodeController (refresh) for " + _filter + " on " +
+                                                 _group.Renderers[0].gameObject.name);
+
+                IRenderFilterNode node;
+
+                if (changes == 0 && !IsInvalidated)
                 {
-                    node = await _node.Refresh(
-                        proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                        context,
-                        changes
-                    );
+                    // Reuse the old node in its entirety
+                    node = _node;
+                    context = _context;
                 }
-            }
+                else
+                {
+                    using (var scope = new ObjectRegistryScope(registry))
+                    {
+                        node = await _node.Refresh(
+                            proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                            context,
+                            changes
+                        );
+                    }
+                }
 
-            RefCount refCount;
-            if (node == _node)
-            {
-                refCount = _refCount;
-                refCount.Count++;
-            }
-            else if (node == null)
-            {
-                // rebuild registry so we forget any garbage left by the aborted Refresh call
-                registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
-                
-                return await Create(_filter, _group, registry, proxies, trace);
-            }
-            else
-            {
-                refCount = new RefCount();
-            }
+                RefCount refCount;
+                if (node == _node)
+                {
+                    refCount = _refCount;
+                    refCount.Count++;
+                }
+                else if (node == null)
+                {
+                    // rebuild registry so we forget any garbage left by the aborted Refresh call
+                    registry = ObjectRegistry.Merge(null, proxies.Select(p => p.Item3));
 
-            var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
-            controller.WhatChanged = changes | node.WhatChanged;
+                    return await Create(_filter, _group, registry, proxies, trace);
+                }
+                else
+                {
+                    refCount = new RefCount();
+                }
 
-            foreach (var proxy in proxies)
-            {
-                proxy.Item2.ChangeFlags |= node.WhatChanged;
+                var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
+                controller.WhatChanged = changes | node.WhatChanged;
+
+                foreach (var proxy in proxies)
+                {
+                    proxy.Item2.ChangeFlags |= node.WhatChanged;
+                }
+
+                return controller;
             }
-            
-            return controller;
         }
 
         public void Dispose()
