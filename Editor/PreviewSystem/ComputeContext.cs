@@ -88,7 +88,7 @@ namespace nadena.dev.ndmf.preview
             {
                 TraceBuffer.RecordTraceEvent(
                     "ComputeContext.Leak",
-                    (ev) => "Leaked context: " + ((ComputeContext)ev.Arg0).Description,
+                    (ev) => "Leaked context: " + ev.Arg0,
                     arg0: this
                 );
             }
