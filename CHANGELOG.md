@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#424] Added tracing system for the preview/invalidation system
 
 ### Fixed
+- [#422] Fixed race condition in `ComputeContext.FlushInvalidates` that could cause invalidates to be missed
 
 ### Changed
 - [#423] Improved preview processing delays by flushing invalidates in the same frame they are triggered

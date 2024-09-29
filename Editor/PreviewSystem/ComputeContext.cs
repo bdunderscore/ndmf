@@ -48,31 +48,34 @@ namespace nadena.dev.ndmf.preview
         {
             _pendingInvalidatesScheduled = false;
             
-            var list = _pendingInvalidates;
-            _pendingInvalidates = new();
-            
-            //System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
-            
-            foreach (var ctx in list)
+            List<ComputeContext> list;
+
+            lock (_pendingInvalidatesLock)
             {
-                // We need to take the lock here to ensure that any final registrations complete
-                lock (ctx)
+                list = new(_pendingInvalidates.Count);
+                list.AddRange(_pendingInvalidates);
+                _pendingInvalidates.Clear();
+            }
+
+            while (list.Count > 0)
+            {
+                //System.Diagnostics.Debug.WriteLine("Flushing invalidates: " + list.Count);
+                foreach (var ctx in list)
                 {
-                    ctx._onInvalidateListeners.FireAll();
-                    ctx._onInvalidateTask.TrySetResult(true);
+                    // We need to take the lock here to ensure that any final registrations complete
+                    lock (ctx)
+                    {
+                        ctx._onInvalidateListeners.FireAll();
+                        ctx._onInvalidateTask.TrySetResult(true);
+                    }
                 }
-                
+
                 lock (_pendingInvalidatesLock)
                 {
-                    if (_pendingInvalidates.Count > 0)
-                    {
-                        list = _pendingInvalidates;
-                        _pendingInvalidates = new();
-                    }
-                    else
-                    {
-                        list.Clear();
-                    }
+                    list.Clear();
+                    
+                    list.AddRange(_pendingInvalidates);
+                    _pendingInvalidates.Clear();
                 }
             }
         }
