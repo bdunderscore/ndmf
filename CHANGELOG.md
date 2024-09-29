@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#425] PublishedValue changes now immediately trigger repaint
-- [#428] Preview trace window copy button doesn't work
-- [#429] Downstream nodes are not refreshed after recreating a node
 
 ### Changed
 
@@ -21,6 +18,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.0] - [2024-09-29]
+
+### Removed
+- Unity 2019 is no longer supported.
+
+### Added
+- [#244] Added a framework that can be used to override the rendering of an object without modifying the object itself
+- [#297] Added UI for turning preview on/off at a plugin or pass level
+- [#244] Added a framework for observing scene object changes and reacting to them.
+- [#244] Added `SelfDestructComponent` (useful for hidden preview-only components)
+- [#312] Added a default value field to ProvidedParameter
+- [#312] Added support for invalidating ComputeContext to ParameterInfo
+- [#360] Added `AsyncProfiler` to help profile code running in Tasks
+- [#365] Added debug tool to profile long editor frames
+- [#407] Added `ProvidedParameter.ExpandTypeOnConflict` to resolve parameter type mismatch automatically
+- [#410] Added `NDMFSyncContext` API
+- [#424] Added tracing system for the preview/invalidation system
+
+### Fixed
+- [#260] [ChilloutVR] Fix: Build fails due to CVRAvatar preventing recreation of Animator (contributed by @hai-vr)
+- [#261] [ChilloutVR] feat: don't build the avatar when ChilloutVR shows the upload UI (contributed by @hai-vr)
+- [#280] Console warnings issued whenever `.unity` (scene) files are saved
+- [#341] Font rendering breaks on scene change
+- [#385] Fix: parameter introspection used default value from child, not parent
+- [#386]
+  Workaround [VRCSDK bug](https://feedback.vrchat.com/sdk-bug-reports/p/string-conversion-errors-from-runtimeassemblygetcodebase-with-japanese-locale-an)
+  caused by non-ASCII project paths.
+- [#399] Fix: Parameter introspection did not skip EditorOnly objects
+- [#416] Fixed issues where assets would not properly be tracked due to C# object recreation edge cases
+  (removed ObjectIdentityComparer)
+
+### Changed
+- [#266] NDMF language defaults to being based on the system language.
+- [#408] Unserialized assets will be serialized after the Transforming phase completes (before e.g. VRCFury runs)
 
 ## [1.5.0-rc.11] - [2024-09-28]
 
