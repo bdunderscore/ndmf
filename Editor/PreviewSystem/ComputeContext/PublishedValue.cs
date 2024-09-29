@@ -40,6 +40,8 @@ namespace nadena.dev.ndmf.preview
                     OnChange = default;
 
                     listeners?.Invoke(value);
+                    
+                    RepaintTrigger.RequestRepaint();
                 }
             }
         }
