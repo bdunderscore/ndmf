@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.0-rc.11] - [2024-09-28]
+
+### Added
 - [#424] Added tracing system for the preview/invalidation system
 
 ### Fixed
@@ -16,13 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#423] Improved preview processing delays by flushing invalidates in the same frame they are triggered
 
-### Removed
-
-### Security
-
-### Deprecated
-
-## [1.5.0-rc.10]
+## [1.5.0-rc.10] - [2024-09-27]
 
 ### Fixed
 
