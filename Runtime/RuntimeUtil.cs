@@ -101,6 +101,7 @@ namespace nadena.dev.ndmf.runtime
         public static bool IsAvatarRoot(Transform target)
         {
             // First, look for platform specific avatar descriptors
+            // TODO: ignore nested avatar descriptors? 
 #if NDMF_VRCSDK3_AVATARS
             if (target.GetComponent<VRCAvatarDescriptor>()) return true;
 #endif
@@ -144,6 +145,7 @@ namespace nadena.dev.ndmf.runtime
             else
             {
                 GameObject priorRoot = null;
+                // TODO: allow generic avatars in VRChat projects?
 #if NDMF_VRCSDK3_AVATARS
                 var candidates = root.GetComponentsInChildren<VRCAvatarDescriptor>();
 #else
