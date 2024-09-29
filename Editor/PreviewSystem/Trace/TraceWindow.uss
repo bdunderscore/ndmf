@@ -5,8 +5,8 @@
     margin: 4px;
 }
 
-ScrollView #unity-content-container {
-    flex-grow: 1;
+ScrollView Foldout {
+    flex-shrink: 0;
 }
 
 #events {
