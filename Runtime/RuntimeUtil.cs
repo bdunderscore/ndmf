@@ -100,6 +100,7 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         public static bool IsAvatarRoot(Transform target)
         {
+            // First, look for platform specific avatar descriptors
 #if NDMF_VRCSDK3_AVATARS
             if (target.GetComponent<VRCAvatarDescriptor>()) return true;
 #endif
@@ -109,14 +110,12 @@ namespace nadena.dev.ndmf.runtime
 #if NDMF_VRM1
             if (target.GetComponent<Vrm10Instance>()) return true;
 #endif
-#if NDMF_VRCSDK3_AVATARS || NDMF_VRM0 || NDMF_VRM1
-            return false;
-#else
+
+            // Then, look for Animators, which is the generic avatar root as long as there are no Animators in its parents
             var an = target.GetComponent<Animator>();
             if (!an) return false;
             var parent = target.transform.parent;
             return !(parent && parent.GetComponentInParent<Animator>());
-#endif
         }
 
         /// <summary>
