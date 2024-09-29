@@ -66,6 +66,8 @@ namespace nadena.dev.ndmf.preview.trace
                     
                     _events.Add(foldout);
                 }
+                
+                _eventText = copyPasteText.ToString();
             };
             
             root.Q<Button>("btn_copy").clickable.clicked += () =>
