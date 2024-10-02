@@ -219,11 +219,6 @@ namespace nadena.dev.ndmf.util
                 }
                 default:
                 {
-                    if (obj is ParticleSystem ps)
-                    {
-                        Debug.Log("ps");
-                    }
-                    
                     foreach (var prop in new SerializedObject(obj).ObjectProperties())
                     {
                         var value = prop.objectReferenceValue;
