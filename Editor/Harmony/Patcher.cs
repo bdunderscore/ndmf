@@ -11,6 +11,8 @@ namespace nadena.dev.ndmf.preview
 {
     internal sealed class PatchLoader
     {
+        private const string HarmonyId = "nadena.dev.ndmf.core.preview";
+
         private static readonly Action<Harmony>[] patches =
         {
             HandleUtilityPatches.Patch_FilterInstanceIDs,
@@ -22,7 +24,7 @@ namespace nadena.dev.ndmf.preview
         [InitializeOnLoadMethod]
         static void ApplyPatches()
         {
-            var harmony = new Harmony("nadena.dev.ndmf.core.preview");
+            var harmony = new Harmony(HarmonyId);
 
             foreach (var patch in patches)
             {
@@ -36,7 +38,7 @@ namespace nadena.dev.ndmf.preview
                 }
             }
 
-            AssemblyReloadEvents.beforeAssemblyReload += () => { harmony.UnpatchAll(); };
+            AssemblyReloadEvents.beforeAssemblyReload += () => { harmony.UnpatchAll(HarmonyId); };
         }
     }
 }
