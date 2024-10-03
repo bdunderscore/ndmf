@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#434] Pass Harmony ID to `Harmony.UnpatchAll()` to avoid double-unpatching methods
 
 ### Changed
 
@@ -19,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.2] - [2024-10-02]
+
+### Fixed
+- [#434] Pass Harmony ID to `Harmony.UnpatchAll()` to avoid double-unpatching methods
+- [#433] Remove stray debug print
 
 ## [1.5.1] - [2024-09-30]
 
