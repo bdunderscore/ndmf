@@ -52,6 +52,31 @@ namespace nadena.dev.ndmf.preview
                     // We never want to save anything in the preview scene, and we definitely don't want to end up with
                     // UI popups prompting to save it, so aggressively clear its dirty flag.
                     clearSceneDirtiness?.Invoke(null, new object[] { _previewScene });
+
+                if (_previewScene.IsValid() && SceneManager.GetActiveScene() == _previewScene)
+                {
+                    // Oops, make sure the preview scene isn't selected
+                    var found = false;
+
+                    var sceneCount = SceneManager.sceneCount;
+                    for (var i = 0; i < sceneCount; i++)
+                    {
+                        var scene = SceneManager.GetSceneAt(i);
+                        if (scene == _previewScene) continue;
+
+                        SceneManager.SetActiveScene(scene);
+                        found = true;
+                        break;
+                    }
+
+                    if (!found)
+                    {
+                        // Unload the preview scene if it's the only one left
+                        EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+
+                        ResetPreviewScene();
+                    }
+                }
             };
 
             // Reset preview scene on play mode transition

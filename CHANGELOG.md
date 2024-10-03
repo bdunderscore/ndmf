@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#435] Fixed an issue where `File -> Save As` could break due to the internal preview scene becoming selected
 
 ### Changed
 
