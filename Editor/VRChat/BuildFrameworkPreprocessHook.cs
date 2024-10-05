@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -28,6 +29,10 @@ namespace nadena.dev.ndmf.VRChat
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
+            var isPlayMode = EditorApplication.isPlayingOrWillChangePlaymode;
+            var shouldApply = isPlayMode ? Config.ApplyOnPlay : Config.ApplyOnBuild;
+            if (!shouldApply) return true;
+            
             // Legacy: For VRCF
             if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
 
@@ -60,6 +65,10 @@ namespace nadena.dev.ndmf.VRChat
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
+            var isPlayMode = EditorApplication.isPlayingOrWillChangePlaymode;
+            var shouldApply = isPlayMode ? Config.ApplyOnPlay : Config.ApplyOnBuild;
+            if (!shouldApply) return true;
+            
             if (avatarGameObject.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return true;
             
             var state = HookDedup.RecordAvatar(avatarGameObject);

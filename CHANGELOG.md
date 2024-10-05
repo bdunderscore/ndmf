@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#439] Added a menu option to disable NDMF processing on build (`Tools -> NDM Framework -> Apply on Build`).
+  - This setting will survive domain reloads but not editor restarts.
+
 ### Fixed
 - [#438] Fixed an issue where exceptions would be thrown when scenes are unloaded
 

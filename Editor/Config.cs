@@ -26,8 +26,6 @@
 
 using System;
 using nadena.dev.ndmf.config.runtime;
-using UnityEditor;
-using UnityEngine;
 
 #endregion
 
@@ -44,6 +42,16 @@ namespace nadena.dev.ndmf.config
             set
             {
                 NonPersistentConfig.instance.applyOnPlay = value;
+                NotifyChange();
+            }
+        }
+
+        public static bool ApplyOnBuild
+        {
+            get => NonPersistentConfig.instance.applyOnBuild;
+            set
+            {
+                NonPersistentConfig.instance.applyOnBuild = value;
                 NotifyChange();
             }
         }

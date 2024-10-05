@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using nadena.dev.ndmf.config;
-using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -20,11 +19,13 @@ namespace nadena.dev.ndmf.ui
     internal static class Menus
     {
         private const string APPLY_ON_PLAY_MENU_NAME = "Tools/NDM Framework/Apply on Play";
+        private const string APPLY_ON_BUILD_MENU_NAME = "Tools/NDM Framework/Apply on Build";
         private const string TOPLEVEL_MANUAL_BAKE_MENU_NAME = "Tools/NDM Framework/Manual bake avatar";
         internal const string ENABLE_PREVIEW_MENU_NAME = "Tools/NDM Framework/Enable Previews";
         private const int APPLY_ON_PLAY_PRIO = 1;
-        private const int TOPLEVEL_MANUAL_BAKE_PRIO = 2;
-        internal const int ENABLE_PREVIEW_PRIO = 3;
+        private const int APPLY_ON_BUILD_PRIO = APPLY_ON_PLAY_PRIO + 1;
+        private const int TOPLEVEL_MANUAL_BAKE_PRIO = APPLY_ON_BUILD_PRIO + 1;
+        internal const int ENABLE_PREVIEW_PRIO = TOPLEVEL_MANUAL_BAKE_PRIO + 1;
 
         [InitializeOnLoadMethod]
         static void Init()
@@ -63,11 +64,18 @@ namespace nadena.dev.ndmf.ui
             Config.ApplyOnPlay = !Config.ApplyOnPlay;
         }
 
+
+        [MenuItem(APPLY_ON_BUILD_MENU_NAME, false, APPLY_ON_BUILD_PRIO)]
+        private static void ApplyOnBuild()
+        {
+            Config.ApplyOnBuild = !Config.ApplyOnBuild;
+        }
+
         private static void OnSettingsChanged()
         {
             Menu.SetChecked(APPLY_ON_PLAY_MENU_NAME, Config.ApplyOnPlay);
+            Menu.SetChecked(APPLY_ON_BUILD_MENU_NAME, Config.ApplyOnBuild);
         }
-
 #if NDMF_DEBUG
         [MenuItem("Tools/NDM Framework/Debug Tools/Domain Reload", false, 101)]
         private static void DomainReload()
