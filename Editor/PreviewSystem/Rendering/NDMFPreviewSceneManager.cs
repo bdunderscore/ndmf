@@ -62,7 +62,7 @@ namespace nadena.dev.ndmf.preview
                     for (var i = 0; i < sceneCount; i++)
                     {
                         var scene = SceneManager.GetSceneAt(i);
-                        if (scene == _previewScene) continue;
+                        if (scene == _previewScene || !scene.isLoaded || !scene.IsValid()) continue;
 
                         SceneManager.SetActiveScene(scene);
                         found = true;
@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf.preview
 
                     if (!found)
                     {
-                        // Unload the preview scene if it's the only one left
+                        // Unload the preview scene if it's the only valid/loaded scene left
                         EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
 
                         ResetPreviewScene();

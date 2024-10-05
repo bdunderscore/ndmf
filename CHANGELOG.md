@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#435] Fixed an issue where `File -> Save As` could break due to the internal preview scene becoming selected
+- [#438] Fixed an issue where exceptions would be thrown when scenes are unloaded
 
 ### Changed
 
@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.3] - [2024-10-03]
 
 ### Fixed
-
 - [#435] Fixed an issue where `File -> Save As` could break due to the internal preview scene becoming selected
 
 ## [1.5.2] - [2024-10-02]
