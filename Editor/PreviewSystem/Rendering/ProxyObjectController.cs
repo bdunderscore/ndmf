@@ -152,23 +152,24 @@ namespace nadena.dev.ndmf.preview
                 {
                     _pickingOffOriginal = SceneVisibilityManager.instance.IsPickingDisabled(original.gameObject);
                     _visibilityOffOriginal = SceneVisibilityManager.instance.IsHidden(original.gameObject);
+
+                    var pickingOffTarget = SceneVisibilityManager.instance.IsPickingDisabled(target.gameObject);
+                    if (_pickingOffOriginal != pickingOffTarget)
+                    {
+                        if (_pickingOffOriginal)
+                        {
+                            SceneVisibilityManager.instance.DisablePicking(target.gameObject, false);
+                        }
+                        else
+                        {
+                            SceneVisibilityManager.instance.EnablePicking(target.gameObject, false);
+                        }
+                    }
+
+                    _lastVisibilityCheck = VisibilityMonitor.Sequence;
                 }
 
                 target.enabled = false;
-
-                bool shouldDisablePicking = _pickingOffOriginal || _visibilityOffOriginal;
-
-                if (shouldDisablePicking != _pickingOffReplacement)
-                {
-                    if (shouldDisablePicking)
-                    {
-                        SceneVisibilityManager.instance.DisablePicking(target.gameObject, false);
-                    }
-                    else
-                    {
-                        SceneVisibilityManager.instance.EnablePicking(target.gameObject, false);
-                    }
-                }
 
                 SkinnedMeshRenderer smr = null;
                 if (_originalRenderer is SkinnedMeshRenderer smr_)
