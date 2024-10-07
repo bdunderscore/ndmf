@@ -7,6 +7,12 @@ using UnityEngine.SceneManagement;
 #if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
+#if NDMF_VRM0
+using VRM;
+#endif
+#if NDMF_VRM1
+using UniVRM10;
+#endif
 
 namespace nadena.dev.ndmf.runtime
 {
@@ -94,14 +100,23 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         public static bool IsAvatarRoot(Transform target)
         {
+            // First, look for platform specific avatar descriptors
+            // TODO: ignore nested avatar descriptors? 
 #if NDMF_VRCSDK3_AVATARS
-            return target.GetComponent<VRCAvatarDescriptor>();
-#else            
+            if (target.GetComponent<VRCAvatarDescriptor>()) return true;
+#endif
+#if NDMF_VRM0
+            if (target.GetComponent<VRMMeta>()) return true;
+#endif
+#if NDMF_VRM1
+            if (target.GetComponent<Vrm10Instance>()) return true;
+#endif
+
+            // Then, look for Animators, which is the generic avatar root as long as there are no Animators in its parents
             var an = target.GetComponent<Animator>();
             if (!an) return false;
             var parent = target.transform.parent;
             return !(parent && parent.GetComponentInParent<Animator>());
-#endif
         }
 
         /// <summary>
@@ -130,6 +145,7 @@ namespace nadena.dev.ndmf.runtime
             else
             {
                 GameObject priorRoot = null;
+                // TODO: allow generic avatars in VRChat projects?
 #if NDMF_VRCSDK3_AVATARS
                 var candidates = root.GetComponentsInChildren<VRCAvatarDescriptor>();
 #else
@@ -171,17 +187,15 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         internal static IEnumerable<Transform> FindAvatarsInScene(Scene scene)
         {
+            var list = new List<Transform>();
             foreach (var root in scene.GetRootGameObjects())
             {
-#if NDMF_VRCSDK3_AVATARS
-                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
-#else            
                 foreach (var avatar in root.GetComponentsInChildren<Animator>())
-#endif
                 {
-                    if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
+                    if (IsAvatarRoot(avatar.transform)) list.Add(avatar.transform);
                 }
             }
+            return list;
         }
     }
 }
