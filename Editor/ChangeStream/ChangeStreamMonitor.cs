@@ -27,24 +27,28 @@ namespace nadena.dev.ndmf.cs
             Profiler.BeginSample("ChangeStreamMonitor.OnChange");
 
             int length = stream.length;
-            for (int i = 0; i < length; i++)
+
+            using (ObjectWatcher.Instance.Hierarchy.SuspendEvents())
             {
-                try
+                for (int i = 0; i < length; i++)
                 {
-                    _handleEventSampler.Begin();
+                    try
+                    {
+                        _handleEventSampler.Begin();
                     
-                    HandleEvent(stream, i);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Error handling event {i}: {e}");
-                }
-                finally
-                {
-                    _handleEventSampler.End();
+                        HandleEvent(stream, i);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"Error handling event {i}: {e}");
+                    }
+                    finally
+                    {
+                        _handleEventSampler.End();
+                    }
                 }
             }
-                        
+
             Profiler.BeginSample("ComputeContext.FlushInvalidates");
             ComputeContext.FlushInvalidates();
             Profiler.EndSample();
@@ -52,23 +56,29 @@ namespace nadena.dev.ndmf.cs
             Profiler.EndSample();
         }
 
-        private static void HandleEvent(ObjectChangeEventStream stream, int i)
+        private static TraceScope OpenTrace(ObjectChangeEventStream stream, int i)
         {
-            var trace = TraceBuffer.RecordTraceEvent(
+            return TraceBuffer.RecordTraceEvent(
                 "ChangeStreamMonitor.HandleEvent",
-                (ev) => $"Handling event {ev.Arg0}",
+                ev => $"Handling event {ev.Arg0}",
                 stream.GetEventType(i),
                 level: TraceEventLevel.Trace
-            );
-            
-            using (trace.Scope())
+            ).Scope();
+        }
+        
+        private static void HandleEvent(ObjectChangeEventStream stream, int i)
+        {
             switch (stream.GetEventType(i))
             {
                 case ObjectChangeKind.None: break;
 
                 case ObjectChangeKind.ChangeScene:
                 {
-                    ObjectWatcher.Instance.Hierarchy.InvalidateAll();
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("ChangeScene"))
+                    {
+                        ObjectWatcher.Instance.Hierarchy.InvalidateAll();
+                    }
 
                     break;
                 }
@@ -77,7 +87,12 @@ namespace nadena.dev.ndmf.cs
                 {
                     stream.GetCreateGameObjectHierarchyEvent(i, out var data);
 
-                    ObjectWatcher.Instance.Hierarchy.FireGameObjectCreate(data.instanceId);
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("CreateGameObjectHierarchy"))
+                    {
+                        ObjectWatcher.Instance.Hierarchy.FireGameObjectCreate(data.instanceId);
+                    }
+
                     break;
                 }
 
@@ -85,7 +100,11 @@ namespace nadena.dev.ndmf.cs
                 {
                     stream.GetChangeGameObjectStructureHierarchyEvent(i, out var data);
 
-                    OnChangeGameObjectStructureHierarchy(data);
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeGameObjectStructHierarchy"))
+                    {
+                        OnChangeGameObjectStructureHierarchy(data);
+                    }
 
                     break;
                 }
@@ -93,7 +112,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.ChangeGameObjectStructure: // add/remove components
                 {
                     stream.GetChangeGameObjectStructureEvent(i, out var data);
-                    OnChangeGameObjectStructure(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeGameObjectStructure"))
+                    {
+                        OnChangeGameObjectStructure(data);
+                    }
 
                     break;
                 }
@@ -101,7 +125,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.ChangeGameObjectParent:
                 {
                     stream.GetChangeGameObjectParentEvent(i, out var data);
-                    OnChangeGameObjectParent(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeGameObjectParent"))
+                    {
+                        OnChangeGameObjectParent(data);
+                    }
 
                     break;
                 }
@@ -109,7 +138,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.ChangeGameObjectOrComponentProperties:
                 {
                     stream.GetChangeGameObjectOrComponentPropertiesEvent(i, out var data);
-                    OnChangeGameObjectOrComponentProperties(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeGameObjectOrComponentProperties"))
+                    {
+                        OnChangeGameObjectOrComponentProperties(data);
+                    }
 
                     break;
                 }
@@ -117,7 +151,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.DestroyGameObjectHierarchy:
                 {
                     stream.GetDestroyGameObjectHierarchyEvent(i, out var data);
-                    OnDestroyGameObjectHierarchy(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnDestroyGameObjectHierarchy"))
+                    {
+                        OnDestroyGameObjectHierarchy(data);
+                    }
 
                     break;
                 }
@@ -126,7 +165,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.DestroyAssetObject:
                 {
                     stream.GetDestroyAssetObjectEvent(i, out var data);
-                    OnDestroyAssetObject(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnDestroyAssetObject"))
+                    {
+                        OnDestroyAssetObject(data);
+                    }
 
                     break;
                 }
@@ -134,7 +178,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.ChangeAssetObjectProperties:
                 {
                     stream.GetChangeAssetObjectPropertiesEvent(i, out var data);
-                    OnChangeAssetObjectProperties(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeAssetObjectProperties"))
+                    {
+                        OnChangeAssetObjectProperties(data);
+                    }
 
                     break;
                 }
@@ -142,7 +191,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.UpdatePrefabInstances:
                 {
                     stream.GetUpdatePrefabInstancesEvent(i, out var data);
-                    OnUpdatePrefabInstances(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnUpdatePrefabInstances"))
+                    {
+                        OnUpdatePrefabInstances(data);
+                    }
 
                     break;
                 }
@@ -150,7 +204,12 @@ namespace nadena.dev.ndmf.cs
                 case ObjectChangeKind.ChangeChildrenOrder:
                 {
                     stream.GetChangeChildrenOrderEvent(i, out var data);
-                    OnChangeChildrenOrder(data);
+
+                    using (OpenTrace(stream, i))
+                    using (new ProfilerScope("OnChangeChildrenOrder"))
+                    {
+                        OnChangeChildrenOrder(data);
+                    }
 
                     break;
                 }

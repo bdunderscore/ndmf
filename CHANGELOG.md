@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#450] Improved performance when a large number of object change events are generated (e.g. when exiting animation
+  mode)
+
 ### Changed
 
 ### Removed
