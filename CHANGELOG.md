@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#441] Fixed an issue where the preview object pickable status could get out of sync with the original
+
 ### Changed
 
 ### Removed
