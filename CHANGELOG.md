@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#451] Changed preview system to apply to more cameras. Specifically, we now handle all cameras with no render
+  texture set, to ensure that Game Mode behaves as expected.
 
 ### Removed
 
