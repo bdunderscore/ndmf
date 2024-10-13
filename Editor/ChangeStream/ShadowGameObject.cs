@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using nadena.dev.ndmf.preview;
+using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -56,6 +58,152 @@ namespace nadena.dev.ndmf.cs
         internal Dictionary<int, ShadowGameObject> _gameObjects = new();
         internal Dictionary<int, ShadowObject> _otherObjects = new();
         internal ListenerSet<HierarchyEvent> _rootSetListener = new();
+
+        private struct PendingEvent
+        {
+            public bool ObjectDirty;
+            public long ObjectDirtyTraceEvent;
+            public bool PathChange;
+            public long PathChangeTraceEvent;
+            public bool SelfComponentsChanged;
+            public long SelfComponentsChangedTraceEvent;
+            public bool ChildComponentsChanged;
+            public long ChildComponentsChangedTraceEvent;
+            public bool ForceInvalidate;
+            public long ForceInvalidateTraceEvent;
+        }
+
+        private bool _suspended;
+        private readonly Dictionary<ListenerSet<HierarchyEvent>, PendingEvent> _pendingEvents = new();
+
+        private void FireEvent(ListenerSet<HierarchyEvent> listeners, HierarchyEvent eventToSend)
+        {
+            if (!_suspended)
+            {
+                listeners.Fire(eventToSend);
+                return;
+            }
+
+            if (!_pendingEvents.TryGetValue(listeners, out var pending))
+            {
+                pending = new PendingEvent();
+            }
+
+            switch (eventToSend)
+            {
+                case HierarchyEvent.ObjectDirty:
+                {
+                    pending.ObjectDirty = true;
+                    pending.ObjectDirtyTraceEvent = TraceScope.CurrentTraceEvent.Value ?? -1;
+                    break;
+                }
+                case HierarchyEvent.PathChange:
+                {
+                    pending.PathChange = true;
+                    pending.PathChangeTraceEvent = TraceScope.CurrentTraceEvent.Value ?? -1;
+                    break;
+                }
+                case HierarchyEvent.SelfComponentsChanged:
+                {
+                    pending.SelfComponentsChanged = true;
+                    pending.SelfComponentsChangedTraceEvent = TraceScope.CurrentTraceEvent.Value ?? -1;
+                    break;
+                }
+                case HierarchyEvent.ChildComponentsChanged:
+                {
+                    pending.ChildComponentsChanged = true;
+                    pending.ChildComponentsChangedTraceEvent = TraceScope.CurrentTraceEvent.Value ?? -1;
+                    break;
+                }
+                case HierarchyEvent.ForceInvalidate:
+                {
+                    // Discard other events, since force invalidate subsumes them
+                    pending = new PendingEvent
+                    {
+                        ForceInvalidate = true,
+                        ForceInvalidateTraceEvent = TraceScope.CurrentTraceEvent.Value ?? -1
+                    };
+                    break;
+                }
+            }
+
+            _pendingEvents[listeners] = pending;
+        }
+
+        private void FlushEvents()
+        {
+            Profiler.BeginSample("ShadowHierarchy.FlushEvents");
+            foreach (var (listeners, pending) in _pendingEvents)
+            {
+                if (pending.ObjectDirty)
+                {
+                    using (new TraceScope(pending.ObjectDirtyTraceEvent))
+                    {
+                        listeners.Fire(HierarchyEvent.ObjectDirty);
+                    }
+                }
+
+                if (pending.PathChange)
+                {
+                    using (new TraceScope(pending.PathChangeTraceEvent))
+                    {
+                        listeners.Fire(HierarchyEvent.PathChange);
+                    }
+                }
+
+                if (pending.SelfComponentsChanged)
+                {
+                    using (new TraceScope(pending.SelfComponentsChangedTraceEvent))
+                    {
+                        listeners.Fire(HierarchyEvent.SelfComponentsChanged);
+                    }
+                }
+
+                if (pending.ChildComponentsChanged)
+                {
+                    using (new TraceScope(pending.ChildComponentsChangedTraceEvent))
+                    {
+                        listeners.Fire(HierarchyEvent.ChildComponentsChanged);
+                    }
+                }
+
+                if (pending.ForceInvalidate)
+                {
+                    using (new TraceScope(pending.ForceInvalidateTraceEvent))
+                    {
+                        listeners.Fire(HierarchyEvent.ForceInvalidate);
+                    }
+                }
+            }
+
+            _pendingEvents.Clear();
+            Profiler.EndSample();
+        }
+
+        internal IDisposable SuspendEvents()
+        {
+            _suspended = true;
+            return new ActionDisposable(() =>
+            {
+                _suspended = false;
+                FlushEvents();
+            });
+        }
+
+        private class ActionDisposable : IDisposable
+        {
+            private readonly Action _action;
+
+            public ActionDisposable(Action action)
+            {
+                _action = action;
+            }
+
+            public void Dispose()
+            {
+                _action();
+            }
+        }
 
 #if NDMF_DEBUG
         [MenuItem("Tools/NDM Framework/Debug Tools/Dump shadow hierarchy")]
@@ -259,7 +407,7 @@ namespace nadena.dev.ndmf.cs
                 if (parent == null)
                 {
                     shadow.SetParent(null, false);
-                    _rootSetListener.Fire(HierarchyEvent.ForceInvalidate);
+                    FireEvent(_rootSetListener, HierarchyEvent.ForceInvalidate);
                 }
                 else
                 {
@@ -289,7 +437,7 @@ namespace nadena.dev.ndmf.cs
             
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
             {
-                shadow._listeners.Fire(HierarchyEvent.ObjectDirty);
+                FireEvent(shadow._listeners, HierarchyEvent.ObjectDirty);
                 if (shadow.IsActive != shadow.GameObject.activeSelf)
                 {
                     shadow.IsActive = shadow.GameObject.activeSelf;
@@ -308,7 +456,7 @@ namespace nadena.dev.ndmf.cs
 
             if (_otherObjects.TryGetValue(instanceId, out var shadowComponent))
             {
-                shadowComponent._listeners.Fire(HierarchyEvent.ObjectDirty);
+                FireEvent(shadowComponent._listeners, HierarchyEvent.ObjectDirty);
             }
         }
 
@@ -344,7 +492,7 @@ namespace nadena.dev.ndmf.cs
 
             // Ensure the new parent is marked as dirty, in case this is a new object and we suppressed the dirty
             // notifications.
-            if (shadow.Parent != null) shadow.Parent._listeners.Fire(HierarchyEvent.ObjectDirty);
+            if (shadow.Parent != null) FireEvent(shadow.Parent._listeners, HierarchyEvent.ObjectDirty);
 
             // Update parentage and refire
 
@@ -352,11 +500,11 @@ namespace nadena.dev.ndmf.cs
             if (newParent == null)
             {
                 shadow.Parent = null;
-                _rootSetListener.Fire(HierarchyEvent.ForceInvalidate);
+                FireEvent(_rootSetListener, HierarchyEvent.ForceInvalidate);
             }
             else if (newParent != shadow.Parent?.GameObject)
             {
-                if (shadow.Parent == null) _rootSetListener.Fire(HierarchyEvent.ForceInvalidate);
+                if (shadow.Parent == null) FireEvent(_rootSetListener, HierarchyEvent.ForceInvalidate);
 
                 shadow.Parent = ActivateShadowObject(newParent);
                 FireParentComponentChangeNotifications(shadow.Parent);
@@ -377,7 +525,7 @@ namespace nadena.dev.ndmf.cs
         private void FirePathChangeNotifications(ShadowGameObject shadow)
         {
             if (!shadow.PathMonitoring) return;
-            shadow._listeners.Fire(HierarchyEvent.PathChange);
+            FireEvent(shadow._listeners, HierarchyEvent.PathChange);
             foreach (var child in shadow.Children)
             {
                 FirePathChangeNotifications(child);
@@ -388,7 +536,7 @@ namespace nadena.dev.ndmf.cs
         {
             while (obj != null)
             {
-                obj._listeners.Fire(HierarchyEvent.ChildComponentsChanged);
+                FireEvent(obj._listeners, HierarchyEvent.ChildComponentsChanged);
                 obj = obj.Parent;
             }
         }
@@ -412,8 +560,8 @@ namespace nadena.dev.ndmf.cs
             var resolvedName = obj.GameObject == null ? "<null>" : obj.GameObject.name;
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] ForceInvalidateHierarchy({obj.InstanceID}:{resolvedName})");
 #endif
-            
-            obj._listeners.Fire(HierarchyEvent.ForceInvalidate);
+
+            FireEvent(obj._listeners, HierarchyEvent.ForceInvalidate);
             _gameObjects.Remove(obj.InstanceID);
 
             foreach (var child in obj.Children)
@@ -447,7 +595,7 @@ namespace nadena.dev.ndmf.cs
                 return;
             }
 
-            shadow._listeners.Fire(HierarchyEvent.SelfComponentsChanged);
+            FireEvent(shadow._listeners, HierarchyEvent.SelfComponentsChanged);
             FireParentComponentChangeNotifications(shadow.Parent);
         }
 
@@ -456,6 +604,7 @@ namespace nadena.dev.ndmf.cs
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine("[ShadowHierarchy] InvalidateAll()");
 #endif
+            FlushEvents();
             
             var oldDict = _gameObjects;
             _gameObjects = new Dictionary<int, ShadowGameObject>();
@@ -491,7 +640,7 @@ namespace nadena.dev.ndmf.cs
             if (_gameObjects.TryGetValue(instanceId, out var shadow))
             {
                 _gameObjects.Remove(instanceId);
-                shadow._listeners.Fire(HierarchyEvent.ForceInvalidate);
+                FireEvent(shadow._listeners, HierarchyEvent.ForceInvalidate);
                 FireParentComponentChangeNotifications(shadow.Parent);
 
                 var parentGameObject = shadow.Parent?.GameObject;
@@ -516,7 +665,7 @@ namespace nadena.dev.ndmf.cs
             if (_otherObjects.TryGetValue(instanceId, out var otherObj))
             {
                 _otherObjects.Remove(instanceId);
-                otherObj._listeners.Fire(HierarchyEvent.ForceInvalidate);
+                FireEvent(otherObj._listeners, HierarchyEvent.ForceInvalidate);
             }
         }
 
@@ -532,7 +681,7 @@ namespace nadena.dev.ndmf.cs
             var shadow = ActivateShadowObject(obj);
 
             // Ensure the new parent is marked as dirty
-            if (shadow.Parent != null) shadow.Parent._listeners.Fire(HierarchyEvent.ObjectDirty);
+            if (shadow.Parent != null) FireEvent(shadow.Parent._listeners, HierarchyEvent.ObjectDirty);
         }
     }
 
