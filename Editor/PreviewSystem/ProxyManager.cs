@@ -37,6 +37,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (cam.name == "TempCamera" && cam.targetTexture?.name == "ThumbnailCapture") return true;
             if (cam.transform.parent == null) return true;
+            if (cam.targetTexture == null) return true;
 
             return false;
         }
