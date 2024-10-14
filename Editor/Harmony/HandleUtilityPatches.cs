@@ -92,6 +92,15 @@ namespace nadena.dev.ndmf.preview
                 new HarmonyMethod(m_prefix_internal_getclosestpickingid),
                 new HarmonyMethod(m_postfix_internal_getclosestpickingid)
             );
+
+            var m_internal_pickrectobjects = AccessTools.Method(t_HandleUtility, "Internal_PickRectObjects");
+            var m_postfix_internal_pickrectobjects = AccessTools.Method(typeof(HandleUtilityPatches),
+                nameof(Postfix_Internal_PickRectObjects));
+
+            h.Patch(
+                m_internal_pickrectobjects,
+                postfix: new HarmonyMethod(m_postfix_internal_pickrectobjects)
+            );
         }
 
         private static readonly Type ty_PickingObject = AccessTools.TypeByName("UnityEditor.PickingObject");
@@ -164,6 +173,29 @@ namespace nadena.dev.ndmf.preview
             if (sess.ProxyToOriginalObject.TryGetValue(go, out var original) && original != null)
             {
                 __result = (uint)original.GetInstanceID();
+            }
+        }
+
+        [UsedImplicitly]
+        private static void Postfix_Internal_PickRectObjects(
+            Camera cam,
+            Rect rect,
+            bool selectPrefabRoots,
+            bool drawGizmos,
+            ref GameObject[] __result
+        )
+        {
+            if (__result == null) return;
+
+            var sess = PreviewSession.Current;
+            if (sess == null) return;
+
+            for (var i = 0; i < __result.Length; i++)
+            {
+                if (sess.ProxyToOriginalObject.TryGetValue(__result[i], out var original) && original != null)
+                {
+                    __result[i] = original;
+                }
             }
         }
 
