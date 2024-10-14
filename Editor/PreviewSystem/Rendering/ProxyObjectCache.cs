@@ -17,15 +17,75 @@ namespace nadena.dev.ndmf.preview
 
             return _proxyObjectInstanceIds.Contains(obj.GetInstanceID());
         }
-        
+
+        public interface IProxyHandle : IDisposable
+        {
+            public Renderer PrimaryProxy { get; }
+            public Renderer GetSetupProxy();
+            public void ReturnSetupProxy(Renderer proxy);
+        }
+
+        private class ProxyHandleImpl : IProxyHandle
+        {
+            private readonly ProxyObjectCache _cache;
+            private readonly Renderer _key;
+            private readonly Func<Renderer> _createFunc;
+            private readonly RendererState _state;
+
+            public ProxyHandleImpl(ProxyObjectCache cache, Renderer key, Func<Renderer> createFunc, RendererState state)
+            {
+                _cache = cache;
+                _key = key;
+                _createFunc = createFunc;
+                _state = state;
+            }
+
+            public Renderer PrimaryProxy => _state.PrimaryProxy;
+
+            public Renderer GetSetupProxy()
+            {
+                if (_state.InactiveSetupProxy != null)
+                {
+                    var proxy = _state.InactiveSetupProxy;
+                    proxy.enabled = true;
+                    _state.InactiveSetupProxy = null;
+                    return proxy;
+                }
+
+                return _createFunc();
+            }
+
+            public void ReturnSetupProxy(Renderer proxy)
+            {
+                if (_state.InactiveSetupProxy != null || _state.ActivePrimaryCount == 0)
+                {
+                    DestroyProxy(proxy);
+                }
+                else
+                {
+                    proxy.enabled = false;
+                    _state.InactiveSetupProxy = proxy;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (--_state.ActivePrimaryCount == 0)
+                {
+                    _cache.MaybeDisposeProxy(_key);
+                }
+            }
+        }
+
         private class RendererState
         {
-            public Renderer InactiveProxy;
-            public int ActiveProxyCount = 0;
+            public Renderer PrimaryProxy;
+            public int ActivePrimaryCount;
+
+            public Renderer InactiveSetupProxy;
         }
 
         private readonly Dictionary<Renderer, RendererState> _renderers = new();
-        private bool _cleanupPending = false;
         private bool _isRegistered = false;
 
         private bool IsRegistered
@@ -37,10 +97,12 @@ namespace nadena.dev.ndmf.preview
                 if (value)
                 {
                     EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+                    EditorApplication.update += Cleanup;
                 }
                 else
                 {
                     EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+                    EditorApplication.update -= Cleanup;
                 }
 
                 _isRegistered = value;
@@ -53,69 +115,26 @@ namespace nadena.dev.ndmf.preview
             Dispose();
         }
 
-        public Renderer GetOrCreate(Renderer original, Func<Renderer> create)
+        public IProxyHandle GetHandle(Renderer original, Func<Renderer> create)
         {
             IsRegistered = true;
             
             if (!_renderers.TryGetValue(original, out var state))
             {
                 state = new RendererState();
+                state.PrimaryProxy = create();
                 _renderers.Add(original, state);
             }
 
-            Renderer proxy;
-            if (state.InactiveProxy != null)
-            {
-                proxy = state.InactiveProxy;
-                state.InactiveProxy = null;
-                state.ActiveProxyCount++;
-                proxy.enabled = true;
-                return proxy;
-            }
-            
-            proxy = create();
-            if (proxy == null)
-            {
-                return null;
-            }
+            state.ActivePrimaryCount++;
 
-            state.ActiveProxyCount++;
-            _proxyObjectInstanceIds.Add(proxy.gameObject.GetInstanceID());
-            
-            return proxy;
-        }
-        
-        public void ReturnProxy(Renderer original, Renderer proxy)
-        {
-            IsRegistered = true;
-            
-            if (!_renderers.TryGetValue(original, out var state))
+            return new ProxyHandleImpl(this, original, () =>
             {
-                DestroyProxy(proxy);
-                return;
-            }
+                var newProxy = create();
+                _proxyObjectInstanceIds.Add(newProxy.gameObject.GetInstanceID());
 
-            if (!_cleanupPending)
-            {
-                EditorApplication.delayCall += Cleanup;
-                _cleanupPending = true;
-            }
-
-            state.ActiveProxyCount--;
-            if (state.ActiveProxyCount > 0 && state.InactiveProxy == null)
-            {
-                state.InactiveProxy = proxy;
-                proxy.enabled = false;
-                return;
-            }
-            
-            DestroyProxy(proxy);
-
-            if (state.ActiveProxyCount == 0)
-            {
-                DestroyProxy(state.InactiveProxy);
-                _renderers.Remove(original);
-            }
+                return newProxy;
+            }, state);
         }
 
         private static void DestroyProxy(Renderer proxy)
@@ -127,13 +146,23 @@ namespace nadena.dev.ndmf.preview
             Object.DestroyImmediate(gameObject);
         }
 
+
+        private void MaybeDisposeProxy(Renderer key)
+        {
+            if (_renderers.TryGetValue(key, out var state) && state.ActivePrimaryCount == 0)
+            {
+                DestroyProxy(state.PrimaryProxy);
+                DestroyProxy(state.InactiveSetupProxy);
+                _renderers.Remove(key);
+            }
+        }
+        
         private void Cleanup()
         {
-            _cleanupPending = false;
-            
             foreach (var entry in _renderers.Where(kv => kv.Key == null).ToList())
             {
-                DestroyProxy(entry.Value.InactiveProxy);
+                DestroyProxy(entry.Value.InactiveSetupProxy);
+                DestroyProxy(entry.Value.PrimaryProxy);
                 _renderers.Remove(entry.Key);
             }
         }
@@ -142,7 +171,8 @@ namespace nadena.dev.ndmf.preview
         {
             foreach (var entry in _renderers)
             {
-                DestroyProxy(entry.Value.InactiveProxy);
+                DestroyProxy(entry.Value.InactiveSetupProxy);
+                DestroyProxy(entry.Value.PrimaryProxy);
             }
             _renderers.Clear();
             IsRegistered = false;
