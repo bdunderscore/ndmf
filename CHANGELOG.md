@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#450] Improved performance when a large number of object change events are generated (e.g. when exiting animation
   mode)
 - [#441] Fixed an issue where the preview object pickable status could get out of sync with the original
+- [#444] Fixed an issue where the preview system broke drag-and-drop of materials onto the scene view
+- [#444] Fixed an issue where the preview system broke drag-to-select in the scene view
 
 ### Changed
 - [#451] Changed preview system to apply to more cameras. Specifically, we now handle all cameras with no render
