@@ -209,10 +209,6 @@ namespace nadena.dev.ndmf.preview
                             // we render for real).
                             _proxies.Add(r, proxy);
 
-                            OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
-                            OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
-                            ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
-
                             var registry = new ObjectRegistry(null);
                             ((IObjectRegistry)registry).RegisterReplacedObject(r, proxy.Renderer);
 
@@ -303,6 +299,15 @@ namespace nadena.dev.ndmf.preview
 
             //UnityEngine.Debug.Log($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
+            foreach (var (r, proxy) in _proxies)
+            {
+                proxy.FinishSetup();
+
+                OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
+                OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
+                ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
+            }
+            
 #if NDMF_DEBUG
             Debug.Log($"Pipeline {_generation} is ready");
 #endif

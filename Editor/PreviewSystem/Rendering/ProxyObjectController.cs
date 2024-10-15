@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -17,9 +16,11 @@ namespace nadena.dev.ndmf.preview
     {
         private readonly ProxyObjectCache _cache;
         private readonly Renderer _originalRenderer;
-        private Renderer _replacementRenderer;
-        internal Renderer Renderer => _replacementRenderer;
-        public bool IsValid => _originalRenderer != null && _replacementRenderer != null;
+        private bool _setupComplete;
+        private Renderer _setupProxy, _primaryProxy;
+        private ProxyObjectCache.IProxyHandle _proxyHandle;
+
+        internal Renderer Renderer => _setupComplete ? _primaryProxy : _setupProxy;
 
         internal RenderAspects ChangeFlags;
 
@@ -132,9 +133,9 @@ namespace nadena.dev.ndmf.preview
         
         internal bool OnPreFrame()
         {
-            if (_replacementRenderer == null || _originalRenderer == null)
+            if (Renderer == null || _originalRenderer == null)
             {
-                if (_replacementRenderer == null)
+                if (Renderer == null)
                 {
                     Debug.LogWarning("Proxy object was destroyed improperly! Resetting pipeline...");
                 }
@@ -145,7 +146,7 @@ namespace nadena.dev.ndmf.preview
 
             try
             {
-                var target = _replacementRenderer;
+                var target = Renderer;
                 var original = _originalRenderer;
 
                 if (VisibilityMonitor.Sequence != _lastVisibilityCheck)
@@ -176,7 +177,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     smr = smr_;
 
-                    var replacementSMR = (SkinnedMeshRenderer)_replacementRenderer;
+                    var replacementSMR = (SkinnedMeshRenderer)Renderer;
                     replacementSMR.sharedMesh = smr_.sharedMesh;
                     replacementSMR.bones = smr_.bones;
 
@@ -186,12 +187,12 @@ namespace nadena.dev.ndmf.preview
                 else
                 {
                     var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
-                    var filter = _replacementRenderer.GetComponent<MeshFilter>();
+                    var filter = Renderer.GetComponent<MeshFilter>();
                     filter.sharedMesh = originalFilter.sharedMesh;
 
                     var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
 
-                    var rendererTransform = _replacementRenderer.transform;
+                    var rendererTransform = Renderer.transform;
                     if (shadowBone != rendererTransform.parent)
                     {
                         rendererTransform.SetParent(shadowBone, false);
@@ -202,7 +203,7 @@ namespace nadena.dev.ndmf.preview
 
                 target.enabled = original.enabled && original.gameObject.activeInHierarchy;
 
-                _replacementRenderer.sharedMaterials = _originalRenderer.sharedMaterials;
+                Renderer.sharedMaterials = _originalRenderer.sharedMaterials;
 
 
                 target.localBounds = original.localBounds;
@@ -239,19 +240,19 @@ namespace nadena.dev.ndmf.preview
 
         internal void FinishPreFrame(bool isSceneViewCamera)
         {
-            if (_replacementRenderer != null)
+            if (Renderer != null)
             {
-                var shouldEnable = _replacementRenderer.enabled & !(isSceneViewCamera && _visibilityOffOriginal);
+                var shouldEnable = Renderer.enabled & !(isSceneViewCamera && _visibilityOffOriginal);
                 Mesh currentSharedMesh = null;
 
-                if (_replacementRenderer is SkinnedMeshRenderer smr)
+                if (Renderer is SkinnedMeshRenderer smr)
                     currentSharedMesh = smr.sharedMesh;
-                else if (_replacementRenderer is MeshRenderer mr)
+                else if (Renderer is MeshRenderer mr)
                     currentSharedMesh = mr.GetComponent<MeshFilter>().sharedMesh;
 
-                if (currentSharedMesh != _initialSharedMesh) _replacementRenderer.enabled = false;
+                if (currentSharedMesh != _initialSharedMesh) Renderer.enabled = false;
 
-                _replacementRenderer.enabled = shouldEnable;
+                Renderer.enabled = shouldEnable;
             }
         }
 
@@ -259,7 +260,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (_originalRenderer == null) return;
 
-            _replacementRenderer = _cache.GetOrCreate(_originalRenderer, () =>
+            _proxyHandle = _cache.GetHandle(_originalRenderer, () =>
             {
                 var replacementGameObject = new GameObject("Proxy renderer for " + _originalRenderer.gameObject.name);
                 replacementGameObject.hideFlags = HideFlags.DontSave;
@@ -292,15 +293,29 @@ namespace nadena.dev.ndmf.preview
                 
                 return renderer;
             });
+
+            _primaryProxy = _proxyHandle.PrimaryProxy;
+            _setupProxy = _proxyHandle.GetSetupProxy();
+        }
+
+        public void FinishSetup()
+        {
+            if (_setupComplete) return;
+
+            _setupComplete = true;
+            _proxyHandle.ReturnSetupProxy(_setupProxy);
+            _setupProxy = null;
         }
 
         public void Dispose()
         {
-            if (_replacementRenderer != null)
+            if (_setupProxy != null)
             {
-                _cache.ReturnProxy(_originalRenderer, _replacementRenderer);
-                _replacementRenderer = null;
+                _proxyHandle.ReturnSetupProxy(_setupProxy);
             }
+
+            _setupProxy = null;
+            _proxyHandle.Dispose();
         }
     }
 }
