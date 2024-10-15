@@ -93,6 +93,7 @@ jobs:
       - name: Resolve packages
         if: ${{ matrix.sdk == 'vrcsdk' }}
         run: |
+          vrc-get repo add -- "https://vrchat.github.io/packages/index.json?download"
           vrc-get resolve --project .
           vrc-get info project --project .
 
