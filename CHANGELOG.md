@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.5.5] - [2024-10-15]
+
+### Fixed
+
 - [#454] Scene view selection outlines flicker in some cases
 - [#450] Improved performance when a large number of object change events are generated (e.g. when exiting animation
   mode)
@@ -18,14 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#444] Fixed an issue where the preview system broke drag-to-select in the scene view
 
 ### Changed
+
 - [#451] Changed preview system to apply to more cameras. Specifically, we now handle all cameras with no render
   texture set, to ensure that Game Mode behaves as expected.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.5.4] - [2024-10-05]
 
