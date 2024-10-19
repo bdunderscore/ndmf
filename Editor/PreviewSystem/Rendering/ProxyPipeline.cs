@@ -383,11 +383,11 @@ namespace nadena.dev.ndmf.preview
                                 node.Result.Dispose();
                             }
                         }
+                    }
 
-                        foreach (var proxy in _proxies.Values)
-                        {
-                            proxy.Dispose();
-                        }
+                    foreach (var proxy in _proxies.Values)
+                    {
+                        proxy.Dispose();
                     }
                 },
                 CancellationToken.None,
