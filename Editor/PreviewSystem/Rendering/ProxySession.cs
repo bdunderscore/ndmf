@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using nadena.dev.ndmf.preview.trace;
 using UnityEditor;
 using UnityEngine;
@@ -28,7 +29,19 @@ namespace nadena.dev.ndmf.preview
             _active?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ProxyObjectCache _proxyCache = new();
+        private static readonly FieldInfo _selectionCacheDirtyField;
 
+        static ProxySession()
+        {
+            _selectionCacheDirtyField = typeof(SceneView)
+                .GetField("s_SelectionCacheDirty", BindingFlags.NonPublic | BindingFlags.Static);
+        }
+
+        private void ClearSelectionCache()
+        {
+            _selectionCacheDirtyField.SetValue(null, true);
+        }
+        
         private ImmutableList<IRenderFilter> _filters;
         public ImmutableList<IRenderFilter> Filters
         {
@@ -104,6 +117,7 @@ namespace nadena.dev.ndmf.preview
                     _active?.Dispose();
                     _active = _next;
                     _next = null;
+                    ClearSelectionCache();
                 }
 
                 if (activeIsReady)

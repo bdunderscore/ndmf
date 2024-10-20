@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#461] Selection outlines in scene view do not work reliably when preview system is active
 - [#459] "Proxy object was destroyed improperly! Resetting pipeline..." error appears frequently
 
 - [#460] Preview system fails to recover when the primary proxy is destroyed
