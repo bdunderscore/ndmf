@@ -1,11 +1,13 @@
 ﻿#region
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -33,6 +35,8 @@ namespace nadena.dev.ndmf.preview
         private bool _visibilityOffOriginal;
         private bool _pickingOffOriginal, _pickingOffReplacement;
         private long _lastVisibilityCheck = long.MinValue;
+
+        private readonly Stopwatch _lastWarning = new();
         
         private static CustomSampler _onPreFrameSampler = CustomSampler.Create("ProxyObjectController.OnPreFrame");
 
@@ -137,7 +141,11 @@ namespace nadena.dev.ndmf.preview
             {
                 if (Renderer == null)
                 {
-                    Debug.LogWarning("Proxy object was destroyed improperly! Resetting pipeline...");
+                    if (!_lastWarning.IsRunning || _lastWarning.ElapsedMilliseconds > 1000)
+                    {
+                        Debug.LogWarning("Proxy object was destroyed improperly! Resetting pipeline...");
+                        _lastWarning.Restart();
+                    }
                 }
                 return false;
             }

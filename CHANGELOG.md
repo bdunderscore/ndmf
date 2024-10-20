@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#460] Preview system fails to recover when the primary proxy is destroyed
+
 ### Changed
 
 ### Removed
