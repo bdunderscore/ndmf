@@ -10,10 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#461] Selection outlines in scene view do not work reliably when preview system is active
-- [#459] "Proxy object was destroyed improperly! Resetting pipeline..." error appears frequently
-- [#460] Preview system fails to recover when the primary proxy is destroyed
-- [#462] NDMF console fails to appear when an ExtensionContext throws an exception
 
 ### Changed
 
@@ -22,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.5.6] - [2024-10-19]
+
+### Fixed
+
+- [#461] Selection outlines in scene view do not work reliably when preview system is active
+- [#459] "Proxy object was destroyed improperly! Resetting pipeline..." error appears frequently
+- [#460] Preview system fails to recover when the primary proxy is destroyed
+- [#462] NDMF console fails to appear when an ExtensionContext throws an exception
 
 ## [1.5.5] - [2024-10-15]
 
