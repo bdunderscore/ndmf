@@ -21,7 +21,7 @@ namespace nadena.dev.ndmf.ui
             var titleElem = this.Q<Label>("group-title");
             var imageElem = this.Q<Image>("group-logo");
 
-            if (plugin.LogoTexture != null)
+            if (plugin?.LogoTexture != null)
             {
                 imageElem.image = plugin.LogoTexture;
                 titleElem.style.display = DisplayStyle.None;
@@ -36,10 +36,13 @@ namespace nadena.dev.ndmf.ui
                 imageElem.style.height = height;
 #endif
             }
-            else
+            else if (plugin != null)
             {
                 imageElem.style.display = DisplayStyle.None;
                 titleElem.text = plugin.DisplayName;
+            } else {
+                imageElem.style.display = DisplayStyle.None;
+                titleElem.text = "???";
             }
         }
     }
