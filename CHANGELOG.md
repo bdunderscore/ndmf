@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#459] "Proxy object was destroyed improperly! Resetting pipeline..." error appears frequently
 
+- [#460] Preview system fails to recover when the primary proxy is destroyed
+
 ### Changed
 
 ### Removed

@@ -303,6 +303,12 @@ namespace nadena.dev.ndmf.preview
             {
                 proxy.FinishSetup();
 
+                if (proxy.Renderer == null)
+                {
+                    Invalidate();
+                    continue;
+                }
+
                 OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
                 OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
                 ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);

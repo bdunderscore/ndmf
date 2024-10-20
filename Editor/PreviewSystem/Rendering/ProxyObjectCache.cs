@@ -31,6 +31,7 @@ namespace nadena.dev.ndmf.preview
             private readonly Renderer _key;
             private readonly Func<Renderer> _createFunc;
             private readonly RendererState _state;
+            private bool _disposed;
 
             public ProxyHandleImpl(ProxyObjectCache cache, Renderer key, Func<Renderer> createFunc, RendererState state)
             {
@@ -70,6 +71,14 @@ namespace nadena.dev.ndmf.preview
 
             public void Dispose()
             {
+                if (_disposed)
+                {
+                    Debug.LogWarning("Proxy handle was disposed twice!");
+                    throw new ObjectDisposedException(nameof(ProxyHandleImpl));
+                }
+
+                _disposed = true;
+                
                 if (--_state.ActivePrimaryCount == 0)
                 {
                     _cache.MaybeDisposeProxy(_key);
@@ -118,23 +127,32 @@ namespace nadena.dev.ndmf.preview
         public IProxyHandle GetHandle(Renderer original, Func<Renderer> create)
         {
             IsRegistered = true;
+
+            Func<Renderer> createShimmed = () =>
+            {
+                var newProxy = create();
+                newProxy.gameObject.AddComponent<ProxyTagComponent>();
+                _proxyObjectInstanceIds.Add(newProxy.gameObject.GetInstanceID());
+
+                return newProxy;
+            };
             
             if (!_renderers.TryGetValue(original, out var state))
             {
                 state = new RendererState();
-                state.PrimaryProxy = create();
+                state.PrimaryProxy = createShimmed();
                 _renderers.Add(original, state);
+            }
+
+            if (state.PrimaryProxy == null)
+            {
+                // Recover from loss of the primary proxy
+                state.PrimaryProxy = createShimmed();
             }
 
             state.ActivePrimaryCount++;
 
-            return new ProxyHandleImpl(this, original, () =>
-            {
-                var newProxy = create();
-                _proxyObjectInstanceIds.Add(newProxy.gameObject.GetInstanceID());
-
-                return newProxy;
-            }, state);
+            return new ProxyHandleImpl(this, original, createShimmed, state);
         }
 
         private static void DestroyProxy(Renderer proxy)
@@ -142,6 +160,10 @@ namespace nadena.dev.ndmf.preview
             if (proxy == null) return;
             
             var gameObject = proxy.gameObject;
+            if (gameObject.TryGetComponent<ProxyTagComponent>(out var tag))
+            {
+                tag.Armed = false;
+            }
             _proxyObjectInstanceIds.Remove(gameObject.GetInstanceID());
             Object.DestroyImmediate(gameObject);
         }
