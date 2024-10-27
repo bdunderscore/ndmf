@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#465] Change logic to find avatar roots, improve support of non-VRChat avatars in VRCSDK projects
 
 ### Removed
 
