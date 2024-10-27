@@ -58,7 +58,7 @@ namespace UnitTests
             return new BuildContext(root, TEMP_ASSET_PATH); // TODO - cleanup
         }
 
-        protected GameObject CreateRoot(string name)
+        protected GameObject CreateRoot(string name, bool isVRC = true)
         {
             //var path = AssetDatabase.GUIDToAssetPath(MinimalAvatarGuid);
             //var go = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
@@ -66,8 +66,11 @@ namespace UnitTests
             go.name = name;
             go.AddComponent<Animator>();
 #if NDMF_VRCSDK3_AVATARS
-            go.AddComponent<VRCAvatarDescriptor>();
-            go.AddComponent<PipelineManager>();
+            if (isVRC)
+            {
+                go.AddComponent<VRCAvatarDescriptor>();
+                go.AddComponent<PipelineManager>();
+            }
 #endif
 
             objects.Add(go);
