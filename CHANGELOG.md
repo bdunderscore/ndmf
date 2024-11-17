@@ -12,16 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- [#468] Performance improvements
-- [#471] Improve compatibility with VRChat's streaming mipmaps feature
-  - NDMF will now call `Mesh.RecalculateUVDistributionMetrics` on all generated meshes on upload. An API to opt-out will
-    be provided at the next major version release.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.5.7] - [2024-11-17]
+
+### Changed
+- [#468] Performance improvements
+- [#471] Improve compatibility with VRChat's streaming mipmaps feature
+  - NDMF will now call `Mesh.RecalculateUVDistributionMetrics` on all generated meshes on upload. An API to opt-out will
+    be provided at the next major version release.
 
 ## [1.5.6] - [2024-10-19]
 
