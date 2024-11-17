@@ -29,8 +29,7 @@ namespace nadena.dev.ndmf.runtime
         // Shadow the VRC-provided methods to avoid deprecation warnings
         internal static T GetOrAddComponent<T>(this GameObject obj) where T : Component
         {
-            var component = obj.GetComponent<T>();
-            if (component == null) component = obj.AddComponent<T>();
+            if (!obj.TryGetComponent<T>(out var component)) component = obj.AddComponent<T>();
             return component;
         }
 
@@ -95,10 +94,10 @@ namespace nadena.dev.ndmf.runtime
         public static bool IsAvatarRoot(Transform target)
         {
 #if NDMF_VRCSDK3_AVATARS
-            return target.GetComponent<VRCAvatarDescriptor>();
+            return target.TryGetComponent<VRCAvatarDescriptor>(out _);
 #else            
-            var an = target.GetComponent<Animator>();
-            if (!an) return false;
+            if (!target.TryGetComponent<Animator>(out _)) return false;
+
             var parent = target.transform.parent;
             return !(parent && parent.GetComponentInParent<Animator>());
 #endif
