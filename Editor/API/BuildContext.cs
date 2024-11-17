@@ -283,7 +283,7 @@ namespace nadena.dev.ndmf
                         continue;
                     }
 
-                    UnityEngine.Object.DestroyImmediate(asset);
+                    UnityObject.DestroyImmediate(asset);
                 }
             }
             finally
@@ -454,6 +454,8 @@ namespace nadena.dev.ndmf
                     _activeExtensions.Remove(kvp.Key);
                 }
 
+                RecalculateAllMeshes();
+
                 Serialize();
                 sw.Stop();
 
@@ -463,6 +465,21 @@ namespace nadena.dev.ndmf
                 {
                     ErrorReportWindow.ShowReport(_report);
                 }
+            }
+        }
+
+        private void RecalculateAllMeshes()
+        {
+            foreach (var meshFilter in _avatarRootObject.GetComponentsInChildren<MeshFilter>())
+            {
+                var mesh = meshFilter.sharedMesh;
+                if (mesh != null && IsTemporaryAsset(mesh)) mesh.RecalculateUVDistributionMetrics();
+            }
+
+            foreach (var skinnedMeshRenderer in _avatarRootObject.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                var mesh = skinnedMeshRenderer.sharedMesh;
+                if (mesh != null && IsTemporaryAsset(mesh)) mesh.RecalculateUVDistributionMetrics();
             }
         }
     }
