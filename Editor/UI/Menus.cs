@@ -86,7 +86,7 @@ namespace nadena.dev.ndmf.ui
         [MenuItem("Tools/NDM Framework/Debug Tools/Invalidate shadow hierarchy", false, 101)]
         private static void InvalidateShadowHierarchy()
         {
-            ObjectWatcher.Instance.Hierarchy.InvalidateAll();
+            nadena.dev.ndmf.cs.ObjectWatcher.Instance.Hierarchy.InvalidateAll();
         }
 #endif
         
