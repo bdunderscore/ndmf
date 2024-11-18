@@ -468,18 +468,51 @@ namespace nadena.dev.ndmf
             }
         }
 
+        private readonly HashSet<Mesh> _meshesExcludedFromRecalculation = new();
+
+        /// <summary>
+        ///     NDMF will automatically invoke RecalculateUVDistributionMetrics on all temporary asset meshes to ensure
+        ///     they work properly with streaming mipmaps. If you don't want this to happen for a specific mesh (eg if you
+        ///     invoked RecalculateUVDistributionMetric with a specific UV channel), invoke this function with enabled=false
+        ///     to opt out.
+        /// </summary>
+        /// <param name="mesh">The mesh to control</param>
+        /// <param name="enabled">False to disable UV distribution recalculation</param>
+        public void SetEnableUVDistributionRecalculation(Mesh mesh, bool enabled)
+        {
+            if (enabled)
+            {
+                _meshesExcludedFromRecalculation.Remove(mesh);
+            }
+            else
+            {
+                _meshesExcludedFromRecalculation.Add(mesh);
+            }
+        }
+        
         private void RecalculateAllMeshes()
+        {
+            foreach (var mesh in EnumerateMeshes())
+            {
+                if (!_meshesExcludedFromRecalculation.Contains(mesh))
+                {
+                    mesh.RecalculateUVDistributionMetrics();
+                }
+            }
+        }
+
+        private IEnumerable<Mesh> EnumerateMeshes()
         {
             foreach (var meshFilter in _avatarRootObject.GetComponentsInChildren<MeshFilter>())
             {
                 var mesh = meshFilter.sharedMesh;
-                if (mesh != null && IsTemporaryAsset(mesh)) mesh.RecalculateUVDistributionMetrics();
+                if (mesh != null && IsTemporaryAsset(mesh)) yield return mesh;
             }
 
             foreach (var skinnedMeshRenderer in _avatarRootObject.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 var mesh = skinnedMeshRenderer.sharedMesh;
-                if (mesh != null && IsTemporaryAsset(mesh)) mesh.RecalculateUVDistributionMetrics();
+                if (mesh != null && IsTemporaryAsset(mesh)) yield return mesh;
             }
         }
     }

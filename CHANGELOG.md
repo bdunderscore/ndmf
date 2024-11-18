@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#472] Added the `DependsOnContext` attribute, for declaring dependencies between extension contexts.
+- Added `BuildContext.SetEnableUVDistributionRecalculation` to allow opting out from the automatic call to
+  `Mesh.RecalculateUVDistributionMetrics` on generated meshes.
 
 ### Fixed
 
