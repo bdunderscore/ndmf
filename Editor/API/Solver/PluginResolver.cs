@@ -182,7 +182,7 @@ namespace nadena.dev.ndmf
                 var toActivate = new List<Type>();
                 activeExtensions.RemoveWhere(t =>
                 {
-                    if (!pass.IsExtensionCompatible(t))
+                    if (!pass.IsExtensionCompatible(t, activeExtensions))
                     {
                         toDeactivate.Add(t);
                         return true;
@@ -191,7 +191,7 @@ namespace nadena.dev.ndmf
                     return false;
                 });
 
-                foreach (var t in pass.RequiredExtensions.ToImmutableSortedSet(new TypeComparer()))
+                foreach (var t in ResolveExtensionDependencies(pass.RequiredExtensions))
                 {
                     if (!activeExtensions.Contains(t))
                     {
@@ -220,6 +220,42 @@ namespace nadena.dev.ndmf
             }
 
             return concrete.ToImmutableList();
+        }
+
+        private IEnumerable<Type> ResolveExtensionDependencies(IImmutableSet<Type> passRequiredExtensions)
+        {
+            var resultSet = new HashSet<Type>();
+            var results = new List<Type>();
+            var stack = new Stack<Type>();
+
+            foreach (var type in new SortedSet<Type>(passRequiredExtensions, new TypeComparer()))
+            {
+                VisitType(type);
+            }
+
+            return results;
+
+            void VisitType(Type ty)
+            {
+                if (stack.Contains(ty))
+                {
+                    throw new Exception("Circular dependency detected: " + string.Join(" -> ", stack));
+                }
+
+                if (resultSet.Contains(ty)) return;
+
+                stack.Push(ty);
+
+                foreach (var dep in new SortedSet<Type>(ty.ContextDependencies(), new TypeComparer()))
+                {
+                    VisitType(dep);
+                }
+
+                stack.Pop();
+
+                resultSet.Add(ty);
+                results.Add(ty);
+            }
         }
 
         internal PreviewSession PreviewSession
