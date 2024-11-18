@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#472] Added the `DependsOnContext` attribute, for declaring dependencies between extension contexts.
 
 ### Fixed
 
