@@ -180,16 +180,19 @@ namespace nadena.dev.ndmf
 
                 var toDeactivate = new List<Type>();
                 var toActivate = new List<Type>();
-                activeExtensions.RemoveWhere(t =>
+
+                // To ensure that we deactivate extensions in the correct order, we sort them by the number of dependencies
+                // as a very crude toposort, with name as a tiebreaker (mostly for our tests)
+                foreach (var t in activeExtensions.OrderByDescending(
+                             t => (t.ContextDependencies(true).Count(), t.FullName)
+                         ).ToList())
                 {
                     if (!pass.IsExtensionCompatible(t, activeExtensions))
                     {
                         toDeactivate.Add(t);
-                        return true;
+                        activeExtensions.Remove(t);
                     }
-
-                    return false;
-                });
+                }
 
                 foreach (var t in ResolveExtensionDependencies(pass.RequiredExtensions))
                 {
