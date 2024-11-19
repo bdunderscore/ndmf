@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace nadena.dev.ndmf
 {
@@ -23,6 +24,8 @@ namespace nadena.dev.ndmf
 
     internal static class ExtensionContextUtil
     {
+        private static readonly Dictionary<Type, ImmutableList<Type>> RecursiveDependenciesCache = new();
+        
         public static IEnumerable<Type> ContextDependencies(this Type ty, bool recurse)
         {
             if (recurse)
@@ -44,7 +47,20 @@ namespace nadena.dev.ndmf
             }
         }
 
-        private static IEnumerable<Type> RecursiveContextDependencies(Type ty)
+        private static ImmutableList<Type> RecursiveContextDependencies(Type ty)
+        {
+            if (RecursiveDependenciesCache.TryGetValue(ty, out var cached))
+            {
+                return cached;
+            }
+
+            var result = RecursiveContextDependencies0(ty).ToImmutableList();
+            RecursiveDependenciesCache[ty] = result;
+
+            return result;
+        }
+
+        private static IEnumerable<Type> RecursiveContextDependencies0(Type ty)
         {
             HashSet<Type> enqueued = new();
             Queue<Type> queue = new();
