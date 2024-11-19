@@ -123,6 +123,7 @@ namespace nadena.dev.ndmf
 
             var avatarName = _avatarRootObject.name;
 
+            Profiler.BeginSample("BuildContext.CreateAssetContainer");
             AssetContainer = ScriptableObject.CreateInstance<GeneratedAssets>();
             if (assetRootPath != null)
             {
@@ -139,6 +140,7 @@ namespace nadena.dev.ndmf
                     throw new Exception("Failed to persist asset container");
                 }
             }
+            Profiler.EndSample();
 
             // Ensure that no prefab instances remain somehow
             foreach (Transform t in _avatarRootTransform.GetComponentsInChildren<Transform>(true))

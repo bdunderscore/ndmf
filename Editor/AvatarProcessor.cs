@@ -6,6 +6,7 @@ using System.Linq;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -166,7 +167,9 @@ namespace nadena.dev.ndmf
                 }
             }
             
+            Profiler.BeginSample("Create BuildContext");
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
+            Profiler.EndSample();
 
             ProcessAvatar(buildContext, BuildPhase.Resolving, lastPhase);
             buildContext.Finish();

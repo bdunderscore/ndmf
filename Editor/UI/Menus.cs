@@ -9,6 +9,7 @@ using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -215,7 +216,9 @@ namespace nadena.dev.ndmf.ui
 
             if (av == null) yield break;
 
+            Profiler.BeginSample("ProfileBuild.Instantiate");
             var clone = Object.Instantiate(av);
+            Profiler.EndSample();
 
             try
             {
@@ -231,8 +234,13 @@ namespace nadena.dev.ndmf.ui
             ProfilerRecording = false;
             yield return null;
             
+            Profiler.BeginSample("ProfileBuild.DestroyClone");
             Object.DestroyImmediate(clone);
+            Profiler.EndSample();
+            
+            Profiler.BeginSample("CleanTemporaryAssets");
             AvatarProcessor.CleanTemporaryAssets();
+            Profiler.EndSample();
         }
 #endif
     }
