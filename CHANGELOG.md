@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
 - [#472] [#474] Added the `DependsOnContext` attribute, for declaring dependencies between extension contexts.
 - [#473] Added `BuildContext.SetEnableUVDistributionRecalculation` to allow opting out from the automatic call to
   `Mesh.RecalculateUVDistributionMetrics` on generated meshes.
