@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -20,6 +22,12 @@ namespace nadena.dev.ndmf
         /// </summary>
         /// <param name="context"></param>
         void OnDeactivate(BuildContext context);
+        
+        /// <summary>
+        /// Return the plugin owning this extension context. Implementing this API is optional for backwards
+        /// compatibility, but is encouraged as it will provide better error messaging.
+        /// </summary>
+        PluginBase? Owner => null;
     }
 
     internal static class ExtensionContextUtil

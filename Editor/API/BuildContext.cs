@@ -312,9 +312,17 @@ namespace nadena.dev.ndmf
                     {
                         var ctx = _activeExtensions[t];
                         Profiler.BeginSample("NDMF Deactivate: " + t);
+
+                        using var scope = ErrorReport.WithContext(ctx);
                         try
                         {
                             ctx.OnDeactivate(this);
+                        }
+                        catch (Exception e)
+                        {
+                            // ensure we report the exception while the error report context is set
+                            ErrorReport.ReportException(e);
+                            return;
                         }
                         finally
                         {
@@ -405,9 +413,17 @@ namespace nadena.dev.ndmf
                     if (!_activeExtensions.ContainsKey(ty))
                     {
                         Profiler.BeginSample("NDMF Activate: " + ty);
+
+                        using var scope = ErrorReport.WithContext(ctx);
                         try
                         {
                             ctx.OnActivate(this);
+                        }
+                        catch (Exception e)
+                        {
+                            // ensure we report the exception while the error report context is set
+                            ErrorReport.ReportException(e);
+                            return null;
                         }
                         finally
                         {
