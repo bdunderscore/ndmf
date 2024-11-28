@@ -1,13 +1,18 @@
-﻿using JetBrains.Annotations;
+﻿#nullable enable
+
+using System.Collections.Immutable;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.preview.UI;
 using nadena.dev.ndmf.ui;
 using UnityEditor;
+using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
 {
     /// <summary>
     ///     General utilities for controlling the NDMF preview system.
     /// </summary>
+    [PublicAPI]
     // ReSharper disable once InconsistentNaming
     public static class NDMFPreview
     {
@@ -92,6 +97,24 @@ namespace nadena.dev.ndmf.preview
         internal static void ForceResetPreview()
         {
             _globalPreviewSession.ForceRebuild();
+        }
+
+        /// <summary>
+        /// If the given game object is a preview proxy object, returns the original object that the proxy was created
+        /// for.
+        /// </summary>
+        /// <param name="proxy">The suspected proxy object</param>
+        /// <returns>The original object, or null if the given object is not a proxy</returns>
+        public static GameObject? GetOriginalObjectForProxy(GameObject proxy)
+        {
+            var sess = PreviewSession.Current;
+
+            if (sess == null)
+            {
+                return null;
+            }
+
+            return sess.ProxyToOriginalObject.GetValueOrDefault(proxy);
         }
     }
 }
