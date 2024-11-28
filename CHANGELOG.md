@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#473] Added `BuildContext.SetEnableUVDistributionRecalculation` to allow opting out from the automatic call to
   `Mesh.RecalculateUVDistributionMetrics` on generated meshes.
 - [#478] Added `ProfilerScope` API
+- [#480] Added `IExtensionContext.Owner` API. Setting this property will allow errors to be correctly attributed to the
+  plugin that contains an extension context. 
 
 ### Fixed
 
