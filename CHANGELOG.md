@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#478] Added `ProfilerScope` API
 - [#480] Added `IExtensionContext.Owner` API. Setting this property will allow errors to be correctly attributed to the
   plugin that contains an extension context. 
+- [#479] Added `IAssetSaver` and `SerializationScope` APIs.
+  - NDMF plugins are encouraged to use `IAssetSaver.SaveAsset` instead of directly accessing `AssetContainer`. This will
+    split saved assets across multiple files, to avoid performance degradation as the number of assets in a container
+    grows.
 
 ### Fixed
 

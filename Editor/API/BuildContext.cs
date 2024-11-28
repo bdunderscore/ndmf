@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
@@ -43,6 +44,7 @@ namespace nadena.dev.ndmf
     /// The BuildContext is passed to all plugins during the build process. It provides access to the avatar being
     /// built, as well as various other context information.
     /// </summary>
+    [PublicAPI]
     public sealed partial class BuildContext
     {
         private readonly GameObject _avatarRootObject;
@@ -70,8 +72,10 @@ namespace nadena.dev.ndmf
         /// referenced by the avatar to this container when the build completes, but in some cases it can be necessary
         /// to manually save assets (e.g. when using AnimatorController builtins).
         /// </summary>
-        public UnityObject AssetContainer { get; private set; }
+        public UnityObject AssetContainer => AssetSaver.CurrentContainer;
 
+        public IAssetSaver AssetSaver { get; }
+        
         public bool Successful => !_report.Errors.Any(e => e.TheError.Severity >= ErrorSeverity.Error);
 
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
@@ -122,22 +126,17 @@ namespace nadena.dev.ndmf
 #endif
 
             var avatarName = _avatarRootObject.name;
-
-            AssetContainer = ScriptableObject.CreateInstance<GeneratedAssets>();
+            
             if (assetRootPath != null)
             {
                 // Ensure the target directory exists
                 Directory.CreateDirectory(assetRootPath);
 
-                var pathAvatarName = FilterAvatarName(avatarName);
-
-                var avatarPath = Path.Combine(assetRootPath, pathAvatarName) + ".asset";
-                AssetDatabase.GenerateUniqueAssetPath(avatarPath);
-                AssetDatabase.CreateAsset(AssetContainer, avatarPath);
-                if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(AssetContainer)))
-                {
-                    throw new Exception("Failed to persist asset container");
-                }
+                AssetSaver = new AssetSaver(assetRootPath, avatarName);
+            }
+            else
+            {
+                AssetSaver = new NullAssetSaver();
             }
 
             // Ensure that no prefab instances remain somehow
@@ -164,6 +163,11 @@ namespace nadena.dev.ndmf
                     }
                 }
             }
+        }
+
+        public SerializationScope OpenSerializationScope()
+        {
+            return new SerializationScope(AssetSaver);
         }
 
         private static readonly Regex WindowsReservedFileNames = new Regex(
@@ -202,8 +206,7 @@ namespace nadena.dev.ndmf
 
         public bool IsTemporaryAsset(UnityObject obj)
         {
-            return !EditorUtility.IsPersistent(obj)
-                   || AssetDatabase.GetAssetPath(obj) == AssetDatabase.GetAssetPath(AssetContainer);
+            return AssetSaver.IsTemporaryAsset(obj);
         }
 
         public void Serialize()
@@ -217,15 +220,12 @@ namespace nadena.dev.ndmf
 
             try
             {
-                AssetDatabase.StartAssetEditing();
-
-                HashSet<UnityObject> _savedObjects =
-                    new HashSet<UnityObject>(
-                        AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(AssetContainer)));
+                HashSet<UnityObject> _savedObjects = new HashSet<UnityObject>(AssetSaver.GetPersistedAssets());
 
                 _savedObjects.Remove(AssetContainer);
 
                 int index = 0;
+                List<UnityEngine.Object> assetsToSave = new List<UnityEngine.Object>();
                 foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
                 {
                     if (asset is MonoScript)
@@ -252,7 +252,7 @@ namespace nadena.dev.ndmf
                     {
                         try
                         {
-                            AssetDatabase.AddObjectToAsset(asset, AssetContainer);
+                            assetsToSave.Add(asset);
                         }
                         catch (UnityException ex)
                         {
@@ -263,16 +263,16 @@ namespace nadena.dev.ndmf
                         }
                     }
                 }
-
-                foreach (var assetToHide in AssetDatabase.LoadAllAssetsAtPath(
-                             AssetDatabase.GetAssetPath(AssetContainer)))
+                
+                foreach (var assetToHide in AssetSaver.GetPersistedAssets().Concat(assetsToSave))
                 {
-                    if (assetToHide != AssetContainer &&
-                        GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
+                    if (GeneratedAssetBundleExtractor.IsAssetTypeHidden(assetToHide.GetType()))
                     {
                         assetToHide.hideFlags = HideFlags.HideInHierarchy;
                     }
                 }
+
+                AssetSaver.SaveAssets(assetsToSave);
 
                 // Remove obsolete temporary assets
                 foreach (var asset in _savedObjects)
@@ -288,10 +288,7 @@ namespace nadena.dev.ndmf
             }
             finally
             {
-                AssetDatabase.StopAssetEditing();
-                
-                // SaveAssets to make sub-assets visible on the Project window
-                AssetDatabase.SaveAssets();
+                AssetSaver.Dispose();
             }
 
             Profiler.EndSample();
