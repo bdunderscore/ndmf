@@ -99,7 +99,7 @@ namespace nadena.dev.ndmf.ui
         {
             public readonly UnityEngine.Object Asset;
             public readonly HashSet<AssetInfo> IncomingReferences = new HashSet<AssetInfo>();
-            public readonly HashSet<AssetInfo> OutgoingReferences = new HashSet<AssetInfo>();
+            public readonly Dictionary<AssetInfo, List<string>> OutgoingReferences = new();
 
             public AssetInfo Root;
 
@@ -134,7 +134,12 @@ namespace nadena.dev.ndmf.ui
                         var value = prop.objectReferenceValue;
                         if (value != null && assets.TryGetValue(value, out var target))
                         {
-                            OutgoingReferences.Add(target);
+                            if (!OutgoingReferences.TryGetValue(target, out var fixups))
+                            {
+                                fixups = new();
+                                OutgoingReferences[target] = fixups;
+                            }
+                            fixups.Add(prop.propertyPath);
                             target.IncomingReferences.Add(this);
                         }
                     }
@@ -143,6 +148,30 @@ namespace nadena.dev.ndmf.ui
                         enterChildren = false;
                     }
                 }
+            }
+
+            public void ApplyFixups()
+            {
+                if (OutgoingReferences.Count == 0) return;
+                
+                var so = new SerializedObject(Asset);
+                
+                foreach (var (target, fixups) in OutgoingReferences)
+                {
+                    foreach (var fixup in fixups)
+                    {
+                        var prop = so.FindProperty(fixup);
+                        if (prop == null)
+                        {
+                            Debug.LogWarning($"Failed to find property {fixup} on {Asset.name}");
+                            continue;
+                        }
+
+                        prop.objectReferenceValue = target.Asset;
+                    }
+                }
+
+                so.ApplyModifiedPropertiesWithoutUndo();
             }
 
             public void ForceAssignRoot()
@@ -184,15 +213,7 @@ namespace nadena.dev.ndmf.ui
 
         public static void Unpack(GeneratedAssets bundle)
         {
-            try
-            {
-                AssetDatabase.StartAssetEditing();
-                new GeneratedAssetBundleExtractor(bundle).Extract();
-            }
-            finally
-            {
-                AssetDatabase.StopAssetEditing();
-            }
+            new GeneratedAssetBundleExtractor(bundle).Extract();
         }
 
 
@@ -223,43 +244,69 @@ namespace nadena.dev.ndmf.ui
         internal void Extract()
         {
             string path = AssetDatabase.GetAssetPath(Bundle);
+
             var directory = System.IO.Path.GetDirectoryName(path);
             _unassigned = new HashSet<UnityEngine.Object>(_assets.Keys);
 
-            foreach (var info in _assets.Values)
+            try
             {
-                info.PopulateReferences(_assets);
-            }
+                AssetDatabase.StartAssetEditing();
 
-            var queue = new Queue<UnityEngine.Object>();
-            while (_unassigned.Count > 0)
-            {
-                // Bootstrap
-                if (queue.Count == 0)
+                foreach (var info in _assets.Values)
                 {
-                    _unassigned.Where(o => TryAssignRoot(_assets[o])).ToList().ForEach(o => { queue.Enqueue(o); });
-
-                    if (queue.Count == 0)
-                    {
-                        _assets[_unassigned.First()].ForceAssignRoot();
-                        queue.Enqueue(_unassigned.First());
-                    }
+                    info.PopulateReferences(_assets);
                 }
 
-                while (queue.Count > 0)
+                var queue = new Queue<UnityEngine.Object>();
+                while (_unassigned.Count > 0)
                 {
-                    var next = queue.Dequeue();
-                    ProcessSingleAsset(directory, next);
-                    _unassigned.Remove(next);
-
-                    foreach (var outgoingReference in _assets[next].OutgoingReferences)
+                    // Bootstrap
+                    if (queue.Count == 0)
                     {
-                        if (_unassigned.Contains(outgoingReference.Asset) && TryAssignRoot(outgoingReference))
+                        _unassigned.Where(o => TryAssignRoot(_assets[o])).ToList().ForEach(o => { queue.Enqueue(o); });
+
+                        if (queue.Count == 0)
                         {
-                            queue.Enqueue(outgoingReference.Asset);
+                            _assets[_unassigned.First()].ForceAssignRoot();
+                            queue.Enqueue(_unassigned.First());
+                        }
+                    }
+
+                    while (queue.Count > 0)
+                    {
+                        var next = queue.Dequeue();
+                        ProcessSingleAsset(directory, next);
+                        _unassigned.Remove(next);
+
+                        foreach (var outgoingReference in _assets[next].OutgoingReferences.Keys)
+                        {
+                            if (_unassigned.Contains(outgoingReference.Asset) && TryAssignRoot(outgoingReference))
+                            {
+                                queue.Enqueue(outgoingReference.Asset);
+                            }
                         }
                     }
                 }
+                
+                // The above movements can break some inter-asset references. Fix them now before we save assets.
+                foreach (var asset in _assets.Values)
+                {
+                    asset.ApplyFixups();                
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.SaveAssets();
+            }
+            
+            foreach (var subcontainer in Bundle.SubAssets)
+            {
+                var remaining = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(subcontainer))
+                    .Where(asset => asset != subcontainer).ToList();
+                if (remaining.Count > 0) Debug.Log($"Failed to extract: " + string.Join(", ", remaining.Select(o => o.name + " " + o.GetType().Name)));
+                
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(subcontainer));
             }
 
             AssetDatabase.DeleteAsset(path);
@@ -318,17 +365,22 @@ namespace nadena.dev.ndmf.ui
         private static Dictionary<Object, AssetInfo> GetContainedAssets(GeneratedAssets bundle)
         {
             string path = AssetDatabase.GetAssetPath(bundle);
-            var rawAssets = AssetDatabase.LoadAllAssetsAtPath(path);
-            Dictionary<Object, AssetInfo> infos = new Dictionary<Object, AssetInfo>(rawAssets.Length);
+            var rawAssets = new List<UnityEngine.Object>(AssetDatabase.LoadAllAssetsAtPath(path));
+
+            foreach (var subcontainer in bundle.SubAssets)
+            {
+                rawAssets.AddRange(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(subcontainer)));
+            }
+            
+            Dictionary<Object, AssetInfo> infos = new Dictionary<Object, AssetInfo>(rawAssets.Count);
             foreach (var asset in rawAssets)
             {
-                if (!(asset is GeneratedAssets))
+                if (!(asset is GeneratedAssets or SubAssetContainer))
                 {
                     infos.Add(asset, new AssetInfo(asset));
                 }
             }
-
-
+            
             return infos;
         }
     }
