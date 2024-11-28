@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using nadena.dev.ndmf.runtime;
@@ -43,18 +44,8 @@ namespace nadena.dev.ndmf
             // Ensure directory exists recursively
             if (!AssetDatabase.IsValidFolder(subAssetPath))
             {
-                var parts = subAssetPath.Split('/');
-                var currentPath = parts[0];
-                
-                for (var i = 1; i < parts.Length; i++)
-                {
-                    if (!AssetDatabase.IsValidFolder(currentPath + "/" + parts[i]))
-                    {
-                        AssetDatabase.CreateFolder(currentPath, parts[i]);
-                    }
-
-                    currentPath += "/" + parts[i];
-                }
+                Directory.CreateDirectory(subAssetPath);
+                AssetDatabase.Refresh();
             }
             
             var rootAssetPath = AssetDatabase.GenerateUniqueAssetPath(rootPath + "/" + avatarName + ".asset");
@@ -137,7 +128,7 @@ namespace nadena.dev.ndmf
             "^[\\s]*((?=\\S).*\\S)[\\s]*$"
         );
 
-        internal static string FilterAssetName(string assetName, string fallbackName)
+        internal static string FilterAssetName(string assetName, string? fallbackName = null)
         {
             assetName = WindowsReservedFileCharacters.Replace(assetName, "_");
 
@@ -151,12 +142,7 @@ namespace nadena.dev.ndmf
             {
                 assetName = match.Groups[1].Value;
             } else {
-                assetName = Guid.NewGuid().ToString();
-            }
-
-            if (string.IsNullOrWhiteSpace(assetName))
-            {
-                assetName = fallbackName;
+                assetName = fallbackName ?? Guid.NewGuid().ToString();
             }
 
             return assetName;

@@ -42,10 +42,14 @@ namespace UnitTests
             bc.Serialize();
 
             var path = AssetDatabase.GetAssetPath(testScriptable1);
+            var pathParts = path.Split('/');
+            Assert.AreEqual("_assets", pathParts[^2]);
+            var avatarRootPath = string.Join("/", pathParts[..^2]);
+            
             Assert.IsFalse(string.IsNullOrEmpty(path));
-            Assert.AreEqual(path, AssetDatabase.GetAssetPath(testScriptable2));
-            Assert.AreEqual(path, AssetDatabase.GetAssetPath(testScriptable3));
-            Assert.AreEqual(path, AssetDatabase.GetAssetPath(testScriptable4));
+            Assert.IsTrue(AssetDatabase.GetAssetPath(testScriptable2).StartsWith(avatarRootPath));
+            Assert.IsTrue(AssetDatabase.GetAssetPath(testScriptable3).StartsWith(avatarRootPath));
+            Assert.IsTrue(AssetDatabase.GetAssetPath(testScriptable4).StartsWith(avatarRootPath));
 
             Assert.IsTrue(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(testComponent)));
             Assert.IsTrue(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(root)));

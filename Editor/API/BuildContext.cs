@@ -170,40 +170,6 @@ namespace nadena.dev.ndmf
             return new SerializationScope(AssetSaver);
         }
 
-        private static readonly Regex WindowsReservedFileNames = new Regex(
-            "(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])([.].*)?",
-            RegexOptions.IgnoreCase
-        );
-
-        private static readonly Regex WindowsReservedFileCharacters = new Regex(
-            "[<>:\"/\\\\|?*\x00-\x1f]",
-            RegexOptions.IgnoreCase
-        );
-
-        private static readonly Regex StripLeadingTrailingWhitespace = new Regex(
-            "^[\\s]*((?=\\S).*\\S)[\\s]*$"
-        );
-
-        internal static string FilterAvatarName(string avatarName)
-        {
-            avatarName = WindowsReservedFileCharacters.Replace(avatarName, "_");
-
-            if (WindowsReservedFileNames.IsMatch(avatarName))
-            {
-                avatarName = "_" + avatarName;
-            }
-
-            var match = StripLeadingTrailingWhitespace.Match(avatarName);
-            if (match.Success)
-            {
-                avatarName = match.Groups[1].Value;
-            } else {
-                avatarName = Guid.NewGuid().ToString();
-            }
-
-            return avatarName;
-        }
-
         public bool IsTemporaryAsset(UnityObject obj)
         {
             return AssetSaver.IsTemporaryAsset(obj);

@@ -1,6 +1,7 @@
 ﻿using System;
 using nadena.dev.ndmf;
 using NUnit.Framework;
+using UnityEditor;
 
 namespace UnitTests
 {
@@ -11,51 +12,56 @@ namespace UnitTests
         {
             Assert.AreEqual(
                 "foo",
-                BuildContext.FilterAvatarName("foo")
+                AssetSaver.FilterAssetName("foo")
             );
             
             Assert.AreEqual(
                 "_con",
-                BuildContext.FilterAvatarName("con")
+                AssetSaver.FilterAssetName("con")
             );
             
             Assert.AreEqual(
                 "_LPT4",
-                BuildContext.FilterAvatarName("LPT4")
+                AssetSaver.FilterAssetName("LPT4")
             );
             
             Assert.AreEqual(
                 "_AUX.avatar",
-                BuildContext.FilterAvatarName("AUX.avatar")
+                AssetSaver.FilterAssetName("AUX.avatar")
             );
             
             Assert.AreEqual(
                 "foo_bar",
-                BuildContext.FilterAvatarName("foo/bar")
+                AssetSaver.FilterAssetName("foo/bar")
             );
             
             Assert.AreEqual(
                 "foo_bar_baz_quux",
-                BuildContext.FilterAvatarName("foo\\bar?baz*quux")
+                AssetSaver.FilterAssetName("foo\\bar?baz*quux")
             );
             
             Assert.AreEqual(
                 "foo",
-                BuildContext.FilterAvatarName(" foo")
+                AssetSaver.FilterAssetName(" foo")
             );
             
             Assert.AreEqual(
                 "foo",
-                BuildContext.FilterAvatarName("foo ")
+                AssetSaver.FilterAssetName("foo ")
             );
             Assert.AreEqual(
                 "f",
-                BuildContext.FilterAvatarName(" f ")
+                AssetSaver.FilterAssetName(" f ")
             );
             
             Assert.AreEqual(
                 Guid.NewGuid().ToString().Length,
-                BuildContext.FilterAvatarName("   ").Length
+                AssetSaver.FilterAssetName("   ").Length
+            );
+            
+            Assert.AreEqual(
+                "fallback",
+                AssetSaver.FilterAssetName("   ", "fallback")
             );
         }
     }
