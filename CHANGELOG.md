@@ -31,6 +31,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.6.0] - [2024-11-28]
+
+### Added
+- [#479] Added `IAssetSaver` and `SerializationScope` APIs.
+  - NDMF plugins are encouraged to use `IAssetSaver.SaveAsset` instead of directly accessing `AssetContainer`. This will
+    split saved assets across multiple files, to avoid performance degradation as the number of assets in a container
+    grows.
+- [#480] Added `IExtensionContext.Owner` API. Setting this property will allow errors to be correctly attributed to the
+  plugin that contains an extension context.
+- [#472] [#474] Added the `DependsOnContext` attribute, for declaring dependencies between extension contexts.
+- [#473] Added `BuildContext.SetEnableUVDistributionRecalculation` to allow opting out from the automatic call to
+  `Mesh.RecalculateUVDistributionMetrics` on generated meshes.
+- [#478] Added `ProfilerScope` API
+- [#481] Added `NDMFPreview.GetOriginalObjectForProxy` API
+
+### Fixed
+- [#479] Unpacking generated asset containers can break inter-asset references
+
 ## [1.5.7] - [2024-11-17]
 
 ### Changed
