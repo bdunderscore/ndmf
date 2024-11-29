@@ -10,16 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#482] Additional performance improvements
 
 ### Changed
 
 ### Removed
-- [#483] Removed `IExtensionContext.Owner` due to compatibility issues.
 
 ### Security
 
 ### Deprecated
+
+## [1.6.1] - [2024-11-28]
+
+**This release does not confirm to semver**. Due to unexpected compatibility issues with `IExtensionContext.Owner`, this
+release removes this API. Although this is technically a semver violation, it's better than the accidental violation in
+1.6.0.
+
+**Note**: In 1.7.0 NDMF will add sentinel default methods to all interfaces to ensure that downstream packages are not
+using outdated versions of C# to build. The NDMF project will not consider this to be a breaking change after 1.7.0.
+Please update your projects to build with modern C# before then.
+
+### Fixed
+- [#482] Additional performance improvements
+
+### Removed
+- [#483] Removed `IExtensionContext.Owner` due to compatibility issues.
 
 ## [1.6.0] - [2024-11-28]
 
