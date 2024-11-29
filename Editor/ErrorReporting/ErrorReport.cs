@@ -308,15 +308,6 @@ namespace nadena.dev.ndmf
             CurrentContext.Plugin = thePlugin;
             return scope;
         }
-
-        internal IDisposable WithContext(IExtensionContext theExtension)
-        {
-            var scope = new RestoreContextScope(this);
-            
-            if (theExtension.Owner != null) CurrentContext.Plugin = theExtension.Owner;
-
-            return scope;
-        }
         
         internal IDisposable WithContextPassName(string name)
         {

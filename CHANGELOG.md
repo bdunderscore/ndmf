@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
+- [#483] Removed `IExtensionContext.Owner` due to compatibility issues.
 
 ### Security
 
