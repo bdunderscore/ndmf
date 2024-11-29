@@ -38,22 +38,55 @@ namespace nadena.dev.ndmf
 
             if (AssetDatabase.IsValidFolder(subAssetPath))
             {
+                using var _2 = new ProfilerScope("DeleteFolder");
                 AssetDatabase.DeleteAsset(rootPath);
             }
-            
-            // Ensure directory exists recursively
-            if (!AssetDatabase.IsValidFolder(subAssetPath))
+
+            using var _ = new ProfilerScope("Asset editing");
+            try
             {
-                Directory.CreateDirectory(subAssetPath);
-                AssetDatabase.Refresh();
+                AssetDatabase.StartAssetEditing();
+
+                // Ensure directory exists recursively
+                var pathParts = subAssetPath.Split('/');
+                var currentDir = pathParts[0];
+
+                for (int i = 1; i < pathParts.Length; i++)
+                {
+                    var nextDir = currentDir + "/" + pathParts[i];
+                    if (!AssetDatabase.IsValidFolder(nextDir))
+                    {
+                        if (Directory.Exists(nextDir))
+                        {
+                            // Sometimes the asset database can be unaware of a folder on disk, so refresh it.
+                            // This is quite expensive, so only do it if necessary.
+                            Debug.Log("Force refresh due to " + nextDir);
+                            using var _2 = new ProfilerScope("AssetDatabase.Refresh");
+                            AssetDatabase.Refresh();
+                        }
+                        else
+                        {
+                            using var _2 = new ProfilerScope("CreateFolder");
+                            AssetDatabase.CreateFolder(currentDir, pathParts[i]);
+                        }
+                    }
+
+                    currentDir = nextDir;
+                }
+                
+                var rootAssetPath = AssetDatabase.GenerateUniqueAssetPath(rootPath + "/" + avatarName + ".asset");
+                _rootAsset = ScriptableObject.CreateInstance<GeneratedAssets>();
+                AssetDatabase.CreateAsset(_rootAsset, rootAssetPath);
+                _currentSubContainer = CreateAssetContainer();
+            
+                _assetCount = 0;
             }
-            
-            var rootAssetPath = AssetDatabase.GenerateUniqueAssetPath(rootPath + "/" + avatarName + ".asset");
-            _rootAsset = ScriptableObject.CreateInstance<GeneratedAssets>();
-            AssetDatabase.CreateAsset(_rootAsset, rootAssetPath);
-            _currentSubContainer = CreateAssetContainer();
-            
-            _assetCount = 0;
+            finally
+            {
+                using var _2 = new ProfilerScope("StopAssetEditing");
+
+                AssetDatabase.StopAssetEditing();
+            }
         }
 
         public void SaveAsset(UnityEngine.Object? obj)
