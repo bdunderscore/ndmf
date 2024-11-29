@@ -129,9 +129,6 @@ namespace nadena.dev.ndmf
             
             if (assetRootPath != null)
             {
-                // Ensure the target directory exists
-                Directory.CreateDirectory(assetRootPath);
-
                 AssetSaver = new AssetSaver(assetRootPath, avatarName);
             }
             else
