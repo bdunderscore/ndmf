@@ -1,10 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.platform;
 using NUnit.Framework;
 
 namespace UnitTests.PluginResolverTests
 {
+    [RunsOnAllPlatforms]
     class PluginA : Plugin<PluginA>
     {
         protected override void Configure()
@@ -15,6 +17,7 @@ namespace UnitTests.PluginResolverTests
         }
     }
 
+    [RunsOnAllPlatforms]
     class PluginB : Plugin<PluginB>
     {
         protected override void Configure()
@@ -24,6 +27,7 @@ namespace UnitTests.PluginResolverTests
         }
     }
 
+    [RunsOnAllPlatforms]
     class PluginC : Plugin<PluginC>
     {
         protected override void Configure()
@@ -39,10 +43,13 @@ namespace UnitTests.PluginResolverTests
         [Test]
         public void TestBeforeAfterPluginConstraints()
         {
-            var resolver = new PluginResolver(new IPluginInternal[]
-            {
-                PluginA.Instance, PluginB.Instance, PluginC.Instance
-            });
+            var resolver = new PluginResolver(
+                new IPluginInternal[]
+                {
+                    PluginA.Instance, PluginB.Instance, PluginC.Instance
+                },
+                GenericPlatform.Instance
+            );
             var passNames = resolver.Passes.SelectMany(kv => kv.Item2)
                 .Select(pass => pass.Description)
                 .ToImmutableList();

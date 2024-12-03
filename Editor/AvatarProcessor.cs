@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
@@ -91,7 +93,7 @@ namespace nadena.dev.ndmf
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext, BuildPhase.Resolving, BuildPhase.Optimizing);
+                    ProcessAvatar(buildContext, BuildPhase.BuiltInPhases.First(), BuildPhase.BuiltInPhases.Last());
 
                     buildContext.Finish();
 
@@ -107,11 +109,6 @@ namespace nadena.dev.ndmf
         #if NDMF_VRCSDK3_AVATARS
         private static bool IsVRCFuryHack(StackTrace trace)
         {
-            foreach (var frame in trace.GetFrames())
-            {
-                Debug.Log("Frame: " + frame.GetMethod().DeclaringType.FullName + " " + frame.GetMethod());
-            }
-            
             return trace.GetFrames().Any(frame =>
                 frame.GetMethod().DeclaringType.FullName == "VF.Menu.NdmfFirstMenuItem"
             );
@@ -142,11 +139,30 @@ namespace nadena.dev.ndmf
         /// <param name="root"></param>
         public static void ProcessAvatar(GameObject root)
         {
-            ProcessAvatar(root, BuildPhase.Optimizing);
+            ProcessAvatar(root, BuildPhase.Last);
+        }
+
+        // [PublicAPI] - TODO(multiplatform)
+        internal static BuildContext ProcessAvatar(
+            GameObject root,
+            INDMFPlatformProvider platform
+        )
+        {
+            using var scope = new AmbientPlatform.Scope(platform);
+            
+            var context = ProcessAvatar(root, BuildPhase.Last);
+            if (context == null)
+            {
+                // TODO - does this break VRCF?
+                throw new Exception("Avatar already processed");
+            }
+
+            return context;
         }
         
-        internal static void ProcessAvatar(GameObject root, BuildPhase lastPhase) {
-            if (root.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return;
+        [CanBeNull]
+        internal static BuildContext ProcessAvatar(GameObject root, BuildPhase lastPhase) {
+            if (root.GetComponent<AlreadyProcessedTag>()?.processingCompleted == true) return null;
 
             // HACK: VRCFury tries to invoke ProcessAvatar during its own processing, but this risks having Optimization
             // phase passes run too early (before VRCF runs). Detect when we're being invoked like this and skip
@@ -160,7 +176,7 @@ namespace nadena.dev.ndmf
                               "ignoring VRCFury invocation");
                     // We're running from within VRChat build hooks, so just ignore VRCFury's request;
                     // we'll be run in the correct order anyway.
-                    return;
+                    return null;
                 }
                 else
                 {
@@ -172,7 +188,7 @@ namespace nadena.dev.ndmf
             
             var buildContext = new BuildContext(root, TemporaryAssetRoot);
 
-            ProcessAvatar(buildContext, BuildPhase.Resolving, lastPhase);
+            ProcessAvatar(buildContext, BuildPhase.First, lastPhase);
             buildContext.Finish();
 
             if (RuntimeUtil.IsPlaying)
@@ -180,6 +196,8 @@ namespace nadena.dev.ndmf
                 var tag = root.GetComponent<AlreadyProcessedTag>() ?? root.AddComponent<AlreadyProcessedTag>();
                 tag.processingCompleted = true;
             }
+
+            return buildContext;
         }
 
         internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)

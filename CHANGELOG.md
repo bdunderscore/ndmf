@@ -14,11 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - You can also use `Sequence.OnPlatforms` or `Sequence.OnAllPlatforms` to override the plugin setting for a group of
     passes.
   - See the new `WellKnownPlatforms` class for more details on precedence.
-  - **Platform restrictions placed using this API are not yet enforced.**
+
+#### Added (experimental features)
+These features are only accessible if you set `NDMF_EXPERIMENTAL` as a script define in your project settings,
+and are subject to change in future releases (are not subject to semver).
+
+- Added platform selection UI to the build window. Note that this is displayed only if `NDMF_EXPERIMENTAL` is set as a
+  script define.
+- Added `NDMF Avatar Root` experimental component.
 
 ### Fixed
 
 ### Changed
+- Standalone NDMF (when VRCSDK is not installed) will now filter passes by platform configuration.
 
 ### Removed
 

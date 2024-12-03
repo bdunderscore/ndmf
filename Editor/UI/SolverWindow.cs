@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.reporting;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -26,12 +27,19 @@ namespace nadena.dev.ndmf.ui
         {
             _solverUI = new SolverUI();
             BuildEvent.OnBuildEvent += OnBuildEvent;
+            AmbientPlatform.OnDefaultPlatformChanged += OnPlatformChange;
         }
 
         private void OnDisable()
         {
             _solverUI?.Dispose();
             BuildEvent.OnBuildEvent -= OnBuildEvent;
+            AmbientPlatform.OnDefaultPlatformChanged -= OnPlatformChange;
+        }
+        
+        private void OnPlatformChange()
+        {
+            _solverUI?.Reload();
         }
 
         private void OnBuildEvent(BuildEvent ev)
@@ -60,7 +68,6 @@ namespace nadena.dev.ndmf.ui
 
     internal class SolverUI : TreeView, IDisposable
     {
-        private static PluginResolver Resolver = new PluginResolver(includeDisabled: true);
         private Dictionary<string, List<SolverUIItem>> _pluginItems = new();
 
         public SolverUI() : this(new TreeViewState())
@@ -108,6 +115,8 @@ namespace nadena.dev.ndmf.ui
 
         protected override TreeViewItem BuildRoot()
         {
+            PluginResolver Resolver = new PluginResolver(includeDisabled: true);
+            
             var root = new SolverUIItem() {id = 0, depth = -1, displayName = "Avatar Build"};
             var allItems = new List<SolverUIItem>();
             _pluginItems.Clear();
@@ -151,7 +160,7 @@ namespace nadena.dev.ndmf.ui
                         pluginItems.Add(pluginItem);
                     }
 
-                    allItems.Add(new SolverUIItem() {id = id++, depth = 3, displayName = pass.Description, IsDisabled = isDisabled});
+                    allItems.Add(new SolverUIItem() {id = id++, depth = 3, displayName = pass.Description, IsDisabled = isDisabled || pass.Skipped});
 
                     if (isDisabled) continue;
 

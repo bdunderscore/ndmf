@@ -119,6 +119,25 @@ VisualElement {
     height: 100%;
 }
 
+#platform-build-container {
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#platform-selector {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+#platform-build-ui {
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 #footer {
     flex-direction: row;
 }

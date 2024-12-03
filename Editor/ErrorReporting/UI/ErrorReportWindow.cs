@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.localization;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -35,6 +37,7 @@ namespace nadena.dev.ndmf.ui
 
 #if UNITY_2021_3_OR_NEWER
         private ToolbarMenu _selector;
+        private BuildUIElement _platformBuildUI;
 #endif
 
         /// <summary>
@@ -88,6 +91,8 @@ namespace nadena.dev.ndmf.ui
                     CurrentReport = report;
                     _avatarRoot = value;
                 }
+
+                if (_platformBuildUI != null) _platformBuildUI.AvatarRoot = value;
             }
         }
 
@@ -132,7 +137,54 @@ namespace nadena.dev.ndmf.ui
             SetupSelector();
             EditorApplication.hierarchyChanged += SetupSelector;
 
+            SetupPlatformSelector();
+
             UpdateContents();
+        }
+
+        private void SetupPlatformSelector()
+        {
+            var platformSelectorField = rootVisualElement.Q<DropdownField>("platform-selector");
+            #if !NDMF_EXPERIMENTAL
+            platformSelectorField.style.display = DisplayStyle.None;
+            return;
+            #else
+
+
+            var platforms = PlatformRegistry.PlatformProviders
+                .OrderBy(kv => kv.Value.DisplayName)
+                .ToList();
+            var platformNames = platforms.Select(kv => kv.Value.DisplayName).ToList();
+            
+            platformSelectorField.choices = platformNames;
+            var defaultIndex = platforms.FindIndex(kv => kv.Value == AmbientPlatform.DefaultPlatform);
+            if (defaultIndex != -1) platformSelectorField.SetValueWithoutNotify(platformNames[defaultIndex]);
+            platformSelectorField.RegisterValueChangedCallback(evt =>
+            {
+                var index = platformNames.IndexOf(evt.newValue);
+                if (index == -1) return;
+
+                var selectedPlatform = platforms[index].Value;
+                AmbientPlatform.DefaultPlatform = selectedPlatform;
+                BuildPlatformUI();
+            });
+            
+            BuildPlatformUI();
+            #endif
+        }
+
+        [UsedImplicitly] // suppress warning when not using experimental features
+        private void BuildPlatformUI()
+        {
+            var container = rootVisualElement.Q<VisualElement>("platform-build-ui");
+            container.Clear();
+
+            _platformBuildUI = AmbientPlatform.DefaultPlatform.CreateBuildUI();
+            if (_platformBuildUI != null)
+            {
+                _platformBuildUI.AvatarRoot = CurrentAvatar;
+                container.Add(_platformBuildUI);
+            }
         }
 
         private void OnEnable()
