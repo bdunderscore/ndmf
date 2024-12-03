@@ -1,6 +1,36 @@
-﻿msgid ""
+msgid ""
 msgstr ""
 "Language: zh-Hans\n"
 
-#: This file is kept just so the zh-Hans (chinese simplified) language is registered, so that we can safely default to
-#: it. However, we do not yet have any community translations for this language.
+msgid "ErrorReport:AvatarPrefix"
+msgstr "Avatar: "
+
+msgid "ErrorReport:Title"
+msgstr "NDMF 控制台"
+
+msgid "ErrorReport:HintFoldout"
+msgstr "帮助我修复它！"
+
+msgid "ErrorReport:TestBuild"
+msgstr "进行测试构建"
+
+msgid "ErrorReport:NoErrors"
+msgstr "没有信息可供提供！"
+
+msgid "ErrorReport:NoAvatarSelected"
+msgstr "没有选择 Avatar。"
+
+msgid "ErrorReport:Unbuilt"
+msgstr "此 Avatar 尚未构建。 "
+
+msgid "Errors:InternalError"
+msgstr "发生内部错误。"
+
+msgid "Errors:InternalError:description"
+msgstr "一个插件抛出了类型为: {0} 的错误. 请将此信息报告给工具作者。"
+
+msgid "InternalError:StackTraceFoldout"
+msgstr "显示 Stack Trace (请将此信息与错误报告一同提交！)"
+
+msgid "AvatarProcessor:ProcessingFailed"
+msgstr "处理 Avatar 时发生了错误。详情请查看 NDMF 控制台。"
