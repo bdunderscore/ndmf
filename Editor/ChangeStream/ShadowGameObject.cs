@@ -318,22 +318,24 @@ namespace nadena.dev.ndmf.cs
             return shadowObject._listeners.Register(filter, ctx);
         }
 
-        internal IDisposable RegisterObjectListener(UnityObject targetComponent,
+        internal IDisposable RegisterObjectListener(UnityObject targetObject,
             ListenerSet<HierarchyEvent>.Filter filter,
             ComputeContext ctx
         )
         {
-            if (targetComponent == null || ctx.IsInvalidated) return new NullDisposable();
+            if (targetObject == null || ctx.IsInvalidated) return new NullDisposable();
             
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] RegisterObjectListener({targetComponent.GetInstanceID()})");
 #endif
 
-            if (!_otherObjects.TryGetValue(targetComponent.GetInstanceID(), out var shadowComponent))
+            if (!_otherObjects.TryGetValue(targetObject.GetInstanceID(), out var shadowComponent))
             {
-                shadowComponent = new ShadowObject(targetComponent);
-                _otherObjects[targetComponent.GetInstanceID()] = shadowComponent;
+                shadowComponent = new ShadowObject(targetObject);
+                _otherObjects[targetObject.GetInstanceID()] = shadowComponent;
             }
+
+            ChangeNotifier.RecordObjectOfInterest(targetObject);
 
             return shadowComponent._listeners.Register(filter, ctx);
         }
