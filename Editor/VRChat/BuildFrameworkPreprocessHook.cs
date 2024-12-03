@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using nadena.dev.ndmf.config;
 using nadena.dev.ndmf.runtime;
+using nadena.dev.ndmf.vrchat;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
@@ -44,7 +45,7 @@ namespace nadena.dev.ndmf.VRChat
             {
                 var holder = avatarGameObject.AddComponent<ContextHolder>();
                 holder.hideFlags = HideFlags.DontSave;
-                holder.context = new BuildContext(avatarGameObject, AvatarProcessor.TemporaryAssetRoot);
+                holder.context = new BuildContext(avatarGameObject, AvatarProcessor.TemporaryAssetRoot, VRChatPlatform.Instance);
 
                 AvatarProcessor.ProcessAvatar(holder.context, BuildPhase.Resolving, BuildPhase.Transforming);
                 holder.context.Serialize();

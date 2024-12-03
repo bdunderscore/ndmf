@@ -155,7 +155,7 @@ namespace nadena.dev.ndmf.fluent
 
         public ImmutableHashSet<string>? PlatformFilter;
 
-        private SolverPass _priorPass = null;
+        private SolverPass? _priorPass = null;
 
         private int inlinePassIndex = 0;
 

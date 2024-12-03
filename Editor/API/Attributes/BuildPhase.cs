@@ -1,6 +1,9 @@
-﻿#region
+﻿#nullable enable
+
+#region
 
 using System.Collections.Immutable;
+using JetBrains.Annotations;
 
 #endregion
 
@@ -16,6 +19,7 @@ namespace nadena.dev.ndmf
     /// - Transforming
     /// - Optimizing
     /// </summary>
+    [PublicAPI]
     public sealed class BuildPhase
     {
         public string Name { get; }
@@ -25,6 +29,28 @@ namespace nadena.dev.ndmf
         {
             Name = name;
         }
+        
+        internal static BuildPhase First => FirstChance;
+        internal static BuildPhase Last => PlatformFinish;
+
+        /// <summary>
+        ///     The FirstChance build phase runs before platform initialization, and should be used for plugins that need to
+        ///     run before absolutely everything else. For example, if you want to replace the entire avatar with a different
+        ///     one, this is probably the time to do it.
+        ///
+        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
+        /// </summary>
+        internal static readonly BuildPhase FirstChance = new("FirstChance");
+
+        internal static readonly BuildPhase InternalPrePlatformInit = new("Before platform initialization");
+        
+        /// <summary>
+        ///     The PlatformInit phase runs early in the build process, and is intended for platform backend initialization.
+        ///     In particular, this is the phase where common avatar configuration is synced between platforms.
+        ///
+        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
+        /// </summary>
+        internal static readonly BuildPhase PlatformInit = new("PlatformInit");
 
         /// <summary>
         /// The resolving phase is intended for use by passes which perform very early processing of components and
@@ -57,10 +83,25 @@ namespace nadena.dev.ndmf
         public static readonly BuildPhase Optimizing = new BuildPhase("Optimizing");
 
         /// <summary>
+        ///     The platform finish phase is run after optimizations, and is intended for platform-specific cleanup.
+        ///     For example, validating that we haven't exceeded the VRChat parameter limit.
+        /// </summary>
+        internal static readonly BuildPhase PlatformFinish = new("PlatformFinish");
+        
+        /// <summary>
         /// This list contains all built-in phases in the order that they will be executed.
         /// </summary>
         public static readonly ImmutableList<BuildPhase> BuiltInPhases
-            = ImmutableList.Create(Resolving, Generating, Transforming, Optimizing);
+            = ImmutableList.Create(
+                FirstChance,
+                InternalPrePlatformInit,
+                PlatformInit,
+                Resolving,
+                Generating,
+                Transforming,
+                Optimizing,
+                PlatformFinish
+            );
 
         public override string ToString() => Name;
     }

@@ -27,6 +27,11 @@
         <engine:VisualElement name="error-list-container"/>
     </engine:ScrollView>
 
+    <engine:VisualElement name="platform-build-container">
+        <engine:DropdownField name="platform-selector" label="Avatar platform"/>
+        <engine:VisualElement name="platform-build-ui"/>
+    </engine:VisualElement>
+    
     <engine:VisualElement name="footer">
         <ndmf:LanguageSwitcher/>
         <engine:Button text="ErrorReport:TestBuild" name="test-build-button" class="ndmf-tr test-build-button"/>

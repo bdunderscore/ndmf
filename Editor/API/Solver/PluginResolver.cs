@@ -1,11 +1,15 @@
-﻿#region
+﻿#nullable enable
+
+#region
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
 using UnityEditor;
@@ -16,6 +20,7 @@ namespace nadena.dev.ndmf
 {
     class TypeComparer : IComparer<Type>
     {
+        [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
         public int Compare(Type x, Type y)
         {
             if (x == y) return 0;
@@ -35,6 +40,7 @@ namespace nadena.dev.ndmf
         internal ImmutableList<Type> ActivatePlugins { get; }
         internal ImmutableList<IRenderFilter> RenderFilters { get; }
         internal bool HasPreviews => RenderFilters.Any();
+        public bool Skipped { get; set; }
 
         public void Execute(BuildContext context)
         {
@@ -59,7 +65,7 @@ namespace nadena.dev.ndmf
     internal static class PluginDisablePrefs
     {
         // parameter: plugin id, new state
-        public static event Action<string, bool> OnPluginDisableChanged;
+        public static event Action<string, bool>? OnPluginDisableChanged;
 
         private const string SessionStateKey = "nadena.dev.ndmf.plugin-disabled.";
 
@@ -80,6 +86,7 @@ namespace nadena.dev.ndmf
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         private readonly List<SolverPass> _allPasses = new();
+        private INDMFPlatformProvider _platform;
 
         public static IEnumerable<Type> FindPluginTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                 assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
@@ -87,23 +94,25 @@ namespace nadena.dev.ndmf
             .ToImmutableSortedSet(new TypeComparer())
             .Prepend(typeof(InternalPasses));
 
-        [CanBeNull] private static IPluginInternal InstantiatePlugin(Type pluginType) =>
+        private static IPluginInternal? InstantiatePlugin(Type pluginType) =>
             pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
 
-        [ItemCanBeNull]
-        public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPluginTypes().Select(InstantiatePlugin);
+        public static IEnumerable<IPluginInternal?> FindAllPlugins() => FindPluginTypes().Select(InstantiatePlugin);
 
-        public PluginResolver(bool includeDisabled = false) : this(FindPluginTypes(), includeDisabled)
+        public PluginResolver(INDMFPlatformProvider? platform = null, bool includeDisabled = false) : this(FindPluginTypes(), platform, includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) 
-            : this(plugins.Select(InstantiatePlugin), includeDisabled)
+        internal PluginResolver(IEnumerable<Type> plugins, INDMFPlatformProvider? platform, bool includeDisabled = false) 
+            : this(plugins.Select(InstantiatePlugin), platform, includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, bool includeDisabled = false)
+        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, INDMFPlatformProvider? platform, bool includeDisabled = false)
         {
+            platform ??= AmbientPlatform.CurrentPlatform;
+            _platform = platform;
+            
             var solverContext = new SolverContext();
 
             foreach (var plugin in pluginTemplates)
@@ -190,6 +199,21 @@ namespace nadena.dev.ndmf
                 if (!includeDisabled) sorted.RemoveAll(pass => PluginDisablePrefs.IsPluginDisabled(pass.Plugin.QualifiedName));
                 _allPasses.AddRange(sorted);
 
+                for (int i = 0; i < sorted.Count; i++)
+                {
+                    if (!sorted[i].IsPlatformCompatible(platform))
+                    {
+                        // Replace with stub
+                        var originalPass = sorted[i].Pass;
+                        var pass = new AnonymousPass(originalPass.QualifiedName,
+                            "Incompatible: " + originalPass.DisplayName,
+                            _ => { });
+                        sorted[i] = new SolverPass(sorted[i].Plugin, pass, sorted[i].Phase,
+                            sorted[i].CompatibleExtensions, ImmutableHashSet<Type>.Empty);
+                        sorted[i].Skipped = true;
+                    }
+                }
+                
                 var concrete = ToConcretePasses(phase, sorted);
 
                 result = result.Add((phase, concrete));
@@ -234,6 +258,7 @@ namespace nadena.dev.ndmf
 
                 var concretePass = new ConcretePass(pass.Plugin, pass.Pass, toDeactivate.ToImmutableList(),
                     toActivate.ToImmutableList(), pass.RenderFilters.ToImmutableList());
+                concretePass.Skipped = pass.Skipped;
 
                 concrete.Add(concretePass);
             }

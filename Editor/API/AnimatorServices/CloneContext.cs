@@ -153,7 +153,7 @@ namespace nadena.dev.ndmf.animator
                 _cloneDepth++;
 
                 if (key == null || (key is Object obj && obj == null)) return null;
-                if (TryGetValue(key, out U? value)) return value;
+                if (TryGetValue(key, out U? value)) return value!;
                 value = clone(this, key);
                 _clones[key] = value;
 

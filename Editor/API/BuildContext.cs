@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.reporting;
+using nadena.dev.ndmf.runtime.components;
 using nadena.dev.ndmf.ui;
 using nadena.dev.ndmf.util;
 using UnityEditor;
@@ -52,6 +54,8 @@ namespace nadena.dev.ndmf
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
 
+        internal INDMFPlatformProvider PlatformProvider { get; }
+        
         public ObjectRegistry ObjectRegistry => _registry;
         public ErrorReport ErrorReport => _report;
 
@@ -106,15 +110,29 @@ namespace nadena.dev.ndmf
 
             return (T)value;
         }
-
+        
         public BuildContext(GameObject obj, string assetRootPath, bool isClone = true)
+            : this(obj, assetRootPath, null, isClone) 
+        {}
+        
+        internal BuildContext(GameObject obj, string assetRootPath, INDMFPlatformProvider platform, bool isClone = true)
         {
+            platform ??= AmbientPlatform.DefaultPlatform;
+            using var _platformScope = new AmbientPlatform.Scope(platform);
+            
+            if (!obj.GetComponent<NDMFAvatarRoot>())
+            {
+                obj.AddComponent<NDMFAvatarRoot>();
+            }
+            
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
             _registry = new ObjectRegistry(obj.transform);
             _report = ErrorReport.Create(obj, isClone);
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
+            
+            PlatformProvider = platform;
 
             _avatarRootObject = obj;
             _avatarRootTransform = obj.transform;
@@ -347,6 +365,8 @@ namespace nadena.dev.ndmf
 
         public void DeactivateAllExtensionContexts()
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             Dictionary<Type, List<Type>> depIndex = new();
             foreach (var ty in _activeExtensions.Keys)
             {
@@ -399,6 +419,8 @@ namespace nadena.dev.ndmf
         
         public IExtensionContext ActivateExtensionContext(Type ty)
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             using (new ExecutionScope(this))
             using (_report.WithExtensionContextTrace(ty))
                 try
@@ -435,6 +457,8 @@ namespace nadena.dev.ndmf
 
         internal void Finish()
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             using (new ExecutionScope(this))
             {
                 sw.Start();

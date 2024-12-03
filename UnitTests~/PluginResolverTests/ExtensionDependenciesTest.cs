@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.platform;
 using NUnit.Framework;
 
 namespace UnitTests.PluginResolverTests
@@ -69,6 +70,7 @@ namespace UnitTests.PluginResolverTests
         }
     }
     
+    [RunsOnAllPlatforms]
     public class Plugin1 : Plugin<Plugin1>
     {
         protected override void Configure()
@@ -88,7 +90,7 @@ namespace UnitTests.PluginResolverTests
         [Test]
         public void AssertCorrectPassDependencies()
         {
-            var resolver = new PluginResolver(new[] { typeof(Plugin1) });
+            var resolver = new PluginResolver(new[] { typeof(Plugin1) }, GenericPlatform.Instance);
 
             var phase = resolver.Passes.First(p => p.Item1 == BuildPhase.Generating).Item2;
             var pass1 = phase.First(pass => pass.InstantiatedPass is Pass1);

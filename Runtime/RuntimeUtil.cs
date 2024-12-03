@@ -1,6 +1,11 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.runtime.components;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,6 +20,11 @@ namespace nadena.dev.ndmf.runtime
     /// </summary>
     public static class RuntimeUtil
     {
+        internal static HashSet<Type> AllRootTypes = new HashSet<Type>()
+        {
+            typeof(NDMFAvatarRoot),
+        };
+        
         /// <summary>
         /// Invoke this function to register a callback with EditorApplication.delayCall from a context that cannot
         /// access EditorApplication.
@@ -53,8 +63,7 @@ namespace nadena.dev.ndmf.runtime
         /// <param name="root"></param>
         /// <param name="child"></param>
         /// <returns></returns>
-        [CanBeNull]
-        public static string RelativePath(GameObject root, GameObject child)
+        public static string? RelativePath(GameObject? root, GameObject? child)
         {
             return RelativePath(root?.transform, child?.transform);
         }
@@ -65,8 +74,7 @@ namespace nadena.dev.ndmf.runtime
         /// <param name="root"></param>
         /// <param name="child"></param>
         /// <returns></returns>
-        [CanBeNull]
-        public static string RelativePath(Transform root, Transform child)
+        public static string? RelativePath(Transform? root, Transform? child)
         {
             if (root == child) return "";
 
@@ -82,6 +90,24 @@ namespace nadena.dev.ndmf.runtime
             pathSegments.Reverse();
             return string.Join("/", pathSegments);
         }
+
+        private static Component? GetAvatarRootInThisAndParents(Transform? t)
+        {
+            Component? candidate = null;
+            while (t != null)
+            {
+                foreach (var ty in AllRootTypes)
+                {
+                    if (t.TryGetComponent(ty, out Component c))
+                    {
+                        candidate = c;
+                    }
+                }
+                t = t.parent;
+            }
+
+            return candidate;
+        }
         
         /// <summary>
         /// Returns the path of a game object relative to the avatar root, or null if the avatar root could not be
@@ -89,8 +115,7 @@ namespace nadena.dev.ndmf.runtime
         /// </summary>
         /// <param name="child"></param>
         /// <returns></returns>
-        [CanBeNull]
-        public static string AvatarRootPath(GameObject child)
+        public static string? AvatarRootPath(GameObject child)
         {
             if (child == null) return null;
             var avatar = FindAvatarInParents(child.transform);
@@ -105,14 +130,7 @@ namespace nadena.dev.ndmf.runtime
         /// <returns></returns>
         public static bool IsAvatarRoot(Transform target)
         {
-#if NDMF_VRCSDK3_AVATARS
-            return target.TryGetComponent<VRCAvatarDescriptor>(out _);
-#else            
-            if (!target.TryGetComponent<Animator>(out _)) return false;
-
-            var parent = target.transform.parent;
-            return !(parent && parent.GetComponentInParent<Animator>());
-#endif
+            return (AllRootTypes.Any(ty => target.TryGetComponent(ty, out _))) && (GetAvatarRootInThisAndParents(target.parent) == null);
         }
 
         /// <summary>
@@ -120,7 +138,7 @@ namespace nadena.dev.ndmf.runtime
         /// of its operation may change in patch releases.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<GameObject> FindAvatarRoots(GameObject root = null)
+        public static IEnumerable<GameObject> FindAvatarRoots(GameObject? root = null)
         {
             if (root == null)
             {
@@ -129,29 +147,32 @@ namespace nadena.dev.ndmf.runtime
                 {
                     var scene = SceneManager.GetSceneAt(i);
                     if (!scene.isLoaded) continue;
-                    foreach (var sceneRoot in scene.GetRootGameObjects())
+
+                    foreach (var avatar in FindAvatarsInScene(scene))
                     {
-                        foreach (var avatar in FindAvatarRoots(sceneRoot))
-                        {
-                            yield return avatar;
-                        }
+                        yield return avatar.gameObject;
                     }
                 }
             }
             else
             {
-                GameObject priorRoot = null;
-#if NDMF_VRCSDK3_AVATARS
-                var candidates = root.GetComponentsInChildren<VRCAvatarDescriptor>();
-#else
-                var candidates = root.GetComponentsInChildren<Animator>();
-#endif
-                foreach (var candidate in candidates)
+                GameObject? priorRoot = null;
+
+                OrderedDictionary candidates = new();
+
+                foreach (var ty in AllRootTypes)
                 {
-                   
+                    foreach (var c in root.GetComponentsInChildren(ty, false))
+                    {
+                        candidates[c] = true;
+                    }
+                }
+
+                foreach (var candidate in candidates.Keys.OfType<Component>())
+                {
                     var gameObject = candidate.gameObject;
                     // Ignore nested candidates
-                    if (priorRoot != null && RelativePath(priorRoot, gameObject) != null) continue;
+                    if (GetAvatarRootInThisAndParents(gameObject.transform.parent) != null) continue;
 
                     priorRoot = gameObject;
                     yield return candidate.gameObject;
@@ -164,15 +185,9 @@ namespace nadena.dev.ndmf.runtime
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        public static Transform FindAvatarInParents(Transform target)
+        public static Transform? FindAvatarInParents(Transform? target)
         {
-            while (target != null)
-            {
-                if (IsAvatarRoot(target)) return target;
-                target = target.parent;
-            }
-
-            return null;
+            return GetAvatarRootInThisAndParents(target)?.transform;
         }
         
         /// <summary>
@@ -184,13 +199,9 @@ namespace nadena.dev.ndmf.runtime
         {
             foreach (var root in scene.GetRootGameObjects())
             {
-#if NDMF_VRCSDK3_AVATARS
-                foreach (var avatar in root.GetComponentsInChildren<VRCAvatarDescriptor>())
-#else            
-                foreach (var avatar in root.GetComponentsInChildren<Animator>())
-#endif
+                foreach (var avatar in FindAvatarRoots(root))
                 {
-                    if (IsAvatarRoot(avatar.transform)) yield return avatar.transform;
+                    yield return avatar.transform;
                 }
             }
         }
