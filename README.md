@@ -25,7 +25,7 @@ You can find detailed information in [the documentation](https://ndmf.nadena.dev
 To get started quickly, a minimal plugin definition looks a bit like this:
 
 ```csharp
-[assembly: ExportsPlugin(typeof(SetViewpointPlugin))]
+[assembly: ExportsPlugin(typeof(MyPlugin))]
 
 namespace nadena.dev.ndmf.sample
 {
