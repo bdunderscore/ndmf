@@ -14,7 +14,24 @@ namespace nadena.dev.ndmf.preview
     public static class NDMFSyncContext
     {
         public static SynchronizationContext Context = new Impl();
+        private static Impl InternalContext = (Impl)Context;
 
+        /// <summary>
+        /// Runs the given function on the unity main thread - synchronously if possible.
+        /// </summary>
+        /// <param name="cb"></param>
+        public static void RunOnMainThread(EditorApplication.CallbackFunction cb)
+        {
+            if (Thread.CurrentThread.ManagedThreadId == InternalContext.unityMainThreadId)
+            {
+                cb();
+            }
+            else
+            {
+                Context.Send(_ => cb(), null);
+            }
+        }
+        
         /// <summary>
         ///     Switches to the NDMF synchronization context, and returns an IDisposable which will restore the prior
         ///     synchronization context.
@@ -42,9 +59,11 @@ namespace nadena.dev.ndmf.preview
 
         private class Impl : SynchronizationContext
         {
+            private SynchronizationContext _unityMainThreadContext;
+            
             private readonly object _lock = new();
             private readonly EditorApplication.CallbackFunction _turnDelegate;
-            private int unityMainThreadId = -1;
+            internal int unityMainThreadId = -1;
             private readonly List<WorkRequest> asyncQueue = new();
             private readonly List<WorkRequest> localQueue = new();
             private bool isRegistered, isTurning;
@@ -52,17 +71,28 @@ namespace nadena.dev.ndmf.preview
             internal Impl()
             {
                 _turnDelegate = Turn;
+                EditorApplication.delayCall += () =>
+                {
+                    // Obtain the unity synchronization context
+                    _unityMainThreadContext = SynchronizationContext.Current;
+                    unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
+
+                    Turn(); // process anything that was queued before we had a chance to initialize
+                };
             }
 
             // invoked under _lock
             private void RegisterCallback()
             {
-                if (isRegistered) return;
+                if (isRegistered || _unityMainThreadContext == null) return;
                 isRegistered = true;
-                EditorApplication.update += _turnDelegate;
-                // We also trigger a delayCall here as update won't run unless there's user interaction. The purpose
-                // of also calling update is to ensure we recover if delayCall is cleared somehow.
-                EditorApplication.delayCall += _turnDelegate;
+
+                _unityMainThreadContext.Post(InvokeTurn, this);
+            }
+
+            private void InvokeTurn(object state)
+            {
+                ((Impl)state).Turn();
             }
 
             private void Turn()

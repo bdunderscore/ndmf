@@ -338,22 +338,23 @@ namespace nadena.dev.ndmf.cs
 
                     if (Thread.CurrentThread.ManagedThreadId == _targetThread)
                     {
-                        DoDispose();
+                        DoDispose(_orig);
                     }
                     else
                     {
-                        var orig = _orig;
-                        EditorApplication.delayCall += DoDispose;
+                        NDMFSyncContext.Context.Post(targets => DoDispose((IDisposable[])targets), _orig);
                     }
 
                     _orig = null;
                 }
             }
 
-            private void DoDispose()
+            private static void DoDispose(IDisposable[] targets)
             {
-                if (_orig == null) return;
-                foreach (var orig in _orig) orig.Dispose();
+                foreach (var orig in targets)
+                {
+                    orig.Dispose();
+                }
             }
         }
 
