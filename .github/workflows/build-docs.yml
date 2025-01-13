@@ -15,7 +15,7 @@ jobs:
       - name: Install docfx
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install dotnet7
+          sudo apt-get -y install dotnet8
           dotnet tool update -g docfx
           
       - name: Build documentation
