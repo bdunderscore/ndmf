@@ -35,7 +35,7 @@ namespace nadena.dev.ndmf.preview
                 if (_pendingInvalidatesScheduled) return;
                 
                 _pendingInvalidatesScheduled = true;
-                EditorApplication.delayCall += FlushInvalidates;
+                NDMFSyncContext.Context.Post(_ => FlushInvalidates(), null);
             }
         }
 

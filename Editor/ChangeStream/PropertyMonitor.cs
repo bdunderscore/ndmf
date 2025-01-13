@@ -109,7 +109,9 @@ namespace nadena.dev.ndmf.cs
                     var (instanceId, reg) = pair;
 
                     // Wake up all listeners to see if their monitored value has changed
+                    Profiler.BeginSample("FirePropsUpdated", EditorUtility.InstanceIDToObject(instanceId));
                     reg._listeners.Fire(PropertyMonitorEvent.PropsUpdated);
+                    Profiler.EndSample();
 
                     if (!reg._listeners.HasListeners() || reg._obj == null) toRemove.Add(instanceId);
 
@@ -136,7 +138,7 @@ namespace nadena.dev.ndmf.cs
         private static async Task Yield()
         {
             var tcs = new TaskCompletionSource<bool>();
-            EditorApplication.delayCall += () => { tcs.SetResult(true); };
+            NDMFSyncContext.Context.Post(tcs_ => ((TaskCompletionSource<bool>)tcs_).TrySetResult(true), tcs);
 
             await tcs.Task;
         }
