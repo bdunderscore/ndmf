@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.preview.UI
             GetWindow<PreviewPrefsUI>();
         }
 
-        private PreviewPrefsUI()
+        private void OnEnable()
         {
             BuildTreeViewData();
         }

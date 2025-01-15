@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#487] Fixed a performance issue where all assets would potentially be loaded on reimport, taking a lot of time and
   memory in the process
 - [#500] Fixed a thread-safety issue which could cause various issues, including editor performance degradation.
+- [#506] Fixed an issue with the preview preferences dialog
 
 ### Changed
 
