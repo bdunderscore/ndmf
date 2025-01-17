@@ -16,7 +16,7 @@ namespace nadena.dev.ndmf.preview
 
         internal static void OnMainThread<T>(T target, Action<T> receiver)
         {
-            NDMFSyncContext.RunOnMainThread(() => receiver(target));
+            NDMFSyncContext.Context.Post(action => ((Action)action)(), (Action)(() => receiver(target)));
         }
     }
 }
