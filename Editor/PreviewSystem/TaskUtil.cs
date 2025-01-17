@@ -13,10 +13,5 @@ namespace nadena.dev.ndmf.preview
         {
             _mainThread = Thread.CurrentThread;
         }
-
-        internal static void OnMainThread<T>(T target, Action<T> receiver)
-        {
-            NDMFSyncContext.RunOnMainThread(() => receiver(target));
-        }
     }
 }

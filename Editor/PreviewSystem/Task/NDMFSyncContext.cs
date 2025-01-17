@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,20 +16,23 @@ namespace nadena.dev.ndmf.preview
     {
         public static SynchronizationContext Context = new Impl();
         private static Impl InternalContext = (Impl)Context;
-
+        
         /// <summary>
-        /// Runs the given function on the unity main thread - synchronously if possible.
+        ///    Runs the given function on the unity main thread, passing the given target as an argument.
+        ///    The function will be invoked synchronously if called from the main thread; otherwise, it will be
+        ///    run asynchronously.
         /// </summary>
-        /// <param name="cb"></param>
-        public static void RunOnMainThread(EditorApplication.CallbackFunction cb)
+        /// <param name="receiver"></param>
+        /// <param name="target"></param>
+        internal static void RunOnMainThread(SendOrPostCallback receiver, object target)
         {
             if (Thread.CurrentThread.ManagedThreadId == InternalContext.unityMainThreadId)
             {
-                cb();
+                receiver(target);
             }
             else
             {
-                Context.Send(_ => cb(), null);
+                Context.Post(receiver, target);
             }
         }
         
