@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#507] Fixed a potential editor freeze bug
 
 ### Changed
 
 ### Removed
+- [#507] Removed the `NDMFSyncContext.RunOnMainThread` API which was accidentally addded in 1.6.3.
+  This might be re-added in 1.7.0.
 
 ### Security
 

@@ -145,7 +145,7 @@ namespace nadena.dev.ndmf.preview
                     arg0: this
                 ).EventId;
                 
-                TaskUtil.OnMainThread(this, DoInvalidate);
+                NDMFSyncContext.RunOnMainThread(target => DoInvalidate((ComputeContext)target), this);
             };
             Description = description;
 
