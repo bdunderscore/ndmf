@@ -272,7 +272,7 @@ namespace nadena.dev.ndmf.cs
         {
             var instanceId = data.instanceId;
 
-            ObjectWatcher.Instance.Hierarchy.FireStructureChangeEvent(instanceId);
+            ObjectWatcher.Instance.Hierarchy.MaybeFireStructureChangeEvent(instanceId);
         }
 
         private static void OnChangeGameObjectStructureHierarchy(ChangeGameObjectStructureHierarchyEventArgs data)

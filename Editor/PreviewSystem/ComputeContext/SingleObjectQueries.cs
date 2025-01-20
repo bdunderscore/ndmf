@@ -249,8 +249,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            return ObjectWatcher.Instance.MonitorGetComponent(obj, ctx,
-                () => obj != null ? InternalGetComponent<C>(obj) : null);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+
+            return obj.GetComponent<C>();
         }
 
         public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type,
@@ -260,8 +261,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            return ObjectWatcher.Instance.MonitorGetComponent(obj, ctx,
-                () => obj != null ? InternalGetComponent(obj, type) : null);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+
+            return obj.GetComponent(type);
         }
 
         public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj,
@@ -271,8 +273,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            return ObjectWatcher.Instance.MonitorGetComponents(obj, ctx,
-                () => obj != null ? obj.GetComponents<C>() : Array.Empty<C>(), false);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+
+            return obj.GetComponents<C>();
         }
 
         public static Component[] GetComponents(this ComputeContext ctx, GameObject obj, Type type,
@@ -282,8 +285,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            return ObjectWatcher.Instance.MonitorGetComponents(obj, ctx,
-                () => obj != null ? obj.GetComponents(type) : Array.Empty<Component>(), false);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+
+            return obj.GetComponents(type);
         }
 
         public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive,
@@ -294,8 +298,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            return ObjectWatcher.Instance.MonitorGetComponents(obj, ctx,
-                () => obj != null ? obj.GetComponentsInChildren<C>(includeInactive) : Array.Empty<C>(), true);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
+
+            return obj.GetComponentsInChildren<C>(includeInactive);
         }
 
         public static Component[] GetComponentsInChildren(this ComputeContext ctx, GameObject obj, Type type,
@@ -306,9 +311,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            return ObjectWatcher.Instance.MonitorGetComponents(obj, ctx,
-                () => obj != null ? obj.GetComponentsInChildren(type, includeInactive) : Array.Empty<Component>(),
-                true);
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
+
+            return obj.GetComponentsInChildren(type, includeInactive);
         }
     }
 }

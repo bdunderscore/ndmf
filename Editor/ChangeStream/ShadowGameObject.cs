@@ -5,6 +5,7 @@ using System.Text;
 #endif
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.trace;
@@ -445,21 +446,55 @@ namespace nadena.dev.ndmf.cs
                     shadow.IsActive = shadow.GameObject.activeSelf;
                     FirePathChangeNotifications(shadow);
                 }
-            }
 
-            var component = EditorUtility.InstanceIDToObject(instanceId) as Component;
-            if (component != null)
-            {
-                // This event may have been a component reordering, so trigger a synthetic structure change event.
-                // TODO: Cache component positions?
-                var parentId = component.gameObject.GetInstanceID();
-                FireStructureChangeEvent(parentId);
+                MaybeFireStructureChangeEvent(instanceId);
             }
 
             if (_otherObjects.TryGetValue(instanceId, out var shadowComponent))
             {
                 FireEvent(shadowComponent._listeners, HierarchyEvent.ObjectDirty);
             }
+        }
+
+        private SendOrPostCallback _deferredComponentStructureCheckCb;
+
+        /// <summary>
+        ///     Requests that we (asynchronously) check the order and contents of components on the specified GameObject.
+        ///     If they have changed since the last check, a structure change event will be fired.
+        /// </summary>
+        /// <param name="instanceId"></param>
+        internal void RequestComponentStructureCheck(int instanceId)
+        {
+            if (!_gameObjects.TryGetValue(instanceId, out var shadow))
+            {
+                return;
+            }
+
+            if (shadow.StructureCheckQueued)
+            {
+                return;
+            }
+
+            if (_deferredComponentStructureCheckCb == null)
+            {
+                _deferredComponentStructureCheckCb = DeferredComponentStructureCheck;
+            }
+
+            NDMFSyncContext.Context.Post(_deferredComponentStructureCheckCb, shadow);
+            shadow.StructureCheckQueued = true;
+        }
+
+        internal void DeferredComponentStructureCheck(object erased)
+        {
+            var shadow = (ShadowGameObject)erased;
+            if (!_gameObjects.TryGetValue(shadow.InstanceID, out var currentShadow) || currentShadow != shadow)
+            {
+                return;
+            }
+
+            shadow.StructureCheckQueued = false;
+
+            MaybeFireStructureChangeEvent(shadow.InstanceID);
         }
 
         /// <summary>
@@ -586,7 +621,7 @@ namespace nadena.dev.ndmf.cs
             FireParentComponentChangeNotifications(shadow);
         }
 
-        internal void FireStructureChangeEvent(int instanceId)
+        internal void MaybeFireStructureChangeEvent(int instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireStructureChangeEvent({instanceId})");
@@ -597,6 +632,10 @@ namespace nadena.dev.ndmf.cs
                 return;
             }
 
+            var newStructure = shadow.CurrentComponentStructure;
+            if (shadow.ComponentStructure.SequenceEqual(newStructure)) return;
+            shadow.ComponentStructure = newStructure;
+            
             FireEvent(shadow._listeners, HierarchyEvent.SelfComponentsChanged);
             FireParentComponentChangeNotifications(shadow.Parent);
         }
@@ -720,6 +759,10 @@ namespace nadena.dev.ndmf.cs
         internal bool ComponentMonitoring { get; set; } = false;
         internal bool IsActive { get; set; }
 
+        internal bool StructureCheckQueued;
+
+        internal int[] ComponentStructure;
+        
         internal ShadowGameObject Parent
         {
             get => _parent;
@@ -756,6 +799,24 @@ namespace nadena.dev.ndmf.cs
             GameObject = gameObject;
             Scene = gameObject.scene;
             IsActive = gameObject.activeSelf;
+
+            ComponentStructure = CurrentComponentStructure;
+        }
+
+        internal int[] CurrentComponentStructure
+        {
+            get
+            {
+                var comps = GameObject.GetComponents<Component>();
+                var instanceIds = new int[comps.Length];
+
+                for (var i = 0; i < comps.Length; i++)
+                {
+                    instanceIds[i] = comps[i].GetInstanceID();
+                }
+
+                return instanceIds;
+            }
         }
     }
 }

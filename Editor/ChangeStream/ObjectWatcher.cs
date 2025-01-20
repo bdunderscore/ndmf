@@ -264,14 +264,13 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        public C[] MonitorGetComponents<C>(GameObject obj, ComputeContext ctx,
-            Func<C[]> get0, bool includeChildren)
+        public void MonitorGetComponents(GameObject obj, ComputeContext ctx, bool includeChildren)
         {
             var previewScene = NDMFPreviewSceneManager.GetPreviewScene();
-            Func<C[]> get = () => get0().Where(c => (c as Component)?.gameObject.scene != previewScene).ToArray();
 
-            C[] components = get();
-
+            // Ensure component structure data is up-to-date
+            Hierarchy.RequestComponentStructureCheck(obj.GetInstanceID());
+            
             var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
             {
                 if (e == HierarchyEvent.ChildComponentsChanged && !includeChildren) return false;
@@ -279,9 +278,10 @@ namespace nadena.dev.ndmf.cs
                 switch (e)
                 {
                     case HierarchyEvent.ChildComponentsChanged:
+                        return includeChildren;
                     case HierarchyEvent.SelfComponentsChanged:
                     case HierarchyEvent.ForceInvalidate:
-                        return obj == null || !components.SequenceEqual(get());
+                        return true;
                     default:
                         return false;
                 }
@@ -290,33 +290,8 @@ namespace nadena.dev.ndmf.cs
             if (includeChildren) Hierarchy.EnableComponentMonitoring(obj);
 
             BindCancel(ctx, cancel);
-
-            return components;
         }
-
-        public C MonitorGetComponent<C>(GameObject obj, ComputeContext ctx,
-            Func<C> get) where C : class
-        {
-            C component = get();
-
-            var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
-            {
-                switch (e)
-                {
-                    case HierarchyEvent.SelfComponentsChanged:
-                    case HierarchyEvent.ChildComponentsChanged:
-                    case HierarchyEvent.ForceInvalidate:
-                        return obj == null || !ReferenceEquals(component, get());
-                    default:
-                        return false;
-                }
-            }, ctx);
-
-            BindCancel(ctx, cancel);
-
-            return component;
-        }
-
+        
         class WrappedDisposable : IDisposable
         {
             private readonly int _targetThread;
