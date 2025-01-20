@@ -74,11 +74,16 @@ namespace nadena.dev.ndmf.cs
 
                 case ObjectChangeKind.ChangeScene:
                 {
+                    /*
                     using (OpenTrace(stream, i))
                     using (new ProfilerScope("ChangeScene"))
                     {
                         ObjectWatcher.Instance.Hierarchy.InvalidateAll();
                     }
+                    */
+
+                    // Unfortunately there are too many spurious sources for ChangeScene - we'll have to hope that
+                    // PropertyMonitor can catch unreported changes. 
 
                     break;
                 }
