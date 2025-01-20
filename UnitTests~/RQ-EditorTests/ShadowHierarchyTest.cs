@@ -214,7 +214,8 @@ namespace UnitTests.EditorTests
                 return false;
             }, ctx);
             
-            shadow.FireStructureChangeEvent(obj.GetInstanceID());
+            obj.AddComponent<MeshFilter>();
+            shadow.MaybeFireStructureChangeEvent(obj.GetInstanceID());
             
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(HierarchyEvent.SelfComponentsChanged, events[0]);
@@ -239,7 +240,9 @@ namespace UnitTests.EditorTests
             }, ctx);
             
             shadow.EnableComponentMonitoring(parent);
-            shadow.FireStructureChangeEvent(child.GetInstanceID());
+            
+            child.AddComponent<MeshFilter>();
+            shadow.MaybeFireStructureChangeEvent(child.GetInstanceID());
             
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(HierarchyEvent.ChildComponentsChanged, events[0]);
@@ -274,8 +277,9 @@ namespace UnitTests.EditorTests
             Assert.IsTrue(events.Contains(HierarchyEvent.ChildComponentsChanged));
             
             events.Clear();
-            
-            shadow.FireStructureChangeEvent(p3.GetInstanceID());
+
+            p3.AddComponent<MeshFilter>();
+            shadow.MaybeFireStructureChangeEvent(p3.GetInstanceID());
             
             // Assert.AreEqual(1, events.Count); - TODO - deduplicate events
             Assert.IsTrue(events.Contains(HierarchyEvent.ChildComponentsChanged));
@@ -466,8 +470,7 @@ namespace UnitTests.EditorTests
             Assert.AreEqual(iid1, iid2a);
             Assert.AreEqual(iid2, iid1a);
             
-            shadow.FireObjectChangeNotification(iid1);
-            shadow.FireObjectChangeNotification(iid2);
+            shadow.FireObjectChangeNotification(o2.GetInstanceID());
             
             Assert.Contains((1, HierarchyEvent.ChildComponentsChanged), events);
             Assert.Contains((2, HierarchyEvent.SelfComponentsChanged), events);

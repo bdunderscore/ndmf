@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +14,7 @@ namespace nadena.dev.ndmf.preview
     public static class NDMFSyncContext
     {
         public static SynchronizationContext Context = new Impl();
-        private static Impl InternalContext = (Impl)Context;
+        internal static Impl InternalContext = (Impl)Context;
         
         /// <summary>
         ///    Runs the given function on the unity main thread, passing the given target as an argument.
@@ -61,7 +60,7 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        private class Impl : SynchronizationContext
+        internal class Impl : SynchronizationContext
         {
             private SynchronizationContext _unityMainThreadContext;
             
@@ -78,7 +77,7 @@ namespace nadena.dev.ndmf.preview
                 EditorApplication.delayCall += () =>
                 {
                     // Obtain the unity synchronization context
-                    _unityMainThreadContext = SynchronizationContext.Current;
+                    _unityMainThreadContext = Current;
                     unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
 
                     Turn(); // process anything that was queued before we had a chance to initialize
@@ -99,7 +98,8 @@ namespace nadena.dev.ndmf.preview
                 ((Impl)state).Turn();
             }
 
-            private void Turn()
+            // visible for tests
+            internal void Turn()
             {
                 lock (_lock)
                 {

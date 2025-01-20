@@ -108,6 +108,11 @@ namespace nadena.dev.ndmf.cs
                     
                     var (instanceId, reg) = pair;
 
+                    if (reg._obj is GameObject)
+                    {
+                        ObjectWatcher.Instance.Hierarchy.RequestComponentStructureCheck(instanceId);
+                    }
+
                     // Wake up all listeners to see if their monitored value has changed
                     Profiler.BeginSample("FirePropsUpdated", EditorUtility.InstanceIDToObject(instanceId));
                     reg._listeners.Fire(PropertyMonitorEvent.PropsUpdated);
