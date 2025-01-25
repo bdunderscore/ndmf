@@ -227,6 +227,7 @@ namespace nadena.dev.ndmf.ui
         {
             if (_avatarRoot == null) return;
 
+            var currentAvatar = _avatarRoot;
             var clone = Instantiate(_avatarRoot);
 
             try
@@ -236,6 +237,16 @@ namespace nadena.dev.ndmf.ui
                 AvatarProcessor.ProcessAvatar(clone);
 
                 CurrentReport = ErrorReport.Reports.FirstOrDefault();
+
+                // HACK: If the avatar is not at the root of the scene, we end up being unable to find it (because the
+                // clone is at the root). For now, we force reset the avatar root here, but we should find a more
+                // reliable way to find the original avatar. This probably needs to be plugged into the platform API
+                // system, so for now we'll do this workaround to ensure that the test build button remains enabled.
+                // See https://github.com/bdunderscore/ndmf/issues/517
+
+                // Note: We avoid the property accessor as it would clear the CurrentReport property.
+                _avatarRoot = currentAvatar;
+                UpdateContents();
             }
             finally
             {

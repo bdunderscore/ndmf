@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Performance improvements (#515 #516)
+- "Test build" button is disabled after test-building an avatar that is not a scene root (#518)
 
 ### Changed
 
