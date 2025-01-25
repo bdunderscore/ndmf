@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Performance improvements (#515 #516)
-- "Test build" button is disabled after test-building an avatar that is not a scene root (#518)
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.6.5] - [2025-01-24]
+
+### Fixed
+- Performance improvements (#515 #516)
+- "Test build" button is disabled after test-building an avatar that is not a scene root (#518)
 
 ## [1.6.4] - [2025-01-18]
 
