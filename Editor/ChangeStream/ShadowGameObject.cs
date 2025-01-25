@@ -812,7 +812,7 @@ namespace nadena.dev.ndmf.cs
 
                 for (var i = 0; i < comps.Length; i++)
                 {
-                    instanceIds[i] = comps[i].GetInstanceID();
+                    instanceIds[i] = comps[i]?.GetInstanceID() ?? 0;
                 }
 
                 return instanceIds;
