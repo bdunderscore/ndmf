@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Fixed another source of NullReferenceErrors after deleting game objects (#522)
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.6.7] - [2025-01-26]
+
+### Fixed
+- Fixed another source of NullReferenceErrors after deleting game objects (#522)
 
 ## [1.6.6] - [2025-01-25]
 
