@@ -807,6 +807,8 @@ namespace nadena.dev.ndmf.cs
         {
             get
             {
+                if (GameObject == null) return Array.Empty<int>();
+                
                 var comps = GameObject.GetComponents<Component>();
                 var instanceIds = new int[comps.Length];
 
