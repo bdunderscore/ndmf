@@ -175,6 +175,14 @@ namespace nadena.dev.ndmf.animator
             return GetOrClone(controller, VirtualAnimatorController.Clone);
         }
 
+        [return: NotNullIfNotNull("controller")]
+        public VirtualAnimatorController? Clone(RuntimeAnimatorController? controller, object layerKey)
+        {
+            using var _ = PushActiveInnateKey(layerKey);
+
+            return Clone(controller);
+        }
+
         [return: NotNullIfNotNull("layer")]
         public VirtualLayer? Clone(AnimatorControllerLayer? layer, int index)
         {
