@@ -142,7 +142,8 @@ namespace nadena.dev.ndmf.animator
             // TODO: Apply state behavior import processing
             _syncedLayerBehaviourOverrides = SyncedLayerOverrideAccess.ExtractStateBehaviourPairs(layer)
                 ?.ToImmutableDictionary(kvp => context.Clone(kvp.Key),
-                    kvp => kvp.Value.Cast<StateMachineBehaviour>().ToImmutableList())
+                    kvp => kvp.Value.Cast<StateMachineBehaviour>()
+                        .Select(context.ImportBehaviour).ToImmutableList())
                                              ?? ImmutableDictionary<VirtualState, ImmutableList<StateMachineBehaviour>>
                                                  .Empty;
         }
@@ -195,7 +196,7 @@ namespace nadena.dev.ndmf.animator
             SyncedLayerOverrideAccess.SetStateBehaviourPairs(obj, SyncedLayerBehaviourOverrides.Select(kvp =>
                 new KeyValuePair<AnimatorState, ScriptableObject[]>(
                     context.CommitObject(kvp.Key),
-                    kvp.Value.Cast<ScriptableObject>().ToArray()
+                    kvp.Value.Select(context.CommitBehaviour).Cast<ScriptableObject>().ToArray()
                 )));
         }
 

@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using HarmonyLib;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
+using VRC.SDK3.Avatars.Components;
 
 namespace UnitTests.AnimationServices
 {
@@ -182,5 +185,56 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(1, syncedLayer.GetOverrideBehaviours(behavior).Length);
             Assert.AreEqual(typeof(TestStateBehavior1), syncedLayer.GetOverrideBehaviours(behavior)[0].GetType());
         }
+
+        private class TestPlatform : IPlatformAnimatorBindings
+        {
+            public HashSet<StateMachineBehaviour> calledVirtualize = new(), calledCommit = new();
+            
+            public void VirtualizeStateBehaviour(CloneContext context, StateMachineBehaviour behaviour)
+            {
+                calledVirtualize.Add(behaviour);
+            }
+
+            public void CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
+            {
+                calledCommit.Add(behaviour);
+            }
+        }
+
+        #if NDMF_VRCSDK3_AVATARS
+        [Test]
+        public void InvokesSyncedLayerBehaviorOverrideCallbacks()
+        {
+            var testcontroller = new AnimatorController();
+            var sm1 = new AnimatorStateMachine();
+            var st1 = new AnimatorState();
+            sm1.states = new[] { new ChildAnimatorState() { state = st1} };
+            sm1.defaultState = st1;
+
+            var originalBehavior = new VRCAnimatorPlayAudio() { name = "1" };
+            st1.behaviours = new [] { originalBehavior };
+            var l1 = new AnimatorControllerLayer() { stateMachine = sm1 };
+
+            var layer = new AnimatorControllerLayer() { syncedLayerIndex = 0 };
+            var overrideBehavior = new VRCAnimatorPlayAudio() { name = "2" };
+            layer.SetOverrideBehaviours(st1, new []{ overrideBehavior });
+            
+            testcontroller.layers = new[] { l1, layer };
+
+            var platform = new TestPlatform();
+            var context = new CloneContext(platform);
+            
+            var virtualController = context.Clone(testcontroller);
+            Assert.IsTrue(platform.calledVirtualize.Any(b => b.name == "1"));
+            Assert.IsTrue(platform.calledVirtualize.Any(b => b.name == "2"));
+            Assert.AreEqual(0, platform.calledCommit.Count());
+            
+            var commit = new CommitContext(platform);
+            commit.CommitObject(virtualController);
+            
+            Assert.IsTrue(platform.calledCommit.Any(b => b.name == "1"));
+            Assert.IsTrue(platform.calledCommit.Any(b => b.name == "2"));
+        }
+        #endif
     }
 }

@@ -162,9 +162,10 @@ namespace nadena.dev.ndmf.animator
 
         internal StateMachineBehaviour ImportBehaviour(StateMachineBehaviour behaviour)
         {
-            behaviour = Object.Instantiate(behaviour);
-            PlatformBindings.VirtualizeStateBehaviour(this, behaviour);
-            return behaviour;
+            var newBehaviour = Object.Instantiate(behaviour);
+            newBehaviour.name = behaviour.name;
+            PlatformBindings.VirtualizeStateBehaviour(this, newBehaviour);
+            return newBehaviour;
         }
 
         [return: NotNullIfNotNull("controller")]
