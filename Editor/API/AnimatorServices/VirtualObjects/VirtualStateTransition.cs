@@ -25,6 +25,16 @@ namespace nadena.dev.ndmf.animator
             _stateTransition = (AnimatorStateTransition)_transition;
         }
 
+        private VirtualStateTransition(VirtualStateTransition cloneSource) : base(cloneSource)
+        {
+            _stateTransition = (AnimatorStateTransition)_transition;
+        }
+
+        public override VirtualTransitionBase Clone()
+        {
+            return new VirtualStateTransition(this);
+        }
+
         public static VirtualStateTransition Clone(
             CloneContext context,
             AnimatorStateTransition transition

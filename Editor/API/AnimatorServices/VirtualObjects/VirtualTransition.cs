@@ -12,6 +12,15 @@ namespace nadena.dev.ndmf.animator
         {
         }
 
+        private VirtualTransition(VirtualTransition cloneSource) : base(cloneSource)
+        {
+        }
+
+        public override VirtualTransitionBase Clone()
+        {
+            return new VirtualTransition(this);
+        }
+
         public static VirtualTransition Create()
         {
             return new VirtualTransition(null, new AnimatorTransition());

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEditor.Animations;
 using Object = UnityEngine.Object;
@@ -10,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.ndmf.animator
 {
     [PublicAPI]
-    public class VirtualTransitionBase : VirtualNode, ICommitable<AnimatorTransitionBase>
+    public abstract class VirtualTransitionBase : VirtualNode, ICommitable<AnimatorTransitionBase>
     {
         protected AnimatorTransitionBase _transition;
 
@@ -37,6 +38,17 @@ namespace nadena.dev.ndmf.animator
                 }
             });
         }
+
+        protected VirtualTransitionBase(VirtualTransitionBase cloneSource)
+        {
+            _transition = Object.Instantiate(cloneSource._transition);
+            Name = cloneSource.Name;
+            Conditions = cloneSource.Conditions;
+            DestinationState = cloneSource.DestinationState;
+            DestinationStateMachine = cloneSource.DestinationStateMachine;
+        }
+
+        public abstract VirtualTransitionBase Clone();
 
         public string Name
         {
@@ -159,6 +171,8 @@ namespace nadena.dev.ndmf.animator
                 obj.destinationState = null;
                 obj.destinationStateMachine = null;
             }
+
+            obj.conditions = Conditions.ToArray();
         }
 
         protected override IEnumerable<VirtualNode> _EnumerateChildren()

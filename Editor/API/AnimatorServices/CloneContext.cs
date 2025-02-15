@@ -21,7 +21,7 @@ namespace nadena.dev.ndmf.animator
     public sealed class CloneContext
     {
         public IPlatformAnimatorBindings PlatformBindings { get; private set; }
-        private readonly Dictionary<object, object> _clones = new();
+        private Dictionary<object, object> _clones = new();
 
         private int _cloneDepth, _nextVirtualLayer, _virtualLayerBase, _maxMappedPhysLayer;
         private readonly Queue<Action> _deferredCalls = new();
@@ -68,6 +68,21 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
+        private class DistinctScope : IDisposable
+        {
+            private readonly Dictionary<object, object> _priorClones;
+
+            public DistinctScope(Dictionary<object, object> clones)
+            {
+                _priorClones = clones;
+            }
+
+            public void Dispose()
+            {
+                _priorClones.Clear();
+            }
+        }
+
         internal IDisposable PushOverrideController(AnimatorOverrideController controller)
         {
             var scope = new DynamicScope(this);
@@ -82,6 +97,21 @@ namespace nadena.dev.ndmf.animator
             var scope = new DynamicScope(this);
 
             _curDynScope.InnateAnimatorKey = key;
+
+            return scope;
+        }
+
+        /// <summary>
+        ///     Opens a new scope, within which any cloned objects will get a new clone (instead of reusing previously
+        ///     cloned virtual objects). Dispose the returned object to close the scope (and begin using the previously
+        ///     cloned objects).
+        ///     The main use case of this is where you might want to merge the same animator controller multiple times.
+        /// </summary>
+        /// <returns></returns>
+        internal IDisposable PushDistinctScope()
+        {
+            var scope = new DistinctScope(_clones);
+            _clones = new Dictionary<object, object>();
 
             return scope;
         }
@@ -173,6 +203,19 @@ namespace nadena.dev.ndmf.animator
         {
             using var _ = new ProfilerScope("Clone Animator Controller", controller);
             return GetOrClone(controller, VirtualAnimatorController.Clone);
+        }
+
+        /// <summary>
+        ///     Clones an animator controller, without reusing any objects from prior clones.
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <param name="layerKey"></param>
+        /// <returns></returns>
+        [return: NotNullIfNotNull("controller")]
+        public VirtualAnimatorController? CloneDistinct(RuntimeAnimatorController? controller, object? layerKey = null)
+        {
+            using var _ = PushDistinctScope();
+            return layerKey != null ? Clone(controller, layerKey) : Clone(controller);
         }
 
         [return: NotNullIfNotNull("controller")]
