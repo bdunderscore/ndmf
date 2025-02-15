@@ -45,9 +45,9 @@ namespace nadena.dev.ndmf.animator
             _platform = platform;
         }
 
-        internal IEnumerable<UnityEngine.Object> AllObjects => _commitCache.Values.Select(o =>
+        internal IEnumerable<Object> AllObjects => _commitCache.Values.Select(o =>
         {
-            if (o is UnityEngine.Object unityObj) return unityObj;
+            if (o is Object unityObj) return unityObj;
             return null;
         }).Where(o => o != null)!;
         
@@ -65,10 +65,10 @@ namespace nadena.dev.ndmf.animator
             return resultObj;
         }
 
-        internal StateMachineBehaviour CommitBehaviour(StateMachineBehaviour behaviour)
+        internal StateMachineBehaviour? CommitBehaviour(StateMachineBehaviour behaviour)
         {
-            _platform.CommitStateBehaviour(this, behaviour);
-            return behaviour;
+            var retain = _platform.CommitStateBehaviour(this, behaviour);
+            return retain ? behaviour : null;
         }
 
         internal void RegisterVirtualLayerMapping(VirtualLayer virtualLayer, int virtualLayerIndex)

@@ -185,7 +185,7 @@ namespace nadena.dev.ndmf.animator
 
         void ICommitable<AnimatorState>.Commit(CommitContext context, AnimatorState obj)
         {
-            obj.behaviours = Behaviours.Select(context.CommitBehaviour).ToArray();
+            obj.behaviours = Behaviours.Select(context.CommitBehaviour).Where(b => b != null).ToArray();
             obj.transitions = Transitions.Select(t => (AnimatorStateTransition)context.CommitObject(t)).ToArray();
             obj.motion = context.CommitObject(Motion);
         }

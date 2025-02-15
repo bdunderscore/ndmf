@@ -61,8 +61,10 @@ namespace nadena.dev.ndmf.animator
         /// </summary>
         /// <param name="context"></param>
         /// <param name="behaviour"></param>
-        void CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
+        /// <returns>True to retain this state behavior, false to remove it on commit</returns>
+        bool CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
         {
+            return true;
         }
     }
 }

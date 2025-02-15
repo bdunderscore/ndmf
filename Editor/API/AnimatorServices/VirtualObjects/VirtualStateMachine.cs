@@ -101,7 +101,7 @@ namespace nadena.dev.ndmf.animator
             obj.name = Name;
             obj.anyStatePosition = AnyStatePosition;
 
-            obj.behaviours = Behaviours.Select(context.CommitBehaviour).ToArray();
+            obj.behaviours = Behaviours.Select(context.CommitBehaviour).Where(b => b != null).ToArray();
             obj.entryPosition = EntryPosition;
             obj.exitPosition = ExitPosition;
             obj.parentStateMachinePosition = ParentStateMachinePosition;

@@ -20,10 +20,10 @@ namespace nadena.dev.ndmf.animator
         ///     even if layer order changes. This will typically be a very large value (>2^16).
         /// </summary>
         public int VirtualLayerIndex { get; }
-        
-        private VirtualStateMachine _stateMachine;
 
-        public VirtualStateMachine StateMachine
+        private VirtualStateMachine? _stateMachine;
+
+        public VirtualStateMachine? StateMachine
         {
             get => _stateMachine;
             set => _stateMachine = I(value);
@@ -196,7 +196,9 @@ namespace nadena.dev.ndmf.animator
             SyncedLayerOverrideAccess.SetStateBehaviourPairs(obj, SyncedLayerBehaviourOverrides.Select(kvp =>
                 new KeyValuePair<AnimatorState, ScriptableObject[]>(
                     context.CommitObject(kvp.Key),
-                    kvp.Value.Select(context.CommitBehaviour).Cast<ScriptableObject>().ToArray()
+                    kvp.Value.Select(context.CommitBehaviour)
+                        .Where(b => b != null)
+                        .Cast<ScriptableObject>().ToArray()
                 )));
         }
 

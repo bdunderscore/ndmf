@@ -36,6 +36,7 @@ namespace nadena.dev.ndmf.animator
         }
 
         private readonly SortedDictionary<LayerPriority, LayerGroup> _layers = new();
+        private readonly Dictionary<VirtualLayer, LayerPriority> _layerPriorities = new();
 
         private struct LayerGroup
         {
@@ -56,6 +57,13 @@ namespace nadena.dev.ndmf.animator
 
         public void AddLayer(LayerPriority priority, VirtualLayer layer)
         {
+            if (_layerPriorities.ContainsKey(layer))
+            {
+                throw new InvalidOperationException("Layer is already in the controller");
+            }
+
+            _layerPriorities[layer] = priority;
+            
             Invalidate();
 
             if (!_layers.TryGetValue(priority, out var group))
@@ -80,6 +88,41 @@ namespace nadena.dev.ndmf.animator
         public IEnumerable<VirtualLayer> Layers
         {
             get { return _layers.Values.SelectMany(l => l.Layers); }
+        }
+
+        public void RemoveLayer(VirtualLayer layer)
+        {
+            if (_layerPriorities.TryGetValue(layer, out var priority))
+            {
+                if (_layers.TryGetValue(priority, out var group))
+                {
+                    group.Layers.Remove(layer);
+                    if (group.Layers.Count == 0)
+                    {
+                        _layers.Remove(priority);
+                    }
+                }
+            }
+        }
+
+        public void RemoveLayers(Func<VirtualLayer, bool> shouldRemove)
+        {
+            foreach (var (prio, layers) in _layers.ToList())
+            {
+                foreach (var layer in layers.Layers.ToList())
+                {
+                    if (shouldRemove(layer))
+                    {
+                        layers.Layers.Remove(layer);
+                        _layerPriorities.Remove(layer);
+                    }
+                }
+
+                if (layers.Layers.Count == 0)
+                {
+                    _layers.Remove(prio);
+                }
+            }
         }
 
         internal static VirtualAnimatorController Clone(CloneContext context, RuntimeAnimatorController controller)

@@ -184,7 +184,7 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
-        public void CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
+        public bool CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
         {
             var key = context.ActiveInnateLayerKey;
 
@@ -196,8 +196,12 @@ namespace nadena.dev.ndmf.animator
                         alc.layer = context.VirtualToPhysicalLayerIndex(alc.layer);
                     }
 
+                    return alc.layer != -1;
+
                     break;
             }
+
+            return true;
         }
 
         private object ConvertLayer(VRC_AnimatorLayerControl.BlendableLayer playable)
