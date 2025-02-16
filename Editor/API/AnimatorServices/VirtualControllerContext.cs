@@ -56,6 +56,9 @@ namespace nadena.dev.ndmf.animator
         public CloneContext CloneContext =>
             _cloneContext ?? throw new InvalidOperationException("Extension context not initialized");
 
+        public IPlatformAnimatorBindings PlatformBindings =>
+            _platformBindings ?? throw new InvalidOperationException("Extension context not initialized");
+
         /// <summary>
         ///     This value is updated every time the set of virtual controllers changes.
         /// </summary>
