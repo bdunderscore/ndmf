@@ -44,6 +44,7 @@ namespace nadena.dev.ndmf.animator
                 () => ControllerContext.CacheInvalidationToken
             );
             _objectPathRemapper = new ObjectPathRemapper(context.AvatarRootTransform);
+            _animationIndex.PlatformBindings = _controllerContext.PlatformBindings;
         }
 
         public void OnDeactivate(BuildContext context)

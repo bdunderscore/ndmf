@@ -23,6 +23,8 @@ namespace nadena.dev.ndmf.animator
         private readonly Dictionary<string, HashSet<VirtualClip>> _objectPathToClip = new();
         private readonly Dictionary<EditorCurveBinding, HashSet<VirtualClip>> _bindingToClip = new();
         private readonly Dictionary<VirtualClip, HashSet<EditorCurveBinding>> _lastBindings = new();
+
+        internal IPlatformAnimatorBindings PlatformBindings = GenericPlatformAnimatorBindings.Instance;
         
         internal AnimationIndex(
             Func<IEnumerable<VirtualAnimatorController>> getRoots,
@@ -72,11 +74,10 @@ namespace nadena.dev.ndmf.animator
             var rewriteSet = _objectPathToClip.Values.SelectMany(s => s).Distinct();
             
             RewritePaths(rewriteSet, rewriteRules);
-
-            RewriteAvatarMasks(rewriteRules);
+            RewriteNodes(rewriteRules);
         }
 
-        private void RewriteAvatarMasks(Func<string, string?> rewriteRules)
+        private void RewriteNodes(Func<string, string?> rewriteRules)
         {
             foreach (var root in _getRoots())
             {
@@ -87,6 +88,24 @@ namespace nadena.dev.ndmf.animator
                         if (layer.AvatarMask is not null)
                         {
                             RewriteAvatarMask(layer.AvatarMask, rewriteRules);
+                        }
+                    }
+                }
+
+                foreach (var node in root.AllReachableNodes())
+                {
+                    if (node is VirtualStateMachine vsm)
+                    {
+                        foreach (var sb in vsm.Behaviours)
+                        {
+                            PlatformBindings.RemapPathsInStateBehaviour(sb, rewriteRules);
+                        }
+                    }
+                    else if (node is VirtualState vs)
+                    {
+                        foreach (var sb in vs.Behaviours)
+                        {
+                            PlatformBindings.RemapPathsInStateBehaviour(sb, rewriteRules);
                         }
                     }
                 }
@@ -131,7 +150,7 @@ namespace nadena.dev.ndmf.animator
             };
             
             RewritePaths(rewriteSet, rewriteFunc);
-            RewriteAvatarMasks(rewriteFunc);
+            RewriteNodes(rewriteFunc);
         }
 
         private void RewritePaths(IEnumerable<VirtualClip> rewriteSet, Func<string, string?> rewriteFunc)

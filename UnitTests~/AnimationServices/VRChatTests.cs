@@ -195,6 +195,29 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(1, lc.layer);
         }
 
+        [Test]
+        public void RemapsPlayAudioPaths()
+        {
+            var prefab = CreatePrefab("TestAssets/PlayAudio/PlayAudio.prefab");
+            
+            var ctx = CreateContext(prefab);
+            ctx.ActivateExtensionContextRecursive<AnimatorServicesContext>();
+
+            prefab.transform.Find("A").gameObject.name = "B";
+            
+            ctx.DeactivateAllExtensionContexts();
+            
+            var fx = prefab.GetComponent<VRCAvatarDescriptor>().baseAnimationLayers
+                .First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX);
+            var controller = (AnimatorController) fx.animatorController;
+            
+            var stateMachine = controller.layers.First().stateMachine;
+            var state = stateMachine.defaultState;
+            var behaviour = (VRCAnimatorPlayAudio) state.behaviours.First();
+
+            Assert.AreEqual("B", behaviour.SourcePath);
+        }
+
         private AnimatorController BuildInterlayerController(string prefix)
         {
             var ac = new AnimatorController();

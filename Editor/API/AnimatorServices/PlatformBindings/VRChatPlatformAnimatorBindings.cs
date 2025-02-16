@@ -166,7 +166,7 @@ namespace nadena.dev.ndmf.animator
                 }
             }
         }
-
+        
         public void VirtualizeStateBehaviour(CloneContext context, StateMachineBehaviour behaviour)
         {
             var key = context.ActiveInnateLayerKey;
@@ -202,6 +202,14 @@ namespace nadena.dev.ndmf.animator
             }
 
             return true;
+        }
+
+        public void RemapPathsInStateBehaviour(StateMachineBehaviour behaviour, Func<string, string?> remapPath)
+        {
+            if (behaviour is VRCAnimatorPlayAudio playAudio)
+            {
+                playAudio.SourcePath = remapPath(playAudio.SourcePath) ?? "";
+            }
         }
 
         private object ConvertLayer(VRC_AnimatorLayerControl.BlendableLayer playable)

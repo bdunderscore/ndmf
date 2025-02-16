@@ -66,5 +66,18 @@ namespace nadena.dev.ndmf.animator
         {
             return true;
         }
+
+        /// <summary>
+        ///     Invoked when path remappings are being processed to apply any changed mappings to state behaviors.
+        ///     In VRChat, this is used to remap object paths in VRCAnimatorPlayAudio
+        /// </summary>
+        /// <param name="behaviour">The behaviour to remap</param>
+        /// <param name="remapPath">
+        ///     A function which remaps old paths to new paths (or to null, if the corresponding object was
+        ///     deleted)
+        /// </param>
+        void RemapPathsInStateBehaviour(StateMachineBehaviour behaviour, Func<string, string?> remapPath)
+        {
+        }
     }
 }
