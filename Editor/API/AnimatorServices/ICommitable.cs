@@ -34,6 +34,8 @@ namespace nadena.dev.ndmf.animator
         private readonly Dictionary<int, VirtualLayer> _virtIndexToVirtLayer = new();
         private readonly Dictionary<VirtualLayer, int> _virtLayerToPhysIndex = new();
 
+        internal Dictionary<object, ObjectReference>? NodeToReference;
+        
         public object? ActiveInnateLayerKey { get; internal set; }
 
         internal CommitContext() : this(GenericPlatformAnimatorBindings.Instance)
@@ -61,6 +63,12 @@ namespace nadena.dev.ndmf.animator
             _commitCache[obj] = resultObj;
 
             obj.Commit(this, resultObj);
+
+            if (NodeToReference?.TryGetValue(obj, out var objRef) == true && resultObj is Object unityObj)
+            {
+                ObjectRegistry.TryRegisterReplacedObject(objRef, unityObj);
+                NodeToReference.Remove(obj); // avoid double registration if we commit more than once
+            }
 
             return resultObj;
         }

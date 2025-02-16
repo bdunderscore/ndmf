@@ -22,6 +22,7 @@ namespace nadena.dev.ndmf.animator
     {
         public IPlatformAnimatorBindings PlatformBindings { get; private set; }
         private Dictionary<object, object> _clones = new();
+        internal Dictionary<object, ObjectReference> NodeToReference = new();
 
         private int _cloneDepth, _nextVirtualLayer, _virtualLayerBase, _maxMappedPhysLayer;
         private readonly Queue<Action> _deferredCalls = new();
@@ -153,6 +154,12 @@ namespace nadena.dev.ndmf.animator
                 if (TryGetValue(key, out U? value)) return value;
                 value = clone(this, key);
                 _clones[key] = value;
+
+                if (value is object node && key is Object unityObj)
+                {
+                    NodeToReference[node] = ObjectRegistry.GetReference(unityObj);
+                }
+                
                 return value;
             }
             finally

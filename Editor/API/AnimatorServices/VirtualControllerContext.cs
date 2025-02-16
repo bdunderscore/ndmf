@@ -141,6 +141,7 @@ namespace nadena.dev.ndmf.animator
             var root = context.AvatarRootObject;
 
             var commitContext = new CommitContext(_cloneContext!.PlatformBindings);
+            commitContext.NodeToReference = CloneContext.NodeToReference;
 
             var controllers = _layerStates
                 .Where(kvp => kvp.Value.VirtualController != null)

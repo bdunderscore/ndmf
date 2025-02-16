@@ -4,18 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.reporting;
-using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
 using nadena.dev.ndmf.util;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
-using VRC.SDK3.Avatars.Components;
 using Debug = UnityEngine.Debug;
 using UnityObject = UnityEngine.Object;
 
@@ -26,18 +22,19 @@ namespace nadena.dev.ndmf
     internal sealed class ExecutionScope : IDisposable
     {
         private readonly ErrorReportScope _errorReportScope;
-        private readonly ObjectRegistryScope _objectRegistryScope;
+        [CanBeNull] private readonly ObjectRegistryScope _objectRegistryScope;
 
         public ExecutionScope(BuildContext ctx)
         {
             _errorReportScope = new ErrorReportScope(ctx._report);
-            _objectRegistryScope = new ObjectRegistryScope(ctx._registry);
+            _objectRegistryScope =
+                ObjectRegistry.ActiveRegistry != null ? null : new ObjectRegistryScope(ctx._registry);
         }
 
         public void Dispose()
         {
             _errorReportScope.Dispose();
-            _objectRegistryScope.Dispose();
+            _objectRegistryScope?.Dispose();
         }
     }
 
@@ -189,7 +186,7 @@ namespace nadena.dev.ndmf
                 _savedObjects.Remove(AssetContainer);
 
                 int index = 0;
-                List<UnityEngine.Object> assetsToSave = new List<UnityEngine.Object>();
+                var assetsToSave = new List<UnityObject>();
                 foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
                 {
                     if (asset is MonoScript)
