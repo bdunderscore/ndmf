@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- Avoid NRE that occurs when a null is observed in a PublishedValue (#526)
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.6.8] = [2025-02-16]
+
+### Fixed
+- Avoid NRE that occurs when a null is observed in a PublishedValue (#526)
 
 ## [1.6.7] - [2025-01-26]
 
