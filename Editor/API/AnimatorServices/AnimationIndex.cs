@@ -73,6 +73,11 @@ namespace nadena.dev.ndmf.animator
             
             RewritePaths(rewriteSet, rewriteRules);
 
+            RewriteAvatarMasks(rewriteRules);
+        }
+
+        private void RewriteAvatarMasks(Func<string, string?> rewriteRules)
+        {
             foreach (var root in _getRoots())
             {
                 if (root is VirtualAnimatorController vac)
@@ -110,8 +115,9 @@ namespace nadena.dev.ndmf.animator
             
             HashSet<VirtualClip> rewriteSet = new();
 
-            foreach (var key in rewriteRules.Keys)
+            foreach (var (key, value) in rewriteRules)
             {
+                if (key == value) continue;
                 if (!_objectPathToClip.TryGetValue(key, out var clips)) continue;
                 rewriteSet.UnionWith(clips);
             }
@@ -125,6 +131,7 @@ namespace nadena.dev.ndmf.animator
             };
             
             RewritePaths(rewriteSet, rewriteFunc);
+            RewriteAvatarMasks(rewriteFunc);
         }
 
         private void RewritePaths(IEnumerable<VirtualClip> rewriteSet, Func<string, string?> rewriteFunc)
