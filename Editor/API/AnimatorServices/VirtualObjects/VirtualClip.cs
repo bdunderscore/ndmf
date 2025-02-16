@@ -336,7 +336,7 @@ namespace nadena.dev.ndmf.animator
             return cached.Value!;
         }
 
-        public void SetFloatCurve(EditorCurveBinding binding, AnimationCurve curve)
+        public void SetFloatCurve(EditorCurveBinding binding, AnimationCurve? curve)
         {
             if (binding.isPPtrCurve || binding.isDiscreteCurve)
             {
@@ -359,7 +359,7 @@ namespace nadena.dev.ndmf.animator
             _curveCache[binding] = cached;
         }
 
-        public void SetObjectCurve(EditorCurveBinding binding, ObjectReferenceKeyframe[] curve)
+        public void SetObjectCurve(EditorCurveBinding binding, ObjectReferenceKeyframe[]? curve)
         {
             if (!binding.isPPtrCurve)
             {
@@ -456,12 +456,12 @@ namespace nadena.dev.ndmf.animator
             return GetObjectCurve(EditorCurveBinding.PPtrCurve(path, type, prop));
         }
 
-        public void SetFloatCurve(string path, Type type, string prop, AnimationCurve curve)
+        public void SetFloatCurve(string path, Type type, string prop, AnimationCurve? curve)
         {
             SetFloatCurve(EditorCurveBinding.FloatCurve(path, type, prop), curve);
         }
 
-        public void SetObjectCurve(string path, Type type, string prop, ObjectReferenceKeyframe[] curve)
+        public void SetObjectCurve(string path, Type type, string prop, ObjectReferenceKeyframe[]? curve)
         {
             SetObjectCurve(EditorCurveBinding.PPtrCurve(path, type, prop), curve);
         }
