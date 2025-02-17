@@ -1,16 +1,12 @@
-#if NDMF_VRCSDK3_AVATARS
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.util;
 using NUnit.Framework;
 using UnitTests;
 using UnityEditor.Animations;
 using UnityEngine;
-using VRC.SDK3.Avatars.Components;
 
 public class ConvertTransitionTypes : TestBase
 {
@@ -275,5 +271,3 @@ public class ConvertTransitionTypes : TestBase
         }
     }
 }
-
-#endif
