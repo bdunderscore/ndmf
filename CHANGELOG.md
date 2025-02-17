@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#529] Don't error out when an animation clip contains multiple bindings for the same property
 
 ### Changed
 
