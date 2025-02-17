@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -15,6 +14,7 @@ namespace nadena.dev.ndmf
 {
     internal class AssetSaver : IAssetSaver
     {
+        internal static Action OnRetryImport;
         private readonly string subAssetPath, rootAssetPath;
         private readonly int assetsPerContainer;
         
@@ -75,9 +75,33 @@ namespace nadena.dev.ndmf
                 }
                 
                 var rootAssetPath = AssetDatabase.GenerateUniqueAssetPath(rootPath + "/" + avatarName + ".asset");
-                _rootAsset = ScriptableObject.CreateInstance<GeneratedAssets>();
-                AssetDatabase.CreateAsset(_rootAsset, rootAssetPath);
-                _currentSubContainer = CreateAssetContainer();
+                try
+                {
+                    _rootAsset = ScriptableObject.CreateInstance<GeneratedAssets>();
+                    AssetDatabase.CreateAsset(_rootAsset, rootAssetPath);
+                }
+                catch (UnityException e)
+                {
+                    // Sometimes this fails with "Global asset import parameters have been changed during import.
+                    // Importing is restarted." - in this case, it might actually have been created, so refresh the
+                    // asset database and check if it's saved (and if not, recreate it).
+                    Debug.Log("Retrying asset creation due to " + e);
+
+                    AssetDatabase.StopAssetEditing();
+                    if (File.Exists(rootAssetPath))
+                    {
+                        AssetDatabase.DeleteAsset(rootAssetPath);
+                    }
+                    AssetDatabase.Refresh();
+                    AssetDatabase.StartAssetEditing();
+                    
+                    _rootAsset = ScriptableObject.CreateInstance<GeneratedAssets>();
+                    AssetDatabase.CreateAsset(_rootAsset, rootAssetPath);
+                    
+                    OnRetryImport?.Invoke();
+                }
+
+                _currentSubContainer = CreateAssetContainer(inAssetEditing: true);
             
                 _assetCount = 0;
             }
@@ -89,7 +113,7 @@ namespace nadena.dev.ndmf
             }
         }
 
-        public void SaveAsset(UnityEngine.Object? obj)
+        public void SaveAsset(Object? obj)
         {
             if (obj == null || EditorUtility.IsPersistent(obj)) return;
 
@@ -116,18 +140,18 @@ namespace nadena.dev.ndmf
             _assetCount++;
         }
 
-        private SubAssetContainer CreateAssetContainer(string name = "assets")
+        private SubAssetContainer CreateAssetContainer(string name = "assets", bool inAssetEditing = false)
         {
             var subContainerPath = AssetDatabase.GenerateUniqueAssetPath(subAssetPath + "/" + name + ".asset");
             var subContainer = ScriptableObject.CreateInstance<SubAssetContainer>();
             AssetDatabase.CreateAsset(subContainer, subContainerPath);
-            
+
             _containers.Add(subContainer);
 
             return subContainer;
         }
-        
-        public bool IsTemporaryAsset(UnityEngine.Object? obj)
+
+        public bool IsTemporaryAsset(Object? obj)
         {
             if (obj == null) return true;
             

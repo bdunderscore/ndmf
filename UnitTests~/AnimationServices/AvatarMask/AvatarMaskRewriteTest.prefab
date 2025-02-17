@@ -9,8 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6576105763171871826}
-  - component: {fileID: 6153053980314603517}
-  - component: {fileID: 8060949548882505714}
   m_Layer: 0
   m_Name: anim-root
   m_TagString: Untagged
@@ -35,48 +33,6 @@ Transform:
   - {fileID: 7719834109032320146}
   m_Father: {fileID: 4630496911169132430}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6153053980314603517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 331101518860596682}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bb122659f724ebf85fe095ac02dc339, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 9100000, guid: 0ff8ee7fe6e04b148bcd1b0f04280efb, type: 2}
-  layerType: 5
-  deleteAttachedAnimator: 1
-  pathMode: 0
-  matchAvatarWriteDefaults: 0
-  relativePathRoot:
-    referencePath: 
-    targetObject: {fileID: 0}
-  layerPriority: 0
---- !u!95 &8060949548882505714
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 331101518860596682}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &543650974643626063
 GameObject:
   m_ObjectHideFlags: 0
@@ -117,7 +73,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3047197517193367399}
-  - component: {fileID: 9058074000880147469}
   m_Layer: 0
   m_Name: Hips
   m_TagString: Untagged
@@ -142,21 +97,6 @@ Transform:
   - {fileID: 6795937180053589467}
   m_Father: {fileID: 1051065088277815102}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9058074000880147469
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 952105631822741082}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42581d8044b64899834d3d515ab3a144, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boneReference: 55
-  subPath: parent/relocated-to
-  attachmentMode: 1
 --- !u!1 &1739058348199845828
 GameObject:
   m_ObjectHideFlags: 0

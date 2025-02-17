@@ -38,6 +38,11 @@ namespace UnitTests.AnimationServices
 
             public static ExtractedMask FromAvatarMask(AvatarMask mask)
             {
+                if (mask == null)
+                {
+                    Debug.LogError("Avatar mask is null");
+                }
+                
                 var so = new SerializedObject(mask);
                 var m_Mask = so.FindProperty("m_Mask");
                 var m_Elements = so.FindProperty("m_Elements");
@@ -74,12 +79,18 @@ namespace UnitTests.AnimationServices
             asc.ControllerContext[0] = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("base-fx-ac.controller"));
             asc.ControllerContext[1] =
                 asc.ControllerContext.Clone(LoadAsset<AnimatorController>("av-mask-test-ac.controller"));
+
+            Assert.IsNotNull(asc.ControllerContext[0]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext[1]?.Layers.First().AvatarMask);
             
             new AnimationIndex(new [] { asc.ControllerContext[1] }).RewritePaths(p =>
             {
                 if (p == "") return "";
                 else return "parent/anim-root/" + p;
             });
+            
+            Assert.IsNotNull(asc.ControllerContext[0]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext[1]?.Layers.First().AvatarMask);
             
             return context;
         }
@@ -90,7 +101,7 @@ namespace UnitTests.AnimationServices
             var ctx = CreateTestAvatar();
             var vcc = ctx.Extension<VirtualControllerContext>();
             ctx.DeactivateExtensionContext<AnimatorServicesContext>();
-            var originalMask = LoadAsset<AvatarMask>("test-mask.mask");
+            var originalMask = LoadAsset<AvatarMask>("ndmf-test-mask.mask");
             
             var originalState = ExtractedMask.FromAvatarMask(originalMask);
             var commit = new CommitContext();
@@ -153,10 +164,6 @@ namespace UnitTests.AnimationServices
             
             var vcc = ctx.Extension<VirtualControllerContext>();
             ctx.DeactivateExtensionContext<AnimatorServicesContext>();
-            
-            var prefab = CreatePrefab("AvatarMaskRewriteTest.prefab");
-            
-            AvatarProcessor.ProcessAvatar(prefab);
             
             // Armature/Hips -> parent/relocated-to/Hips
             

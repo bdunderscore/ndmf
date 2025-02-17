@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
@@ -17,6 +18,7 @@ namespace UnitTests
 {
     public class TestBase
     {
+        
         private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
         private static Dictionary<System.Type, string> _scriptToDirectory = null;
         private List<Object> objects;
@@ -40,6 +42,13 @@ namespace UnitTests
             
             //BuildReport.Clear();
             objects = new ();
+
+            AssetSaver.OnRetryImport = () =>
+            {
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Error,
+                    new Regex("Unable to import newly created asset : .*"));
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Log, new Regex("Retrying asset creation due to .*"));
+            };
         }
         
         protected T TrackObject<T>(T obj) where T : Object
@@ -51,6 +60,8 @@ namespace UnitTests
         [TearDown]
         public virtual void TestBaseTeardown()
         {
+            AssetSaver.OnRetryImport = null;
+            
             foreach (var obj in objects)
             {
                 Object.DestroyImmediate(obj);
