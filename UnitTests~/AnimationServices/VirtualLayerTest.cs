@@ -198,9 +198,10 @@ namespace UnitTests.AnimationServices
                 calledVirtualize.Add(behaviour);
             }
 
-            public void CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
+            public bool CommitStateBehaviour(CommitContext context, StateMachineBehaviour behaviour)
             {
                 calledCommit.Add(behaviour);
+                return true;
             }
         }
 
@@ -233,6 +234,9 @@ namespace UnitTests.AnimationServices
             Assert.IsTrue(platform.calledVirtualize.Any(b => b.name == "1"));
             Assert.IsTrue(platform.calledVirtualize.Any(b => b.name == "2"));
             Assert.AreEqual(0, platform.calledCommit.Count());
+            
+            Assert.IsTrue(virtualController.AllReachableNodes().Any(n => 
+                n is VirtualState vs && vs.Behaviours.FirstOrDefault()?.name == "1"));
             
             var commit = new CommitContext(platform);
             commit.CommitObject(virtualController);
