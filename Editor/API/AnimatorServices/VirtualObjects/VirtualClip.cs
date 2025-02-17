@@ -446,12 +446,12 @@ namespace nadena.dev.ndmf.animator
             AnimationUtility.SetAnimationClipSettings(clip, settings);
         }
 
-        public AnimationCurve GetFloatCurve(string path, Type type, string prop)
+        public AnimationCurve? GetFloatCurve(string path, Type type, string prop)
         {
             return GetFloatCurve(EditorCurveBinding.FloatCurve(path, type, prop));
         }
 
-        public ObjectReferenceKeyframe[] GetObjectCurve(string path, Type type, string prop)
+        public ObjectReferenceKeyframe[]? GetObjectCurve(string path, Type type, string prop)
         {
             return GetObjectCurve(EditorCurveBinding.PPtrCurve(path, type, prop));
         }

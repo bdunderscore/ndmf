@@ -8,7 +8,7 @@ namespace nadena.dev.ndmf.animator
     [PublicAPI]
     public sealed class VirtualTransition : VirtualTransitionBase
     {
-        internal VirtualTransition(CloneContext context, AnimatorTransitionBase cloned) : base(context, cloned)
+        internal VirtualTransition(CloneContext? context, AnimatorTransitionBase cloned) : base(context, cloned)
         {
         }
 

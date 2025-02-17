@@ -32,7 +32,7 @@ namespace nadena.dev.ndmf.animator
 
         private AnimatorController? GetFallbackController(VRCAvatarDescriptor.AnimLayerType ty)
         {
-            string name;
+            string? name;
             switch (ty)
             {
                 case VRCAvatarDescriptor.AnimLayerType.Action:
@@ -115,7 +115,8 @@ namespace nadena.dev.ndmf.animator
             vrcAvatarDescriptor.customizeAnimationLayers = true;
             
             // TODO: Fallback layers
-            foreach (var layer in vrcAvatarDescriptor.baseAnimationLayers)
+            foreach (var layer in vrcAvatarDescriptor.baseAnimationLayers ??
+                                  Array.Empty<VRCAvatarDescriptor.CustomAnimLayer>())
             {
                 var ac = layer.isDefault ? null : layer.animatorController;
 
@@ -127,7 +128,8 @@ namespace nadena.dev.ndmf.animator
                 yield return (layer.type, ac, layer.isDefault);
             }
 
-            foreach (var layer in vrcAvatarDescriptor.specialAnimationLayers)
+            foreach (var layer in vrcAvatarDescriptor.specialAnimationLayers ??
+                                  Array.Empty<VRCAvatarDescriptor.CustomAnimLayer>())
             {
                 var ac = layer.isDefault ? null : layer.animatorController;
 

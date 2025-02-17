@@ -10,7 +10,7 @@ namespace nadena.dev.ndmf.animator
     {
         private readonly AnimatorStateTransition _stateTransition;
 
-        internal VirtualStateTransition(CloneContext context, AnimatorStateTransition cloned) : base(context, cloned)
+        internal VirtualStateTransition(CloneContext? context, AnimatorStateTransition cloned) : base(context, cloned)
         {
             _stateTransition = cloned;
         }

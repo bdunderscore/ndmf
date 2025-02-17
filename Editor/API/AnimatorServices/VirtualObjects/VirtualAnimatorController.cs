@@ -160,7 +160,7 @@ namespace nadena.dev.ndmf.animator
             _layers[new LayerPriority(0)] = new LayerGroup { Layers = p0Layers };
         }
 
-        private AnimatorController _cachedController;
+        private AnimatorController? _cachedController;
         
         AnimatorController ICommitable<AnimatorController>.Prepare(CommitContext context)
         {
