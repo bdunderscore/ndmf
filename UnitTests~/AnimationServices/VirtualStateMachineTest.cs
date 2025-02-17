@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace UnitTests.AnimationServices
 {
-    public class VirtualStateMachineTest
+    public class VirtualStateMachineTest : TestBase
     {
         private void AssertPreserveProperty(
             Action<AnimatorStateMachine> setup,
@@ -100,6 +101,35 @@ namespace UnitTests.AnimationServices
                 state => Assert.AreEqual(new Vector3(1, 2, 3), state.parentStateMachinePosition),
                 virtualState => Assert.AreEqual(new Vector3(1, 2, 3), virtualState.ParentStateMachinePosition)
             );
+        }
+
+        [Test]
+        public void HandlesNullSubStateMachines()
+        {
+            var sm = TrackObject(new AnimatorStateMachine());
+            var sm2 = TrackObject(new AnimatorStateMachine());
+            var sm3 = TrackObject(new AnimatorStateMachine());
+            var sm4 = TrackObject(new AnimatorStateMachine());
+            
+            sm2.name = "sm2";
+            sm3.name = "sm3";
+            sm4.name = "sm4";
+            
+            sm.stateMachines = new[]
+            {
+                new ChildAnimatorStateMachine() { stateMachine = sm2 },
+                new ChildAnimatorStateMachine() { stateMachine = sm3 },
+                new ChildAnimatorStateMachine() { stateMachine = sm4 }
+            };
+            
+            UnityEngine.Object.DestroyImmediate(sm3);
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var vsm = cloneContext.Clone(sm);
+            
+            Assert.AreEqual(2, vsm.StateMachines.Count);
+            Assert.AreEqual("sm2", vsm.StateMachines[0].StateMachine.Name);
+            Assert.AreEqual("sm4", vsm.StateMachines[1].StateMachine.Name);
         }
     }
     

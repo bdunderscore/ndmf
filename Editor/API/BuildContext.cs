@@ -405,6 +405,7 @@ namespace nadena.dev.ndmf
                     if (!_extensions.TryGetValue(ty, out var ctx))
                     {
                         ctx = (IExtensionContext)ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
+                        _extensions[ty] = ctx;
                     }
 
                     if (!_activeExtensions.ContainsKey(ty))

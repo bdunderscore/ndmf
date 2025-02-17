@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -38,12 +40,44 @@ namespace nadena.dev.ndmf.animator
     {
         private class LayerState
         {
+            internal static readonly FieldInfo? f_OnAnimatorControllerDirty =
+                AccessTools.Field(typeof(AnimatorController), "OnAnimatorControllerDirty");
+
             internal readonly RuntimeAnimatorController? OriginalController;
             internal VirtualAnimatorController? VirtualController;
+            internal RuntimeAnimatorController? LastCommit;
 
             public LayerState(RuntimeAnimatorController? originalController)
             {
                 OriginalController = originalController;
+            }
+
+            public void MarkCommitted(RuntimeAnimatorController committedController)
+            {
+                if (f_OnAnimatorControllerDirty != null)
+                {
+                    LastCommit = committedController;
+                    Action invalidate = () =>
+                    {
+                        if (LastCommit == committedController) LastCommit = null;
+                        f_OnAnimatorControllerDirty.SetValue(committedController, null);
+                    };
+                    f_OnAnimatorControllerDirty.SetValue(committedController, invalidate);
+                }
+            }
+
+            public void Revalidate(RuntimeAnimatorController newController)
+            {
+                if (LastCommit == newController)
+                {
+                    // no-op!
+                }
+                else
+                {
+                    // force reload from unity object
+                    VirtualController = null;
+                    LastCommit = null;
+                }
             }
         }
         
@@ -63,7 +97,7 @@ namespace nadena.dev.ndmf.animator
         ///     This value is updated every time the set of virtual controllers changes.
         /// </summary>
         public long CacheInvalidationToken { get; private set; }
-        
+
         public void OnActivate(BuildContext context)
         {
             var root = context.AvatarRootObject;
@@ -84,12 +118,18 @@ namespace nadena.dev.ndmf.animator
             _cloneContext = new CloneContext(_platformBindings);
 
             var innateControllers = _platformBindings.GetInnateControllers(root);
-            _layerStates.Clear(); // TODO - retain and reactivate virtual controllers
             CacheInvalidationToken++;
 
             foreach (var (type, controller, _) in innateControllers)
             {
-                _layerStates[type] = new LayerState(controller);
+                if (_layerStates.TryGetValue(type, out var currentLayer))
+                {
+                    currentLayer.Revalidate(controller);
+                }
+                else
+                {
+                    _layerStates[type] = new LayerState(controller);
+                }
 
                 // Force all layers to be processed, for now. This avoids compatibility issues with NDMF
                 // plugins which assume that all layers have been cloned after MA runs.
@@ -150,7 +190,11 @@ namespace nadena.dev.ndmf.animator
                     kv =>
                     {
                         commitContext.ActiveInnateLayerKey = kv.Key;
-                        return (RuntimeAnimatorController)commitContext.CommitObject(kv.Value.VirtualController!);
+                        var committed =
+                            (RuntimeAnimatorController)commitContext.CommitObject(kv.Value.VirtualController!);
+                        kv.Value.MarkCommitted(committed);
+
+                        return committed;
                     });
 
             using (var scope = context.OpenSerializationScope())

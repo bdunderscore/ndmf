@@ -149,7 +149,9 @@ namespace nadena.dev.ndmf.animator
             var srcLayers = controller.layers;
             context.AllocateVirtualLayerSpace(srcLayers.Length);
 
-            var p0Layers = srcLayers.Select((l, i) => VirtualLayer.Clone(context, l, i)).ToList();
+            var p0Layers = srcLayers
+                .Select((l, i) => VirtualLayer.Clone(context, l, i))
+                .ToList();
             foreach (var layer in p0Layers)
             {
                 layer.IsOriginalLayer = true;
@@ -158,20 +160,21 @@ namespace nadena.dev.ndmf.animator
             _layers[new LayerPriority(0)] = new LayerGroup { Layers = p0Layers };
         }
 
+        private AnimatorController _cachedController;
+        
         AnimatorController ICommitable<AnimatorController>.Prepare(CommitContext context)
         {
-            var controller = new AnimatorController
-            {
-                name = Name,
-                parameters = Parameters
-                    .OrderBy(p => p.Key)
-                    .Select(p =>
-                    {
-                        p.Value.name = p.Key;
-                        return p.Value;
-                    })
-                    .ToArray()
-            };
+            if (_cachedController == null) _cachedController = new AnimatorController();
+
+            _cachedController.name = Name;
+            _cachedController.parameters = Parameters
+                .OrderBy(p => p.Key)
+                .Select(p =>
+                {
+                    p.Value.name = p.Key;
+                    return p.Value;
+                })
+                .ToArray();
 
             foreach (var (layer, index) in Layers.Select((l, i) => (l, i)))
             {
@@ -179,7 +182,7 @@ namespace nadena.dev.ndmf.animator
                 context.RegisterPhysicalLayerMapping(index, layer);
             }
 
-            return controller;
+            return _cachedController;
         }
 
         void ICommitable<AnimatorController>.Commit(CommitContext context, AnimatorController obj)

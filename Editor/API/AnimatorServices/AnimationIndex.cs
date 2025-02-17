@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using UnityEditor;
+using UnityEngine.Profiling;
 
 namespace nadena.dev.ndmf.animator
 {
@@ -199,6 +200,7 @@ namespace nadena.dev.ndmf.animator
 
         private void RebuildCache()
         {
+            Profiler.BeginSample("AnimationIndex.RebuildCache");
             _objectPathToClip.Clear();
             _bindingToClip.Clear();
             _lastBindings.Clear();
@@ -209,6 +211,7 @@ namespace nadena.dev.ndmf.animator
             }
 
             _isValid = true;
+            Profiler.EndSample();
         }
 
         private void CacheClip(VirtualClip clip)

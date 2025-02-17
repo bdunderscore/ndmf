@@ -1,4 +1,5 @@
-﻿using nadena.dev.ndmf.animator;
+﻿using System.Linq;
+using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -47,6 +48,41 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+        public void HandlesNullStateMachineReferences()
+        {
+            CloneContext context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+
+            var ac1 = TrackObject(new AnimatorController());
+            
+            var sm1 = new AnimatorStateMachine();
+            var sm2 = new AnimatorStateMachine();
+            
+            ac1.layers = new[]
+            {
+                new AnimatorControllerLayer()
+                {
+                    name = "1",
+                    stateMachine = sm1
+                },
+                new AnimatorControllerLayer()
+                {
+                    name = "2",
+                    stateMachine = sm2
+                }
+            };
+            
+            UnityEngine.Object.DestroyImmediate(sm1);
+            
+            var vc1 = context.Clone(ac1);
+            
+            Assert.AreEqual(2, vc1.Layers.Count());
+            Assert.IsNull(vc1.Layers.First().StateMachine);
+            Assert.AreEqual("2", vc1.Layers.Skip(1).First().Name);
+            
+            Assert.AreEqual(1, vc1.Layers.First().AllReachableNodes().Count());
+        }
+
+        [Test]
         public void PreservesLayersAndReferences()
         {
             CloneContext context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
@@ -64,7 +100,7 @@ namespace UnitTests.AnimationServices
                 new AnimatorControllerLayer()
                 {
                     name = "2",
-                    syncedLayerIndex = 0
+                    syncedLayerIndex = 0,
                 }
             };
             ac2.layers = new[]

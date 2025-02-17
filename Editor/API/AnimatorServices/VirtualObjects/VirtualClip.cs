@@ -308,7 +308,7 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
-        public AnimationCurve GetFloatCurve(EditorCurveBinding binding)
+        public AnimationCurve? GetFloatCurve(EditorCurveBinding binding)
         {
             if (_curveCache.TryGetValue(binding, out var cached))
             {
@@ -319,10 +319,10 @@ namespace nadena.dev.ndmf.animator
                 }
             }
 
-            return cached.Value!;
+            return cached.Value;
         }
 
-        public ObjectReferenceKeyframe[] GetObjectCurve(EditorCurveBinding binding)
+        public ObjectReferenceKeyframe[]? GetObjectCurve(EditorCurveBinding binding)
         {
             if (_pptrCurveCache.TryGetValue(binding, out var cached))
             {
@@ -333,7 +333,7 @@ namespace nadena.dev.ndmf.animator
                 }
             }
 
-            return cached.Value!;
+            return cached.Value;
         }
 
         public void SetFloatCurve(EditorCurveBinding binding, AnimationCurve? curve)
