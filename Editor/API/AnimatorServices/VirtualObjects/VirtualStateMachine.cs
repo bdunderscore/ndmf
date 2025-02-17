@@ -237,7 +237,7 @@ namespace nadena.dev.ndmf.animator
 
         public struct VirtualChildState
         {
-            public VirtualState State;
+            public VirtualState? State;
             public Vector3 Position;
         }
 
@@ -250,7 +250,7 @@ namespace nadena.dev.ndmf.animator
 
             foreach (var state in States)
             {
-                yield return state.State;
+                if (state.State != null) yield return state.State;
             }
 
             if (DefaultState != null) yield return DefaultState;
@@ -297,7 +297,7 @@ namespace nadena.dev.ndmf.animator
                 
                 foreach (var state in States)
                 {
-                    yield return state.State;
+                    if (state.State != null) yield return state.State;
                 }
 
                 foreach (var ssm in StateMachines)
