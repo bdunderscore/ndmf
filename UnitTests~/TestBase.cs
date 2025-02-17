@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using nadena.dev.ndmf;
 using NUnit.Framework;
 using UnityEditor;
@@ -8,6 +9,7 @@ using UnityEditor.Animations;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 #if NDMF_VRCSDK3_AVATARS
+using HarmonyLib;
 using VRC.Core;
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -16,12 +18,13 @@ namespace UnitTests
 {
     public class TestBase
     {
+        
         private const string TEMP_ASSET_PATH = "Assets/ZZZ_Temp";
         private static Dictionary<System.Type, string> _scriptToDirectory = null;
-        private List<GameObject> objects;
+        private List<Object> objects;
 
         [SetUp]
-        public virtual void Setup()
+        public virtual void TestBaseSetup()
         {
             if (_scriptToDirectory == null)
             {
@@ -38,12 +41,27 @@ namespace UnitTests
             }
             
             //BuildReport.Clear();
-            objects = new List<GameObject>();
+            objects = new ();
+
+            AssetSaver.OnRetryImport = () =>
+            {
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Error,
+                    new Regex("Unable to import newly created asset : .*"));
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Log, new Regex("Retrying asset creation due to .*"));
+            };
+        }
+        
+        protected T TrackObject<T>(T obj) where T : Object
+        {
+            objects.Add(obj);
+            return obj;
         }
 
         [TearDown]
-        public virtual void Teardown()
+        public virtual void TestBaseTeardown()
         {
+            AssetSaver.OnRetryImport = null;
+            
             foreach (var obj in objects)
             {
                 Object.DestroyImmediate(obj);
@@ -66,8 +84,12 @@ namespace UnitTests
             go.name = name;
             go.AddComponent<Animator>();
 #if NDMF_VRCSDK3_AVATARS
-            go.AddComponent<VRCAvatarDescriptor>();
+            var avdesc = go.AddComponent<VRCAvatarDescriptor>();
             go.AddComponent<PipelineManager>();
+
+            // VRCAvatarDescriptor is initialized in the editor's OnEnable...
+            var editor = Editor.CreateEditor(avdesc);
+            AccessTools.Method(editor.GetType(), "OnEnable").Invoke(editor, null);
 #endif
 
             objects.Add(go);

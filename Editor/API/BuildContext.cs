@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.reporting;
-using nadena.dev.ndmf.runtime;
 using nadena.dev.ndmf.ui;
 using nadena.dev.ndmf.util;
 using UnityEditor;
@@ -25,18 +22,19 @@ namespace nadena.dev.ndmf
     internal sealed class ExecutionScope : IDisposable
     {
         private readonly ErrorReportScope _errorReportScope;
-        private readonly ObjectRegistryScope _objectRegistryScope;
+        [CanBeNull] private readonly ObjectRegistryScope _objectRegistryScope;
 
         public ExecutionScope(BuildContext ctx)
         {
             _errorReportScope = new ErrorReportScope(ctx._report);
-            _objectRegistryScope = new ObjectRegistryScope(ctx._registry);
+            _objectRegistryScope =
+                ObjectRegistry.ActiveRegistry != null ? null : new ObjectRegistryScope(ctx._registry);
         }
 
         public void Dispose()
         {
             _errorReportScope.Dispose();
-            _objectRegistryScope.Dispose();
+            _objectRegistryScope?.Dispose();
         }
     }
 
@@ -188,7 +186,7 @@ namespace nadena.dev.ndmf
                 _savedObjects.Remove(AssetContainer);
 
                 int index = 0;
-                List<UnityEngine.Object> assetsToSave = new List<UnityEngine.Object>();
+                var assetsToSave = new List<UnityObject>();
                 foreach (var asset in _avatarRootObject.ReferencedAssets(traverseSaved: true, includeScene: false))
                 {
                     if (asset is MonoScript)
@@ -346,11 +344,58 @@ namespace nadena.dev.ndmf
             }
         }
 
+        public void DeactivateAllExtensionContexts()
+        {
+            Dictionary<Type, List<Type>> depIndex = new();
+            foreach (var ty in _activeExtensions.Keys)
+            {
+                foreach (var dep in ty.ContextDependencies())
+                {
+                    if (!depIndex.ContainsKey(dep))
+                    {
+                        depIndex[dep] = new List<Type>();
+                    }
+
+                    depIndex[dep].Add(ty);
+                }
+            }
+
+            while (_activeExtensions.Keys.Count > 0)
+            {
+                Type next = _activeExtensions.Keys.First();
+                Type candidate;
+                do
+                {
+                    candidate = next;
+                    var revDeps = depIndex.GetValueOrDefault(next) as IEnumerable<Type>
+                                  ?? Array.Empty<Type>();
+                    next = revDeps.FirstOrDefault(t => _activeExtensions.ContainsKey(t));
+                } while (next != null);
+                
+                DeactivateExtensionContext(candidate);
+            }
+        }
+
+        public T ActivateExtensionContextRecursive<T>() where T : IExtensionContext
+        {
+            return (T) ActivateExtensionContextRecursive(typeof(T));
+        }
+        
+        public IExtensionContext ActivateExtensionContextRecursive(Type ty)
+        {
+            foreach (var dependency in ty.ContextDependencies())
+            {
+                ActivateExtensionContextRecursive(dependency);
+            }
+
+            return ActivateExtensionContext(ty);
+        }
+        
         public T ActivateExtensionContext<T>() where T : IExtensionContext
         {
             return (T)ActivateExtensionContext(typeof(T));
         }
-
+        
         public IExtensionContext ActivateExtensionContext(Type ty)
         {
             using (new ExecutionScope(this))
@@ -360,6 +405,7 @@ namespace nadena.dev.ndmf
                     if (!_extensions.TryGetValue(ty, out var ctx))
                     {
                         ctx = (IExtensionContext)ty.GetConstructor(Type.EmptyTypes).Invoke(Array.Empty<object>());
+                        _extensions[ty] = ctx;
                     }
 
                     if (!_activeExtensions.ContainsKey(ty))

@@ -72,6 +72,15 @@ namespace nadena.dev.ndmf
         /// <param name="newObject"></param>
         /// <returns>The ObjectReference for the objects in question</returns>
         public ObjectReference RegisterReplacedObject(ObjectReference oldObject, UnityObject newObject);
+
+        /// <summary>
+        ///     Record that a particular object (asset or scene object) was replaced by a clone or transformed version.
+        ///     This will be used to track the original object in error reports.
+        /// </summary>
+        /// <param name="oldObject"></param>
+        /// <param name="newObject"></param>
+        /// <returns>true if successful, or false if the object is already registered</returns>
+        bool TryRegisterReplacedObject(ObjectReference oldObject, UnityObject newObject);
     }
 
     /// <summary>
@@ -213,28 +222,47 @@ namespace nadena.dev.ndmf
             return ActiveRegistry?.RegisterReplacedObject(oldObject, newObject) ?? oldObject;
         }
 
+        /// <summary>
+        ///     Record that a particular object (asset or scene object) was replaced by a clone or transformed version.
+        ///     This will be used to track the original object in error reports.
+        /// </summary>
+        /// <param name="oldObject"></param>
+        /// <param name="newObject"></param>
+        /// <returns>true if successful, or false if the object is already registered</returns>
+        public static bool TryRegisterReplacedObject(ObjectReference oldObject, UnityObject newObject)
+        {
+            return ActiveRegistry?.TryRegisterReplacedObject(oldObject, newObject) ?? false;
+        }
+
         ObjectReference IObjectRegistry.RegisterReplacedObject(ObjectReference oldObject, UnityObject newObject)
+        {
+            if (!((IObjectRegistry)this).TryRegisterReplacedObject(oldObject, newObject))
+                throw new ArgumentException(
+                    "RegisterReplacedObject must be called before GetReference is called on the new object");
+
+            return oldObject;
+        }
+
+        bool IObjectRegistry.TryRegisterReplacedObject(ObjectReference oldObject, UnityObject newObject)
         {
             if (oldObject == null) throw new NullReferenceException("oldObject must not be null");
             if (newObject == null) throw new NullReferenceException("newObject must not be null");
 
             var self = (IObjectRegistry)this;
 
-            if (self.GetReference(newObject, false) != null)
-                throw new ArgumentException(
-                    "RegisterReplacedObject must be called before GetReference is called on the new object");
+            if (self.GetReference(newObject, false) != null) return false;
 
+#if NDMF_TRACE_OBJREG
             var oldObj = "<" + oldObject.GetHashCode() + ">";
             if (oldObject.Object != null)
                 oldObj = oldObject.Object.GetInstanceID() + " [" + oldObject.Object.name + "]";
 
-#if NDMF_TRACE_OBJREG
             Debug.Log("[ObjectRegistry] Registering replacement for " + oldObj + " -> " + newObject.GetInstanceID() + " [" + newObject.name + "]");
 #endif
-            
+
             _obj2ref[newObject] = oldObject;
 
-            return oldObject;
+            return true;
         }
     }
 }
