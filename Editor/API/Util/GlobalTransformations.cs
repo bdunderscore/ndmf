@@ -10,6 +10,10 @@ namespace nadena.dev.ndmf.util
 {
     public static class GlobalTransformations
     {
+        /// <summary>
+        ///     Removes all empty layers that are safe to remove from the AnimatorServicesContext.
+        /// </summary>
+        /// <param name="ctx"></param>
         public static void RemoveEmptyLayers(this AnimatorServicesContext ctx)
         {
             foreach (var controller in ctx.ControllerContext.GetAllControllers())
@@ -18,6 +22,10 @@ namespace nadena.dev.ndmf.util
             }
         }
 
+        /// <summary>
+        ///     Remove all empty layers that are safe to remove from the VirtualAnimatorController.
+        /// </summary>
+        /// <param name="vac"></param>
         public static void RemoveEmptyLayers(VirtualAnimatorController vac)
         {
             var isFirst = true;
@@ -40,6 +48,12 @@ namespace nadena.dev.ndmf.util
                                                  arg.StateMachine.StateMachines.Count == 0));
         }
 
+        /// <summary>
+        ///     If different controllers in the AnimatorServicesContext have parameters with the same name but different types,
+        ///     or if a condition in a transition references a parameter with the wrong type, this method will adjust the types
+        ///     and transitions to use float parameters where necessary.
+        /// </summary>
+        /// <param name="asc"></param>
         public static void HarmonizeParameterTypes(this AnimatorServicesContext asc)
         {
             Dictionary<string, AnimatorControllerParameterType> parameterTypes = new();
