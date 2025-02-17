@@ -8,7 +8,10 @@ using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
+
+#if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
+#endif
 
 namespace UnitTests.AnimationServices
 {
@@ -211,12 +214,14 @@ namespace UnitTests.AnimationServices
             sm1.states = new[] { new ChildAnimatorState() { state = st1} };
             sm1.defaultState = st1;
 
-            var originalBehavior = new VRCAnimatorPlayAudio() { name = "1" };
+            var originalBehavior = ScriptableObject.CreateInstance<VRCAnimatorPlayAudio>();
+            originalBehavior.name = "1";
             st1.behaviours = new [] { originalBehavior };
             var l1 = new AnimatorControllerLayer() { stateMachine = sm1 };
 
             var layer = new AnimatorControllerLayer() { syncedLayerIndex = 0 };
-            var overrideBehavior = new VRCAnimatorPlayAudio() { name = "2" };
+            var overrideBehavior = ScriptableObject.CreateInstance<VRCAnimatorPlayAudio>();
+            overrideBehavior.name = "2";
             layer.SetOverrideBehaviours(st1, new []{ overrideBehavior });
             
             testcontroller.layers = new[] { l1, layer };
