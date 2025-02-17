@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
 
 ### Fixed
 
@@ -20,7 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-## [1.6.8] = [2025-02-16]
+## [1.7.0-alpha.0] - [2025-02-16]
+
+### Added
+- [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
+
+## [1.6.8] - [2025-02-16]
 
 ### Fixed
 - Avoid NRE that occurs when a null is observed in a PublishedValue (#526)
