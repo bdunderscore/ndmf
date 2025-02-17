@@ -222,12 +222,12 @@ namespace nadena.dev.ndmf.animator
 
             foreach (var binding in AnimationUtility.GetCurveBindings(clip))
             {
-                _curveCache.Add(binding, new CachedCurve<AnimationCurve>());
+                _curveCache[binding] = new CachedCurve<AnimationCurve>();
             }
 
             foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
             {
-                _pptrCurveCache.Add(binding, new CachedCurve<ObjectReferenceKeyframe[]>());
+                _pptrCurveCache[binding] = new CachedCurve<ObjectReferenceKeyframe[]>();
             }
         }
 
