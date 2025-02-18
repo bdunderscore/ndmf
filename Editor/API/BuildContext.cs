@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.ui;
 using nadena.dev.ndmf.util;
@@ -52,6 +53,8 @@ namespace nadena.dev.ndmf
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
 
+        internal INDMFPlatformProvider PlatformProvider { get; }
+        
         public ObjectRegistry ObjectRegistry => _registry;
         public ErrorReport ErrorReport => _report;
 
@@ -115,6 +118,9 @@ namespace nadena.dev.ndmf
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
+
+            // TODO[platform]: This needs to be passed in later, but for now let's just grab the ambient platform
+            PlatformProvider = AmbientPlatform.DefaultPlatform;
 
             _avatarRootObject = obj;
             _avatarRootTransform = obj.transform;
