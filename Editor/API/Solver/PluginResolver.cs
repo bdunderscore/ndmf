@@ -294,6 +294,7 @@ namespace nadena.dev.ndmf
                 foreach (var pass in _allPasses)
                 {
                     if (!PreviewPrefs.instance.IsPreviewPluginEnabled(pass.Plugin.QualifiedName)) continue;
+                    if (TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName)) continue;
 
                     foreach (var filter in pass.RenderFilters)
                         session.AddMutator(new SequencePoint(), filter);

@@ -25,7 +25,7 @@ namespace nadena.dev.ndmf.preview
             {
                 Menu.SetChecked(Menus.ENABLE_PREVIEW_MENU_NAME, EnablePreviewsUI);
 
-                var resolver = new PluginResolver();
+                var resolver = new PluginResolver(includeDisabled: true);
                 _globalPreviewSession = resolver.PreviewSession;
                 PreviewSession.Current = resolver.PreviewSession;
 

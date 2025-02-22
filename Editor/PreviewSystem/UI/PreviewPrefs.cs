@@ -35,6 +35,11 @@ namespace nadena.dev.ndmf.preview.UI
             _nodeStates = _savedNodeStates.ToDictionary(kv => kv.key, kv => kv.value);
         }
 
+        private void OnEnable()
+        {
+            TemporalPluginDisable.OnPluginDisableChanged += (_, _) => OnPreviewConfigChanged?.Invoke();
+        }
+
         public bool GetNodeState(string qualifiedName, bool defaultValue)
         {
             if (_nodeStates == null) OnValidate();
