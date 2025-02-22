@@ -51,12 +51,30 @@ namespace nadena.dev.ndmf
         }
     }
 
+    /// <summary>
+    /// The class manages if each plugin is temporarily disabled.
+    /// </summary>
+    internal static class TemporalPluginDisable
+    {
+        // parameter: plugin id, new state
+        public static event Action<string, bool> OnPluginDisableChanged;
+
+        private const string SessionStateKey = "nadena.dev.ndmf.plugin-temporally-disabled.";
+
+        public static bool IsPluginDisabled(string pluginId) => UnityEditor.SessionState.GetBool(SessionStateKey + pluginId, false);
+        public static void SetPluginDisabled(string pluginId, bool state)
+        {
+            UnityEditor.SessionState.SetBool(SessionStateKey + pluginId, state);
+            OnPluginDisableChanged?.Invoke(pluginId, state);
+        }
+    }
+
     internal class PluginResolver
     {
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         private readonly List<SolverPass> _allPasses = new();
-        
+
         public PluginResolver() : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                     assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
@@ -80,6 +98,7 @@ namespace nadena.dev.ndmf
 
             foreach (var plugin in pluginTemplates)
             {
+                if (TemporalPluginDisable.IsPluginDisabled(plugin.QualifiedName)) continue; // skip disabled plugins
                 var pluginInfo = new PluginInfo(solverContext, plugin);
                 plugin.Configure(pluginInfo);
             }
