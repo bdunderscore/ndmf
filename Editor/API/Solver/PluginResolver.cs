@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
@@ -75,22 +76,24 @@ namespace nadena.dev.ndmf
 
         private readonly List<SolverPass> _allPasses = new();
 
-        public PluginResolver(bool includeDisabled = false) : this(
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(
-                    assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
-                .Select(export => ((ExportsPlugin) export).PluginType)
-                .ToImmutableSortedSet(new TypeComparer())
-                .Prepend(typeof(InternalPasses)),
-            includeDisabled
-        )
+        public static IEnumerable<Type> FindPassTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
+                assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
+            .Select(export => ((ExportsPlugin)export).PluginType)
+            .ToImmutableSortedSet(new TypeComparer())
+            .Prepend(typeof(InternalPasses));
+
+        [CanBeNull] private static IPluginInternal InstantiatePlugin(Type pluginType) =>
+            pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
+
+        [ItemCanBeNull]
+        public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPassTypes().Select(InstantiatePlugin);
+
+        public PluginResolver(bool includeDisabled = false) : this(FindPassTypes(), includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) : this(
-            plugins.Select(plugin =>
-                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPluginInternal),
-            includeDisabled
-        )
+        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) 
+            : this(plugins.Select(InstantiatePlugin), includeDisabled)
         {
         }
 
