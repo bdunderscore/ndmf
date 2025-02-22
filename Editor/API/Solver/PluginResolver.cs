@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
@@ -51,30 +52,52 @@ namespace nadena.dev.ndmf
         }
     }
 
+    /// <summary>
+    /// The class manages if each plugin is temporarily disabled.
+    /// </summary>
+    internal static class TemporalPluginDisable
+    {
+        // parameter: plugin id, new state
+        public static event Action<string, bool> OnPluginDisableChanged;
+
+        private const string SessionStateKey = "nadena.dev.ndmf.plugin-temporally-disabled.";
+
+        public static bool IsPluginDisabled(string pluginId) => UnityEditor.SessionState.GetBool(SessionStateKey + pluginId, false);
+        public static void SetPluginDisabled(string pluginId, bool state)
+        {
+            UnityEditor.SessionState.SetBool(SessionStateKey + pluginId, state);
+            OnPluginDisableChanged?.Invoke(pluginId, state);
+        }
+    }
+
     internal class PluginResolver
     {
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         private readonly List<SolverPass> _allPasses = new();
-        
-        public PluginResolver() : this(
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(
-                    assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
-                .Select(export => ((ExportsPlugin) export).PluginType)
-                .ToImmutableSortedSet(new TypeComparer())
-                .Prepend(typeof(InternalPasses))
-        )
+
+        public static IEnumerable<Type> FindPassTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
+                assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
+            .Select(export => ((ExportsPlugin)export).PluginType)
+            .ToImmutableSortedSet(new TypeComparer())
+            .Prepend(typeof(InternalPasses));
+
+        [CanBeNull] private static IPluginInternal InstantiatePlugin(Type pluginType) =>
+            pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
+
+        [ItemCanBeNull]
+        public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPassTypes().Select(InstantiatePlugin);
+
+        public PluginResolver(bool includeDisabled = false) : this(FindPassTypes(), includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<Type> plugins) : this(
-            plugins.Select(plugin =>
-                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPluginInternal)
-        )
+        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) 
+            : this(plugins.Select(InstantiatePlugin), includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates)
+        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, bool includeDisabled = false)
         {
             var solverContext = new SolverContext();
 
@@ -159,6 +182,7 @@ namespace nadena.dev.ndmf
 #endif
                 
                 var sorted = TopoSort.DoSort(passes, constraints);
+                if (!includeDisabled) sorted.RemoveAll(pass => TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName));
                 _allPasses.AddRange(sorted);
 
                 var concrete = ToConcretePasses(phase, sorted);
@@ -270,6 +294,7 @@ namespace nadena.dev.ndmf
                 foreach (var pass in _allPasses)
                 {
                     if (!PreviewPrefs.instance.IsPreviewPluginEnabled(pass.Plugin.QualifiedName)) continue;
+                    if (TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName)) continue;
 
                     foreach (var filter in pass.RenderFilters)
                         session.AddMutator(new SequencePoint(), filter);
