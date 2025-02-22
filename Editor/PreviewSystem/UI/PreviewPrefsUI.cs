@@ -13,7 +13,6 @@ namespace nadena.dev.ndmf.preview.UI
     {
         internal static bool DISABLE_WINDOW = false;
 
-        private ImmutableList<(BuildPhase, IList<ConcretePass>)> _passes = new PluginResolver().Passes;
         private readonly List<TreeViewItemData<ItemData>> _treeViewData = new();
         private TreeView _treeView;
 
@@ -37,6 +36,14 @@ namespace nadena.dev.ndmf.preview.UI
         private void OnEnable()
         {
             BuildTreeViewData();
+            TemporalPluginDisable.OnPluginDisableChanged += OnPluginDisableChanged;
+        }
+
+        private void OnPluginDisableChanged(string arg1, bool arg2) => _treeView.Rebuild();
+
+        private void OnDisable()
+        {
+            TemporalPluginDisable.OnPluginDisableChanged -= OnPluginDisableChanged;
         }
 
         private class InternalNode
@@ -79,7 +86,14 @@ namespace nadena.dev.ndmf.preview.UI
         {
             return new InternalNode
             {
-                DisplayName = () => plugin.DisplayName,
+                DisplayName = () =>
+                {
+                    var name = "";
+                    if (TemporalPluginDisable.IsPluginDisabled(plugin.QualifiedName))
+                        name += "(Disabled) ";
+                    name += plugin.DisplayName;
+                    return name;
+                },
                 QualifiedName = plugin.QualifiedName,
                 SetEnabled = b => { PreviewPrefs.instance.SetPreviewPluginEnabled(plugin.QualifiedName, b); },
                 IsEnabled = _ => PreviewPrefs.instance.IsPreviewPluginEnabled(plugin.QualifiedName)
@@ -89,7 +103,7 @@ namespace nadena.dev.ndmf.preview.UI
         private void BuildTreeViewData()
         {
             var nodesByPlugin =
-                new PluginResolver().Passes
+                new PluginResolver(includeDisabled: true).Passes
                     .SelectMany(kv => kv.Item2)
                     .Where(pass => pass.HasPreviews)
                     .OrderBy(pass => pass.Description)
@@ -103,12 +117,13 @@ namespace nadena.dev.ndmf.preview.UI
             var id = 0;
             foreach (var (plugin, nodes) in nodesByPlugin)
             {
+                var pluginNode = CreatePluginNode((PluginBase)plugin);
                 var pluginItemData = new ItemData
                 {
                     IsPass = false,
                     QualifiedName = plugin.QualifiedName,
-                    DisplayName = () => plugin.DisplayName,
-                    Node = CreatePluginNode((PluginBase)plugin)
+                    DisplayName = pluginNode.DisplayName,
+                    Node = pluginNode
                 };
 
                 var items = new List<TreeViewItemData<ItemData>>();
