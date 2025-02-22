@@ -75,30 +75,31 @@ namespace nadena.dev.ndmf
 
         private readonly List<SolverPass> _allPasses = new();
 
-        public PluginResolver() : this(
+        public PluginResolver(bool includeDisabled = false) : this(
             AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                     assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
                 .Select(export => ((ExportsPlugin) export).PluginType)
                 .ToImmutableSortedSet(new TypeComparer())
-                .Prepend(typeof(InternalPasses))
+                .Prepend(typeof(InternalPasses)),
+            includeDisabled
         )
         {
         }
 
-        public PluginResolver(IEnumerable<Type> plugins) : this(
+        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) : this(
             plugins.Select(plugin =>
-                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPluginInternal)
+                plugin.GetConstructor(new Type[0]).Invoke(new object[0]) as IPluginInternal),
+            includeDisabled
         )
         {
         }
 
-        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates)
+        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, bool includeDisabled = false)
         {
             var solverContext = new SolverContext();
 
             foreach (var plugin in pluginTemplates)
             {
-                if (TemporalPluginDisable.IsPluginDisabled(plugin.QualifiedName)) continue; // skip disabled plugins
                 var pluginInfo = new PluginInfo(solverContext, plugin);
                 plugin.Configure(pluginInfo);
             }
@@ -178,6 +179,7 @@ namespace nadena.dev.ndmf
 #endif
                 
                 var sorted = TopoSort.DoSort(passes, constraints);
+                if (!includeDisabled) sorted.RemoveAll(pass => TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName));
                 _allPasses.AddRange(sorted);
 
                 var concrete = ToConcretePasses(phase, sorted);
