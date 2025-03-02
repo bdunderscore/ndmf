@@ -127,7 +127,7 @@ namespace nadena.dev.ndmf.animator
             _name = layer.name;
             AvatarMask = layer.avatarMask == null ? null : context.Clone(layer.avatarMask);
             BlendingMode = layer.blendingMode;
-            DefaultWeight = layer.defaultWeight;
+            DefaultWeight = physicalLayerIndex == 0 ? 1 : layer.defaultWeight;
             IKPass = layer.iKPass;
             SyncedLayerAffectsTiming = layer.syncedLayerAffectsTiming;
             SyncedLayerIndex = context.CloneSourceToVirtualLayerIndex(layer.syncedLayerIndex);
