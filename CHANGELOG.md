@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#543] Exceptions thrown when deactivating extension contexts can result in an infinite loop
 
 ### Changed
 
