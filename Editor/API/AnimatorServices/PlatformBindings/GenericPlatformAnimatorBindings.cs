@@ -32,16 +32,6 @@ namespace nadena.dev.ndmf.animator
                     yield return (animator, controller, false);
                 }
             }
-
-            foreach (var custom in root.GetComponentsInChildren<IVirtualizeAnimatorController>(true))
-            {
-                var controller = custom.AnimatorController;
-
-                if (controller != null)
-                {
-                    yield return (custom, controller, false);
-                }
-            }
         }
 
         public void CommitControllers(GameObject root, IDictionary<object, RuntimeAnimatorController> controllers)
@@ -51,10 +41,6 @@ namespace nadena.dev.ndmf.animator
                 if (key is Animator a && a != null)
                 {
                     a.runtimeAnimatorController = controller;
-                }
-                else if (key is IVirtualizeAnimatorController v && key is Component c && c != null)
-                {
-                    v.AnimatorController = controller;
                 }
             }
         }
