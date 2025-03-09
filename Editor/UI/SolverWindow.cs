@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf.ui
         {
             Reload();
 
-            TemporalPluginDisable.OnPluginDisableChanged += OnPluginDisableChanged;
+            PluginDisablePrefs.OnPluginDisableChanged += OnPluginDisableChanged;
         }
 
         private void OnPluginDisableChanged(string pluginId, bool disabled)
@@ -93,7 +93,7 @@ namespace nadena.dev.ndmf.ui
 
         public void Dispose()
         {
-            TemporalPluginDisable.OnPluginDisableChanged -= OnPluginDisableChanged;
+            PluginDisablePrefs.OnPluginDisableChanged -= OnPluginDisableChanged;
         }
 
         BuildEvent.PassExecuted NextPassExecuted(IEnumerator<BuildEvent> events)
@@ -135,7 +135,7 @@ namespace nadena.dev.ndmf.ui
                     var plugin = pass.Plugin;
                     if (plugin != priorPlugin)
                     {
-                        isDisabled = TemporalPluginDisable.IsPluginDisabled(plugin.QualifiedName);
+                        isDisabled = PluginDisablePrefs.IsPluginDisabled(plugin.QualifiedName);
                         pluginItem = new SolverUIItem()
                         {
                             id = id++, 

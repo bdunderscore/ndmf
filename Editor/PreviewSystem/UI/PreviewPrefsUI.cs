@@ -36,14 +36,14 @@ namespace nadena.dev.ndmf.preview.UI
         private void OnEnable()
         {
             BuildTreeViewData();
-            TemporalPluginDisable.OnPluginDisableChanged += OnPluginDisableChanged;
+            PluginDisablePrefs.OnPluginDisableChanged += OnPluginDisableChanged;
         }
 
         private void OnPluginDisableChanged(string arg1, bool arg2) => _treeView.Rebuild();
 
         private void OnDisable()
         {
-            TemporalPluginDisable.OnPluginDisableChanged -= OnPluginDisableChanged;
+            PluginDisablePrefs.OnPluginDisableChanged -= OnPluginDisableChanged;
         }
 
         private class InternalNode
@@ -89,7 +89,7 @@ namespace nadena.dev.ndmf.preview.UI
                 DisplayName = () =>
                 {
                     var name = "";
-                    if (TemporalPluginDisable.IsPluginDisabled(plugin.QualifiedName))
+                    if (PluginDisablePrefs.IsPluginDisabled(plugin.QualifiedName))
                         name += "(Disabled) ";
                     name += plugin.DisplayName;
                     return name;
