@@ -9,6 +9,14 @@ using UnityEngine.Profiling;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     AnimationIndex indexes the full set of animations known to the `VirtualControllerContext`, and allows for
+    ///     efficient querying of animations by object path or binding, as well as some bulk editing operations.
+    ///     The AnimationIndex registers invalidation callbacks with all nodes in the virtual controller hierarchy, and
+    ///     will therefore be automatically updated if anything changes in the hierarchy.
+    ///     Normally, you should obtain an AnimationIndex from the `AnimatorServicesContext`, but constructors are provided
+    ///     for testing purposes.
+    /// </summary>
     public sealed class AnimationIndex
     {
         private readonly Func<IEnumerable<VirtualNode>> _getRoots;
@@ -35,7 +43,12 @@ namespace nadena.dev.ndmf.animator
             _getInvalidationToken = getInvalidationToken;
             _invalidateAction = () => _isValid = false;
         }
-        
+
+        /// <summary>
+        ///     Creates an animation index over a set of virtualized animator controllers.
+        ///     This method is primarily intended for use in tests.
+        /// </summary>
+        /// <param name="controllers"></param>
         public AnimationIndex(IEnumerable<VirtualNode> controllers)
         {
             _invalidateAction = () => _isValid = false;
@@ -44,6 +57,11 @@ namespace nadena.dev.ndmf.animator
             _getInvalidationToken = () => _lastInvalidationToken;
         }
 
+        /// <summary>
+        ///     Returns all clips associated with a given virtual object path.
+        /// </summary>
+        /// <param name="objectPath"></param>
+        /// <returns></returns>
         public IEnumerable<VirtualClip> GetClipsForObjectPath(string objectPath)
         {
             if (!IsValid) RebuildCache();
@@ -56,6 +74,11 @@ namespace nadena.dev.ndmf.animator
             return Enumerable.Empty<VirtualClip>();
         }
 
+        /// <summary>
+        ///     Returns all clips containing curves for a given binding.
+        /// </summary>
+        /// <param name="binding"></param>
+        /// <returns></returns>
         public IEnumerable<VirtualClip> GetClipsForBinding(EditorCurveBinding binding)
         {
             if (!IsValid) RebuildCache();
@@ -68,6 +91,11 @@ namespace nadena.dev.ndmf.animator
             return Enumerable.Empty<VirtualClip>();
         }
 
+        /// <summary>
+        ///     Rewrites all object paths in animations and avatar masks according to the provided mapping function. If the
+        ///     mapping function returns null, all animations referencing the path will be removed from the animation.
+        /// </summary>
+        /// <param name="rewriteRules"></param>
         public void RewritePaths(Func<string, string?> rewriteRules)
         {
             if (!IsValid) RebuildCache();
@@ -129,6 +157,12 @@ namespace nadena.dev.ndmf.animator
             layerAvatarMask.Elements = outputDict.ToImmutableDictionary();
         }
 
+        /// <summary>
+        ///     Rewrites all object paths in animations and avatar masks according to the provided mapping dictionary. If the
+        ///     path is not present in the dictionary, it will be unchanged; if it is present and mapped to null, it will be
+        ///     deleted from animations.
+        /// </summary>
+        /// <param name="rewriteRules"></param>
         public void RewritePaths(Dictionary<string, string?> rewriteRules)
         {
             if (!IsValid) RebuildCache();
@@ -175,6 +209,13 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
+        /// <summary>
+        ///     Applies an arbitrary callback to all clips associated with a given object path. This operation can be more
+        ///     efficient than querying for all clips associated with a path and then applying the callback, as it avoids
+        ///     rebuilding the entire animation index when clips are edited.
+        /// </summary>
+        /// <param name="binding"></param>
+        /// <param name="processClip"></param>
         public void EditClipsByBinding(IEnumerable<EditorCurveBinding> binding, Action<VirtualClip> processClip)
         {
             if (!IsValid) RebuildCache();

@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace nadena.dev.ndmf.animator
 {
     [PublicAPI]
-    public abstract class VirtualTransitionBase : VirtualNode, ICommitable<AnimatorTransitionBase>
+    public abstract class VirtualTransitionBase : VirtualNode, ICommittable<AnimatorTransitionBase>
     {
         protected AnimatorTransitionBase _transition;
 
@@ -149,12 +149,12 @@ namespace nadena.dev.ndmf.animator
             _transition.isExit = true;
         }
 
-        AnimatorTransitionBase ICommitable<AnimatorTransitionBase>.Prepare(CommitContext context)
+        AnimatorTransitionBase ICommittable<AnimatorTransitionBase>.Prepare(CommitContext context)
         {
             return _transition;
         }
 
-        void ICommitable<AnimatorTransitionBase>.Commit(CommitContext context, AnimatorTransitionBase obj)
+        void ICommittable<AnimatorTransitionBase>.Commit(CommitContext context, AnimatorTransitionBase obj)
         {
             if (DestinationState != null)
             {

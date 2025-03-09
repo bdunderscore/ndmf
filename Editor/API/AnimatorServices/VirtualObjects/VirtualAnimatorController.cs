@@ -22,7 +22,7 @@ namespace nadena.dev.ndmf.animator
     ///     - Any state behaviors attached to the animator controller
     /// </summary>
     [PublicAPI]
-    public sealed class VirtualAnimatorController : VirtualNode, ICommitable<AnimatorController>
+    public sealed class VirtualAnimatorController : VirtualNode, ICommittable<AnimatorController>
     {
         private readonly CloneContext _context;
         public string Name { get; set; }
@@ -43,6 +43,15 @@ namespace nadena.dev.ndmf.animator
             public List<VirtualLayer> Layers;
         }
 
+        /// <summary>
+        ///     Constructs a new animator controller
+        /// </summary>
+        /// <param name="context">
+        ///     The CloneContext to use for virtual layer assignment (can be obtained from
+        ///     @"VirtualControllerContext")
+        /// </param>
+        /// <param name="name">The name of the new controller</param>
+        /// <returns></returns>
         public static VirtualAnimatorController Create(CloneContext context, string name = "(unnamed)")
         {
             return new VirtualAnimatorController(context, name);
@@ -55,6 +64,12 @@ namespace nadena.dev.ndmf.animator
             Name = name;
         }
 
+        /// <summary>
+        ///     Adds a layer to this controller
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="layer"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void AddLayer(LayerPriority priority, VirtualLayer layer)
         {
             if (_layerPriorities.ContainsKey(layer))
@@ -75,6 +90,12 @@ namespace nadena.dev.ndmf.animator
             group.Layers.Add(layer);
         }
 
+        /// <summary>
+        ///     Creates a new layer and adds it to this controller
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public VirtualLayer AddLayer(LayerPriority priority, string name)
         {
             // implicitly creates state machine
@@ -85,11 +106,18 @@ namespace nadena.dev.ndmf.animator
             return layer;
         }
 
+        /// <summary>
+        ///     Returns all layers in this controller
+        /// </summary>
         public IEnumerable<VirtualLayer> Layers
         {
             get { return _layers.Values.SelectMany(l => l.Layers); }
         }
 
+        /// <summary>
+        ///     Removes a layer from this controller
+        /// </summary>
+        /// <param name="layer"></param>
         public void RemoveLayer(VirtualLayer layer)
         {
             if (_layerPriorities.TryGetValue(layer, out var priority))
@@ -105,6 +133,10 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
+        /// <summary>
+        ///     Removes all layers that match the given predicate
+        /// </summary>
+        /// <param name="shouldRemove"></param>
         public void RemoveLayers(Func<VirtualLayer, bool> shouldRemove)
         {
             foreach (var (prio, layers) in _layers.ToList())
@@ -161,8 +193,8 @@ namespace nadena.dev.ndmf.animator
         }
 
         private AnimatorController? _cachedController;
-        
-        AnimatorController ICommitable<AnimatorController>.Prepare(CommitContext context)
+
+        AnimatorController ICommittable<AnimatorController>.Prepare(CommitContext context)
         {
             if (_cachedController == null) _cachedController = new AnimatorController();
 
@@ -185,7 +217,7 @@ namespace nadena.dev.ndmf.animator
             return _cachedController;
         }
 
-        void ICommitable<AnimatorController>.Commit(CommitContext context, AnimatorController obj)
+        void ICommittable<AnimatorController>.Commit(CommitContext context, AnimatorController obj)
         {
             obj.layers = Layers.Select(context.CommitObject).ToArray();
         }

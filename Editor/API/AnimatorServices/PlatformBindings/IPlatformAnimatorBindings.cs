@@ -6,6 +6,11 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     The IPlatformAnimatorBindings interface is used to provide platform-specific bindings for the animator service.
+    ///     This is used, for example, to identify which animator controllers are referenced by the avatar's
+    ///     platform-specific components, and to process platform-specific state behaviours.
+    /// </summary>
     public interface IPlatformAnimatorBindings
     {
         /// <summary>

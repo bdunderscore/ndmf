@@ -10,9 +10,10 @@ namespace nadena.dev.ndmf.animator
     ///     While this context is active, NDMF will automatically track object renames, and apply them to all known
     ///     animators. It will also keep animators cached in the VirtualControllerContext (which is also, as a convenience,
     ///     available through this class).
-    ///     Note that any new objects created should be registered in the ObjectPathRemapper if they'll be used in animations;
-    ///     this ensures that subsequent movements will be tracked properly. Likewise, use ObjectPathRemapper to obtain
-    ///     (virtual) object paths for newly created objects.
+    /// 
+    ///     Note that any new objects created should be registered in the @"ObjectPathRemapper" if they'll be used in animations;
+    ///     this ensures that subsequent movements will be tracked properly. Likewise, use @"ObjectPathRemapper" to obtain
+    ///     (virtual) object paths for newly created objects while this context is active.
     /// </summary>
     [DependsOnContext(typeof(VirtualControllerContext))]
     [PublicAPI]
