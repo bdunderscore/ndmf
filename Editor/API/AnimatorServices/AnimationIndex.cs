@@ -327,5 +327,14 @@ namespace nadena.dev.ndmf.animator
                 }
             }
         }
+
+        /// <summary>
+        ///     Applies a prefix to all paths in the index. Implicitly adds a "/" to the end of the path.
+        /// </summary>
+        /// <param name="basePath"></param>
+        public void ApplyPathPrefix(string basePath)
+        {
+            if (basePath != "") RewritePaths(p => p != "" ? basePath + "/" + p : basePath);
+        }
     }
 }
