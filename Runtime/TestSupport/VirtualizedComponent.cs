@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.UnitTestSupport
 {
-    public class VirtualizedComponent : MonoBehaviour, IVirtualizeAnimatorController
+    internal class VirtualizedComponent : MonoBehaviour, IVirtualizeAnimatorController
     {
         public RuntimeAnimatorController AnimatorController { get; set; }
     }

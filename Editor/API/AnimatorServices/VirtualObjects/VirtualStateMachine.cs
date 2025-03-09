@@ -11,7 +11,7 @@ namespace nadena.dev.ndmf.animator
     /// <summary>
     ///     Represents a state machine in a virtual layer.
     /// </summary>
-    public sealed class VirtualStateMachine : VirtualNode, ICommitable<AnimatorStateMachine>
+    public sealed class VirtualStateMachine : VirtualNode, ICommittable<AnimatorStateMachine>
     {
         private readonly CloneContext _context;
         private AnimatorStateMachine _stateMachine;
@@ -90,13 +90,13 @@ namespace nadena.dev.ndmf.animator
             _states = ImmutableList<VirtualChildState>.Empty;
             _stateMachineTransitions = ImmutableDictionary<VirtualStateMachine, ImmutableList<VirtualTransition>>.Empty;
         }
-        
-        AnimatorStateMachine ICommitable<AnimatorStateMachine>.Prepare(CommitContext context)
+
+        AnimatorStateMachine ICommittable<AnimatorStateMachine>.Prepare(CommitContext context)
         {
             return _stateMachine;
         }
 
-        void ICommitable<AnimatorStateMachine>.Commit(CommitContext context, AnimatorStateMachine obj)
+        void ICommittable<AnimatorStateMachine>.Commit(CommitContext context, AnimatorStateMachine obj)
         {
             obj.name = Name;
             obj.anyStatePosition = AnyStatePosition;

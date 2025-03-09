@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.animator
 {
-    internal interface ICommitable<T>
+    internal interface ICommittable<T>
     {
         /// <summary>
         ///     Allocates the destination unity object, but does not recurse back into the CommitContext.
@@ -25,6 +25,12 @@ namespace nadena.dev.ndmf.animator
         void Commit(CommitContext context, T obj);
     }
 
+    /// <summary>
+    ///     The CommitContext tracks mappings of virtual objects to real unity objects, and avoids infinite recursion during
+    ///     animator graph serialization. Normally, you should not need to interact with this class directly; it is used
+    ///     internally by `VirtualControllerContext` when converting virtualized animators to real animators.
+    ///     This is primarily exposed for testing purposes.
+    /// </summary>
     [PublicAPI]
     public sealed class CommitContext
     {
@@ -54,7 +60,7 @@ namespace nadena.dev.ndmf.animator
         }).Where(o => o != null)!;
         
         [return: NotNullIfNotNull("obj")]
-        internal R? CommitObject<R>(ICommitable<R>? obj) where R : class
+        internal R? CommitObject<R>(ICommittable<R>? obj) where R : class
         {
             if (obj == null) return null;
             if (_commitCache.TryGetValue(obj, out var result)) return (R)result;
@@ -89,6 +95,13 @@ namespace nadena.dev.ndmf.animator
             _virtLayerToPhysIndex[virtualLayer] = physicalLayerIndex;
         }
 
+        /// <summary>
+        ///     Converts a virtual layer index to a real layer index. Virtual layer indexes are assigned by @"CloneContext"
+        ///     in order to allow layers from multiple original controllers to be merged while still maintaining
+        ///     correct cross-referencing for `VRCAnimatorLayerControl` state behaviors.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public int VirtualToPhysicalLayerIndex(int index)
         {
             if (_virtIndexToVirtLayer.TryGetValue(index, out var virtLayer)

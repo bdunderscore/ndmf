@@ -13,7 +13,7 @@ namespace nadena.dev.ndmf.animator
     ///     A layer within a VirtualAnimatorController
     /// </summary>
     [PublicAPI]
-    public sealed class VirtualLayer : VirtualNode, ICommitable<AnimatorControllerLayer>
+    public sealed class VirtualLayer : VirtualNode, ICommittable<AnimatorControllerLayer>
     {
         /// <summary>
         ///     Returns a "virtual layer index" which can be used to map to the actual layer index in the animator controller,
@@ -165,7 +165,7 @@ namespace nadena.dev.ndmf.animator
                 ImmutableDictionary<VirtualState, ImmutableList<StateMachineBehaviour>>.Empty;
         }
 
-        AnimatorControllerLayer ICommitable<AnimatorControllerLayer>.Prepare(CommitContext context)
+        AnimatorControllerLayer ICommittable<AnimatorControllerLayer>.Prepare(CommitContext context)
         {
             var layer = new AnimatorControllerLayer
             {
@@ -180,7 +180,7 @@ namespace nadena.dev.ndmf.animator
             return layer;
         }
 
-        void ICommitable<AnimatorControllerLayer>.Commit(CommitContext context, AnimatorControllerLayer obj)
+        void ICommittable<AnimatorControllerLayer>.Commit(CommitContext context, AnimatorControllerLayer obj)
         {
             obj.avatarMask = context.CommitObject(AvatarMask);
             obj.syncedLayerIndex = context.VirtualToPhysicalLayerIndex(SyncedLayerIndex);

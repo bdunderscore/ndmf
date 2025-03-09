@@ -5,6 +5,9 @@ using JetBrains.Annotations;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     Controls the sorting order of layers in the @"VirtualAnimatorController".
+    /// </summary>
     [PublicAPI]
     public struct LayerPriority : IComparable<LayerPriority>, IEquatable<LayerPriority>
     {

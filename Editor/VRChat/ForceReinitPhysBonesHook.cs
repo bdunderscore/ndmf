@@ -3,7 +3,6 @@
 using System;
 using UnityEngine;
 using VRC.Dynamics;
-using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 
@@ -17,6 +16,9 @@ namespace nadena.dev.ndmf.VRChat
     ///
     /// Note that we only do this when entering play mode, as this is runtime state, not serialized state.
     /// </summary>
+    [ExcludeFromDocs]
+    [Obsolete(
+        "This class was accidentally made public; do not reference it directly. It will be made private in a future release")]
     public class ForceReinitPhysBonesHook : IVRCSDKPreprocessAvatarCallback
     {
         public int callbackOrder => int.MaxValue;

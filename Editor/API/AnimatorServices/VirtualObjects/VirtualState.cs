@@ -11,7 +11,7 @@ using UnityEngine;
 namespace nadena.dev.ndmf.animator
 {
     [PublicAPI]
-    public sealed class VirtualState : VirtualNode, ICommitable<AnimatorState>
+    public sealed class VirtualState : VirtualNode, ICommittable<AnimatorState>
     {
         private AnimatorState _state;
 
@@ -177,13 +177,13 @@ namespace nadena.dev.ndmf.animator
         // AddStateMachineBehaviour
         // AddTransition
         // RemoveTransition
-        
-        AnimatorState ICommitable<AnimatorState>.Prepare(CommitContext context)
+
+        AnimatorState ICommittable<AnimatorState>.Prepare(CommitContext context)
         {
             return _state;
         }
 
-        void ICommitable<AnimatorState>.Commit(CommitContext context, AnimatorState obj)
+        void ICommittable<AnimatorState>.Commit(CommitContext context, AnimatorState obj)
         {
             obj.behaviours = Behaviours.Select(context.CommitBehaviour).Where(b => b != null).ToArray();
             obj.transitions = Transitions.Select(t => (AnimatorStateTransition)context.CommitObject(t)).ToArray();

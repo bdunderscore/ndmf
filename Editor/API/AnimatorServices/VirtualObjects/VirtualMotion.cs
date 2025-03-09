@@ -1,8 +1,6 @@
 ﻿#nullable enable
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -10,7 +8,7 @@ using UnityEngine;
 namespace nadena.dev.ndmf.animator
 {
     [PublicAPI]
-    public abstract class VirtualMotion : VirtualNode, ICommitable<Motion>
+    public abstract class VirtualMotion : VirtualNode, ICommittable<Motion>
     {
         internal VirtualMotion()
         {
@@ -37,12 +35,12 @@ namespace nadena.dev.ndmf.animator
         [ExcludeFromDocs]
         protected abstract void Commit(object /* CommitContext */ context, Motion obj);
 
-        Motion ICommitable<Motion>.Prepare(CommitContext context)
+        Motion ICommittable<Motion>.Prepare(CommitContext context)
         {
             return Prepare(context);
         }
 
-        void ICommitable<Motion>.Commit(CommitContext context, Motion obj)
+        void ICommittable<Motion>.Commit(CommitContext context, Motion obj)
         {
             Commit(context, obj);
         }

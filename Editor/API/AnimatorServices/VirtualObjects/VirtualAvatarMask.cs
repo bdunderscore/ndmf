@@ -9,8 +9,11 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     Represents a virtualized @"AvatarMask" object.
+    /// </summary>
     [PublicAPI]
-    public class VirtualAvatarMask : VirtualNode, ICommitable<AvatarMask>
+    public class VirtualAvatarMask : VirtualNode, ICommittable<AvatarMask>
     {
         private ImmutableDictionary<string, float> _elements;
 

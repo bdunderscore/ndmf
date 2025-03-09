@@ -14,6 +14,9 @@ using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     Platform bindings for VRChat.
+    /// </summary>
     public sealed class VRChatPlatformAnimatorBindings : IPlatformAnimatorBindings
     {
         public static readonly VRChatPlatformAnimatorBindings Instance = new();

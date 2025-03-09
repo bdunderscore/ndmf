@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.animator
 {
+    /// <summary>
+    ///     Base platform bindings for generic unity animators.
+    /// </summary>
     public sealed class GenericPlatformAnimatorBindings : IPlatformAnimatorBindings
     {
         public static readonly GenericPlatformAnimatorBindings Instance = new();
