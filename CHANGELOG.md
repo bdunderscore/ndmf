@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#532] Window to temporarily disable some NDMF plugins
+- [#541] Add `INDMFEditorOnlyComponent` interface
 
 ### Fixed
 - [#529] Don't error out when an animation clip contains multiple bindings for the same property
