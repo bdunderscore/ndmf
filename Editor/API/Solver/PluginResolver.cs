@@ -53,14 +53,14 @@ namespace nadena.dev.ndmf
     }
 
     /// <summary>
-    /// The class manages if each plugin is temporarily disabled.
+    /// This class stores user preferences to control whether plugins are disabled.
     /// </summary>
-    internal static class TemporalPluginDisable
+    internal static class PluginDisablePrefs
     {
         // parameter: plugin id, new state
         public static event Action<string, bool> OnPluginDisableChanged;
 
-        private const string SessionStateKey = "nadena.dev.ndmf.plugin-temporally-disabled.";
+        private const string SessionStateKey = "nadena.dev.ndmf.plugin-disabled.";
 
         public static bool IsPluginDisabled(string pluginId) => UnityEditor.SessionState.GetBool(SessionStateKey + pluginId, false);
         public static void SetPluginDisabled(string pluginId, bool state)
@@ -76,7 +76,7 @@ namespace nadena.dev.ndmf
 
         private readonly List<SolverPass> _allPasses = new();
 
-        public static IEnumerable<Type> FindPassTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
+        public static IEnumerable<Type> FindPluginTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                 assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
             .Select(export => ((ExportsPlugin)export).PluginType)
             .ToImmutableSortedSet(new TypeComparer())
@@ -86,9 +86,9 @@ namespace nadena.dev.ndmf
             pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
 
         [ItemCanBeNull]
-        public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPassTypes().Select(InstantiatePlugin);
+        public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPluginTypes().Select(InstantiatePlugin);
 
-        public PluginResolver(bool includeDisabled = false) : this(FindPassTypes(), includeDisabled)
+        public PluginResolver(bool includeDisabled = false) : this(FindPluginTypes(), includeDisabled)
         {
         }
 
@@ -182,7 +182,7 @@ namespace nadena.dev.ndmf
 #endif
                 
                 var sorted = TopoSort.DoSort(passes, constraints);
-                if (!includeDisabled) sorted.RemoveAll(pass => TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName));
+                if (!includeDisabled) sorted.RemoveAll(pass => PluginDisablePrefs.IsPluginDisabled(pass.Plugin.QualifiedName));
                 _allPasses.AddRange(sorted);
 
                 var concrete = ToConcretePasses(phase, sorted);
@@ -294,7 +294,7 @@ namespace nadena.dev.ndmf
                 foreach (var pass in _allPasses)
                 {
                     if (!PreviewPrefs.instance.IsPreviewPluginEnabled(pass.Plugin.QualifiedName)) continue;
-                    if (TemporalPluginDisable.IsPluginDisabled(pass.Plugin.QualifiedName)) continue;
+                    if (PluginDisablePrefs.IsPluginDisabled(pass.Plugin.QualifiedName)) continue;
 
                     foreach (var filter in pass.RenderFilters)
                         session.AddMutator(new SequencePoint(), filter);

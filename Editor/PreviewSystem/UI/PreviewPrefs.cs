@@ -37,7 +37,7 @@ namespace nadena.dev.ndmf.preview.UI
 
         private void OnEnable()
         {
-            TemporalPluginDisable.OnPluginDisableChanged += (_, _) => OnPreviewConfigChanged?.Invoke();
+            PluginDisablePrefs.OnPluginDisableChanged += (_, _) => OnPreviewConfigChanged?.Invoke();
         }
 
         public bool GetNodeState(string qualifiedName, bool defaultValue)
