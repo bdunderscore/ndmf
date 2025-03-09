@@ -50,14 +50,16 @@ namespace UnitTests.AnimationServices
 
             var context = CreateContext(root);
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            var vl1 = context.Extension<VirtualControllerContext>()[vrcLayer.type];
+            VirtualControllerContext tempQualifier = context.Extension<VirtualControllerContext>();
+            var vl1 = tempQualifier.Controllers[vrcLayer.type];
             context.DeactivateAllExtensionContexts();
 
             var stage1 = (AnimatorController)vrcDesc.baseAnimationLayers[0].animatorController;
             Assert.AreNotSame(controller, stage1);
             
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            var vl2 = context.Extension<VirtualControllerContext>()[vrcLayer.type];
+            VirtualControllerContext tempQualifier1 = context.Extension<VirtualControllerContext>();
+            var vl2 = tempQualifier1.Controllers[vrcLayer.type];
             Assert.AreSame(vl1, vl2);
             context.DeactivateAllExtensionContexts();
             

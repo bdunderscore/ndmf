@@ -76,21 +76,22 @@ namespace UnitTests.AnimationServices
             var context = CreateContext(av);
 
             var asc = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            asc.ControllerContext[0] = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("base-fx-ac.controller"));
-            asc.ControllerContext[1] =
-                asc.ControllerContext.Clone(LoadAsset<AnimatorController>("av-mask-test-ac.controller"));
+            VirtualAnimatorController value = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("base-fx-ac.controller"));
+            asc.ControllerContext.Controllers[0] = value;
+            VirtualAnimatorController value1 = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("av-mask-test-ac.controller"));
+            asc.ControllerContext.Controllers[1] = value1;
 
-            Assert.IsNotNull(asc.ControllerContext[0]?.Layers.First().AvatarMask);
-            Assert.IsNotNull(asc.ControllerContext[1]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext.Controllers[0]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext.Controllers[1]?.Layers.First().AvatarMask);
             
-            new AnimationIndex(new [] { asc.ControllerContext[1] }).RewritePaths(p =>
+            new AnimationIndex(new [] { asc.ControllerContext.Controllers[1] }).RewritePaths(p =>
             {
                 if (p == "") return "";
                 else return "parent/anim-root/" + p;
             });
             
-            Assert.IsNotNull(asc.ControllerContext[0]?.Layers.First().AvatarMask);
-            Assert.IsNotNull(asc.ControllerContext[1]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext.Controllers[0]?.Layers.First().AvatarMask);
+            Assert.IsNotNull(asc.ControllerContext.Controllers[1]?.Layers.First().AvatarMask);
             
             return context;
         }
@@ -106,8 +107,8 @@ namespace UnitTests.AnimationServices
             var originalState = ExtractedMask.FromAvatarMask(originalMask);
             var commit = new CommitContext();
 
-            var mergedController = commit.CommitObject(vcc[1]);
-            var baseController = commit.CommitObject(vcc[0]);
+            var mergedController = commit.CommitObject(vcc.Controllers[1]);
+            var baseController = commit.CommitObject(vcc.Controllers[0]);
             
             var newMask = mergedController!.layers[0].avatarMask;
             var baseFxMask = baseController!.layers[0].avatarMask;
@@ -128,7 +129,7 @@ namespace UnitTests.AnimationServices
             
             var commit = new CommitContext();
 
-            var mergedController = commit.CommitObject(vcc[1]);
+            var mergedController = commit.CommitObject(vcc.Controllers[1]);
             
             var newMask = mergedController!.layers[0].avatarMask;
             var state = ExtractedMask.FromAvatarMask(newMask);
@@ -167,7 +168,7 @@ namespace UnitTests.AnimationServices
             
             // Armature/Hips -> parent/relocated-to/Hips
             
-            var newMask = new CommitContext().CommitObject(vcc[1])!.layers[0].avatarMask;
+            var newMask = new CommitContext().CommitObject(vcc.Controllers[1])!.layers[0].avatarMask;
             var state = ExtractedMask.FromAvatarMask(newMask);
             
             var parentIndex = state.transformMaskElements.FindIndex(e => e.Item1 == "parent");

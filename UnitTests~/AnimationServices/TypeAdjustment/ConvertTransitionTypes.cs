@@ -43,7 +43,7 @@ public class ConvertTransitionTypes : TestBase
         var root = CreateRoot("root");
         var context = CreateContext(root);
         var asc = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-        asc.ControllerContext[1] = vac;
+        asc.ControllerContext.Controllers[1] = vac;
         
         asc.HarmonizeParameterTypes();
         
@@ -215,12 +215,14 @@ public class ConvertTransitionTypes : TestBase
         var context = CreateContext(root);
         var asc = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
 
-        asc.ControllerContext[1] = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("cltc_0.controller"));
-        asc.ControllerContext[2] = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("cltc_1.controller"));
+        VirtualAnimatorController value = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("cltc_0.controller"));
+        asc.ControllerContext.Controllers[1] = value;
+        VirtualAnimatorController value1 = asc.ControllerContext.Clone(LoadAsset<AnimatorController>("cltc_1.controller"));
+        asc.ControllerContext.Controllers[2] = value1;
         
         asc.HarmonizeParameterTypes();
 
-        var fx = asc.ControllerContext[1];
+        var fx = asc.ControllerContext.Controllers[1];
         
         var fx_types = fx.Parameters.Select(
             p => new KeyValuePair<string, AnimatorControllerParameterType>(p.Key, p.Value.type)
@@ -231,7 +233,7 @@ public class ConvertTransitionTypes : TestBase
         var fx_layer = new CommitContext().CommitObject(fx.Layers.First(l => l.Name == "l"));
         AssertSingleTransition(fx_layer.stateMachine.anyStateTransitions[0], ("bool", AnimatorConditionMode.Greater, 0.5f));
 
-        var action = asc.ControllerContext[2];
+        var action = asc.ControllerContext.Controllers[2];
         
         var action_types = action.Parameters.Select(
             p => new KeyValuePair<string, AnimatorControllerParameterType>(p.Key, p.Value.type)
