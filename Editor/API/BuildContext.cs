@@ -285,6 +285,7 @@ namespace nadena.dev.ndmf
                 catch (Exception e)
                 {
                     ErrorReport.ReportException(e);
+                    throw;
                 }
         }
 
@@ -428,7 +429,7 @@ namespace nadena.dev.ndmf
                 catch (Exception e)
                 {
                     ErrorReport.ReportException(e);
-                    return null;
+                    throw;
                 }
         }
 
