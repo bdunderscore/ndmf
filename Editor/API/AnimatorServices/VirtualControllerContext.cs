@@ -280,13 +280,6 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
-        [Obsolete] // Refactor to use `Controllers`
-        public VirtualAnimatorController this[object key]
-        {
-            get => Controllers[key];
-            set => Controllers[key] = value;
-        }
-
         /// <summary>
         ///     "Forgets" a specific controller. This should usually only be done for controllers which are no longer
         ///     relevant, e.g. if the corresponding component has been removed.
@@ -386,7 +379,7 @@ namespace nadena.dev.ndmf.animator
 
         public IEnumerable<VirtualAnimatorController> GetAllControllers()
         {
-            return _layerStates.Select(kv => this[kv.Key]).Where(v => v != null)!;
+            return _layerStates.Select(kv => Controllers[kv.Key]).Where(v => v != null)!;
         }
 
 

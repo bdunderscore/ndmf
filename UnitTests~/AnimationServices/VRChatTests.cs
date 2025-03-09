@@ -20,11 +20,11 @@ namespace UnitTests.AnimationServices
 
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
 
-            var fx = anim[VRCAvatarDescriptor.AnimLayerType.FX];
+            var fx = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             Assert.IsNotNull(fx);
             Assert.AreEqual("vrc_AvatarV3FaceLayer", fx.Name);
             
-            var ikPose = anim[VRCAvatarDescriptor.AnimLayerType.IKPose];
+            var ikPose = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.IKPose];
             Assert.IsNotNull(ikPose);
             Assert.AreEqual("vrc_AvatarV3UtilityIKPose", ikPose.Name);
         }
@@ -42,7 +42,7 @@ namespace UnitTests.AnimationServices
             var ctx = CreateContext(root);
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
             
-            var fx = anim[VRCAvatarDescriptor.AnimLayerType.FX];
+            var fx = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             Assert.IsNotNull(fx);
             Assert.AreEqual("TEST", fx.Name);
         }
@@ -72,8 +72,8 @@ namespace UnitTests.AnimationServices
             var ctx = CreateContext(root);
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
 
-            anim[VRCAvatarDescriptor.AnimLayerType.FX]!.Name = "FX";
-            anim[VRCAvatarDescriptor.AnimLayerType.IKPose]!.Name = "IK";
+            anim.Controllers[VRCAvatarDescriptor.AnimLayerType.FX]!.Name = "FX";
+            anim.Controllers[VRCAvatarDescriptor.AnimLayerType.IKPose]!.Name = "IK";
             
             ctx.DeactivateExtensionContext<VirtualControllerContext>();
             
@@ -96,7 +96,7 @@ namespace UnitTests.AnimationServices
             var ctx = CreateContext(root);
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
             
-            var fx = anim[VRCAvatarDescriptor.AnimLayerType.FX];
+            var fx = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             var c1_1 = fx.Layers.First(l => l.Name == "c1:1");
             var lc = (VRCAnimatorLayerControl) c1_1.StateMachine.DefaultState!.Behaviours.First();
             var c1_2 = fx.Layers.First(l => l.Name == "c1:2");
@@ -140,7 +140,7 @@ namespace UnitTests.AnimationServices
             var ctx = CreateContext(root);
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
 
-            var baseLayer = anim[VRCAvatarDescriptor.AnimLayerType.Base];
+            var baseLayer = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.Base];
             var lc = (VRCAnimatorLayerControl) baseLayer.Layers
                 .First(l => l.Name == "c1:1")
                 .StateMachine.DefaultState.Behaviours.First();
@@ -180,7 +180,7 @@ namespace UnitTests.AnimationServices
             var ctx = CreateContext(root);
             var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
             
-            var fx = anim[VRCAvatarDescriptor.AnimLayerType.FX];
+            var fx = anim.Controllers[VRCAvatarDescriptor.AnimLayerType.FX];
             var lc = (VRCAnimatorLayerControl) fx.Layers.First().StateMachine.Behaviours.First();
             Assert.AreEqual(fx.Layers.First().VirtualLayerIndex, lc.layer);
 

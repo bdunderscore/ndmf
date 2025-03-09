@@ -54,7 +54,7 @@ namespace UnitTests.AnimationServices
             var root = CreateRoot("root");
             var buildContext = new BuildContext(root, null);
             var asc = buildContext.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            asc.ControllerContext["x"] = vac;
+            asc.ControllerContext.Controllers["x"] = vac;
 
             asc.RemoveEmptyLayers();
             

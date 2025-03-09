@@ -43,7 +43,7 @@ namespace UnitTests.AnimationServices
             var buildContext = CreateContext(root);
             var ctx = buildContext.ActivateExtensionContext<VirtualControllerContext>();
             
-            Assert.IsNotNull(ctx[childAnimator]);
+            Assert.IsNotNull(ctx.Controllers[childAnimator]);
             Assert.IsFalse(ctx.Controllers.ContainsKey(animator));
             
             buildContext.DeactivateExtensionContext<VirtualControllerContext>();
@@ -70,7 +70,7 @@ namespace UnitTests.AnimationServices
             var buildContext = CreateContext(root);
             var ctx = buildContext.ActivateExtensionContext<VirtualControllerContext>();
             
-            Assert.IsNotNull(ctx[childComponent]);
+            Assert.IsNotNull(ctx.Controllers[childComponent]);
             
             buildContext.DeactivateExtensionContext<VirtualControllerContext>();
             
