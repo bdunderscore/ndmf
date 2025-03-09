@@ -93,7 +93,7 @@ namespace nadena.dev.ndmf.animator
             return scope;
         }
 
-        internal IDisposable PushActiveInnateKey(object key)
+        internal IDisposable PushActiveInnateKey(object? key)
         {
             var scope = new DynamicScope(this);
 

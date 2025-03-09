@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using API;
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEditor.Animations;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -43,27 +45,58 @@ namespace nadena.dev.ndmf.animator
             internal static readonly FieldInfo? f_OnAnimatorControllerDirty =
                 AccessTools.Field(typeof(AnimatorController), "OnAnimatorControllerDirty");
 
-            internal readonly RuntimeAnimatorController? OriginalController;
+            internal Object? OriginalObject;
             internal VirtualAnimatorController? VirtualController;
-            internal RuntimeAnimatorController? LastCommit;
+            internal Object? LastCommit;
 
-            public LayerState(RuntimeAnimatorController? originalController)
+            internal Object? SavedCommittedController;
+
+            public LayerState(Object? originalObject)
             {
-                OriginalController = originalController;
+                OriginalObject = originalObject;
             }
 
-            public void MarkCommitted(RuntimeAnimatorController committedController)
+            public void MarkCommitted(RuntimeAnimatorController committedController, Object? committedObject = null)
             {
+                SavedCommittedController = committedController;
+                committedObject ??= committedController;
+                
                 if (f_OnAnimatorControllerDirty != null)
                 {
-                    LastCommit = committedController;
+                    LastCommit = committedObject;
                     Action invalidate = () =>
                     {
-                        if (LastCommit == committedController) LastCommit = null;
+                        if (LastCommit == committedObject) LastCommit = null;
                         f_OnAnimatorControllerDirty.SetValue(committedController, null);
                     };
                     f_OnAnimatorControllerDirty.SetValue(committedController, invalidate);
                 }
+            }
+
+            public VirtualAnimatorController GetVirtualController(CloneContext context)
+            {
+                if (VirtualController != null) return VirtualController;
+
+                if (OriginalObject is RuntimeAnimatorController controller)
+                {
+                    return VirtualController = context.Clone(controller);
+                }
+
+                if (OriginalObject is Motion m)
+                {
+                    VirtualController = VirtualAnimatorController.Create(context, "Container for " + m.name);
+                    var layer = VirtualController.AddLayer(LayerPriority.Default, "Container");
+                    var vsm = VirtualStateMachine.Create(context, "Container");
+                    layer.StateMachine = vsm;
+
+                    using var _ = context.PushDistinctScope();
+                    var state = vsm.AddState("Container", context.Clone(m));
+                    vsm.DefaultState = state;
+
+                    return VirtualController;
+                }
+
+                throw new NotImplementedException("Can't virtualize object of type " + OriginalObject.GetType());
             }
 
             public void Revalidate(RuntimeAnimatorController newController)
@@ -75,6 +108,21 @@ namespace nadena.dev.ndmf.animator
                 else
                 {
                     // force reload from unity object
+                    OriginalObject = newController;
+                    VirtualController = null;
+                    LastCommit = null;
+                }
+            }
+
+            public void Revalidate(Motion motion)
+            {
+                if (LastCommit == motion)
+                {
+                    // no-op
+                }
+                else
+                {
+                    OriginalObject = motion;
                     VirtualController = null;
                     LastCommit = null;
                 }
@@ -93,14 +141,39 @@ namespace nadena.dev.ndmf.animator
         public IPlatformAnimatorBindings PlatformBindings =>
             _platformBindings ?? throw new InvalidOperationException("Extension context not initialized");
 
+        
         /// <summary>
         ///     This value is updated every time the set of virtual controllers changes.
         /// </summary>
         public long CacheInvalidationToken { get; private set; }
 
+        /// <summary>
+        ///     A mapping of tag objects to @"VirtualAnimatorController"s. The tag object can be, for example, a
+        ///     @"VRC.SDK3.Avatars.Components.VRCAvatarDescriptor.AnimLayerType", an @"IVirtualizeAnimatorController",
+        ///     an @"IVirtualizeMotion", or any other arbitrary object. The default equality operator is used to compare
+        ///     tags.
+        ///     This dictionary supports adding new entries as well as removing them.
+        /// </summary>
+        public IDictionary<object, VirtualAnimatorController> Controllers { get; private set; } = null!;
+
         public void OnActivate(BuildContext context)
         {
             var root = context.AvatarRootObject;
+
+            Controllers = new FilteredDictionaryView<object, LayerState, VirtualAnimatorController>(
+                _layerStates,
+                new HashSet<object>(),
+                (key, state) =>
+                {
+                    using var _ = _cloneContext!.PushActiveInnateKey(key);
+                    return state.GetVirtualController(_cloneContext);
+                },
+                (k, v) =>
+                {
+                    CacheInvalidationToken++;
+                    _layerStates[k] = new LayerState(null) { VirtualController = v };
+                }
+            );
 
             #if NDMF_VRCSDK3_AVATARS
             if (root.TryGetComponent<VRCAvatarDescriptor>(out _))
@@ -133,36 +206,85 @@ namespace nadena.dev.ndmf.animator
 
                 // Force all layers to be processed, for now. This avoids compatibility issues with NDMF
                 // plugins which assume that all layers have been cloned after MA runs.
-                _ = this[type];
+                _ = Controllers[type];
+            }
+
+            ActivateVirtualizedMotions(context);
+        }
+
+        private void ActivateVirtualizedMotions(BuildContext context)
+        {
+            foreach (var virtualizeController in context.AvatarRootObject
+                         .GetComponentsInChildren<IVirtualizeAnimatorController>(true))
+            {
+                var ac = virtualizeController.AnimatorController;
+                if (ac == null)
+                {
+                    _layerStates.Remove(virtualizeController);
+                    continue;
+                }
+
+                if (virtualizeController.GetMotionBasePath(context, false) == "" &&
+                    _layerStates.TryGetValue(virtualizeController, out var currentLayer))
+                {
+                    currentLayer.Revalidate(ac);
+                }
+                else
+                {
+                    var virtualController = _layerStates[virtualizeController] = new LayerState(ac);
+                    var basePath = virtualizeController.GetMotionBasePath(context);
+
+                    using var _ = _cloneContext.PushDistinctScope();
+                    using var _k = _cloneContext.PushActiveInnateKey(virtualizeController.TargetControllerKey);
+
+                    var vc = virtualController.GetVirtualController(_cloneContext!);
+
+                    if (basePath != "")
+                    {
+                        new AnimationIndex(new[] { vc })
+                            .ApplyPathPrefix(basePath);
+                    }
+                }
+            }
+
+            foreach (var virtualizeMotion in context.AvatarRootObject.GetComponentsInChildren<IVirtualizeMotion>(true))
+            {
+                var motion = virtualizeMotion.Motion;
+                if (motion == null)
+                {
+                    _layerStates.Remove(virtualizeMotion);
+                    continue;
+                }
+
+                if (virtualizeMotion.GetMotionBasePath(context, false) == "" &&
+                    _layerStates.TryGetValue(virtualizeMotion, out var currentLayer))
+                {
+                    currentLayer.Revalidate(virtualizeMotion.Motion);
+                }
+                else
+                {
+                    var virtualMotion = _layerStates[virtualizeMotion] = new LayerState(motion);
+                    var basePath = virtualizeMotion.GetMotionBasePath(context);
+
+                    using var _ = _cloneContext.PushDistinctScope();
+                    var vc = virtualMotion.GetVirtualController(_cloneContext!);
+
+                    if (basePath != "")
+                    {
+                        new AnimationIndex(new[] { vc })
+                            .ApplyPathPrefix(basePath);
+                    }
+                }
+
+                // Because IVirtualizeMotion is new, we don't need to worry about compatibility with older plugins
             }
         }
 
-        public VirtualAnimatorController? this[object key]
+        [Obsolete] // Refactor to use `Controllers`
+        public VirtualAnimatorController this[object key]
         {
-            get
-            {
-                if (!_layerStates.TryGetValue(key, out var state))
-                {
-                    return null;
-                }
-
-                if (state.VirtualController == null)
-                {
-                    using var _ = _cloneContext!.PushActiveInnateKey(key);
-                    
-                    state.VirtualController = _cloneContext!.Clone(state.OriginalController);
-                }
-
-                return state.VirtualController;
-            }
-            set
-            {
-                CacheInvalidationToken++;
-                _layerStates[key] = new LayerState(null)
-                {
-                    VirtualController = value
-                };
-            }
+            get => Controllers[key];
+            set => Controllers[key] = value;
         }
 
         /// <summary>
@@ -183,6 +305,19 @@ namespace nadena.dev.ndmf.animator
             var commitContext = new CommitContext(_cloneContext!.PlatformBindings);
             commitContext.NodeToReference = CloneContext.NodeToReference;
 
+            // Purge any container controllers we don't need anymore
+            foreach (var kv in _layerStates.ToList())
+            {
+                if (kv.Key is IVirtualizeMotion or IVirtualizeAnimatorController && (Component)kv.Key == null)
+                {
+                    _layerStates.Remove(kv.Key!);
+                    if (kv.Key is IVirtualizeMotion && kv.Value.SavedCommittedController != null)
+                    {
+                        Object.Destroy(kv.Value.SavedCommittedController);
+                    }
+                }
+            }
+
             var controllers = _layerStates
                 .Where(kvp => kvp.Value.VirtualController != null)
                 .ToDictionary(
@@ -200,6 +335,22 @@ namespace nadena.dev.ndmf.animator
             using (var scope = context.OpenSerializationScope())
             {
                 _platformBindings!.CommitControllers(root, controllers);
+
+                foreach (var kv in controllers)
+                {
+                    if (kv.Key is IVirtualizeMotion virtualizeMotion && (Component)virtualizeMotion != null)
+                    {
+                        var motion = virtualizeMotion.Motion =
+                            ((AnimatorController)kv.Value).layers[0].stateMachine.defaultState.motion;
+                        _layerStates[kv.Key].MarkCommitted(kv.Value, motion);
+                    }
+                    else if (kv.Key is IVirtualizeAnimatorController virtualizeController &&
+                             (Component)virtualizeController != null)
+                    {
+                        virtualizeController.AnimatorController = kv.Value;
+                        _layerStates[kv.Key].MarkCommitted(kv.Value);
+                    }
+                }
                 
                 // Save all animator objects to prevent references from breaking later
                 foreach (var obj in commitContext.AllObjects)
@@ -207,6 +358,30 @@ namespace nadena.dev.ndmf.animator
                     context.AssetSaver.SaveAsset(obj);
                 }
             }
+        }
+
+        /// <summary>
+        ///     Obtains the VirtualMotion for a given IVirtualizeMotion. Returns null if @"IVirtualizeMotion#Motion" is null.
+        ///     If the @"IVirtualizeMotion" was not present in the avatar when the VirtualControllerContext was activated,
+        ///     adds it to the context immediately.
+        /// </summary>
+        /// <param name="motion"></param>
+        /// <returns></returns>
+        /// <exception cref="System.InvalidOperationException"></exception>
+        public VirtualMotion? GetVirtualizedMotion(IVirtualizeMotion motion)
+        {
+            if (_cloneContext == null) throw new InvalidOperationException("Extension context not initialized");
+            if (motion.Motion == null) return null;
+
+            if (!_layerStates.TryGetValue(motion, out var layerState))
+            {
+                _layerStates[motion] = layerState = new LayerState(motion.Motion);
+            }
+
+            return layerState
+                .GetVirtualController(_cloneContext)
+                .Layers.First()
+                .StateMachine?.DefaultState?.Motion;
         }
 
         public IEnumerable<VirtualAnimatorController> GetAllControllers()
