@@ -1,28 +1,48 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-Changes between prerelease versions will be noted in [CHANGELOG-PRERELEASE.md](CHANGELOG-PRERELEASE.md) instead.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+Note: This alpha release contains breaking changes to APIs introduced in `alpha.0` and `alpha.1`.
+Please upgrade modular avatar at the same time as updating to this release. This does not affect
+stable APIs.
+
 ### Added
-- [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
-- [#532] Window to temporarily disable some NDMF plugins
-- [#541] Add `INDMFEditorOnlyComponent` interface
-- 
+- [#545] `IVirtualizeMotion` interface
+- [#545] Additional methods on `IVirtualizeAnimatorController` (breaking change)
+
 ### Fixed
 - [#543] Exceptions thrown when deactivating extension contexts can result in an infinite loop
+- [#544] `INDMFEditorOnly` needed to be in the runtime assembly
 
 ### Changed
+- [#545] `VirtualControllerContext` now exposes the dictionary of animator controllers via a property
+  `VirtualControllerContext.Controllers`
 
 ### Removed
+- [#545] Removed indexing operator overload on `VirtualControllerContext` (breaking change)
 
 ### Security
 
 ### Deprecated
+
+## [1.7.0-alpha.1] - [2025-03-08]
+
+### Added
+- [#532] Window to temporarily disable some NDMF plugins
+- [#541] Add `INDMFEditorOnlyComponent` interface
+
+### Fixed
+- [#529] Don't error out when an animation clip contains multiple bindings for the same property
+
+## [1.7.0-alpha.0] - [2025-02-16]
+
+### Added
+- [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
 
 ## [1.6.8] - [2025-02-16]
 
