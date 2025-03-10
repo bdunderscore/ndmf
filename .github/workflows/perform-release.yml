@@ -186,6 +186,8 @@ jobs:
         run: |
           BRANCH_NAME=$(git branch --show-current)
           git push origin $BRANCH_NAME ${{ github.event.inputs.version }}
+        with:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create Zip
         run: |
