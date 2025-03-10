@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.7.0-alpha.2] - [2025-03-10]
+
 Note: This alpha release contains breaking changes to APIs introduced in `alpha.0` and `alpha.1`.
 Please upgrade modular avatar at the same time as updating to this release. This does not affect
 stable APIs.
@@ -25,10 +39,6 @@ stable APIs.
 
 ### Removed
 - [#545] Removed indexing operator overload on `VirtualControllerContext` (breaking change)
-
-### Security
-
-### Deprecated
 
 ## [1.7.0-alpha.1] - [2025-03-08]
 
