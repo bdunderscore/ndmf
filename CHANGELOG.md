@@ -7,15 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Note: This alpha release contains breaking changes to APIs introduced in `alpha.0` and `alpha.1`.
+Please upgrade modular avatar at the same time as updating to this release. This does not affect
+stable APIs.
+
 ### Added
+- [#XXX] `IVirtualizeMotion` interface
+- [#XXX] Additional methods on `IVirtualizeAnimatorController` (breaking change)
 
 ### Fixed
 - [#543] Exceptions thrown when deactivating extension contexts can result in an infinite loop
 - [#544] `INDMFEditorOnly` needed to be in the runtime assembly
 
 ### Changed
+- [#XXX] `VirtualControllerContext` now exposes the dictionary of animator controllers via a property
+  `VirtualControllerContext.Controllers`
 
 ### Removed
+- [#XXX] Removed indexing operator overload on `VirtualControllerContext` (breaking change)
 
 ### Security
 
