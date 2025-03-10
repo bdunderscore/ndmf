@@ -58,7 +58,7 @@ jobs:
           docfx docfx~/docfx.json
   
   create-release:
-    #needs: [check-gameci, check-docs]
+    needs: [check-gameci, check-docs]
     runs-on: ubuntu-latest
 
     steps:
