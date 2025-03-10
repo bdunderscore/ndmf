@@ -25,6 +25,7 @@ on:
         
 env:
   PKG_NAME: nadena.dev.ndmf
+  RELEASE_TYPE: ${{ github.event.inputs.release_kind }}
 
 concurrency:
   group: publish
@@ -90,17 +91,19 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "zipFile=${{ env.PKG_NAME }}-${{ github.event.inputs.version }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ env.PKG_NAME }}-${{ needs.prechecks.outputs.version }}.unitypackage" >> $GITHUB_ENV
+          echo "unityPackage=${{ env.PKG_NAME }}-${{ github.event.inputs.version }}.unitypackage" >> $GITHUB_ENV
+          
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           
           case "$RELEASE_TYPE" in
             prerelease)
-              gh-export-variable PRERELEASE true
+              echo "PRERELEASE=true" >> $GITHUB_ENV
               ;;
             stable)
-              gh-export-variable PRERELEASE false
+              echo "PRERELEASE=false" >> $GITHUB_ENV
               ;;
             adhoc)
-              gh-export-variable PRERELEASE true
+              echo "PRERELEASE=true" >> $GITHUB_ENV
               ;;
           esac
 
@@ -134,6 +137,7 @@ jobs:
         uses: anatawa12/sh-actions/changelog/prepare-release@e598bb95ee708f482b4dd422c4e0bb3a053113e5
         with:
           tag-prefix: ""
+          version: ${{ env.VERSION }}
           prerelease: ${{ env.PRERELEASE }}
           prerelease-note-heading: |
             Version ${{ env.VERSION }}
