@@ -176,7 +176,8 @@ jobs:
       - name: Publish tag
         if: ${{ github.event.inputs.publish == 'true' }}
         run: |
-          git push origin ${{ github.event.workflow_dispatch.base.ref }} ${{ github.event.inputs.version }}
+          BRANCH_NAME=$(git branch --show-current)
+          git push origin $BRANCH_NAME ${{ github.event.inputs.version }}
 
       - name: Create Zip
         run: |
