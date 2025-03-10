@@ -58,7 +58,7 @@ jobs:
           docfx docfx~/docfx.json
   
   create-release:
-    #needs: [check-gameci, check-docs]
+    needs: [check-gameci, check-docs]
     runs-on: ubuntu-latest
 
     steps:
@@ -139,23 +139,29 @@ jobs:
           mv package.json.tmp package.json
         env:
           VERSION: ${{ github.event.inputs.version }}
-          
+
+
       - name: Update changelog
         id: changelog
-        uses: anatawa12/sh-actions/changelog/prepare-release@e598bb95ee708f482b4dd422c4e0bb3a053113e5
-        with:
-          tag-prefix: ""
-          version: ${{ env.VERSION }}
-          prerelease: ${{ env.PRERELEASE }}
-          prerelease-note-heading: |
-            Version ${{ env.VERSION }}
-            ---
-            
-            **This is a prerelease version.** There may be bugs, and API compatibility is not yet guaranteed.
-            
-          release-note-heading: |
-            Version ${{ env.VERSION }}
-            ---
+        run: |
+          chmod +x .github/*.pl
+          
+          if [ "${{ env.PRERELEASE }}" == "true" ]; then
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+          else
+            ./.github/cut-changelog.pl CHANGELOG-PRERELEASE.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }}
+            ./.github/cut-changelog.pl CHANGELOG.md .github/CHANGELOG-HEADER.md ${{ env.VERSION }} .github/relnote-en.md
+          fi
+          
+          echo Version ${{ env.VERSION }} > release-note.md
+          echo >> release-note.md
+          if [ "${{ env.PRERELEASE }}" == "true" ]; then
+            echo '**This is a prerelease version.** There may be bugs, and API compatibility is not yet guaranteed.' >> release-note.md
+            echo 'Please: **BACK UP YOUR PROJECTS**' >> release-note.md
+            echo >> release-note.md
+          fi
+          echo '## Notable changes' >> release-note.md
+          cat .github/relnote-en.md >> release-note.md
             
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
@@ -169,7 +175,6 @@ jobs:
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
-      - run: cp "${{ steps.changelog.outputs.release-note }}" release-note.md
       - name: Upload release note
         uses: actions/upload-artifact@v4
         with:
@@ -185,7 +190,7 @@ jobs:
         if: ${{ github.event.inputs.publish == 'true' }}
         run: |
           BRANCH_NAME=$(git branch --show-current)
-          git push origin $BRANCH_NAME ${{ github.event.inputs.version }}
+          git push origin $BRANCH_NAME && git push origin ${{ github.event.inputs.version }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
