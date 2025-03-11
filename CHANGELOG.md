@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#543] Exceptions thrown when deactivating extension contexts can result in an infinite loop
+- [#547] ProcessAvatar ignores enclosing `ErrorReport.CaptureErrors` scopes
 
 ### Changed
 

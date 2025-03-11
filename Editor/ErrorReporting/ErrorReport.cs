@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.runtime;
@@ -36,7 +35,7 @@ namespace nadena.dev.ndmf
         public ErrorReportScope(ErrorReport report)
         {
             _report = ErrorReport.CurrentReport;
-            ErrorReport.CurrentReport = report;
+            ErrorReport.CurrentReport ??= report;
         }
 
         public void Dispose()
