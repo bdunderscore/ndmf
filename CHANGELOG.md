@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
 - [#532] Window to temporarily disable some NDMF plugins
 - [#541] Add `INDMFEditorOnlyComponent` interface
-- 
+
 ### Fixed
 - [#543] Exceptions thrown when deactivating extension contexts can result in an infinite loop
 
