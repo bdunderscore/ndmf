@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#547] ProcessAvatar ignores enclosing `ErrorReport.CaptureErrors` scopes
-- [#549] `VirtualStateMachine.AllStates()` did not properly visit sub-state-machines
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.0-alpha.3] - [2025-03-11]
+
+### Fixed
+- [#547] ProcessAvatar ignores enclosing `ErrorReport.CaptureErrors` scopes
+- [#549] `VirtualStateMachine.AllStates()` did not properly visit sub-state-machines
 
 ## [1.7.0-alpha.2] - [2025-03-10]
 
