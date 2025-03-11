@@ -289,18 +289,18 @@ namespace nadena.dev.ndmf.animator
         /// <returns></returns>
         public IEnumerable<VirtualState> AllStates()
         {
-            foreach (var state in Walk(this, new())) yield return state;
+            return Walk(this, new HashSet<VirtualStateMachine>());
 
             IEnumerable<VirtualState> Walk(VirtualStateMachine sm, HashSet<VirtualStateMachine> visited)
             {
                 if (!visited.Add(sm)) yield break;
-                
-                foreach (var state in States)
+
+                foreach (var state in sm.States)
                 {
                     if (state.State != null) yield return state.State;
                 }
 
-                foreach (var ssm in StateMachines)
+                foreach (var ssm in sm.StateMachines)
                 {
                     foreach (var state in Walk(ssm.StateMachine, visited))
                     {

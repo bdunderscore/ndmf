@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#547] ProcessAvatar ignores enclosing `ErrorReport.CaptureErrors` scopes
+- [#549] `VirtualStateMachine.AllStates()` did not properly visit sub-state-machines
 
 ### Changed
 

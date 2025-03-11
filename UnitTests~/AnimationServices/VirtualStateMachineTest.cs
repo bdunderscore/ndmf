@@ -131,6 +131,26 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("sm2", vsm.StateMachines[0].StateMachine.Name);
             Assert.AreEqual("sm4", vsm.StateMachines[1].StateMachine.Name);
         }
+
+        [Test]
+        public void AllStatesIteratesSubStateMachines()
+        {
+            var sm = TrackObject(new AnimatorStateMachine());
+            var sm2 = TrackObject(new AnimatorStateMachine());
+            sm2.name = "sm2";
+            
+            sm.stateMachines = new[]
+            {
+                new ChildAnimatorStateMachine() { stateMachine = sm2 }
+            };
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var vsm = cloneContext.Clone(sm);
+
+            vsm.StateMachines[0].StateMachine.AddState("x");
+            
+            Assert.IsTrue(vsm.AllStates().Any(s => s.Name == "x"));
+        }
     }
     
    
