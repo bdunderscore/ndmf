@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#550] Added setter to `VirtualAnimatorController.Layers`
 
 ### Fixed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.0-alpha.4] - [2025-03-14]
+
+### Added
+- [#550] Added setter to `VirtualAnimatorController.Layers`
 
 ## [1.7.0-alpha.3] - [2025-03-11]
 
