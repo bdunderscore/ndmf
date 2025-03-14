@@ -107,11 +107,24 @@ namespace nadena.dev.ndmf.animator
         }
 
         /// <summary>
-        ///     Returns all layers in this controller
+        ///     Returns all layers in this controller.
+        ///
+        ///     When used in 'set' mode, the set of layers will be replaced by the provided value, with all layers
+        ///     at layer priority zero.
         /// </summary>
         public IEnumerable<VirtualLayer> Layers
         {
             get { return _layers.Values.SelectMany(l => l.Layers); }
+            set
+            {
+                _layerPriorities.Clear();
+                _layers.Clear();
+
+                foreach (var layer in value)
+                {
+                    AddLayer(new LayerPriority(0), layer);
+                }
+            }
         }
 
         /// <summary>

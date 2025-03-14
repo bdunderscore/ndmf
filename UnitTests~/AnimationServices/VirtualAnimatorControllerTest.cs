@@ -142,5 +142,53 @@ namespace UnitTests.AnimationServices
             
             commitContext.DestroyAllImmediate();
         }
+
+        [Test]
+        public void TestLayersGetterSetter()
+        {
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+
+            var controller = VirtualAnimatorController.Create(cloneContext);
+
+            var layerPrioZero = controller.AddLayer(new LayerPriority(0), "t0");
+            var LayerPrioMinusTen = controller.AddLayer(new LayerPriority(-10), "t-10");
+            var LayerPrioTen = controller.AddLayer(new LayerPriority(10), "t+10");
+            
+            var layers = controller.Layers.ToList();
+            
+            Assert.AreEqual(3, layers.Count);
+            Assert.AreEqual("t-10", layers[0].Name);
+            Assert.AreEqual("t0", layers[1].Name);
+            Assert.AreEqual("t+10", layers[2].Name);
+
+            controller.Layers = new[] { layers[2], layers[0] };
+            
+            layers = controller.Layers.ToList();
+            
+            Assert.AreEqual(2, layers.Count);
+            
+            Assert.AreEqual("t+10", layers[0].Name);
+            Assert.AreEqual("t-10", layers[1].Name);
+            
+            // Priority zero is added at the end
+            controller.AddLayer(new LayerPriority(0), "t0.1");
+            
+            layers = controller.Layers.ToList();
+            
+            Assert.AreEqual(3, layers.Count);
+            Assert.AreEqual("t0.1", layers[2].Name);
+            
+            // We can re-add layer t0 with a different priority
+            
+            controller.AddLayer(new LayerPriority(-5), "t0");
+            
+            layers = controller.Layers.ToList();
+            
+            Assert.AreEqual(4, layers.Count);
+            Assert.AreEqual("t0", layers[0].Name);
+            Assert.AreEqual("t+10", layers[1].Name);
+            Assert.AreEqual("t-10", layers[2].Name);
+            Assert.AreEqual("t0.1", layers[3].Name);
+        }
     }
 }
