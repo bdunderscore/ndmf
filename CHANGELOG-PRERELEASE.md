@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#553] Path renaming ignored motion overrides on synced layers 
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.0-beta.0] - [2025-03-17]
+
+### Fixed
+- [#553] Path renaming ignored motion overrides on synced layers 
 
 ## [1.7.0-alpha.4] - [2025-03-14]
 
