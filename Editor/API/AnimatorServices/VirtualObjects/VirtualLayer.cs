@@ -210,6 +210,10 @@ namespace nadena.dev.ndmf.animator
         protected override IEnumerable<VirtualNode> _EnumerateChildren()
         {
             if (StateMachine != null) yield return StateMachine;
+            foreach (var motion in SyncedLayerMotionOverrides.Values)
+            {
+                yield return motion;
+            }
         }
     }
 }

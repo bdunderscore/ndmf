@@ -189,6 +189,19 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(typeof(TestStateBehavior1), syncedLayer.GetOverrideBehaviours(behavior)[0].GetType());
         }
 
+        [Test]
+        public void VirtualLayer_EnumeratesSyncedLayerMotionOverrides()
+        {
+            var testController = LoadAsset<AnimatorController>("TestAssets/SyncedLayers.controller");
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var virtualController = context.Clone(testController);
+            
+            var virtSyncedLayer = virtualController.Layers.ToList()[1];
+            var motion = virtSyncedLayer.EnumerateChildren().OfType<VirtualClip>().FirstOrDefault();
+            Assert.IsNotNull(motion);
+            Assert.AreEqual("c2", motion.Name);
+        }
+
         private class TestPlatform : IPlatformAnimatorBindings
         {
             public HashSet<StateMachineBehaviour> calledVirtualize = new(), calledCommit = new();
