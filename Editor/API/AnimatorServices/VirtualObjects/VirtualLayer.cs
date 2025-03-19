@@ -21,6 +21,12 @@ namespace nadena.dev.ndmf.animator
         /// </summary>
         public int VirtualLayerIndex { get; }
 
+        /// <summary>
+        ///     The original physical layer index, if this layer was cloned from an existing layer.
+        ///     <see cref="VirtualAnimatorController.NormalizeFirstLayerWeights" />
+        /// </summary>
+        public int? OriginalPhysicalLayerIndex { get; set; }
+
         private VirtualStateMachine? _stateMachine;
 
         public VirtualStateMachine? StateMachine
@@ -124,6 +130,7 @@ namespace nadena.dev.ndmf.animator
         private VirtualLayer(CloneContext context, AnimatorControllerLayer layer, int physicalLayerIndex)
         {
             VirtualLayerIndex = context.CloneSourceToVirtualLayerIndex(physicalLayerIndex);
+            OriginalPhysicalLayerIndex = physicalLayerIndex;
             _name = layer.name;
             AvatarMask = layer.avatarMask == null ? null : context.Clone(layer.avatarMask);
             BlendingMode = layer.blendingMode;

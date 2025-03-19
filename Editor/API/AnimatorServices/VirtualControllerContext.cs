@@ -318,6 +318,8 @@ namespace nadena.dev.ndmf.animator
                     kv =>
                     {
                         commitContext.ActiveInnateLayerKey = kv.Key;
+                        kv.Value.VirtualController!.NormalizeFirstLayerWeights();
+                        
                         var committed =
                             (RuntimeAnimatorController)commitContext.CommitObject(kv.Value.VirtualController!);
                         kv.Value.MarkCommitted(committed);

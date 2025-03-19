@@ -170,6 +170,31 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
+        /// <summary>
+        ///     Sets the layer weight for all layers with a zero
+        ///     [OriginalPhysicalLayerIndex](xref:VirtualLayer.OriginalPhysicalLayerIndex)
+        ///     to one, and sets [OriginalPhysicalLayerIndex](xref:VirtualLayer.OriginalPhysicalLayerIndex) to null for all
+        ///     layers except the first layer.
+        ///     This should be invoked after merging controllers to correct for the fact that Unity considers the first layer
+        ///     to always have weight one, even if the serialized weight is not one.
+        ///     This function is automatically invoked when deactivating the VirtualControllerContext.
+        /// </summary>
+        public void NormalizeFirstLayerWeights()
+        {
+            var isFirst = true;
+            foreach (var layer in Layers)
+            {
+                if (layer.OriginalPhysicalLayerIndex == 0)
+                {
+                    layer.DefaultWeight = 1;
+                }
+
+                layer.OriginalPhysicalLayerIndex = isFirst ? 0 : null;
+
+                isFirst = false;
+            }
+        }
+
         internal static VirtualAnimatorController Clone(CloneContext context, RuntimeAnimatorController controller)
         {
             switch (controller)
