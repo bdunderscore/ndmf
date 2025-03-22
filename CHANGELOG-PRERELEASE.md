@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#558] Add support for bulk-rewriting object curves in `AnimationIndex`
 
 ### Fixed
-- [#554] Fix issues where the first layer of an animator controller might not be interpreted as having weight 1
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.0-rc.0] - [2025-03-22]
+
+### Added
+- [#558] Add support for bulk-rewriting object curves in `AnimationIndex`
+
+### Fixed
+- [#554] Fix issues where the first layer of an animator controller might not be interpreted as having weight 1
 
 ## [1.7.0-beta.0] - [2025-03-17]
 
