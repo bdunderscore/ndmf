@@ -76,5 +76,34 @@ namespace UnitTests.AnimationServices
             
             Assert.AreNotEqual(startingController, childComponent.AnimatorController);
         }
+
+        [Test]
+        public void NormalizesOnDeactivate(
+            [ValueSource(nameof(CreateAvatarSource))]
+            (string, Func<GenericPlatformTests, GameObject>) createAvatar
+        )
+        {
+            var root = createAvatar.Item2(this);
+            
+            var child = TrackObject(new GameObject("child"));
+            child.transform.parent = root.transform;
+            var childComponent = child.AddComponent<VirtualizedComponent>();
+            
+            var startingController = new AnimatorController();
+            childComponent.AnimatorController = startingController;
+            
+            startingController.layers = new AnimatorControllerLayer[]
+            {
+                new AnimatorControllerLayer {name = "Layer1", defaultWeight = 0f, stateMachine = TrackObject(new AnimatorStateMachine())},
+            };
+            
+            var buildContext = CreateContext(root);
+            
+            buildContext.ActivateExtensionContext<VirtualControllerContext>();
+            buildContext.DeactivateExtensionContext<VirtualControllerContext>();
+
+            var newController = (AnimatorController) childComponent.AnimatorController;
+            Assert.AreEqual(1f, newController.layers[0].defaultWeight);
+        }
     }
 }

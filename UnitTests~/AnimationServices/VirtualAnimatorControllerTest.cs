@@ -190,5 +190,46 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("t-10", layers[2].Name);
             Assert.AreEqual("t0.1", layers[3].Name);
         }
+        
+        
+        [Test]
+        public void TestLayerNormalization()
+        {
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+
+            var ac1 = TrackObject(new AnimatorController());
+            ac1.layers = new[]
+            {
+                new AnimatorControllerLayer()
+                {
+                    name = "l1",
+                    defaultWeight = 0,
+                    stateMachine = TrackObject(new AnimatorStateMachine())
+                }
+            };
+            
+            var ac2 = TrackObject(new AnimatorController());
+            ac2.layers = new[]
+            {
+                new AnimatorControllerLayer()
+                {
+                    name = "l2",
+                    defaultWeight = 0,
+                    stateMachine = TrackObject(new AnimatorStateMachine())
+                }
+            };
+            
+            var vac1 = cloneContext.Clone(ac1);
+            var vac2 = cloneContext.Clone(ac2);
+
+            vac1.AddLayer(new LayerPriority(0), vac2.Layers.First());
+            
+            vac1.NormalizeFirstLayerWeights();
+            
+            var commitContext = new CommitContext();
+            var committed = commitContext.CommitObject(vac1);
+            
+            Assert.AreEqual(1, committed.layers[1].defaultWeight);
+        }
     }
 }
