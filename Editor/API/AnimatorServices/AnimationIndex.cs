@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.animator
 {
@@ -32,6 +34,7 @@ namespace nadena.dev.ndmf.animator
         private readonly Dictionary<string, HashSet<VirtualClip>> _objectPathToClip = new();
         private readonly Dictionary<EditorCurveBinding, HashSet<VirtualClip>> _bindingToClip = new();
         private readonly Dictionary<VirtualClip, HashSet<EditorCurveBinding>> _lastBindings = new();
+        private readonly HashSet<VirtualClip> _pptrClips = new();
 
         internal IPlatformAnimatorBindings PlatformBindings = GenericPlatformAnimatorBindings.Instance;
         
@@ -57,6 +60,57 @@ namespace nadena.dev.ndmf.animator
             _getInvalidationToken = () => _lastInvalidationToken;
         }
 
+        public IEnumerable<VirtualClip> ClipsWithObjectCurves
+        {
+            get
+            {
+                if (!IsValid) RebuildCache();
+
+                return _pptrClips.Select(x => x);
+            }
+        }
+
+        [PublicAPI]
+        public IEnumerable<Object> GetPPtrReferencedObjects
+        {
+            get
+            {
+                return ClipsWithObjectCurves.SelectMany(
+                    clip => clip.GetObjectCurveBindings()
+                        .SelectMany(ecb => clip.GetObjectCurve(ecb))
+                        .Select(kf => kf.value)
+                        .Where(obj => obj != null)
+                ).Distinct();
+            }
+        }
+
+        /// <summary>
+        ///     Maps all object curves in the animation index according to the provided mapping function.
+        ///     The mapping function must not return null. <see cref="ClipsWithObjectCurves" /> if you need to perform
+        ///     more complex manipulations.
+        /// </summary>
+        /// <param name="mapping">Mapping function to apply</param>
+        [PublicAPI]
+        public void RewriteObjectCurves(Func<Object, Object> mapping)
+        {
+            var clips = ClipsWithObjectCurves.ToList();
+
+            foreach (var clip in clips)
+            {
+                foreach (var ecb in clip.GetObjectCurveBindings())
+                {
+                    var curve = clip.GetObjectCurve(ecb);
+                    for (var i = 0; i < curve.Length; i++)
+                    {
+                        curve[i].value = mapping(curve[i].value) ??
+                                         throw new InvalidOperationException("Mapping function returned null");
+                    }
+
+                    clip.SetObjectCurve(ecb, curve);
+                }
+            }
+        }
+        
         /// <summary>
         ///     Returns all clips associated with a given virtual object path.
         /// </summary>
@@ -90,7 +144,7 @@ namespace nadena.dev.ndmf.animator
 
             return Enumerable.Empty<VirtualClip>();
         }
-
+        
         /// <summary>
         ///     Rewrites all object paths in animations and avatar masks according to the provided mapping function. If the
         ///     mapping function returns null, all animations referencing the path will be removed from the animation.
@@ -245,6 +299,7 @@ namespace nadena.dev.ndmf.animator
             _objectPathToClip.Clear();
             _bindingToClip.Clear();
             _lastBindings.Clear();
+            _pptrClips.Clear();
 
             foreach (var clip in EnumerateClips())
             {
@@ -274,6 +329,11 @@ namespace nadena.dev.ndmf.animator
             lastBindings.Clear();
             lastBindings.UnionWith(clip.GetObjectCurveBindings());
             lastBindings.UnionWith(clip.GetFloatCurveBindings());
+
+            if (clip.GetObjectCurveBindings().Any())
+            {
+                _pptrClips.Add(clip);
+            }
 
             foreach (var binding in lastBindings)
             {
