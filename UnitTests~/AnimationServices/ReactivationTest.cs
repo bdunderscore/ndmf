@@ -1,5 +1,6 @@
 ﻿#if NDMF_VRCSDK3_AVATARS
 
+using System.Linq;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
@@ -38,7 +39,8 @@ namespace UnitTests.AnimationServices
             {
                 new AnimatorControllerLayer
                 {
-                    stateMachine = sm
+                    stateMachine = sm,
+                    name = "test"
                 }
             };
 
@@ -56,15 +58,18 @@ namespace UnitTests.AnimationServices
 
             var stage1 = (AnimatorController)vrcDesc.baseAnimationLayers[0].animatorController;
             Assert.AreNotSame(controller, stage1);
+            Assert.AreEqual("test", stage1.layers[0].name);
             
             context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             VirtualControllerContext tempQualifier1 = context.Extension<VirtualControllerContext>();
             var vl2 = tempQualifier1.Controllers[vrcLayer.type];
             Assert.AreSame(vl1, vl2);
+            Assert.AreEqual("test", vl1.Layers.First().Name);
             context.DeactivateAllExtensionContexts();
             
             var stage2 = (AnimatorController)vrcDesc.baseAnimationLayers[0].animatorController;
             Assert.AreSame(stage1, stage2);
+            Assert.AreEqual("test", stage2.layers[0].name);
         }
         
         [Test]

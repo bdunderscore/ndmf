@@ -103,7 +103,12 @@ namespace nadena.dev.ndmf.animator
             {
                 if (LastCommit == newController)
                 {
-                    // no-op!
+                    // We'll reuse this controller. However, remove all layers from the RuntimeAnimatorController to
+                    // reduce overhead from OnAnimatorControllerDirty callbacks
+                    if (newController is AnimatorController ac)
+                    {
+                        ac.layers = Array.Empty<AnimatorControllerLayer>();
+                    }
                 }
                 else
                 {
