@@ -29,6 +29,9 @@ namespace nadena.dev.ndmf
         {
             Name = name;
         }
+        
+        internal static BuildPhase First => FirstChance;
+        internal static BuildPhase Last => PlatformFinish;
 
         /// <summary>
         ///     The FirstChance build phase runs before platform initialization, and should be used for plugins that need to
@@ -37,6 +40,8 @@ namespace nadena.dev.ndmf
         /// </summary>
         public static readonly BuildPhase FirstChance = new("FirstChance");
 
+        internal static readonly BuildPhase InternalPrePlatformInit = new("Before platform initialization");
+        
         /// <summary>
         ///     The PlatformInit phase runs early in the build process, and is intended for platform backend initialization.
         ///     In particular, this is the phase where common avatar configuration is synced between platforms.
@@ -83,8 +88,16 @@ namespace nadena.dev.ndmf
         /// This list contains all built-in phases in the order that they will be executed.
         /// </summary>
         public static readonly ImmutableList<BuildPhase> BuiltInPhases
-            = ImmutableList.Create(FirstChance, PlatformInit, Resolving, Generating, Transforming, Optimizing,
-                PlatformFinish);
+            = ImmutableList.Create(
+                FirstChance,
+                InternalPrePlatformInit,
+                PlatformInit,
+                Resolving,
+                Generating,
+                Transforming,
+                Optimizing,
+                PlatformFinish
+            );
 
         public override string ToString() => Name;
     }
