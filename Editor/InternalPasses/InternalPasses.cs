@@ -15,9 +15,11 @@ namespace nadena.dev.ndmf
 
         protected override void Configure()
         {
-            InPhase(BuildPhase.Resolving)
+            InPhase(BuildPhase.FirstChance)
                 .Run(RemoveMissingScriptComponents.Instance)
                 .Then.Run(RemoveEditorOnlyPass.Instance);
+
+            InPhase(BuildPhase.InternalPrePlatformInit).Run(SyncPlatformConfigPass.Instance);
         }
     }
 }
