@@ -109,18 +109,24 @@ namespace nadena.dev.ndmf
 
             return (T)value;
         }
-
+        
         public BuildContext(GameObject obj, string assetRootPath, bool isClone = true)
+            : this(obj, assetRootPath, null, isClone) 
+        {}
+        
+        internal BuildContext(GameObject obj, string assetRootPath, INDMFPlatformProvider platform, bool isClone = true)
         {
+            platform ??= AmbientPlatform.DefaultPlatform;
+            using var _platformScope = new AmbientPlatform.Scope(platform);
+            
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
             _registry = new ObjectRegistry(obj.transform);
             _report = ErrorReport.Create(obj, isClone);
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
-
-            // TODO[platform]: This needs to be passed in later, but for now let's just grab the ambient platform
-            PlatformProvider = AmbientPlatform.DefaultPlatform;
+            
+            PlatformProvider = platform;
 
             _avatarRootObject = obj;
             _avatarRootTransform = obj.transform;
@@ -353,6 +359,8 @@ namespace nadena.dev.ndmf
 
         public void DeactivateAllExtensionContexts()
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             Dictionary<Type, List<Type>> depIndex = new();
             foreach (var ty in _activeExtensions.Keys)
             {
@@ -405,6 +413,8 @@ namespace nadena.dev.ndmf
         
         public IExtensionContext ActivateExtensionContext(Type ty)
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             using (new ExecutionScope(this))
             using (_report.WithExtensionContextTrace(ty))
                 try
@@ -441,6 +451,8 @@ namespace nadena.dev.ndmf
 
         internal void Finish()
         {
+            using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
+            
             using (new ExecutionScope(this))
             {
                 sw.Start();
