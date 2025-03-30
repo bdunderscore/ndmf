@@ -193,6 +193,11 @@ namespace nadena.dev.ndmf.animator
         {
             var key = context.ActiveInnateLayerKey;
 
+            if (key is IVirtualizeAnimatorController vac)
+            {
+                key = vac.TargetControllerKey;
+            }
+
             switch (behaviour)
             {
                 case VRCAnimatorLayerControl alc:

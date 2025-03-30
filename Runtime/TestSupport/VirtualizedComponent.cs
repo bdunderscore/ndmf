@@ -14,6 +14,6 @@ namespace nadena.dev.ndmf.UnitTestSupport
             return "";
         }
 
-        public object? TargetControllerKey => null;
+        public object? TargetControllerKey { get; set; } = null;
     }
 }

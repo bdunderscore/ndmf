@@ -115,8 +115,15 @@ namespace UnitTests
 
         protected T LoadAsset<T>(string relPath) where T : UnityEngine.Object
         {
-            var root = _scriptToDirectory[GetType()] + "/";
-            var path = root + relPath;
+            var root = _scriptToDirectory[GetType()];
+
+            while (relPath.StartsWith("../"))
+            {
+                root = root.Substring(0, root.LastIndexOfAny("\\/".ToCharArray()));
+                relPath = relPath.Substring(3);
+            }
+            
+            var path = root + "/" + relPath;
 
             var obj = AssetDatabase.LoadAssetAtPath<T>(path);
             Assert.NotNull(obj, "Missing test asset {0}", path);

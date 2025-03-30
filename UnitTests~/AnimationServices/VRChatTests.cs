@@ -2,6 +2,7 @@
 
 using System.Linq;
 using nadena.dev.ndmf.animator;
+using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -195,6 +196,43 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(1, lc.layer);
         }
 
+        
+        [Test]
+        public void HandlesStateMachineBehaviours_OnVirtualizedControllers_OverReactivation()
+        {
+            var root = CreatePrefab("TestAssets/EmptyAvatar.prefab");
+            
+            var controller = new AnimatorController() { name = "TEST" };
+            var sm = new AnimatorStateMachine() { name = "SM" };
+            controller.layers = new[]
+            {
+                new AnimatorControllerLayer() { stateMachine = sm }
+            };
+            var layerControl = ScriptableObject.CreateInstance<VRCAnimatorLayerControl>();
+            layerControl.layer = 0;
+            layerControl.playable = VRC_AnimatorLayerControl.BlendableLayer.FX;
+            sm.behaviours = new StateMachineBehaviour[]
+            {
+                layerControl
+            };
+            var vc = root.AddComponent<VirtualizedComponent>();
+            vc.AnimatorController = controller;
+            vc.TargetControllerKey = VRCAvatarDescriptor.AnimLayerType.FX;
+            
+            var ctx = CreateContext(root);
+            var anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
+            ctx.DeactivateAllExtensionContexts();
+
+            var behavior = ((AnimatorController)vc.AnimatorController).layers[0].stateMachine.behaviours[0];
+            Assert.AreEqual(0, ((VRCAnimatorLayerControl)behavior).layer);
+            
+            anim = ctx.ActivateExtensionContext<VirtualControllerContext>();
+            
+            var fx = anim.Controllers[vc];
+            var lc = (VRCAnimatorLayerControl) fx.Layers.First().StateMachine!.Behaviours.First();
+            Assert.AreEqual(fx.Layers.First().VirtualLayerIndex, lc.layer);
+        }
+        
         [Test]
         public void RemapsPlayAudioPaths()
         {
