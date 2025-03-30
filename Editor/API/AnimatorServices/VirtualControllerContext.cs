@@ -48,6 +48,7 @@ namespace nadena.dev.ndmf.animator
             internal Object? OriginalObject;
             internal VirtualAnimatorController? VirtualController;
             internal Object? LastCommit;
+            internal object? LastInnateKey;
 
             internal Object? SavedCommittedController;
 
@@ -79,6 +80,7 @@ namespace nadena.dev.ndmf.animator
 
                 if (OriginalObject is RuntimeAnimatorController controller)
                 {
+                    LastInnateKey = context.ActiveInnateLayerKey;
                     return VirtualController = context.Clone(controller);
                 }
 
@@ -99,9 +101,9 @@ namespace nadena.dev.ndmf.animator
                 throw new NotImplementedException("Can't virtualize object of type " + OriginalObject.GetType());
             }
 
-            public void Revalidate(RuntimeAnimatorController newController)
+            public void Revalidate(CloneContext context, RuntimeAnimatorController newController)
             {
-                if (LastCommit == newController)
+                if (LastCommit == newController && VirtualController != null)
                 {
                     // We'll reuse this controller. However, remove all layers from the RuntimeAnimatorController to
                     // reduce overhead from OnAnimatorControllerDirty callbacks
@@ -109,9 +111,13 @@ namespace nadena.dev.ndmf.animator
                     {
                         ac.layers = Array.Empty<AnimatorControllerLayer>();
                     }
+
+                    using var _ = context.PushActiveInnateKey(LastInnateKey);
+                    VirtualController.Reactivate();
                 }
                 else
                 {
+                    if (OriginalObject != null) Debug.Log("Controller " + newController + " was changed outside of NDMF animator services; cloning a second time");
                     // force reload from unity object
                     OriginalObject = newController;
                     VirtualController = null;
@@ -193,7 +199,7 @@ namespace nadena.dev.ndmf.animator
             _platformBindings = GenericPlatformAnimatorBindings.Instance;
             #endif
 
-            _cloneContext = new CloneContext(_platformBindings);
+            if (_cloneContext == null) _cloneContext = new CloneContext(_platformBindings);
 
             var innateControllers = _platformBindings.GetInnateControllers(root);
             CacheInvalidationToken++;
@@ -202,7 +208,7 @@ namespace nadena.dev.ndmf.animator
             {
                 if (_layerStates.TryGetValue(type, out var currentLayer))
                 {
-                    currentLayer.Revalidate(controller);
+                    currentLayer.Revalidate(_cloneContext, controller);
                 }
                 else
                 {
@@ -232,7 +238,7 @@ namespace nadena.dev.ndmf.animator
                 if (virtualizeController.GetMotionBasePath(context, false) == "" &&
                     _layerStates.TryGetValue(virtualizeController, out var currentLayer))
                 {
-                    currentLayer.Revalidate(ac);
+                    currentLayer.Revalidate(_cloneContext!, ac);
                 }
                 else
                 {

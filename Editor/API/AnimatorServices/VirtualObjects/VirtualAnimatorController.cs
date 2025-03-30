@@ -217,7 +217,7 @@ namespace nadena.dev.ndmf.animator
             _parameters = controller.parameters.ToImmutableDictionary(p => p.name);
 
             var srcLayers = controller.layers;
-            context.AllocateVirtualLayerSpace(srcLayers.Length);
+            _virtualLayerBase = context.AllocateVirtualLayerSpace(srcLayers.Length);
 
             var p0Layers = srcLayers
                 .Select((l, i) => VirtualLayer.Clone(context, l, i))
@@ -231,6 +231,7 @@ namespace nadena.dev.ndmf.animator
         }
 
         private AnimatorController? _cachedController;
+        private readonly int _virtualLayerBase;
 
         AnimatorController ICommittable<AnimatorController>.Prepare(CommitContext context)
         {
@@ -263,6 +264,28 @@ namespace nadena.dev.ndmf.animator
         protected override IEnumerable<VirtualNode> _EnumerateChildren()
         {
             return Layers;
+        }
+
+        /// <summary>
+        /// Re-virtualize behaviors when reactivating the context.
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
+        internal void Reactivate()
+        {
+            var layers = Layers.ToList();
+            using var _ = this._context.PushPhysicalToVirtualLayerMapper(physLayer =>
+            {
+                if (physLayer < 0 || physLayer >= layers.Count) return -1;
+                return layers[physLayer].VirtualLayerIndex;
+            });
+            
+            foreach (var node in AllReachableNodes().OfType<VirtualState>())
+            {
+                foreach (var behavior in node.Behaviours)
+                {
+                    this._context.PlatformBindings.VirtualizeStateBehaviour(this._context, behavior);
+                }
+            }
         }
     }
 }

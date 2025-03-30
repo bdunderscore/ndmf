@@ -31,6 +31,7 @@ namespace nadena.dev.ndmf.animator
         {
             public ImmutableList<AnimatorOverrideController> OverrideControllers;
             public object? InnateAnimatorKey;
+            public Func<int, int>? PhysicalToVirtualLayerMapper;
         }
 
         private DynamicScopeState _curDynScope = new()
@@ -305,9 +306,21 @@ namespace nadena.dev.ndmf.animator
 
         public int CloneSourceToVirtualLayerIndex(int layerIndex)
         {
+            if (_curDynScope.PhysicalToVirtualLayerMapper != null)
+            {
+                return _curDynScope.PhysicalToVirtualLayerMapper(layerIndex);
+            }
+            
             return layerIndex < _maxMappedPhysLayer && layerIndex >= 0
                 ? layerIndex + _virtualLayerBase
                 : -1;
+        }
+        
+        internal IDisposable PushPhysicalToVirtualLayerMapper(Func<int, int> mapper)
+        {
+            var scope = new DynamicScope(this);
+            _curDynScope.PhysicalToVirtualLayerMapper = mapper;
+            return scope;
         }
 
     }
