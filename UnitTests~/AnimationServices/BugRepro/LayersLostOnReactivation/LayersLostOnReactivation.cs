@@ -1,3 +1,5 @@
+#if NDMF_VRCSDK3_AVATARS
+
 using System.Collections;
 using System.Collections.Generic;
 using nadena.dev.ndmf.animator;
@@ -22,3 +24,5 @@ public class LayersLostOnReactivation : TestBase
         findFxLayer(prefab, "Base Layer");
     }
 }
+
+#endif
