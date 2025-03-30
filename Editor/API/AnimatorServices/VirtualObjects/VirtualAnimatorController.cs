@@ -278,10 +278,36 @@ namespace nadena.dev.ndmf.animator
                 if (physLayer < 0 || physLayer >= layers.Count) return -1;
                 return layers[physLayer].VirtualLayerIndex;
             });
-            
-            foreach (var node in AllReachableNodes().OfType<VirtualState>())
+
+            foreach (var layer in layers)
             {
-                foreach (var behavior in node.Behaviours)
+                foreach (var behaviors in layer.SyncedLayerBehaviourOverrides.Values)
+                {
+                    foreach (var behavior in behaviors)
+                    {
+                        _context.PlatformBindings.VirtualizeStateBehaviour(_context, behavior);
+                    }
+                }
+            }
+
+            foreach (var node in AllReachableNodes())
+            {
+                IEnumerable<StateMachineBehaviour> behaviours;
+
+                if (node is VirtualState vs)
+                {
+                    behaviours = vs.Behaviours;
+                }
+                else if (node is VirtualStateMachine vsm)
+                {
+                    behaviours = vsm.Behaviours;
+                }
+                else
+                {
+                    continue;
+                }
+
+                foreach (var behavior in behaviours)
                 {
                     this._context.PlatformBindings.VirtualizeStateBehaviour(this._context, behavior);
                 }

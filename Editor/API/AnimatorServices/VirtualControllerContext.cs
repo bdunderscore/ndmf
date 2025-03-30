@@ -81,6 +81,7 @@ namespace nadena.dev.ndmf.animator
                 if (OriginalObject is RuntimeAnimatorController controller)
                 {
                     LastInnateKey = context.ActiveInnateLayerKey;
+                    using var _ = context.PushDistinctScope();
                     return VirtualController = context.Clone(controller);
                 }
 
