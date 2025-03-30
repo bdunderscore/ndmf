@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#561] Fixed an issue where `VRC Animator Layer Control` behaviors might be lost on `VirtualControllerContext` reactivation
+- [#561] Fixed an issue where layers might be deleted on `VirtualControllerContext` reactivation
+- [#561] Fixed an issue where the build might fail with an exception when reactivating `VirtualControllerContext`
 
 ### Changed
 
