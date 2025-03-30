@@ -315,9 +315,9 @@ namespace nadena.dev.ndmf.animator
                 if (kv.Key is IVirtualizeMotion or IVirtualizeAnimatorController && (Component)kv.Key == null)
                 {
                     _layerStates.Remove(kv.Key!);
-                    if (kv.Key is IVirtualizeMotion && kv.Value.SavedCommittedController != null)
+                    if (kv.Key is IVirtualizeMotion && kv.Value.SavedCommittedController != null && context.IsTemporaryAsset(kv.Value.SavedCommittedController))
                     {
-                        Object.Destroy(kv.Value.SavedCommittedController);
+                        Object.DestroyImmediate(kv.Value.SavedCommittedController, true);
                     }
                 }
             }
