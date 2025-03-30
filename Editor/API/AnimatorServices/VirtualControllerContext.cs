@@ -99,7 +99,7 @@ namespace nadena.dev.ndmf.animator
                     return VirtualController;
                 }
 
-                throw new NotImplementedException("Can't virtualize object of type " + OriginalObject.GetType());
+                throw new NotImplementedException("Can't virtualize object of type " + OriginalObject?.GetType());
             }
 
             public void Revalidate(CloneContext context, RuntimeAnimatorController newController)
@@ -152,7 +152,6 @@ namespace nadena.dev.ndmf.animator
 
         public IPlatformAnimatorBindings PlatformBindings =>
             _platformBindings ?? throw new InvalidOperationException("Extension context not initialized");
-
         
         /// <summary>
         ///     This value is updated every time the set of virtual controllers changes.
@@ -177,8 +176,8 @@ namespace nadena.dev.ndmf.animator
                 new HashSet<object>(),
                 (key, state) =>
                 {
-                    using var _ = _cloneContext!.PushActiveInnateKey(key);
-                    return state.GetVirtualController(_cloneContext);
+                    using var _ = CloneContext.PushActiveInnateKey(key);
+                    return state.GetVirtualController(CloneContext);
                 },
                 (k, v) =>
                 {
@@ -209,7 +208,7 @@ namespace nadena.dev.ndmf.animator
             {
                 if (_layerStates.TryGetValue(type, out var currentLayer))
                 {
-                    currentLayer.Revalidate(_cloneContext, controller);
+                    currentLayer.Revalidate(CloneContext, controller);
                 }
                 else
                 {
@@ -239,17 +238,17 @@ namespace nadena.dev.ndmf.animator
                 if (virtualizeController.GetMotionBasePath(context, false) == "" &&
                     _layerStates.TryGetValue(virtualizeController, out var currentLayer))
                 {
-                    currentLayer.Revalidate(_cloneContext!, ac);
+                    currentLayer.Revalidate(CloneContext, ac);
                 }
                 else
                 {
                     var virtualController = _layerStates[virtualizeController] = new LayerState(ac);
                     var basePath = virtualizeController.GetMotionBasePath(context);
 
-                    using var _ = _cloneContext.PushDistinctScope();
-                    using var _k = _cloneContext.PushActiveInnateKey(virtualizeController.TargetControllerKey);
+                    using var _ = CloneContext.PushDistinctScope();
+                    using var _k = CloneContext.PushActiveInnateKey(virtualizeController.TargetControllerKey);
 
-                    var vc = virtualController.GetVirtualController(_cloneContext!);
+                    var vc = virtualController.GetVirtualController(CloneContext);
 
                     if (basePath != "")
                     {
@@ -278,8 +277,8 @@ namespace nadena.dev.ndmf.animator
                     var virtualMotion = _layerStates[virtualizeMotion] = new LayerState(motion);
                     var basePath = virtualizeMotion.GetMotionBasePath(context);
 
-                    using var _ = _cloneContext.PushDistinctScope();
-                    var vc = virtualMotion.GetVirtualController(_cloneContext!);
+                    using var _ = CloneContext.PushDistinctScope();
+                    var vc = virtualMotion.GetVirtualController(CloneContext);
 
                     if (basePath != "")
                     {
@@ -307,7 +306,7 @@ namespace nadena.dev.ndmf.animator
         {
             var root = context.AvatarRootObject;
 
-            var commitContext = new CommitContext(_cloneContext!.PlatformBindings);
+            var commitContext = new CommitContext(CloneContext.PlatformBindings);
             commitContext.NodeToReference = CloneContext.NodeToReference;
 
             // Purge any container controllers we don't need anymore
@@ -377,7 +376,6 @@ namespace nadena.dev.ndmf.animator
         /// <exception cref="System.InvalidOperationException"></exception>
         public VirtualMotion? GetVirtualizedMotion(IVirtualizeMotion motion)
         {
-            if (_cloneContext == null) throw new InvalidOperationException("Extension context not initialized");
             if (motion.Motion == null) return null;
 
             if (!_layerStates.TryGetValue(motion, out var layerState))
@@ -386,7 +384,7 @@ namespace nadena.dev.ndmf.animator
             }
 
             return layerState
-                .GetVirtualController(_cloneContext)
+                .GetVirtualController(CloneContext)
                 .Layers.First()
                 .StateMachine?.DefaultState?.Motion;
         }

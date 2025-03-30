@@ -207,8 +207,6 @@ namespace nadena.dev.ndmf.animator
                     }
 
                     return alc.layer != -1;
-
-                    break;
             }
 
             return true;

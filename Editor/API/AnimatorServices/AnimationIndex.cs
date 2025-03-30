@@ -99,7 +99,7 @@ namespace nadena.dev.ndmf.animator
             {
                 foreach (var ecb in clip.GetObjectCurveBindings())
                 {
-                    var curve = clip.GetObjectCurve(ecb);
+                    var curve = clip.GetObjectCurve(ecb)!;
                     for (var i = 0; i < curve.Length; i++)
                     {
                         curve[i].value = mapping(curve[i].value) ??

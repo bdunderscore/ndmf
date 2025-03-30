@@ -16,7 +16,7 @@ namespace nadena.dev.ndmf.preview
     // ReSharper disable once InconsistentNaming
     public static class NDMFPreview
     {
-        private static PreviewSession _globalPreviewSession;
+        private static PreviewSession? _globalPreviewSession;
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -96,7 +96,7 @@ namespace nadena.dev.ndmf.preview
         [MenuItem("Tools/NDM Framework/Debug Tools/Force Reset Preview", false, 101)]
         internal static void ForceResetPreview()
         {
-            _globalPreviewSession.ForceRebuild();
+            _globalPreviewSession?.ForceRebuild();
         }
 
         /// <summary>

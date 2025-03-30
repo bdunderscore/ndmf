@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using nadena.dev.ndmf.cs;
 using UnityEditor;
 using UnityEngine;
@@ -45,9 +44,6 @@ namespace nadena.dev.ndmf.preview.trace
 
             root.Q<Button>("btn_refresh").clickable.clicked += () =>
             {
-                VisualElement currentContainer = null;
-                int inCurrentContainer = 0;
-                
                 var events = TraceBuffer.FormatTraceBuffer(256);
                 
                 _events.Clear();

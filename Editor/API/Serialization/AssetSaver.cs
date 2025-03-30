@@ -14,7 +14,7 @@ namespace nadena.dev.ndmf
 {
     internal class AssetSaver : IAssetSaver
     {
-        internal static Action OnRetryImport;
+        internal static Action? OnRetryImport;
         private readonly string subAssetPath, rootAssetPath;
         private readonly int assetsPerContainer;
         
