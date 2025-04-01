@@ -161,7 +161,7 @@ namespace nadena.dev.ndmf.cs
 
                 cf = () =>
                 {
-                    tcs.SetResult(true);
+                    tcs.TrySetResult(true);
                     EditorApplication.update -= cf;
                 };
 
@@ -173,7 +173,7 @@ namespace nadena.dev.ndmf.cs
                 Action<bool> focusFunc = default;
                 focusFunc = _ =>
                 {
-                    tcs.SetResult(true);
+                    tcs.TrySetResult(true);
                     EditorApplication.focusChanged -= focusFunc;
                 };
                 EditorApplication.focusChanged += focusFunc;

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#563] Fix issue where `InvalidOperationException`s could be generated continually
 
 ### Changed
 
