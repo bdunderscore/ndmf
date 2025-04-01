@@ -11,7 +11,7 @@ namespace nadena.dev.ndmf.platform
 {
     [PublicAPI]
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public sealed class CommonAvatarInfo
+    internal sealed class CommonAvatarInfo
     {
         public const string Viseme_Silence = "silence";
         public const string Viseme_PP = "PP";

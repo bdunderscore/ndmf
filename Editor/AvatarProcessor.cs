@@ -138,7 +138,8 @@ namespace nadena.dev.ndmf
             ProcessAvatar(root, BuildPhase.Last);
         }
 
-        public static BuildContext ProcessAvatar(
+        // [PublicAPI] - TODO(multiplatform)
+        internal static BuildContext ProcessAvatar(
             GameObject root,
             INDMFPlatformProvider platform
         )

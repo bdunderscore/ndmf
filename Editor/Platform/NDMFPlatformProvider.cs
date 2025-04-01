@@ -5,7 +5,7 @@ namespace nadena.dev.ndmf.platform
 {
     [AttributeUsage(AttributeTargets.Class)]
     [MeansImplicitUse]
-    public sealed class NDMFPlatformProvider : Attribute
+    internal sealed class NDMFPlatformProvider : Attribute
     {
         
     }

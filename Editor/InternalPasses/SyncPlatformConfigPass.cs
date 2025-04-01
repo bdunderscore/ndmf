@@ -2,7 +2,7 @@
 
 namespace nadena.dev.ndmf.builtin
 {
-    public class SyncPlatformConfigPass : Pass<SyncPlatformConfigPass>
+    internal class SyncPlatformConfigPass : Pass<SyncPlatformConfigPass>
     {
         protected override void Execute(BuildContext context)
         {
@@ -12,6 +12,8 @@ namespace nadena.dev.ndmf.builtin
                 // Attempt to sync
                 var cai = primaryPlatform.ExtractCommonAvatarInfo(context.AvatarRootObject);
                 context.PlatformProvider.InitBuildFromCommonAvatarInfo(context, cai);
+                
+                primaryPlatform.GeneratePortableComponents(context.AvatarRootObject, false);
             }
         }
     }
