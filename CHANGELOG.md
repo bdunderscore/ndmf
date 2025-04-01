@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.7.0] - [2025-04-01]
+
+### Added
 - [#467] Added the `AnimatorServicesContext` and lots of supporting APIs for working with animator controllers.
 - [#532] Window to temporarily disable some NDMF plugins
 - [#541] Add `INDMFEditorOnlyComponent` interface
@@ -18,14 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#547] ProcessAvatar ignores enclosing `ErrorReport.CaptureErrors` scopes
 - [#554] Fix issues where the first layer of an animator controller might not be interpreted as having weight 1
 - [#563] Fix issue where `InvalidOperationException`s could be generated continually
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.6.8] - [2025-02-16]
 

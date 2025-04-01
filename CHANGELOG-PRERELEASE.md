@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#563] Fix issue where `InvalidOperationException`s could be generated continually
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.0] - [2025-04-01]
+
+### Fixed
+- [#563] Fix issue where `InvalidOperationException`s could be generated continually
 
 ## [1.7.0-rc.2] - [2025-03-30]
 
