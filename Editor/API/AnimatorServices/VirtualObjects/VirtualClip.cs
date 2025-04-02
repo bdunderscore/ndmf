@@ -135,7 +135,7 @@ namespace nadena.dev.ndmf.animator
         /// <returns></returns>
         public static VirtualClip FromMarker(AnimationClip clip)
         {
-            return new VirtualClip(clip, true);
+            return new VirtualClip(null, clip, true);
         }
 
         /// <summary>
@@ -162,23 +162,7 @@ namespace nadena.dev.ndmf.animator
                 return clonedClip!;
             }
 
-            var newClip = Object.Instantiate(clip);
-            newClip.name = clip.name;
-            
-            var virtualClip = new VirtualClip(newClip, false);
-            
-            var settings = AnimationUtility.GetAnimationClipSettings(clip);
-            if (settings.additiveReferencePoseClip != null)
-            {
-                // defer call until after we register this VirtualClip, to avoid infinite recursion
-                cloneContext.DeferCall(() =>
-                {
-                    var refPoseClip = cloneContext.Clone(settings.additiveReferencePoseClip);
-                    settings.additiveReferencePoseClip = null;
-                    AnimationUtility.SetAnimationClipSettings(newClip, settings);
-                    virtualClip.AdditiveReferencePoseClip = refPoseClip;
-                });
-            }
+            var virtualClip = new VirtualClip(cloneContext, clip, false);
 
             return virtualClip;
         }
@@ -192,7 +176,7 @@ namespace nadena.dev.ndmf.animator
             var newClip = Object.Instantiate(_clip);
             newClip.name = _clip.name;
 
-            var virtualClip = new VirtualClip(newClip, IsMarkerClip);
+            var virtualClip = new VirtualClip(null, newClip, IsMarkerClip);
             virtualClip.UseHighQualityCurves = UseHighQualityCurves;
             virtualClip.AdditiveReferencePoseClip = AdditiveReferencePoseClip;
             virtualClip.AdditiveReferencePoseTime = AdditiveReferencePoseTime;
@@ -208,26 +192,68 @@ namespace nadena.dev.ndmf.animator
         public static VirtualClip Create(string name)
         {
             var clip = new AnimationClip { name = name };
-            return new VirtualClip(clip, false);
+            return new VirtualClip(null, clip, false);
         }
 
-        private VirtualClip(AnimationClip clip, bool isMarker)
+        private VirtualClip(CloneContext? cloneContext, AnimationClip oldClip, bool isMarker)
         {
-            _clip = clip;
             IsDirty = false;
             IsMarkerClip = isMarker;
-
+            
             // This secret property can be changed by SetCurves calls, so preserve its current value.
-            UseHighQualityCurves = new SerializedObject(clip).FindProperty("m_UseHighQualityCurve").boolValue;
+            UseHighQualityCurves = new SerializedObject(oldClip).FindProperty("m_UseHighQualityCurve").boolValue;
 
-            foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+            if (isMarker)
             {
-                _curveCache[binding] = new CachedCurve<AnimationCurve>();
+                _clip = oldClip;
+            }
+            else if (oldClip.events.Length > 0)
+            {
+                // For some reason, it's impossible to delete animation events, and if we leave them in it'll break some
+                // assets. So... start over with a new clip.
+                _clip = new AnimationClip();
+                _clip.name = oldClip.name;
+
+                foreach (var binding in AnimationUtility.GetCurveBindings(oldClip))
+                {
+                    SetFloatCurve(binding, AnimationUtility.GetEditorCurve(oldClip, binding));
+                }
+
+                foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(oldClip))
+                {
+                    SetObjectCurve(binding, AnimationUtility.GetObjectReferenceCurve(oldClip, binding));
+                }
+            }
+            else
+            {
+                // fast path to avoid manually cloning everything
+                _clip = Object.Instantiate(oldClip);
+                _clip.name = oldClip.name;
+
+                foreach (var binding in AnimationUtility.GetCurveBindings(oldClip))
+                {
+                    _curveCache[binding] = new CachedCurve<AnimationCurve>();
+                }
+
+                foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(oldClip))
+                {
+                    _pptrCurveCache[binding] = new CachedCurve<ObjectReferenceKeyframe[]>();
+                }
             }
 
-            foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
+            var settings = AnimationUtility.GetAnimationClipSettings(oldClip);
+            // cloneContext == null should only happen on new clips, or ones cloned from another VirtualClip
+            // in the latter case we take care of it in Clone()
+            if (settings.additiveReferencePoseClip != null && cloneContext != null)
             {
-                _pptrCurveCache[binding] = new CachedCurve<ObjectReferenceKeyframe[]>();
+                // defer call until after we register this VirtualClip, to avoid infinite recursion
+                cloneContext.DeferCall(() =>
+                {
+                    var refPoseClip = cloneContext.Clone(settings.additiveReferencePoseClip);
+                    settings.additiveReferencePoseClip = null;
+                    AnimationUtility.SetAnimationClipSettings(_clip, settings);
+                    AdditiveReferencePoseClip = refPoseClip;
+                });
             }
         }
 
