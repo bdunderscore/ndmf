@@ -8,22 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.7.2] - [2025-04-03]
+
 ### Removed
 - The `IVirtualizedMotion` interface was incorrectly exposed in the `API` namespace. It has been moved to `nadena.dev.ndmf.animator` instead.
   **This is a semver breaking change**
 
-### Added
-
 ### Fixed
 - [#567] "Unreachable code reached???" error on some animators
 - [#568] VirtualClip did not support discrete curves
-
-### Changed
-
-### Deprecated
-
-### Security
-
 
 ## [1.7.1] - [2025-04-02]
 
