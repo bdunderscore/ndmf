@@ -56,9 +56,15 @@ namespace nadena.dev.ndmf.util
         /// <param name="asc"></param>
         public static void HarmonizeParameterTypes(this AnimatorServicesContext asc)
         {
+            HarmonizeParameterTypes(asc.ControllerContext.GetAllControllers().ToList());
+        }
+
+
+        internal static void HarmonizeParameterTypes(List<VirtualAnimatorController> controllers)
+        {
             Dictionary<string, AnimatorControllerParameterType> parameterTypes = new();
 
-            foreach (var controller in asc.ControllerContext.GetAllControllers())
+            foreach (var controller in controllers)
             {
                 foreach (var (name, acp) in controller.Parameters)
                 {
@@ -73,7 +79,7 @@ namespace nadena.dev.ndmf.util
                 }
             }
 
-            foreach (var controller in asc.ControllerContext.GetAllControllers())
+            foreach (var controller in controllers)
             {
                 foreach (var (name, acp) in controller.Parameters)
                 {
@@ -151,7 +157,54 @@ namespace nadena.dev.ndmf.util
                     {
                         case AnimatorConditionMode.Greater:
                         case AnimatorConditionMode.Less:
-                            throw new NotImplementedException("Unreachable code reached???");
+                            if (parameterTypes[condition.parameter] != AnimatorControllerParameterType.Bool)
+                            {
+                                //shouldn't happen...?
+                                foreach (var t in transitions)
+                                {
+                                    t.Conditions = t.Conditions.Add(condition);
+                                }
+
+                                break;
+                            }
+
+                            if (condition.mode == AnimatorConditionMode.Greater && condition.threshold >= 1.0f)
+                            {
+                                // Never satisfiable
+                                return Array.Empty<T>();
+                            }
+
+                            if (condition.mode == AnimatorConditionMode.Less && condition.threshold <= 0.0f)
+                            {
+                                // Never satisfiable
+                                return Array.Empty<T>();
+                            }
+
+                            if (condition.mode == AnimatorConditionMode.Greater && condition.threshold >= 0.0f)
+                            {
+                                var newCondition = condition;
+                                newCondition.mode = AnimatorConditionMode.If;
+                                foreach (var t in transitions)
+                                {
+                                    t.Conditions = t.Conditions.Add(newCondition);
+                                }
+                            }
+                            else if (condition.mode == AnimatorConditionMode.Less && condition.threshold <= 1.0f)
+                            {
+                                var newCondition = condition;
+                                newCondition.mode = AnimatorConditionMode.IfNot;
+                                foreach (var t in transitions)
+                                {
+                                    t.Conditions = t.Conditions.Add(newCondition);
+                                }
+                            }
+                            else
+                            {
+                                // always satisfied
+                                break;
+                            }
+
+                            break;
                         case AnimatorConditionMode.Equals:
                             foreach (var t in transitions)
                             {
@@ -221,7 +274,7 @@ namespace nadena.dev.ndmf.util
                             throw new ArgumentOutOfRangeException();
                     }
                 }
-
+                
                 return transitions;
             }
 
