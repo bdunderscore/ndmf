@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- The `IVirtualizedMotion` interface was incorrectly exposed in the `API` namespace. It has been moved to `nadena.dev.ndmf.animator` instead.
+  **This is a semver breaking change**
+
 ### Added
 
 ### Fixed
@@ -14,11 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-### Removed
+### Deprecated
 
 ### Security
-
-### Deprecated
 
 ## [1.7.1] - [2025-04-02]
 

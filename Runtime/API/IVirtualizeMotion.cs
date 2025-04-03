@@ -3,7 +3,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace API
+namespace nadena.dev.ndmf.animator
 {
     /// <summary>
     ///     Implement this interface to request that the referenced motion be converted to a virtual motion when the
@@ -23,7 +23,7 @@ namespace API
 
         /// <summary>
         ///     Returns the base path prefix that should be applied to curves in the motion.
-        ///     If clearPath is set to true, this function should return the current path, then clear it (set it to an empty
+        ///     If clearPath is set to true, this function should r\eturn the current path, then clear it (set it to an empty
         ///     string).
         ///     When the @"VirtualControllerContext" is activated, this function will be invoked with clearPath set to true,
         ///     and the resulting path prefix will be used to prefix all curves in the motion.
