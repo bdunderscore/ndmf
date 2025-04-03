@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#567] "Unreachable code reached???" error on some animators
+- [#568] VirtualClip did not support discrete curves
 
 ### Changed
 

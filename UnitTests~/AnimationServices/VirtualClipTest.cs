@@ -5,6 +5,9 @@ using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+#if NDMF_VRCSDK3_AVATARS
+using VRC.SDK3.Dynamics.PhysBone.Components;
+#endif
 using Object = UnityEngine.Object;
 
 namespace UnitTests.AnimationServices
@@ -259,6 +262,50 @@ namespace UnitTests.AnimationServices
             
             Assert.AreEqual(hq, new SerializedObject(committedClip).FindProperty("m_UseHighQualityCurve").boolValue);
         }
+#if NDMF_VRCSDK3_AVATARS
+        [Test]
+        public void PreservesDiscreteCurves([Values("DiscreteCurves_WithEvent.anim", "DiscreteCurves.anim")] string testAsset)
+        {
+            AnimationClip ac = LoadAsset<AnimationClip>(testAsset);
+
+            var bindings = AnimationUtility.GetCurveBindings(ac);
+            
+            VirtualClip vc = VirtualClip.Clone(context, ac);
+            
+            var vcBindings = vc.GetFloatCurveBindings().ToList();
+            
+            var committedClip = Commit(vc);
+            
+            var committedBindings = AnimationUtility.GetCurveBindings(committedClip);
+            
+            Assert.That(bindings, Is.EquivalentTo(vcBindings));
+            Assert.That(bindings, Is.EquivalentTo(committedBindings));
+            
+            Assert.That(AnimationUtility.GetEditorCurve(ac, bindings[0]),
+                Is.EqualTo(AnimationUtility.GetEditorCurve(committedClip, bindings[0])));
+        }
+
+        [Test]
+        public void CanSetDiscreteCurves()
+        {
+            var vc = VirtualClip.Create("test");
+            var ecb = EditorCurveBinding.DiscreteCurve("test", typeof(VRCPhysBone), "allowGrabbing");
+            vc.SetFloatCurve(ecb,
+                AnimationCurve.Constant(0, 1, 42));
+            
+            var committedClip = Commit(vc);
+            
+            var bindings = AnimationUtility.GetCurveBindings(committedClip);
+            Assert.AreEqual(1, bindings.Length);
+            Assert.AreEqual(ecb, bindings[0]);
+            
+            var curve = AnimationUtility.GetEditorCurve(committedClip, bindings[0]);
+            Assert.IsNotNull(curve);
+            Assert.AreEqual(2, curve.keys.Length);
+            Assert.AreEqual(0, curve.keys[0].time);
+            Assert.AreEqual(42, curve.keys[0].value);
+        }
+#endif
         
         // TODO: additive reference pose, animation clip settings/misc properties tests
 
