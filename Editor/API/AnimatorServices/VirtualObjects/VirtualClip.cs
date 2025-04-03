@@ -364,9 +364,9 @@ namespace nadena.dev.ndmf.animator
 
         public void SetFloatCurve(EditorCurveBinding binding, AnimationCurve? curve)
         {
-            if (binding.isPPtrCurve || binding.isDiscreteCurve)
+            if (binding.isPPtrCurve)
             {
-                throw new ArgumentException("Binding must be a float curve", nameof(binding));
+                throw new ArgumentException("Binding must not be an object curve", nameof(binding));
             }
 
             if (IsMarkerClip) return;
