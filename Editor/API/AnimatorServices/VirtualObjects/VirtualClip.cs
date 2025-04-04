@@ -419,43 +419,46 @@ namespace nadena.dev.ndmf.animator
             Motion obj
         )
         {
-            if (IsMarkerClip || !IsDirty) return;
+            if (IsMarkerClip) return;
             
             var context = (CommitContext)context_;
 
             var clip = (AnimationClip)obj;
 
-            // WORKAROUND: AnimationUtility.SetEditorCurves doesn't actually delete curves when null, despite the
-            // documentation claiming it will. Fault in all uncached curves, then clear everything.
-            foreach (var curve in _curveCache.ToList())
+            if (IsDirty)
             {
-                if (!curve.Value.Dirty && curve.Value.Value == null) GetFloatCurve(curve.Key);
-            }
+                // WORKAROUND: AnimationUtility.SetEditorCurves doesn't actually delete curves when null, despite the
+                // documentation claiming it will. Fault in all uncached curves, then clear everything.
+                foreach (var curve in _curveCache.ToList())
+                {
+                    if (!curve.Value.Dirty && curve.Value.Value == null) GetFloatCurve(curve.Key);
+                }
 
-            foreach (var curve in _pptrCurveCache.ToList())
-            {
-                if (!curve.Value.Dirty && curve.Value.Value == null) GetObjectCurve(curve.Key);
-            }
+                foreach (var curve in _pptrCurveCache.ToList())
+                {
+                    if (!curve.Value.Dirty && curve.Value.Value == null) GetObjectCurve(curve.Key);
+                }
 
-            clip.ClearCurves();
+                clip.ClearCurves();
 
-            var changedBindings = _curveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
-            var changedPptrBindings = _pptrCurveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
+                var changedBindings = _curveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
+                var changedPptrBindings = _pptrCurveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
 
-            if (changedBindings.Count > 0)
-            {
-                var bindings = changedBindings.Select(c => c.Key).ToArray();
-                var curves = changedBindings.Select(c => c.Value.Value).ToArray();
+                if (changedBindings.Count > 0)
+                {
+                    var bindings = changedBindings.Select(c => c.Key).ToArray();
+                    var curves = changedBindings.Select(c => c.Value.Value).ToArray();
 
-                AnimationUtility.SetEditorCurves(clip, bindings, curves);
-            }
+                    AnimationUtility.SetEditorCurves(clip, bindings, curves);
+                }
 
-            if (changedPptrBindings.Count > 0)
-            {
-                var bindings = changedPptrBindings.Select(c => c.Key).ToArray();
-                var curves = changedPptrBindings.Select(c => c.Value.Value).ToArray();
+                if (changedPptrBindings.Count > 0)
+                {
+                    var bindings = changedPptrBindings.Select(c => c.Key).ToArray();
+                    var curves = changedPptrBindings.Select(c => c.Value.Value).ToArray();
 
-                AnimationUtility.SetObjectReferenceCurves(clip, bindings, curves);
+                    AnimationUtility.SetObjectReferenceCurves(clip, bindings, curves);
+                }
             }
 
             // Restore HighQualityCurves value
