@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Remoting;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
@@ -307,7 +308,37 @@ namespace UnitTests.AnimationServices
         }
 #endif
         
-        // TODO: additive reference pose, animation clip settings/misc properties tests
+        [Test]
+        public void PreservesAdditiveReferencePose()
+        {
+            // Create an original AnimationClip with additive reference pose
+            AnimationClip refPose = TrackObject(new AnimationClip());
+            refPose.name = "refPose";
+            var refPoseEcb = EditorCurveBinding.FloatCurve("abc", typeof(GameObject), "m_IsActive"); 
+            AnimationUtility.SetEditorCurve(refPose, refPoseEcb, new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 1)));
+            
+            AnimationClip originalClip = TrackObject(new AnimationClip());
+            originalClip.name = "originalClip";
+            originalClip.SetCurve("def", typeof(GameObject), "m_IsActive", new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 1)));
+            
+            var settings = AnimationUtility.GetAnimationClipSettings(originalClip);
+            settings.additiveReferencePoseClip = refPose;
+            AnimationUtility.SetAnimationClipSettings(originalClip, settings);
+        
+            VirtualClip vc = VirtualClip.Clone(context, originalClip);
+            AnimationClip committedClip = Commit(vc);
+        
+            var newRefPose = AnimationUtility.GetAnimationClipSettings(committedClip).additiveReferencePoseClip;
+            Assert.AreNotSame(refPose, newRefPose);
+            Assert.AreEqual(refPose.name, newRefPose.name);
+            
+            Assert.AreEqual(
+                AnimationUtility.GetEditorCurve(refPose, refPoseEcb),
+                AnimationUtility.GetEditorCurve(newRefPose, refPoseEcb)
+            );
+        }
+        
+        // TODO: animation clip settings/misc properties tests
 
         private static void AssertEqualNotSame(AnimationCurve newCommittedCurve, AnimationCurve newCurve)
         {
