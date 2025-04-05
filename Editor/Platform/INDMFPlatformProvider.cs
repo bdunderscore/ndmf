@@ -8,7 +8,7 @@ namespace nadena.dev.ndmf.platform
     // [PublicAPI] - pre-alpha API
     internal interface INDMFPlatformProvider
     {
-        string CanonicalName { get; }
+        string QualifiedName { get; }
         string DisplayName { get; }
         Texture2D? Icon { get; }
 

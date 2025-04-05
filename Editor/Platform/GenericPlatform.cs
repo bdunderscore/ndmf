@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.runtime.components;
 using UnityEngine;
 
@@ -10,8 +11,8 @@ namespace nadena.dev.ndmf.platform
     internal sealed class GenericPlatform : INDMFPlatformProvider
     {
         public static INDMFPlatformProvider Instance { get; } = new GenericPlatform();
-        
-        public string CanonicalName => "generic";
+
+        public string QualifiedName => WellKnownPlatforms.Generic;
         public string DisplayName => "Generic Avatar";
         public Texture2D? Icon => null;
         public Type? AvatarRootComponentType => typeof(NDMFAvatarRoot);

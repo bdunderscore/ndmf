@@ -3,6 +3,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.platform;
 using UnityEditor;
 using UnityEngine;
@@ -30,7 +31,7 @@ namespace nadena.dev.ndmf.vrchat
             VRCSDK_ShowControlPanel = AccessTools.Method(typeof(VRCSdkControlPanel), "ShowControlPanel");
         }
 
-        public string CanonicalName => "ndmf.vrchat.avatar-3.0";
+        public string QualifiedName => WellKnownPlatforms.VRChatAvatar30;
         public string DisplayName => "VRChat";
         public Texture2D Icon => null;
         public Type AvatarRootComponentType => typeof(VRCAvatarDescriptor);

@@ -48,14 +48,14 @@ namespace nadena.dev.ndmf.platform
                     continue;
                 }
 
-                if (providers.TryGetValue(instance.CanonicalName, out var existing))
+                if (providers.TryGetValue(instance.QualifiedName, out var existing))
                 {
                     Debug.LogError("Multiple platform providers with the same canonical name: " +
-                                   instance.CanonicalName + " including " + type + " and " + existing.GetType());
+                                   instance.QualifiedName + " including " + type + " and " + existing.GetType());
                     continue;
                 }
 
-                providers[instance.CanonicalName] = instance;
+                providers[instance.QualifiedName] = instance;
             }
 
             _platformProviders = providers.ToImmutableDictionary(

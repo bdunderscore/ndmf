@@ -6,10 +6,22 @@ namespace nadena.dev.ndmf.platform
 {
     internal static class AmbientPlatform
     {
+        public static event Action OnDefaultPlatformChanged;
+        
+        private static INDMFPlatformProvider _defaultPlatform = GenericPlatform.Instance;
         /// <summary>
         ///     The default platform to use in legacy calls like AvatarProcessor.ProcessAvatar
         /// </summary>
-        public static INDMFPlatformProvider DefaultPlatform { get; internal set; } = new GenericPlatform();
+        public static INDMFPlatformProvider DefaultPlatform
+        {
+            get => _defaultPlatform;
+            internal set
+            {
+                if (_defaultPlatform == value) return;
+                _defaultPlatform = value;
+                OnDefaultPlatformChanged?.Invoke();
+            }
+        }
 
         internal class Scope : IDisposable
         {
