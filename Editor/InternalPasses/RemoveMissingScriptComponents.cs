@@ -1,5 +1,4 @@
-﻿using nadena.dev.ndmf;
-using nadena.dev.ndmf.runtime;
+﻿using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +9,7 @@ namespace nadena.dev.ndmf.builtin
     /// (for some reason) you need to run before this, declare a BeforePass constraint on this type.
     /// </summary>
     [NDMFInternal]
+    [RunsOnAllPlatforms]
     public sealed class RemoveMissingScriptComponents : Pass<RemoveMissingScriptComponents>
     {
         protected override void Execute(BuildContext context)

@@ -20,6 +20,11 @@
             "name": "lyuma.av3emulator",
             "expression": "",
             "define": "NDMF_LYUMA_AV3EMU"
+        },
+        {
+            "name": "nadena.dev.ndmf.multiplatform",
+            "expression": "",
+            "define": "NDMF_MULTIPLATFORM"
         }
     ],
     "noEngineReferences": false

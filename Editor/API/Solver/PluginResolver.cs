@@ -1,11 +1,16 @@
-﻿#region
+﻿#nullable enable
+
+#region
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Codice.Client.BaseCommands;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
 
@@ -15,6 +20,7 @@ namespace nadena.dev.ndmf
 {
     class TypeComparer : IComparer<Type>
     {
+        [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
         public int Compare(Type x, Type y)
         {
             if (x == y) return 0;
@@ -75,6 +81,7 @@ namespace nadena.dev.ndmf
         internal ImmutableList<(BuildPhase, IList<ConcretePass>)> Passes { get; }
 
         private readonly List<SolverPass> _allPasses = new();
+        private INDMFPlatformProvider _platform;
 
         public static IEnumerable<Type> FindPluginTypes() => AppDomain.CurrentDomain.GetAssemblies().SelectMany(
                 assembly => assembly.GetCustomAttributes(typeof(ExportsPlugin), false))
@@ -88,17 +95,19 @@ namespace nadena.dev.ndmf
         [ItemCanBeNull]
         public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPluginTypes().Select(InstantiatePlugin);
 
-        public PluginResolver(bool includeDisabled = false) : this(FindPluginTypes(), includeDisabled)
+        public PluginResolver(INDMFPlatformProvider? platform = null, bool includeDisabled = false) : this(platform, FindPluginTypes(), includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<Type> plugins, bool includeDisabled = false) 
-            : this(plugins.Select(InstantiatePlugin), includeDisabled)
+        private PluginResolver(INDMFPlatformProvider? platform, IEnumerable<Type> plugins, bool includeDisabled = false) 
+            : this(plugins.Select(InstantiatePlugin), platform, includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, bool includeDisabled = false)
+        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, INDMFPlatformProvider? platform, bool includeDisabled = false)
         {
+            platform ??= AmbientPlatform.DefaultPlatform;
+            
             var solverContext = new SolverContext();
 
             foreach (var plugin in pluginTemplates)
@@ -112,6 +121,8 @@ namespace nadena.dev.ndmf
             Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>
                 constraintsByPhase = new Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>();
 
+            solverContext.Passes.RemoveAll(pass => !pass.IsPlatformCompatible(platform));
+            
             foreach (var pass in solverContext.Passes)
             {
                 if (!passesByPhase.TryGetValue(pass.Phase, out var list))

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 
 #endregion
@@ -26,6 +27,7 @@ namespace nadena.dev.ndmf.model
         internal IImmutableSet<Type> RequiredExtensions { get; set; }
         internal IImmutableSet<string> CompatibleExtensions { get; set; }
         internal List<IRenderFilter> RenderFilters { get; } = new();
+        internal ImmutableHashSet<string> Platforms { get; set; }
 
         internal bool IsExtensionCompatible(Type ty, ISet<Type> activeExtensions)
         {
@@ -56,11 +58,35 @@ namespace nadena.dev.ndmf.model
             Phase = phase;
             CompatibleExtensions = compatibleExtensions;
             RequiredExtensions = requiredExtensions.Union(pass.GetType().ContextDependencies());
+
+            var attrs = pass.GetType().GetCustomAttributes(false);
+            var allPlatformsAttribute = attrs.Any(a => a is RunsOnAllPlatforms);
+            var supportedPlatforms = attrs.OfType<RunsOnPlatform>().Select(p => p.Platform).ToArray();
+
+            if (allPlatformsAttribute && supportedPlatforms.Length > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Pass {pass.GetType().Name} cannot be marked with both {nameof(RunsOnAllPlatforms)} and {nameof(RunsOnPlatform)}");
+            }
+
+            if (allPlatformsAttribute)
+            {
+                Platforms = null;
+            }
+            else if (supportedPlatforms.Length > 0)
+            {
+                Platforms = supportedPlatforms.ToImmutableHashSet();
+            }
         }
 
         public override string ToString()
         {
             return Pass.DisplayName;
+        }
+        
+        public bool IsPlatformCompatible(INDMFPlatformProvider platform)
+        {
+            return Platforms == null || Platforms.Contains(platform.QualifiedName);
         }
     }
 }
