@@ -11,7 +11,9 @@ namespace nadena.dev.ndmf.builtin
     /// This pass removes all objects tagged with "EditorOnly" from the avatar. It will be run early in the Resolving
     /// phase; if you need to run before this, declare a BeforePass constraint on this type.
     /// </summary>
-    [NDMFInternalEarlyPass] [NDMFInternal]
+    [NDMFInternalEarlyPass]
+    [NDMFInternal]
+    [RunsOnAllPlatforms]
     public sealed class RemoveEditorOnlyPass : Pass<RemoveEditorOnlyPass>
     {
         public override string QualifiedName => "nadena.dev.ndmf.system.RemoveEditorOnly";

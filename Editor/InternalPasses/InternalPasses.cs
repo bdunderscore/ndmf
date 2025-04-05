@@ -17,7 +17,9 @@ namespace nadena.dev.ndmf
         {
             InPhase(BuildPhase.Resolving)
                 .Run(RemoveMissingScriptComponents.Instance)
-                .Then.Run(RemoveEditorOnlyPass.Instance);
+                .Then.Run(RemoveEditorOnlyPass.Instance)
+                .Then.OnPlatforms("ndmf/nonexistent")
+                .Run("TEST - Should not run (incompatible platform)", _ => { });
         }
     }
 }

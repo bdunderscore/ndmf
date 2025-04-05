@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Codice.Client.BaseCommands;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
@@ -112,6 +113,9 @@ namespace nadena.dev.ndmf
             Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>
                 constraintsByPhase = new Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>();
 
+            // Temporary - until we have merge the rest of platform support
+            solverContext.Passes.RemoveAll(p => p.Platforms?.Contains(WellKnownPlatforms.VRChatAvatar30) == false);
+            
             foreach (var pass in solverContext.Passes)
             {
                 if (!passesByPhase.TryGetValue(pass.Phase, out var list))
