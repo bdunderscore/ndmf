@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#572] Added `Sequence.OnAllPlatforms()` and `Sequence.OnPlatforms()` methods, and the `WellKnownPlatforms` class.
-  - These are in preparation for NDMF's multiplatform support, and configure which platforms passes run on.
-  - By default, passes run only on VRChat SDK 3.0.
-- [#572] Added `[RunsOnAllPlatforms]` and `[RunsOnPlatform]` attributes as well
+- [#572] Added new APIs to declare which platforms a pass or plugin should run on.
+  - Use `[RunsOnPlatforms]` or `[RunsOnAllPlatforms]` to declare platform compatibility for a plugin or pass.
+  - You can also use `Sequence.OnPlatforms` or `Sequence.OnAllPlatforms` to override the plugin setting for a group of
+    passes.
+  - See the new `WellKnownPlatforms` class for more details on precedence.
+  - **Platform restrictions placed using this API are not yet enforced.**
 
 ### Fixed
 

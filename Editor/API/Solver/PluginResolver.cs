@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Codice.Client.BaseCommands;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
+using UnityEditor;
 
 #endregion
 
@@ -63,10 +63,14 @@ namespace nadena.dev.ndmf
 
         private const string SessionStateKey = "nadena.dev.ndmf.plugin-disabled.";
 
-        public static bool IsPluginDisabled(string pluginId) => UnityEditor.SessionState.GetBool(SessionStateKey + pluginId, false);
+        public static bool IsPluginDisabled(string pluginId)
+        {
+            return SessionState.GetBool(SessionStateKey + pluginId, false);
+        }
+
         public static void SetPluginDisabled(string pluginId, bool state)
         {
-            UnityEditor.SessionState.SetBool(SessionStateKey + pluginId, state);
+            SessionState.SetBool(SessionStateKey + pluginId, state);
             OnPluginDisableChanged?.Invoke(pluginId, state);
         }
     }
@@ -112,9 +116,6 @@ namespace nadena.dev.ndmf
             Dictionary<BuildPhase, List<SolverPass>> passesByPhase = new Dictionary<BuildPhase, List<SolverPass>>();
             Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>
                 constraintsByPhase = new Dictionary<BuildPhase, List<(SolverPass, SolverPass, ConstraintType)>>();
-
-            // Temporary - until we have merge the rest of platform support
-            solverContext.Passes.RemoveAll(p => p.Platforms?.Contains(WellKnownPlatforms.VRChatAvatar30) == false);
             
             foreach (var pass in solverContext.Passes)
             {

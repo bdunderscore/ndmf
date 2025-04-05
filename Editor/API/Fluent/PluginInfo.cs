@@ -32,9 +32,9 @@ namespace nadena.dev.ndmf
                 _defaultPlatforms = null;
             }
 
-            var supportedPlatforms = plugin.GetType().GetCustomAttributes(typeof(RunsOnPlatform), false)
-                .OfType<RunsOnPlatform>()
-                .Select(p => p.Platform)
+            var supportedPlatforms = plugin.GetType().GetCustomAttributes(typeof(RunsOnPlatforms), false)
+                .OfType<RunsOnPlatforms>()
+                .SelectMany(p => p.Platforms)
                 .ToImmutableHashSet();
             if (_defaultPlatforms == null && supportedPlatforms.Count > 0)
             {

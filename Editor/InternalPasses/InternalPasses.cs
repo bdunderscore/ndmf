@@ -8,6 +8,7 @@ using nadena.dev.ndmf.runtime;
 namespace nadena.dev.ndmf
 {
     [NDMFInternal]
+    [RunsOnAllPlatforms]
     internal class InternalPasses : Plugin<InternalPasses>
     {
         public override string QualifiedName => "nadena.dev.ndmf.InternalPasses";
@@ -18,8 +19,9 @@ namespace nadena.dev.ndmf
             InPhase(BuildPhase.Resolving)
                 .Run(RemoveMissingScriptComponents.Instance)
                 .Then.Run(RemoveEditorOnlyPass.Instance)
-                .Then.OnPlatforms("ndmf/nonexistent")
-                .Run("TEST - Should not run (incompatible platform)", _ => { });
+                .Then
+                .OnPlatforms(new[] { "ndmf/nonexistent" },
+                    seq => { seq.Run("TEST - Should not run (incompatible platform)", _ => { }); });
         }
     }
 }
