@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#573] Fixed an issue where additive reference pose clip references in animator override controllers resulted in a
-  build failure
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.4] - [2025-04-05]
+
+### Fixed
+- [#573] Fixed an issue where additive reference pose clip references in animator override controllers resulted in a
+  build failure
 
 ## [1.7.3] - [2025-04-04]
 
