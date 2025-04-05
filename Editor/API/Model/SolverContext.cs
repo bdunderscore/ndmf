@@ -1,8 +1,11 @@
-﻿#region
+﻿#nullable enable
+
+#region
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using JetBrains.Annotations;
 
 #endregion
 
@@ -35,7 +38,7 @@ namespace nadena.dev.ndmf.model
     {
         public List<SolverPass> Passes { get; } = new List<SolverPass>();
         public List<Constraint> Constraints { get; } = new List<Constraint>();
-
+        
         private Dictionary<(string, BuildPhase), InnatePhases> _innatePhases =
             new Dictionary<(string, BuildPhase), InnatePhases>();
 

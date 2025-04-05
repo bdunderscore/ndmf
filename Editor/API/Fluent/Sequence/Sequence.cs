@@ -1,7 +1,13 @@
-﻿#region
+﻿#nullable enable
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.preview;
 
@@ -23,12 +29,14 @@ namespace nadena.dev.ndmf.fluent
     ///   .Then.Run(typeof(OtherPass));
     /// </code>
     /// </summary>
+    [PublicAPI]
     public sealed class DeclaringPass
     {
         private readonly SolverContext _solverContext;
         private readonly BuildPhase _phase;
         private readonly SolverPass _pass;
         private readonly Sequence _seq;
+        private readonly ImmutableHashSet<string>? _allowedPlatforms;
 
         /// <summary>
         /// Returns the original sequence that returned this DeclaringPass. This is useful for chaining multiple
@@ -136,6 +144,7 @@ namespace nadena.dev.ndmf.fluent
     /// Represents a sequence of passes that will execute in order (but not necessarily directly after one another),
     /// and allows this sequence to be built up.
     /// </summary>
+    [PublicAPI]
     public sealed partial class Sequence
     {
         private readonly IPluginInternal _plugin;
@@ -144,17 +153,20 @@ namespace nadena.dev.ndmf.fluent
         private readonly BuildPhase _phase;
         private readonly SolverPass _sequenceStart, _sequenceEnd;
 
+        public ImmutableHashSet<string>? PlatformFilter;
+
         private SolverPass _priorPass = null;
 
         private int inlinePassIndex = 0;
 
         internal Sequence(BuildPhase phase, SolverContext solverContext, IPluginInternal plugin,
-            string sequenceBaseName)
+            string sequenceBaseName, ImmutableHashSet<string> defaultPlatforms)
         {
             _phase = phase;
             _solverContext = solverContext;
             _plugin = plugin;
             _sequenceBaseName = sequenceBaseName;
+            PlatformFilter = defaultPlatforms;
 
             var innate = _solverContext.GetPluginPhases(_phase, plugin.QualifiedName);
             _sequenceStart = CreateSequencingPass("<sequence start>", _ignored => { }, "", 0);
@@ -200,7 +212,40 @@ namespace nadena.dev.ndmf.fluent
 
             return pass;
         }
+        
+        /// <summary>
+        /// Declares that subsequent passes (until the next OnPlatforms declaration) will run only on the listed
+        /// platforms.
+        ///
+        /// For backwards compatibility, by default all passes run only on
+        /// <see cref="nadena.dev.ndmf.model.WellKnownPlatforms.VRChatAvatar30">VRChat avatar 3.0</see>.
+        /// </summary>
+        /// <param name="platforms">platforms to run on. must not be empty</param>
+        /// <returns>this sequence</returns>
+        public Sequence OnPlatforms(params string[] platforms)
+        {
+            if (platforms.Length == 0)
+            {
+                throw new ArgumentException("At least one platform must be specified");
+            }
 
+            PlatformFilter = platforms.ToImmutableHashSet();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Declares that subsequent passes (until the next OnPlatforms declaration) will run on all platforms.
+        /// </summary>
+        /// <returns></returns>
+        public Sequence OnAllPlatforms()
+        {
+            PlatformFilter = null;
+
+            return this;
+        }
+
+        
         /// <summary>
         /// Registers a pass to run in this sequence.
         /// </summary>
@@ -247,6 +292,8 @@ namespace nadena.dev.ndmf.fluent
                     }
                 );
             }
+
+            solverPass.Platforms = PlatformFilter;
 
             _priorPass = solverPass;
             OnNewPass(solverPass);
