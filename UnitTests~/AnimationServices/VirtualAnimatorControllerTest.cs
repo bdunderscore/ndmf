@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 using AnimatorController = UnityEditor.Animations.AnimatorController;
@@ -230,6 +231,26 @@ namespace UnitTests.AnimationServices
             var committed = commitContext.CommitObject(vac1);
             
             Assert.AreEqual(1, committed.layers[1].defaultWeight);
+        }
+
+        [Test]
+        public void AdditiveReferencePoseInOverrideControllerTest()
+        {
+            // Validates that additive reference poses can be used with Animator Override Controllers.
+            // This was previously a regression, due to the additive reference pose (which is a property of the clip,
+            // not the controller) being not found in the override controller (and thus set to null).
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var original = LoadAsset<RuntimeAnimatorController>("AdditiveReferenceWithOverrideControllerTest/aoc.overrideController");
+            
+            var virtualController = cloneContext.Clone(original);
+            var commitContext = new CommitContext();
+            var committed = commitContext.CommitObject(virtualController);
+            
+            Assert.IsNotNull(committed);
+
+            var motion = (AnimationClip) committed.layers[0].stateMachine.defaultState.motion;
+            Assert.IsNotNull(AnimationUtility.GetAnimationClipSettings(motion).additiveReferencePoseClip);
         }
     }
 }

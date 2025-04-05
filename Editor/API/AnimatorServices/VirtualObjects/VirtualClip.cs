@@ -152,19 +152,21 @@ namespace nadena.dev.ndmf.animator
         {
             clip = cloneContext.MapClipOnClone(clip);
 
+            return CloneWithoutOverrideController(cloneContext, clip);
+        }
+
+        [return: NotNullIfNotNull("clip")]
+        private static VirtualClip? CloneWithoutOverrideController(CloneContext cloneContext, AnimationClip? clip)
+        {
+            if (clip == null) return null;
+            
             if (cloneContext.PlatformBindings.IsSpecialMotion(clip))
             {
                 return FromMarker(clip);
             }
 
-            if (cloneContext.TryGetValue(clip, out VirtualClip? clonedClip))
-            {
-                return clonedClip!;
-            }
-
-            var virtualClip = new VirtualClip(cloneContext, clip, false);
-
-            return virtualClip;
+            return cloneContext.GetOrClone<AnimationClip, VirtualClip>(clip,
+                (cloneContext_, clip_) => new VirtualClip(cloneContext_, clip_, false));
         }
 
         /// <summary>
@@ -249,7 +251,7 @@ namespace nadena.dev.ndmf.animator
                 // defer call until after we register this VirtualClip, to avoid infinite recursion
                 cloneContext.DeferCall(() =>
                 {
-                    var refPoseClip = cloneContext.Clone(settings.additiveReferencePoseClip);
+                    var refPoseClip = CloneWithoutOverrideController(cloneContext, settings.additiveReferencePoseClip);
                     settings.additiveReferencePoseClip = null;
                     AnimationUtility.SetAnimationClipSettings(_clip, settings);
                     AdditiveReferencePoseClip = refPoseClip;
