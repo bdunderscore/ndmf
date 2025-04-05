@@ -60,12 +60,12 @@ namespace nadena.dev.ndmf.model
 
             var attrs = pass.GetType().GetCustomAttributes(false);
             var allPlatformsAttribute = attrs.Any(a => a is RunsOnAllPlatforms);
-            var supportedPlatforms = attrs.OfType<RunsOnPlatform>().Select(p => p.Platform).ToArray();
+            var supportedPlatforms = attrs.OfType<RunsOnPlatforms>().SelectMany(p => p.Platforms).ToArray();
 
             if (allPlatformsAttribute && supportedPlatforms.Length > 0)
             {
                 throw new InvalidOperationException(
-                    $"Pass {pass.GetType().Name} cannot be marked with both {nameof(RunsOnAllPlatforms)} and {nameof(RunsOnPlatform)}");
+                    $"Pass {pass.GetType().Name} cannot be marked with both {nameof(RunsOnAllPlatforms)} and {nameof(RunsOnPlatforms)}");
             }
 
             if (allPlatformsAttribute)

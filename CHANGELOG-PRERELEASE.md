@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   build failure
 
 ### Changed
+- [#574] Adjusted the API for platform compatibility declaration
+- Disabled platform filtering for the moment. This will be enabled in an experimental package in a later change. 
 
 ### Removed
 

@@ -214,30 +214,55 @@ namespace nadena.dev.ndmf.fluent
         }
         
         /// <summary>
-        /// Declares that subsequent passes (until the next OnPlatforms declaration) will run only on the listed
-        /// platforms.
+        /// Declares that a group of passes run only on the specified set of platforms.
+        ///
+        /// <code>
+        ///   sequence.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30, WellKnownPlatforms.Resonite }, s => {
+        ///     s.Run(typeof(MyPass));
+        /// });
+        /// </code> 
         ///
         /// For backwards compatibility, by default all passes run only on
-        /// <see cref="nadena.dev.ndmf.model.WellKnownPlatforms.VRChatAvatar30">VRChat avatar 3.0</see>.
+        /// <see cref="nadena.dev.ndmf.model.WellKnownPlatforms.VRChatAvatar30">VRChat avatar 3.0</see>,
+        /// unless you have applied a <see cref="nadena.dev.ndmf.RunsOnAllPlatforms">RunsOnAllPlatforms</see> attribute
+        /// or <see cref="nadena.dev.ndmf.RunsOnPlatforms">RunsOnPlatform</see> attribute to the plugin or pass.
         /// </summary>
         /// <param name="platforms">platforms to run on. must not be empty</param>
         /// <returns>this sequence</returns>
-        public Sequence OnPlatforms(params string[] platforms)
+        /// <seealso cref="nadena.dev.ndmf.WellKnownPlatforms"/>
+        public Sequence OnPlatforms(string[] platforms, Action<Sequence> action)
         {
             if (platforms.Length == 0)
             {
                 throw new ArgumentException("At least one platform must be specified");
             }
 
+            var priorFilter = PlatformFilter;
             PlatformFilter = platforms.ToImmutableHashSet();
+            
+            action(this);
+
+            PlatformFilter = priorFilter;
 
             return this;
         }
 
         /// <summary>
-        /// Declares that subsequent passes (until the next OnPlatforms declaration) will run on all platforms.
+        /// Declares that a group of passes run on all platforms.
+        ///
+        /// <code>
+        ///   sequence.OnPlatforms(new[] { WellKnownPlatforms.VRChatAvatar30, WellKnownPlatforms.Resonite }, s => {
+        ///     s.Run(typeof(MyPass));
+        /// });
+        /// </code> 
+        ///
+        /// For backwards compatibility, by default all passes run only on
+        /// <see cref="nadena.dev.ndmf.model.WellKnownPlatforms.VRChatAvatar30">VRChat avatar 3.0</see>,
+        /// unless you have applied a <see cref="nadena.dev.ndmf.RunsOnAllPlatforms">RunsOnAllPlatforms</see> attribute
+        /// or <see cref="nadena.dev.RunsOnPlatforms">RunsOnPlatforms</see> attribute to the plugin or pass.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="platforms">platforms to run on. must not be empty</param>
+        /// <returns>this sequence</returns>
         public Sequence OnAllPlatforms()
         {
             PlatformFilter = null;
