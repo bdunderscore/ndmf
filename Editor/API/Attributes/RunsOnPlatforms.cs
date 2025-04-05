@@ -16,9 +16,9 @@ namespace nadena.dev.ndmf
     }
 
     /// <summary>
-    ///     Declares that the attached Pass or Plugin runs on all NDMF platforms. Must not be used in conjunction with
+    ///     Declares that the attached Pass or Plugin runs on one or more specified NDMF platforms. Must not be used in conjunction with
     ///     RunsOnAllPlatforms.
-    ///     If your pass supports multiple platforms, this attribute can be attached multiple times to declares this.
+    ///     If your pass supports multiple platforms, this attribute can be attached multiple times to declare this.
     ///     <p />
     ///     If this attribute is attached to a Pass class, any configuration performed on the `Sequence` class will be ignored
     ///     for this class. If this attribute is attached to a Plugin class, Sequences will start with the specified
