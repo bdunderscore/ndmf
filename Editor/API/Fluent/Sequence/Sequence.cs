@@ -228,6 +228,7 @@ namespace nadena.dev.ndmf.fluent
         /// or <see cref="nadena.dev.ndmf.RunsOnPlatforms">RunsOnPlatform</see> attribute to the plugin or pass.
         /// </summary>
         /// <param name="platforms">platforms to run on. must not be empty</param>
+        /// <param name="action">The action to run</param>
         /// <returns>this sequence</returns>
         /// <seealso cref="nadena.dev.ndmf.WellKnownPlatforms"/>
         public Sequence OnPlatforms(string[] platforms, Action<Sequence> action)
@@ -261,11 +262,17 @@ namespace nadena.dev.ndmf.fluent
         /// unless you have applied a <see cref="nadena.dev.ndmf.RunsOnAllPlatforms">RunsOnAllPlatforms</see> attribute
         /// or <see cref="nadena.dev.RunsOnPlatforms">RunsOnPlatforms</see> attribute to the plugin or pass.
         /// </summary>
-        /// <param name="platforms">platforms to run on. must not be empty</param>
+        /// <param name="action">The action to run</param>
         /// <returns>this sequence</returns>
-        public Sequence OnAllPlatforms()
+        public Sequence OnAllPlatforms(Action<Sequence> action)
         {
+            var priorFilter = PlatformFilter;
+            
             PlatformFilter = null;
+            
+            action(this);
+            
+            PlatformFilter = priorFilter;
 
             return this;
         }
