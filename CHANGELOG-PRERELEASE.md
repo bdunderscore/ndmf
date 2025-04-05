@@ -10,18 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#573] Fixed an issue where additive reference pose clip references in animator override controllers resulted in a
-  build failure
 
 ### Changed
-- [#574] Adjusted the API for platform compatibility declaration
-- Disabled platform filtering for the moment. This will be enabled in an experimental package in a later change. 
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.1] - [2025-04-05]
+
+### Fixed
+- [#573] Fixed an issue where additive reference pose clip references in animator override controllers resulted in a
+  build failure
+
+### Changed
+- [#574] Adjusted the API for platform compatibility declaration
+- Disabled platform filtering for the moment. This will be enabled in an experimental package in a later change. 
 
 ## [1.8.0-alpha.0] - [2025-04-05]
 
