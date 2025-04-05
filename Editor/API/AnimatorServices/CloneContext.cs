@@ -145,7 +145,8 @@ namespace nadena.dev.ndmf.animator
             return rv;
         }
 
-        private U? GetOrClone<T, U>(T? key, Func<CloneContext, T, U> clone) where U : class
+        [return: NotNullIfNotNull("key")]
+        internal U? GetOrClone<T, U>(T? key, Func<CloneContext, T, U> clone) where U : class
         {
             try
             {

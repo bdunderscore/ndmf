@@ -6,6 +6,7 @@ using System.Linq;
 using nadena.dev.ndmf.runtime;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDKBase.Editor.BuildPipeline;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -101,7 +102,7 @@ namespace nadena.dev.ndmf
         }
 
         #if NDMF_VRCSDK3_AVATARS
-        private static bool IsVRCFuryHack(System.Diagnostics.StackTrace trace)
+        private static bool IsVRCFuryHack(StackTrace trace)
         {
             foreach (var frame in trace.GetFrames())
             {
@@ -112,11 +113,11 @@ namespace nadena.dev.ndmf
                 frame.GetMethod().DeclaringType.FullName == "VF.Menu.NdmfFirstMenuItem"
             );
         }
-        
-        private static bool InHookExecution(System.Diagnostics.StackTrace trace)
+
+        private static bool InHookExecution(StackTrace trace)
         {
             return trace.GetFrames().Any(frame =>
-                typeof(VRC.SDKBase.Editor.BuildPipeline.IVRCSDKPreprocessAvatarCallback)
+                typeof(IVRCSDKPreprocessAvatarCallback)
                     .IsAssignableFrom(frame.GetMethod().DeclaringType));
         }
         #else
@@ -147,7 +148,7 @@ namespace nadena.dev.ndmf
             // HACK: VRCFury tries to invoke ProcessAvatar during its own processing, but this risks having Optimization
             // phase passes run too early (before VRCF runs). Detect when we're being invoked like this and skip
             // optimization.
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+            var stackTrace = new StackTrace();
             if (IsVRCFuryHack(stackTrace))
             {
                 if (InHookExecution(stackTrace))
@@ -202,7 +203,7 @@ namespace nadena.dev.ndmf
                     {
                         Debug.LogError("Error processing pass " + pass.Description);
                         Debug.LogException(e);
-                        throw e;
+                        throw;
                     }
 
                     stopwatch.Stop();
