@@ -37,6 +37,8 @@ namespace nadena.dev.ndmf
         ///     The FirstChance build phase runs before platform initialization, and should be used for plugins that need to
         ///     run before absolutely everything else. For example, if you want to replace the entire avatar with a different
         ///     one, this is probably the time to do it.
+        ///
+        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
         /// </summary>
         public static readonly BuildPhase FirstChance = new("FirstChance");
 
@@ -45,6 +47,8 @@ namespace nadena.dev.ndmf
         /// <summary>
         ///     The PlatformInit phase runs early in the build process, and is intended for platform backend initialization.
         ///     In particular, this is the phase where common avatar configuration is synced between platforms.
+        ///
+        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
         /// </summary>
         public static readonly BuildPhase PlatformInit = new("PlatformInit");
 

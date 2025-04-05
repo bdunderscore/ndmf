@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 
 #endregion
@@ -81,6 +82,11 @@ namespace nadena.dev.ndmf.model
         public override string ToString()
         {
             return Pass.DisplayName;
+        }
+        
+        public bool IsPlatformCompatible(INDMFPlatformProvider platform)
+        {
+            return Platforms == null || Platforms.Contains(platform.QualifiedName);
         }
     }
 }
