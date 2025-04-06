@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0-alpha.3] - [2025-04-06]
+
+### Added
+
 #### Added (experimental features)
 These features are only accessible if you set `NDMF_EXPERIMENTAL` as a script define in your project settings,
 and are subject to change in future releases (are not subject to semver).
@@ -24,12 +38,6 @@ and are subject to change in future releases (are not subject to semver).
 ### Changed
 - [#574] Adjusted the API for platform compatibility declaration
 - Disabled platform filtering for the moment. This will be enabled in an experimental package in a later change.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.8.0-alpha.0] - [2025-04-05]
 

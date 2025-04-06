@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0-alpha.3] - [2025-04-06]
+
+### Added
 - [#572] Added new APIs to declare which platforms a pass or plugin should run on.
   - Use `[RunsOnPlatforms]` or `[RunsOnAllPlatforms]` to declare platform compatibility for a plugin or pass.
   - You can also use `Sequence.OnPlatforms` or `Sequence.OnAllPlatforms` to override the plugin setting for a group of
@@ -23,16 +37,8 @@ and are subject to change in future releases (are not subject to semver).
   script define.
 - Added `NDMF Avatar Root` experimental component.
 
-### Fixed
-
 ### Changed
 - Standalone NDMF (when VRCSDK is not installed) will now filter passes by platform configuration.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.7.4] - [2025-04-05]
 
