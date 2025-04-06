@@ -31,8 +31,6 @@ and are subject to change in future releases (are not subject to semver).
 
 ### Deprecated
 
-## [1.8.0-alpha.1] - [2025-04-05]
-
 ## [1.8.0-alpha.0] - [2025-04-05]
 
 ### Added
