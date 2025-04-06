@@ -18,24 +18,18 @@ and are subject to change in future releases (are not subject to semver).
 - Added `NDMF Avatar Root` experimental component.
 
 ### Fixed
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
-
-## [1.8.0-alpha.2] - [2025-04-05]
-
-### Fixed
 - [#573] Fixed an issue where additive reference pose clip references in animator override controllers resulted in a
   build failure
 
 ### Changed
 - [#574] Adjusted the API for platform compatibility declaration
 - Disabled platform filtering for the moment. This will be enabled in an experimental package in a later change.
+
+### Removed
+
+### Security
+
+### Deprecated
 
 ## [1.8.0-alpha.1] - [2025-04-05]
 
