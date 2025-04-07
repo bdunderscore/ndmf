@@ -6,6 +6,6 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("nadena.dev.ndmf.UnitTests")]
 [assembly: InternalsVisibleTo("nadena.dev.ndmf.vrchat")]
-[assembly: InternalsVisibleTo("nadena.dev.resonity.editor")]
-[assembly: InternalsVisibleTo("nadena.dev.ndmf.multiplatform.editor")]
-[assembly: InternalsVisibleTo("nadena.dev.ndmf.multiplatform.runtime")]
+// temporary, until we stabilize APIs
+[assembly: InternalsVisibleTo("nadena.dev.modular-avatar.resonite")]
+[assembly: InternalsVisibleTo("nadena.dev.modular-avatar.resonite.editor")]
