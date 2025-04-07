@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Added (experimental features)
-- Added internal APIs and components to support experimental Resonite backend support.
-  - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
-
 ### Fixed
 
 ### Changed
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.4] - [2025-04-07]
+
+### Added
+
+#### Added (experimental features)
+- Added internal APIs and components to support experimental Resonite backend support.
+  - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ## [1.8.0-alpha.3] - [2025-04-06]
 
