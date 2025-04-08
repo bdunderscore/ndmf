@@ -252,5 +252,34 @@ namespace UnitTests.AnimationServices
             var motion = (AnimationClip) committed.layers[0].stateMachine.defaultState.motion;
             Assert.IsNotNull(AnimationUtility.GetAnimationClipSettings(motion).additiveReferencePoseClip);
         }
+
+        [Test]
+        public void ToleratesMultipleParameterDefinitions()
+        {
+            var original = TrackObject(new AnimatorController());
+            original.parameters = new[]
+            {
+                new AnimatorControllerParameter()
+                {
+                    name = "a",
+                    type = AnimatorControllerParameterType.Int,
+                    defaultInt = 1
+                },
+                new AnimatorControllerParameter()
+                {
+                    name = "a",
+                    type = AnimatorControllerParameterType.Float,
+                    defaultFloat = 2
+                }
+            };
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var virtualController = cloneContext.Clone(original);
+
+            var param = virtualController.Parameters["a"];
+            Assert.AreEqual("a", param.name);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, param.type);
+            Assert.AreEqual(2, param.defaultFloat);
+        }
     }
 }
