@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if NDMF_VRCSDK3_AVATARS
 using HarmonyLib;
 using VRC.Core;
@@ -53,6 +55,10 @@ namespace UnitTests
         
         protected T TrackObject<T>(T obj) where T : Object
         {
+            if (EditorUtility.IsPersistent(obj))
+            {
+                throw new Exception("Tried to TrackObject a persistent asset");
+            }
             objects.Add(obj);
             return obj;
         }

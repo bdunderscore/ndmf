@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.Remoting;
+﻿using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
@@ -9,7 +7,6 @@ using UnityEngine;
 #if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Dynamics.PhysBone.Components;
 #endif
-using Object = UnityEngine.Object;
 
 namespace UnitTests.AnimationServices
 {
@@ -337,6 +334,27 @@ namespace UnitTests.AnimationServices
                 AnimationUtility.GetEditorCurve(newRefPose, refPoseEcb)
             );
         }
+
+        #if NDMF_VRCSDK3_AVATARS
+        [Test]
+        public void WhenProxyClipIsCloned_RevertToOriginalProxyClip()
+        {
+            using var _ = new ObjectRegistryScope(new ObjectRegistry(TrackObject(new GameObject()).transform));
+            
+            var proxy_path = "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/ProxyAnim/proxy_afk.anim";
+            var proxy_clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(proxy_path);
+            
+            var new_clip = TrackObject(new AnimationClip() { name = proxy_clip.name});
+            ObjectRegistry.RegisterReplacedObject(proxy_clip, new_clip);
+            
+            var cloneContext = new CloneContext(VRChatPlatformAnimatorBindings.Instance);
+            var virtualClip = VirtualClip.Clone(cloneContext, new_clip);
+            
+            var committedClip = new CommitContext().CommitObject(virtualClip);
+            
+            Assert.AreSame(proxy_clip, committedClip);
+        }
+        #endif
         
         // TODO: animation clip settings/misc properties tests
 
