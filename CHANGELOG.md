@@ -15,12 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ### Fixed
-- [#585] Build failures when duplicate parameters exist within the same animator controller
-  - NDMF will use the last instance of the parameter defined.
 
 ### Changed
-- [#584] NDMF AnimatorServicesContext will detect when other NDMF plugins have replaced proxy clips with a clone, and
-  will revert them back to their original references (provided that they are properly registered in `ObjectRegistry`)
 
 ### Removed
 
@@ -31,8 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.7.5] - [2025-04-08]
 
 ### Fixed
+- [#585] Build failures when duplicate parameters exist within the same animator controller
+  - NDMF will use the last instance of the parameter defined.
 
 ### Changed
+- [#584] NDMF AnimatorServicesContext will detect when other NDMF plugins have replaced proxy clips with a clone, and
+  will revert them back to their original references (provided that they are properly registered in `ObjectRegistry`)
 
 ## [1.8.0-alpha.3] - [2025-04-06]
 
