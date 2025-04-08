@@ -12,13 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- Adjusted experimental cross-platform dynamic bone heuristics
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.5] - [2025-04-08]
+
+### Changed
+- Adjusted experimental cross-platform dynamic bone heuristics
 
 ## [1.7.5] - [2025-04-08]
 
