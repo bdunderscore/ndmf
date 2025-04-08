@@ -160,9 +160,12 @@ namespace nadena.dev.ndmf.animator
         {
             if (clip == null) return null;
             
-            if (cloneContext.PlatformBindings.IsSpecialMotion(clip))
+            // Some NDMF plugins incorrectly replace proxies with clones; workaround this here by looking through to
+            // ObjectRegistry to find the original clip.
+            var baseClip = ObjectRegistry.GetReference(clip).Object as AnimationClip;
+            if (baseClip != null && cloneContext.PlatformBindings.IsSpecialMotion(baseClip))
             {
-                return FromMarker(clip);
+                return FromMarker(baseClip);
             }
 
             return cloneContext.GetOrClone<AnimationClip, VirtualClip>(clip,
