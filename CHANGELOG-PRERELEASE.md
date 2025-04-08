@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#585] Build failures when duplicate parameters exist within the same animator controller
+  - NDMF will use the last instance of the parameter defined.
 
 ### Changed
 
