@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+## [1.7.5] - [2025-04-08]
+
+### Fixed
+
+### Changed
+
 ## [1.8.0-alpha.3] - [2025-04-06]
 
 ### Added
