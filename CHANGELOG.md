@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#587] NDMF plugins that modify animators would cause AnimatorLayerControl behaviors to be lost
 
 ### Changed
 

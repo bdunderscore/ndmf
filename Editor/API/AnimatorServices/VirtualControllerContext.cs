@@ -238,6 +238,12 @@ namespace nadena.dev.ndmf.animator
                     _layerStates.TryGetValue(virtualizeController, out var currentLayer))
                 {
                     currentLayer.Revalidate(CloneContext, ac);
+
+                    // It's possible revalidate failed, so make sure we have the right scope in place when cloning again
+                    using var _ = CloneContext.PushDistinctScope();
+                    using var _k = CloneContext.PushActiveInnateKey(virtualizeController.TargetControllerKey);
+
+                    currentLayer.GetVirtualController(CloneContext);
                 }
                 else
                 {
