@@ -257,8 +257,9 @@ namespace nadena.dev.ndmf.animator
 
                     if (basePath != "")
                     {
-                        new AnimationIndex(new[] { vc })
-                            .ApplyPathPrefix(basePath);
+                        var index = new AnimationIndex(new[] { vc });
+                        index.PlatformBindings = _platformBindings;
+                        index.ApplyPathPrefix(basePath);
                     }
                 }
             }
