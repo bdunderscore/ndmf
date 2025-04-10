@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#587] NDMF plugins that modify animators would cause AnimatorLayerControl behaviors to be lost
+- [#588] Animator Play Audio paths are not correctly remapped in Merge Animator
 
 ### Changed
 
