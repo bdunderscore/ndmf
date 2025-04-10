@@ -256,6 +256,31 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("B", behaviour.SourcePath);
         }
 
+        [Test]
+        public void RemapPlayAudioPaths_InVirtualizedController()
+        {
+            var root = CreateRoot("root");
+            var ac = LoadAsset<AnimatorController>("TestAssets/PlayAudio/playaudio_ac.controller");
+
+            var sub = CreateChild(root, "B");
+            var audio = CreateChild(sub, "A");
+
+            var virtualized = sub.AddComponent<VirtualizedComponent>();
+            virtualized.AnimatorController = ac;
+            virtualized.MotionBasePath = "B";
+            
+            var ctx = CreateContext(root);
+            var vcc = ctx.ActivateExtensionContext<VirtualControllerContext>();
+
+            var virtualController = vcc.Controllers[virtualized];
+            var stateMachine = virtualController.Layers.First().StateMachine;
+            var state = stateMachine.DefaultState;
+            
+            var behaviour = (VRCAnimatorPlayAudio) state.Behaviours.First();
+            
+            Assert.AreEqual("B/A", behaviour.SourcePath);
+        }
+        
         private AnimatorController BuildInterlayerController(string prefix)
         {
             var ac = new AnimatorController();
