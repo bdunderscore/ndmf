@@ -75,6 +75,19 @@ namespace UnitTests.AnimationServices
             
             Assert.AreEqual(1, finalFx.layers[0].stateMachine.defaultState.behaviours.Length);
         }
+
+        [Test]
+        public void WhenLayersAreDuplicated_DoesNotDropAllContents()
+        {
+            var root = CreatePrefab("DuplicateLayers/DuplicateLayers.prefab");
+            
+            var context = CreateContext(root);
+            
+            context.ActivateExtensionContext<VirtualControllerContext>();
+            context.DeactivateExtensionContext<VirtualControllerContext>();
+
+            Assert.NotNull(findFxLayer(root, "test_layer"));
+        }
         #endif
     }
 }

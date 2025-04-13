@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ### Fixed
+- [#597] Fixed an issue where duplicate layer entries in the VRChat Avatar Descriptor would cause all animator contents
+  to be ignored.
 - [#591] Fixed a benign `NullReferenceException` at initialization
 
 ### Changed
