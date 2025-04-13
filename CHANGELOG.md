@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#591] Fixed a benign `NullReferenceException` at initialization
+- [#595] Fixed a NullReferenceException in AnimationIndex 
 
 ### Changed
 
