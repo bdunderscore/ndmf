@@ -201,6 +201,13 @@ namespace nadena.dev.ndmf.animator
             if (_cloneContext == null) _cloneContext = new CloneContext(_platformBindings);
 
             var innateControllers = _platformBindings.GetInnateControllers(root);
+            
+            // There's a longstanding bug in the VRCSDK that can result in duplicate FX controllers, among other
+            // weirdness. It's not clear how VRChat handles this, but for now we'll take the last one registered.
+            innateControllers = innateControllers.GroupBy(k => k.Item1)
+                .Select(g => g.Last())
+                .ToList();
+            
             CacheInvalidationToken++;
 
             foreach (var (type, controller, _) in innateControllers)
