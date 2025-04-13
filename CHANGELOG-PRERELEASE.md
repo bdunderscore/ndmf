@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#585] Build failures when duplicate parameters exist within the same animator controller
   - NDMF will use the last instance of the parameter defined.
+- [#590] `[RunsOnPlatforms]` and `[RunsOnAllPlatforms]` did not work when applied to a pass class. 
 
 ### Changed
 - [#584] NDMF AnimatorServicesContext will detect when other NDMF plugins have replaced proxy clips with a clone, and

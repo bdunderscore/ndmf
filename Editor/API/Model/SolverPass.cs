@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 
@@ -51,8 +52,14 @@ namespace nadena.dev.ndmf.model
             return false;
         }
 
-        internal SolverPass(IPluginInternal plugin, IPass pass, BuildPhase phase, IImmutableSet<string> compatibleExtensions,
-            IImmutableSet<Type> requiredExtensions)
+        internal SolverPass(
+            IPluginInternal plugin,
+            IPass pass,
+            BuildPhase phase,
+            IImmutableSet<string> compatibleExtensions,
+            IImmutableSet<Type> requiredExtensions,
+            [CanBeNull] ImmutableHashSet<string> platforms = null
+        )
         {
             Plugin = plugin;
             Pass = pass;
@@ -77,6 +84,10 @@ namespace nadena.dev.ndmf.model
             else if (supportedPlatforms.Length > 0)
             {
                 Platforms = supportedPlatforms.ToImmutableHashSet();
+            }
+            else
+            {
+                Platforms = platforms;
             }
         }
 
