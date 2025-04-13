@@ -33,7 +33,7 @@ namespace nadena.dev.ndmf.animator
         public bool IsMarkerClip { get; private set; }
 
         /// <summary>
-        ///     True if this clip has been modified since it was cloned or created.
+        ///     True if this clip has been modified since it was cloned, created, or committed.
         /// </summary>
         public bool IsDirty { get; private set; }
 
@@ -113,17 +113,10 @@ namespace nadena.dev.ndmf.animator
         private Dictionary<EditorCurveBinding, CachedCurve<ObjectReferenceKeyframe[]>> _pptrCurveCache =
             new(ECBComparator.Instance);
 
-        private struct CachedCurve<T>
+        private class CachedCurve<T>
         {
-            // If null and Dirty is false, the curve has not been cached yet.
-            // If null and Dirty is true, the curve has been deleted.
+            // If null the curve has not been cached yet.
             public T? Value;
-            public bool Dirty;
-
-            public override string ToString()
-            {
-                return $"CachedCurve<{typeof(T).Name}> {{ Value = {Value}, Dirty = {Dirty} }}";
-            }
         }
 
         /// <summary>
@@ -264,16 +257,12 @@ namespace nadena.dev.ndmf.animator
 
         public IEnumerable<EditorCurveBinding> GetFloatCurveBindings()
         {
-            return _curveCache
-                .Where(kvp => kvp.Value.Value != null || !kvp.Value.Dirty)
-                .Select(kvp => kvp.Key).ToList();
+            return _curveCache.Select(kvp => kvp.Key).ToList();
         }
 
         public IEnumerable<EditorCurveBinding> GetObjectCurveBindings()
         {
-            return _pptrCurveCache
-                .Where(kvp => kvp.Value.Value != null || !kvp.Value.Dirty)
-                .Select(kvp => kvp.Key).ToList();
+            return _pptrCurveCache.Select(kvp => kvp.Key).ToList();
         }
 
         /// <summary>
@@ -308,16 +297,6 @@ namespace nadena.dev.ndmf.animator
                     IsDirty = true;
                     Invalidate();
 
-                    // Any binding originally present needs some kind of presence in the new cache; start off by
-                    // inserting a deleted entry, we'll overwrite it later if appropriate.
-                    if (!newCache.ContainsKey(binding))
-                    {
-                        newCache[binding] = new CachedCurve<T>
-                        {
-                            Dirty = true
-                        };
-                    }
-
                     if (newBinding.path == null)
                     {
                         // Delete the binding
@@ -326,10 +305,9 @@ namespace nadena.dev.ndmf.animator
 
                     // Load cache entry if not loaded
                     var entry = kvp.Value;
-                    if (!entry.Dirty && entry.Value == null)
+                    if (entry.Value == null)
                     {
                         entry.Value = getter(_clip, binding);
-                        entry.Dirty = true;
                     }
 
                     newCache[newBinding] = entry;
@@ -343,28 +321,26 @@ namespace nadena.dev.ndmf.animator
         {
             if (_curveCache.TryGetValue(binding, out var cached))
             {
-                if (cached.Dirty == false && cached.Value == null)
+                if (cached.Value == null)
                 {
                     cached.Value = AnimationUtility.GetEditorCurve(_clip, binding);
-                    _curveCache[binding] = cached;
                 }
             }
 
-            return cached.Value;
+            return cached?.Value;
         }
 
         public ObjectReferenceKeyframe[]? GetObjectCurve(EditorCurveBinding binding)
         {
             if (_pptrCurveCache.TryGetValue(binding, out var cached))
             {
-                if (cached.Dirty == false && cached.Value == null)
+                if (cached.Value == null)
                 {
                     cached.Value = AnimationUtility.GetObjectReferenceCurve(_clip, binding);
-                    _pptrCurveCache[binding] = cached;
                 }
             }
 
-            return cached.Value;
+            return cached?.Value;
         }
 
         public void SetFloatCurve(EditorCurveBinding binding, AnimationCurve? curve)
@@ -377,6 +353,13 @@ namespace nadena.dev.ndmf.animator
             if (IsMarkerClip) return;
 
             Invalidate();
+            IsDirty = true;
+
+            if (curve == null)
+            {
+                _curveCache.Remove(binding);
+                return;
+            }
 
             if (!_curveCache.TryGetValue(binding, out var cached))
             {
@@ -384,8 +367,6 @@ namespace nadena.dev.ndmf.animator
             }
 
             cached.Value = curve;
-            cached.Dirty = true;
-            IsDirty = true;
 
             _curveCache[binding] = cached;
         }
@@ -399,7 +380,14 @@ namespace nadena.dev.ndmf.animator
 
             if (IsMarkerClip) return;
 
+            IsDirty = true;
             Invalidate();
+
+            if (curve == null)
+            {
+                _pptrCurveCache.Remove(binding);
+                return;
+            }
             
             if (!_pptrCurveCache.TryGetValue(binding, out var cached))
             {
@@ -407,8 +395,6 @@ namespace nadena.dev.ndmf.animator
             }
 
             cached.Value = curve;
-            cached.Dirty = true;
-            IsDirty = true;
 
             _pptrCurveCache[binding] = cached;
         }
@@ -432,22 +418,22 @@ namespace nadena.dev.ndmf.animator
 
             if (IsDirty)
             {
-                // WORKAROUND: AnimationUtility.SetEditorCurves doesn't actually delete curves when null, despite the
+                // AnimationUtility.SetEditorCurves doesn't actually delete curves when null, despite the
                 // documentation claiming it will. Fault in all uncached curves, then clear everything.
                 foreach (var curve in _curveCache.ToList())
                 {
-                    if (!curve.Value.Dirty && curve.Value.Value == null) GetFloatCurve(curve.Key);
+                    if (curve.Value.Value == null) GetFloatCurve(curve.Key);
                 }
 
                 foreach (var curve in _pptrCurveCache.ToList())
                 {
-                    if (!curve.Value.Dirty && curve.Value.Value == null) GetObjectCurve(curve.Key);
+                    if (curve.Value.Value == null) GetObjectCurve(curve.Key);
                 }
 
                 clip.ClearCurves();
 
-                var changedBindings = _curveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
-                var changedPptrBindings = _pptrCurveCache.Where(c => c.Value.Dirty || c.Value.Value != null).ToList();
+                var changedBindings = _curveCache.ToList();
+                var changedPptrBindings = _pptrCurveCache.ToList();
 
                 if (changedBindings.Count > 0)
                 {
