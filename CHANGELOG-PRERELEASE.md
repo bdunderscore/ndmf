@@ -10,11 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#597] Fixed an issue where duplicate layer entries in the VRChat Avatar Descriptor would cause all animator contents
-  to be ignored.
-- [#591] Fixed a benign `NullReferenceException` at initialization
-- [#595] Fixed a NullReferenceException in AnimationIndex
-- [#598] Fixed an issue where animation curve paths being rewritten multiple times might be deleted
 
 ### Changed
 
@@ -23,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.7] - [2025-04-14]
+
+### Fixed
+- [#597] Fixed an issue where duplicate layer entries in the VRChat Avatar Descriptor would cause all animator contents
+  to be ignored.
+- [#591] Fixed a benign `NullReferenceException` at initialization
+- [#595] Fixed a NullReferenceException in AnimationIndex
+- [#598] Fixed an issue where animation curve paths being rewritten multiple times might be deleted
 
 ## [1.7.6] - [2025-04-10]
 
