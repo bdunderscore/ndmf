@@ -304,6 +304,42 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(42, curve.keys[0].value);
         }
 #endif
+
+        [Test]
+        public void MultiplePathRewrites()
+        {
+            var clip = VirtualClip.Create("test");
+            clip.SetFloatCurve("abc", typeof(GameObject), "m_IsActive", new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 1)));
+            
+            clip.EditPaths(p => p + "1");
+            clip.EditPaths(p => p + "2");
+            clip.EditPaths(p => p + "3");
+            
+            var bindings = clip.GetFloatCurveBindings().ToList();
+            Assert.AreEqual(1, bindings.Count);
+            Assert.AreEqual("abc123", bindings[0].path);
+            Assert.AreEqual(typeof(GameObject), bindings[0].type);
+            Assert.AreEqual("m_IsActive", bindings[0].propertyName);
+            Assert.AreEqual(2, clip.GetFloatCurve("abc123", typeof(GameObject), "m_IsActive")!.keys.Length);
+        }
+        
+        [Test]
+        public void MultiplePathRewrites_WithOverride()
+        {
+            var clip = VirtualClip.Create("test");
+            clip.SetFloatCurve("abc", typeof(GameObject), "m_IsActive", new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 1)));
+            
+            clip.EditPaths(_ => "1");
+            clip.EditPaths(_ => "2");
+            clip.EditPaths(_ => "abc123");
+            
+            var bindings = clip.GetFloatCurveBindings().ToList();
+            Assert.AreEqual(1, bindings.Count);
+            Assert.AreEqual("abc123", bindings[0].path);
+            Assert.AreEqual(typeof(GameObject), bindings[0].type);
+            Assert.AreEqual("m_IsActive", bindings[0].propertyName);
+            Assert.AreEqual(2, clip.GetFloatCurve("abc123", typeof(GameObject), "m_IsActive")!.keys.Length);
+        }
         
         [Test]
         public void PreservesAdditiveReferencePose()
