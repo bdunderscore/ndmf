@@ -292,7 +292,7 @@ namespace nadena.dev.ndmf.fluent
 
         private DeclaringPass InternalRun(IPass pass, string sourceFile, int sourceLine)
         {
-            var solverPass = new SolverPass(_plugin, pass, _phase, _compatibleExtensions, _requiredExtensions);
+            var solverPass = new SolverPass(_plugin, pass, _phase, _compatibleExtensions, _requiredExtensions, PlatformFilter);
             _solverContext.AddPass(solverPass);
 
             _solverContext.Constraints.Add(
@@ -324,9 +324,7 @@ namespace nadena.dev.ndmf.fluent
                     }
                 );
             }
-
-            solverPass.Platforms = PlatformFilter;
-
+            
             _priorPass = solverPass;
             OnNewPass(solverPass);
 

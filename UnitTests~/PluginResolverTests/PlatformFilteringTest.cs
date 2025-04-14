@@ -62,7 +62,8 @@ namespace UnitTests.PluginResolverTests
         protected override void Configure()
         {
             InPhase(BuildPhase.InternalPrePlatformInit)
-                .Run("AllPlatforms", _ => { });
+                .Run("AllPlatforms", _ => { })
+                .Then.Run(OverridePass.Instance);
         }
     }
     
@@ -76,6 +77,15 @@ namespace UnitTests.PluginResolverTests
         {
             InPhase(BuildPhase.InternalPrePlatformInit)
                 .Run("NeverRuns", _ => { Assert.Fail(); });
+        }
+    }
+
+    [RunsOnPlatforms(WellKnownPlatforms.Generic)]
+    class OverridePass : Pass<OverridePass>
+    {
+        protected override void Execute(BuildContext context)
+        {
+            
         }
     }
     
@@ -126,7 +136,7 @@ namespace UnitTests.PluginResolverTests
         {
             var passNames = GetPasses(GenericPlatform.Instance);
 
-            var wantedPassNames = new HashSet<string>(new[] { "GenericPlatform", "AllPlatforms" });
+            var wantedPassNames = new HashSet<string>(new[] { "GenericPlatform", "AllPlatforms", "OverridePass" });
             
             Assert.That(passNames, Is.EquivalentTo(wantedPassNames));
         }
