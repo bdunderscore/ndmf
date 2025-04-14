@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to be ignored.
 - [#591] Fixed a benign `NullReferenceException` at initialization
 - [#595] Fixed a NullReferenceException in AnimationIndex
+- [#598] Fixed an issue where animation curve paths being rewritten multiple times might be deleted
 
 ### Changed
 
