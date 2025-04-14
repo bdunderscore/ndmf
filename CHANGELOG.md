@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.7.7] - [2025-04-14]
+
+### Added
+
 #### Added (experimental features)
 - Added internal APIs and components to support experimental Resonite backend support.
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
@@ -20,14 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#591] Fixed a benign `NullReferenceException` at initialization
 - [#595] Fixed a NullReferenceException in AnimationIndex
 - [#598] Fixed an issue where animation curve paths being rewritten multiple times might be deleted
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.7.6] - [2025-04-10]
 

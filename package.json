@@ -1,7 +1,7 @@
 {
   "name": "nadena.dev.ndmf",
   "displayName": "Non-Destructive Modular Framework",
-  "version": "1.8.0-alpha.6",
+  "version": "1.7.7",
   "unity": "2022.3",
   "description": "A framework for building non-destructive plugins for VRChat Avatar 3.0",
   "vrchatVersion": "2022.1.1",
