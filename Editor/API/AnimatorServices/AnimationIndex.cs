@@ -358,7 +358,7 @@ namespace nadena.dev.ndmf.animator
         private IEnumerable<VirtualClip> EnumerateClips()
         {
             HashSet<object> visited = new();
-            Queue<VirtualNode> queue = new();
+            Queue<VirtualNode?> queue = new();
 
             _lastInvalidationToken = _getInvalidationToken();
             foreach (var controller in _getRoots())
@@ -369,6 +369,8 @@ namespace nadena.dev.ndmf.animator
             while (queue.Count > 0)
             {
                 var node = queue.Dequeue();
+                if (node == null) continue;
+                
                 node.RegisterCacheObserver(_invalidateAction);
                 
                 if (!visited.Add(node))

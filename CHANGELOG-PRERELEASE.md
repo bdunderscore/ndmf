@@ -10,19 +10,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#585] Build failures when duplicate parameters exist within the same animator controller
-  - NDMF will use the last instance of the parameter defined.
 - [#590] `[RunsOnPlatforms]` and `[RunsOnAllPlatforms]` did not work when applied to a pass class. 
+- [#597] Fixed an issue where duplicate layer entries in the VRChat Avatar Descriptor would cause all animator contents
+  to be ignored.
+- [#591] Fixed a benign `NullReferenceException` at initialization
+- [#595] Fixed a NullReferenceException in AnimationIndex
+- [#598] Fixed an issue where animation curve paths being rewritten multiple times might be deleted
 
 ### Changed
-- [#584] NDMF AnimatorServicesContext will detect when other NDMF plugins have replaced proxy clips with a clone, and
-  will revert them back to their original references (provided that they are properly registered in `ObjectRegistry`)
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.6] - [2025-04-10]
+
+### Fixed
+- [#587] NDMF plugins that modify animators would cause AnimatorLayerControl behaviors to be lost
+- [#588] Animator Play Audio paths are not correctly remapped in Merge Animator
+
+## [1.8.0-alpha.5] - [2025-04-08]
+
+### Changed
+- Adjusted experimental cross-platform dynamic bone heuristics
+
+## [1.7.5] - [2025-04-08]
+
+### Fixed
+- [#585] Build failures when duplicate parameters exist within the same animator controller
+  - NDMF will use the last instance of the parameter defined.
+
+### Changed
+- [#584] NDMF AnimatorServicesContext will detect when other NDMF plugins have replaced proxy clips with a clone, and
+  will revert them back to their original references (provided that they are properly registered in `ObjectRegistry`)
 
 ## [1.8.0-alpha.4] - [2025-04-07]
 

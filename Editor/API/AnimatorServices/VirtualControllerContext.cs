@@ -201,6 +201,13 @@ namespace nadena.dev.ndmf.animator
             if (_cloneContext == null) _cloneContext = new CloneContext(_platformBindings);
 
             var innateControllers = _platformBindings.GetInnateControllers(root);
+            
+            // There's a longstanding bug in the VRCSDK that can result in duplicate FX controllers, among other
+            // weirdness. It's not clear how VRChat handles this, but for now we'll take the last one registered.
+            innateControllers = innateControllers.GroupBy(k => k.Item1)
+                .Select(g => g.Last())
+                .ToList();
+            
             CacheInvalidationToken++;
 
             foreach (var (type, controller, _) in innateControllers)
@@ -238,6 +245,12 @@ namespace nadena.dev.ndmf.animator
                     _layerStates.TryGetValue(virtualizeController, out var currentLayer))
                 {
                     currentLayer.Revalidate(CloneContext, ac);
+
+                    // It's possible revalidate failed, so make sure we have the right scope in place when cloning again
+                    using var _ = CloneContext.PushDistinctScope();
+                    using var _k = CloneContext.PushActiveInnateKey(virtualizeController.TargetControllerKey);
+
+                    currentLayer.GetVirtualController(CloneContext);
                 }
                 else
                 {
@@ -251,8 +264,9 @@ namespace nadena.dev.ndmf.animator
 
                     if (basePath != "")
                     {
-                        new AnimationIndex(new[] { vc })
-                            .ApplyPathPrefix(basePath);
+                        var index = new AnimationIndex(new[] { vc });
+                        index.PlatformBindings = _platformBindings;
+                        index.ApplyPathPrefix(basePath);
                     }
                 }
             }

@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
 
@@ -40,19 +43,41 @@ namespace nadena.dev.ndmf.multiplatform.components
             set => m_isWeak = value;
         }
         
-        public static string GuessTemplateName(Component pb)
+        public static string GuessTemplateName(Component pb, Transform root)
         {
+            var rootPath = RuntimeUtil.AvatarRootPath(root.gameObject);
             var path = RuntimeUtil.AvatarRootPath(pb.gameObject)!.ToLowerInvariant();
-            if (path.Contains("/hair"))
+            
+            foreach (var segment in rootPath.Split("/"))
+            {
+                var template = TemplateFromObjectName(segment);
+                if (template != null) return template;
+            }
+            
+            foreach (var segment in path.Split("/"))
+            {
+                var template = TemplateFromObjectName(segment);
+                if (template != null) return template;
+            }
+
+            return "generic";
+        }
+
+        private static string? TemplateFromObjectName(string path)
+        {
+            path = path.ToLowerInvariant();
+            if (path.Contains("pony") || path.Contains("twin")) return "long_hair";
+            
+            if (path.Contains("hair"))
             {
                 return "hair";
             }
 
-            if (path.Contains("/tail")) return "tail";
-            if (path.Contains("/ear") || path.Contains("/kemono")) return "ear";
-            if (path.Contains("/breast")) return "breast";
+            if (path.Contains("tail")) return "tail";
+            if (path.Contains("ear") || path.Contains("kemono") || path.Contains("mimi")) return "ear";
+            if (path.Contains("breast")) return "breast";
 
-            return "generic";
+            return null;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 
 namespace nadena.dev.ndmf.preview
 {
@@ -9,8 +10,15 @@ namespace nadena.dev.ndmf.preview
             var t_Tools = AccessTools.TypeByName("VRC.Tools");
             var p_HasTypeVRCApplication = AccessTools.Property(t_Tools, "HasTypeVRCApplication");
 
-            h.Patch(p_HasTypeVRCApplication.GetMethod,
-                new HarmonyMethod(typeof(VRCSDKBug_AssemblyGetNameExceptionHandling), nameof(AlwaysFalse)));
+            try
+            {
+                h.Patch(p_HasTypeVRCApplication.GetMethod,
+                    new HarmonyMethod(typeof(VRCSDKBug_AssemblyGetNameExceptionHandling), nameof(AlwaysFalse)));
+            }
+            catch (NullReferenceException)
+            {
+                // ignore - VRCSDK has patched the issue already
+            }
         }
 
         private static bool AlwaysFalse(ref bool __result)
