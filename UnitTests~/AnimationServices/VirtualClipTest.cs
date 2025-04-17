@@ -391,6 +391,28 @@ namespace UnitTests.AnimationServices
             Assert.AreSame(proxy_clip, committedClip);
         }
         #endif
+
+        [Test]
+        public void LoopTime_IsPreserved(
+            [Values(true, false)] bool loopTime,
+            [Values(true, false)] bool hasRefClip,
+            [Values(true, false)] bool hasEvent
+        )
+        {
+            var clipName = "LoopTimeIsPreserved/LoopTime_" + (loopTime ? "ON" : "OFF");
+            if (hasRefClip) clipName += " RefClip";
+            if (hasEvent) clipName += " Event";
+
+            var clip = LoadAsset<AnimationClip>(clipName + ".anim");
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var virtualClip = VirtualClip.Clone(cloneContext, clip);
+            
+            var committedClip = Commit(virtualClip);
+            var settings = AnimationUtility.GetAnimationClipSettings(committedClip);
+            
+            Assert.AreEqual(loopTime, settings.loopTime);
+        }
         
         // TODO: animation clip settings/misc properties tests
 
