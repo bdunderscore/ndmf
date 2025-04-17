@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#599] Substate machine transitions were not being enumerated (and thus not processed for MA Parameters renaming)
-- [#600] Fix issue where loop time (and other clip settings) were not preserved when there was no additive reference clip.
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.8] - [2025-04-17]
+
+### Fixed
+- [#599] Substate machine transitions were not being enumerated (and thus not processed for MA Parameters renaming)
+- [#600] Fix issue where loop time (and other clip settings) were not preserved when there was no additive reference clip.
 
 ## [1.8.0-alpha.7] - [2025-04-14]
 
