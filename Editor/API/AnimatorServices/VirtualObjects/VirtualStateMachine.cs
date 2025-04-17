@@ -264,6 +264,14 @@ namespace nadena.dev.ndmf.animator
             {
                 yield return transition;
             }
+
+            foreach (var kv in StateMachineTransitions)
+            {
+                foreach (var t in kv.Value)
+                {
+                    yield return t;
+                }
+            }
         }
 
         public VirtualState AddState(string name, VirtualMotion? motion = null, Vector3? position = null)
@@ -308,7 +316,8 @@ namespace nadena.dev.ndmf.animator
                     }
                 }
             }
-
         }
+        
+        
     }
 }

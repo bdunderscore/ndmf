@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ### Fixed
+- [#599] Substate machine transitions were not being enumerated (and thus not processed for MA Parameters renaming)
 
 ### Changed
 
