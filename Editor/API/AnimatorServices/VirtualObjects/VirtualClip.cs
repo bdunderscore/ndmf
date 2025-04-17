@@ -238,7 +238,7 @@ namespace nadena.dev.ndmf.animator
                     _pptrCurveCache[binding] = new CachedCurve<ObjectReferenceKeyframe[]>();
                 }
             }
-
+            
             var settings = AnimationUtility.GetAnimationClipSettings(oldClip);
             // cloneContext == null should only happen on new clips, or ones cloned from another VirtualClip
             // in the latter case we take care of it in Clone()
@@ -252,6 +252,10 @@ namespace nadena.dev.ndmf.animator
                     AnimationUtility.SetAnimationClipSettings(_clip, settings);
                     AdditiveReferencePoseClip = refPoseClip;
                 });
+            }
+            else
+            {
+                AnimationUtility.SetAnimationClipSettings(_clip, settings);
             }
         }
 
