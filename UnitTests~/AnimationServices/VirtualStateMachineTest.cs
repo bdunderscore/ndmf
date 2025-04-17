@@ -151,6 +151,33 @@ namespace UnitTests.AnimationServices
             
             Assert.IsTrue(vsm.AllStates().Any(s => s.Name == "x"));
         }
+
+        [Test]
+        public void AllReachableNodesEnumeratesSubstateMachineTransitions()
+        {
+            var sm = TrackObject(new AnimatorStateMachine());
+            var sm2 = TrackObject(new AnimatorStateMachine());
+            
+            sm.stateMachines = new[]
+            {
+                new ChildAnimatorStateMachine() { stateMachine = sm2 }
+            };
+            
+            sm.SetStateMachineTransitions(sm2, new AnimatorTransition[]
+            {
+                new AnimatorTransition()
+                {
+                    name = "test",
+                    isExit = true,
+                }
+            });
+            
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var vsm = cloneContext.Clone(sm);
+
+            var node = vsm.AllReachableNodes().OfType<VirtualTransitionBase>().First();
+            Assert.AreEqual("test", node.Name);
+        }
     }
     
    
