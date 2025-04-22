@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#602] Fix issue where, if the hidden "mask" value on the gesture layer in the VRChat avatar controller was missing,
   the avatar would be stuck in "bicycle pose" in gesture manager and Av3Emulator.
+- [#604] Fix an issue where certain VirtualClip properties could attempt to modify VRChat proxy animation clips.
+- [#604] Fix `VirtualClip.AdditiveReferencePoseTime` setter not working
 
 ### Changed
 

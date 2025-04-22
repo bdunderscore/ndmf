@@ -413,6 +413,43 @@ namespace UnitTests.AnimationServices
             
             Assert.AreEqual(loopTime, settings.loopTime);
         }
+
+        [Test]
+        public void MarkerClipConfigurationIsPreserved()
+        {
+            var markerClip = TrackObject(new AnimationClip());
+            markerClip.name = "m1";
+            markerClip.legacy = false;
+            markerClip.localBounds = new Bounds(Vector3.zero, Vector3.one);
+            markerClip.wrapMode = WrapMode.Loop;
+            markerClip.frameRate = 60;
+            
+            var ref1 = TrackObject(new AnimationClip());
+            var ref2 = TrackObject(new AnimationClip());
+
+            AnimationClipSettings settings = new AnimationClipSettings();
+            settings.additiveReferencePoseClip = ref1;
+            settings.additiveReferencePoseTime = 0;
+            AnimationUtility.SetAnimationClipSettings(markerClip, settings);
+
+            var vc = VirtualClip.FromMarker(markerClip);
+            vc.Name = "notamarker";
+            vc.Legacy = true;
+            vc.LocalBounds = new Bounds(Vector3.one, Vector3.one * 2);
+            vc.AdditiveReferencePoseClip = VirtualClip.FromMarker(ref2);
+            vc.AdditiveReferencePoseTime = 123;
+            vc.WrapMode = WrapMode.PingPong;
+            vc.FrameRate = 123;
+            
+            // Original clip is unchanged
+            Assert.AreEqual("m1", markerClip.name);
+            Assert.IsFalse(markerClip.legacy);
+            Assert.AreEqual(new Bounds(Vector3.zero, Vector3.one), markerClip.localBounds);
+            Assert.AreEqual(WrapMode.Loop, markerClip.wrapMode);
+            Assert.AreEqual(60, markerClip.frameRate);
+            Assert.AreEqual(ref1, AnimationUtility.GetAnimationClipSettings(markerClip).additiveReferencePoseClip);
+            Assert.AreEqual(0, AnimationUtility.GetAnimationClipSettings(markerClip).additiveReferencePoseTime);
+        }
         
         // TODO: animation clip settings/misc properties tests
 
