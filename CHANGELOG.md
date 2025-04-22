@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- Improved the UI for Enable-Disable Plugins Window
 
 ### Removed
 
