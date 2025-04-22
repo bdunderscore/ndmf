@@ -1,9 +1,12 @@
 ﻿#if NDMF_VRCSDK3_AVATARS
 
 using System.Linq;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.Advertisements;
 using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
@@ -279,6 +282,47 @@ namespace UnitTests.AnimationServices
             var behaviour = (VRCAnimatorPlayAudio) state.Behaviours.First();
             
             Assert.AreEqual("B/A", behaviour.SourcePath);
+        }
+
+        [Test]
+        public void AnimatorMaskIsPopulated()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Packages/nadena.dev.ndmf/UnitTests/AnimationServices/_CommonAssets/ShapellAvatar.prefab");
+            var root = TrackObject(Object.Instantiate(prefab));
+            
+            // Clear all pre-existing masks
+            var avDesc = root.GetComponent<VRCAvatarDescriptor>();
+            for (int i = 0; i < avDesc.baseAnimationLayers.Length; i++)
+            {
+                var layer = avDesc.baseAnimationLayers[i];
+                layer.mask = null;
+                avDesc.baseAnimationLayers[i] = layer;
+            }
+            
+            var ctx = CreateContext(root);
+            ctx.ActivateExtensionContext<VirtualControllerContext>();
+            ctx.DeactivateAllExtensionContexts();
+
+            foreach (var layer in avDesc.baseAnimationLayers)
+            {
+                bool shouldHaveMask = layer.type is VRCAvatarDescriptor.AnimLayerType.FX
+                    or VRCAvatarDescriptor.AnimLayerType.Gesture;
+
+                if (shouldHaveMask)
+                {
+                    Debug.Log("Layer controller type: " + layer.animatorController?.GetType());
+                    Debug.Log("Layer path: " + AssetDatabase.GetAssetPath(layer.animatorController));
+                    Assert.That(layer.animatorController, Is.TypeOf(typeof(AnimatorController)));
+                    var controller = (AnimatorController)layer.animatorController;
+                    var expectedMask = controller.layers[0].avatarMask;
+                    
+                    Assert.AreSame(expectedMask, layer.mask);
+                }
+                else
+                {
+                    Assert.IsNull(layer.mask);
+                }
+            }
         }
         
         private AnimatorController BuildInterlayerController(string prefix)

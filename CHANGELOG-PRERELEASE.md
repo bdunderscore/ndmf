@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#602] Fix issue where, if the hidden "mask" value on the gesture layer in the VRChat avatar controller was missing,
+  the avatar would be stuck in "bicycle pose" in gesture manager and Av3Emulator.
 
 ### Changed
 
