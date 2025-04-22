@@ -167,6 +167,16 @@ namespace nadena.dev.ndmf.animator
                     {
                         layers[i].animatorController = controller;
                         layers[i].isDefault = false;
+                        if (layers[i].type is VRCAvatarDescriptor.AnimLayerType.Gesture
+                            or VRCAvatarDescriptor.AnimLayerType.FX)
+                        {
+                            // See AvatarDescriptorEditor3.SetLayerMaskFromController
+                            var innerLayers = ((AnimatorController)controller).layers;
+                            if (innerLayers.Length > 0)
+                            {
+                                layers[i].mask = innerLayers[0].avatarMask;
+                            }
+                        }
                     }
                 }
             }

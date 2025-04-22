@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ### Fixed
-- [#599] Substate machine transitions were not being enumerated (and thus not processed for MA Parameters renaming)
-- [#600] Fix issue where loop time (and other clip settings) were not preserved when there was no additive reference clip.
+- [#602] Fix issue where, if the hidden "mask" value on the gesture layer in the VRChat avatar controller was missing,
+  the avatar would be stuck in "bicycle pose" in gesture manager and Av3Emulator.
 
 ### Changed
 
@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.8] - [2025-04-17]
+
+### Fixed
+- [#599] Substate machine transitions were not being enumerated (and thus not processed for MA Parameters renaming)
+- [#600] Fix issue where loop time (and other clip settings) were not preserved when there was no additive reference clip.
 
 ## [1.7.7] - [2025-04-14]
 
