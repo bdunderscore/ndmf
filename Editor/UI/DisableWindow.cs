@@ -10,10 +10,10 @@ namespace nadena.dev.ndmf.ui
 {
     internal class DisableWindow : EditorWindow
     {
-        [MenuItem("Tools/NDM Framework/Debug Tools/Enable/Disable Plugins", false, 100)]
+        [MenuItem("Tools/NDM Framework/Debug Tools/Enable-Disable Plugins", false, 100)]
         public static void ShowWindow()
         {
-            GetWindow<DisableWindow>("[NDMF] Enable/Disable Plugins");
+            GetWindow<DisableWindow>("[NDMF] Enable-Disable Plugins");
         }
 
         private List<IPluginInternal> _plugins = null!;
