@@ -38,6 +38,24 @@ namespace nadena.dev.ndmf.ui
                 "Changes you make here will be reverted after restarting Unity.",
                 MessageType.None);
 
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Enable All Plugins"))
+                {
+                    foreach (var plugin in _plugins)
+                    {
+                        PluginDisablePrefs.SetPluginDisabled(plugin.QualifiedName, false);
+                    }
+                }
+                if (GUILayout.Button("Disable All Plugins"))
+                {
+                    foreach (var plugin in _plugins)
+                    {
+                        PluginDisablePrefs.SetPluginDisabled(plugin.QualifiedName, true);
+                    }
+                }
+            }
+
             foreach (var plugin in _plugins)
             {
                 var disabled = PluginDisablePrefs.IsPluginDisabled(plugin.QualifiedName);
