@@ -23,7 +23,10 @@ namespace nadena.dev.ndmf.animator
         public override string Name
         {
             get => _clip.name;
-            set => _clip.name = I(value);
+            set
+            {
+                if (!IsMarkerClip) _clip.name = I(value);
+            }
         }
 
         /// <summary>
@@ -53,13 +56,19 @@ namespace nadena.dev.ndmf.animator
         public bool Legacy
         {
             get => _clip.legacy;
-            set => _clip.legacy = I(value);
+            set
+            {
+                if (!IsMarkerClip) _clip.legacy = I(value);
+            }
         }
 
         public Bounds LocalBounds
         {
             get => _clip.localBounds;
-            set => _clip.localBounds = I(value);
+            set
+            {
+                if (!IsMarkerClip) _clip.localBounds = I(value);
+            }
         }
 
         public AnimationClipSettings Settings
@@ -72,6 +81,8 @@ namespace nadena.dev.ndmf.animator
                     throw new ArgumentException("Use the AdditiveReferencePoseClip property instead",
                         nameof(value.additiveReferencePoseClip));
                 }
+
+                if (IsMarkerClip) return;
 
                 AnimationUtility.SetAnimationClipSettings(_clip, value);
             }
@@ -92,20 +103,28 @@ namespace nadena.dev.ndmf.animator
             {
                 var settings = Settings;
                 settings.additiveReferencePoseTime = I(value);
-                Settings = settings;
+                if (!IsMarkerClip) AnimationUtility.SetAnimationClipSettings(_clip, settings);
             }
         }
 
         public WrapMode WrapMode
         {
             get => _clip.wrapMode;
-            set => _clip.wrapMode = I(value);
+            set
+            {
+                if (IsMarkerClip) return;
+                _clip.wrapMode = I(value);
+            }
         }
 
         public float FrameRate
         {
             get => _clip.frameRate;
-            set => _clip.frameRate = I(value);
+            set
+            {
+                if (IsMarkerClip) return;
+                _clip.frameRate = I(value);
+            }
         }
 
         private Dictionary<EditorCurveBinding, CachedCurve<AnimationCurve>> _curveCache = new(ECBComparator.Instance);
