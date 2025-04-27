@@ -14,12 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
-- [#608] Removed some internal shaders that were only used by the Modular Avatar resonite package (they have been moved
-  to that package) 
 
 ### Security
 
 ### Deprecated
+
+## [1.8.0-alpha.10] - [2025-04-27]
+
+### Removed
+- [#608] Removed some internal shaders that were only used by the Modular Avatar resonite package (they have been moved
+  to that package) 
 
 ## [1.8.0-alpha.9] - [2025-04-22]
 
