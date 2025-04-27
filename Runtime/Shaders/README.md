@@ -1,1 +1,0 @@
-﻿These shaders are currently not considered part of NDMF's stable API and may change or be removed without warning.
