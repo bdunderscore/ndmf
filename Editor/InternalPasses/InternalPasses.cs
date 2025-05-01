@@ -26,6 +26,14 @@ namespace nadena.dev.ndmf
                 .Then.Run(RemoveWeakPortableComponentsPass.Instance)
                 .Then.OnPlatforms(new[] { "ndmf/nonexistent" },
                     seq => { seq.Run("TEST - Should not run (incompatible platform)", _ => { }); });
+
+
+            InPhase(BuildPhase.PlatformFinish)
+                .Run("Generate portable components", context =>
+                {
+                    context.GetState<PrimaryPlatformHolder>().platform
+                        .GeneratePortableComponents(context.AvatarRootObject, false);
+                });
         }
     }
 }

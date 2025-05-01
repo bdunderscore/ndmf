@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- #[607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
+- [607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
 
 ### Changed
 - Improved the UI for Enable-Disable Plugins Window
+- [#609] Adjusted the timing of generating portable dynamic bone components, so that optimization passes can delete
+  PBs before they are converted.
 
 ### Removed
 
