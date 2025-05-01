@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
 
 ### Fixed
-- #[607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
+- [#607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
 
 ### Changed
 - Improved the UI for Enable-Disable Plugins Window

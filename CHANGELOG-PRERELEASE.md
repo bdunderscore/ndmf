@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.8.0-alpha.11] - [2025-05-01]
 
 ### Fixed
-- [607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
+- [#607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
 
 ### Changed
 - Improved the UI for Enable-Disable Plugins Window
