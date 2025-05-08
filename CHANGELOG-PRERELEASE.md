@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Experimental: Added Portable Viseme component
 
 ### Fixed
+- VRChat build hooks did not run certain NDMF passes (in newly added build phases)
 
 ### Changed
 
