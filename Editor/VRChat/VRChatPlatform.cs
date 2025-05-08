@@ -35,6 +35,7 @@ namespace nadena.dev.ndmf.vrchat
         public string DisplayName => "VRChat";
         public Texture2D Icon => null;
         public Type AvatarRootComponentType => typeof(VRCAvatarDescriptor);
+        public bool HasNativeConfigData => true;
 
         public bool HasNativeUI => VRCSDK_ShowControlPanel != null;
 
@@ -84,9 +85,10 @@ namespace nadena.dev.ndmf.vrchat
             if (cai.VisemeRenderer != null)
             {
                 vrcAvDesc.VisemeSkinnedMesh = cai.VisemeRenderer;
+                vrcAvDesc.lipSync = VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape;
             }
 
-            if (vrcAvDesc.VisemeBlendShapes.Length < (int)VRC_AvatarDescriptor.Viseme.Count)
+            if (vrcAvDesc.VisemeBlendShapes == null || vrcAvDesc.VisemeBlendShapes.Length < (int)VRC_AvatarDescriptor.Viseme.Count)
             {
                 vrcAvDesc.VisemeBlendShapes = new string[(int)VRC_AvatarDescriptor.Viseme.Count];
             }
