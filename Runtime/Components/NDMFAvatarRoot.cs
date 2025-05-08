@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.runtime.components
 {
-    #if NDMF_MULTIPLATFORM
+    #if NDMF_EXPERIMENTAL
     [AddComponentMenu("NDMF/NDMF Avatar Root")]
     #else
     [AddComponentMenu("")]

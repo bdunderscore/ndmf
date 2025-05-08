@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Added (experimental features)
 - Added internal APIs and components to support experimental Resonite backend support.
   - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
+- Experimental: Added NDMF Avatar Root component
+- Experimental: Added NDMF Viewpoint component
+- Experimental: Added Portable Viseme component
+- Experimental: Added Portable Dynamic Bone component
+- Experimental: Added Portable Dynamic Bone Collider component
 
 ### Fixed
 - [#607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.

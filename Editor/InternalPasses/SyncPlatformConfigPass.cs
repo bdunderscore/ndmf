@@ -1,4 +1,5 @@
 ﻿using nadena.dev.ndmf.platform;
+using nadena.dev.ndmf.runtime.components;
 
 namespace nadena.dev.ndmf.builtin
 {
@@ -13,12 +14,13 @@ namespace nadena.dev.ndmf.builtin
         {
             var primaryPlatform = PlatformRegistry.GetPrimaryPlatformForAvatar(context.AvatarRootObject);
             context.GetState<PrimaryPlatformHolder>().platform = primaryPlatform;
-            if (primaryPlatform != null && primaryPlatform != context.PlatformProvider)
+
+            var cai = primaryPlatform?.ExtractCommonAvatarInfo(context.AvatarRootObject) ?? new CommonAvatarInfo();
+            if (primaryPlatform != GenericPlatform.Instance)
             {
-                // Attempt to sync
-                var cai = primaryPlatform.ExtractCommonAvatarInfo(context.AvatarRootObject);
-                context.PlatformProvider.InitBuildFromCommonAvatarInfo(context, cai);
+                cai.MergeFrom(GenericPlatform.Instance.ExtractCommonAvatarInfo(context.AvatarRootObject));
             }
+            context.PlatformProvider.InitBuildFromCommonAvatarInfo(context, cai);
         }
     }
 }
