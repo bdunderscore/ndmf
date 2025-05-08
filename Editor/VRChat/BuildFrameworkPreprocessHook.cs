@@ -47,7 +47,7 @@ namespace nadena.dev.ndmf.VRChat
                 holder.hideFlags = HideFlags.DontSave;
                 holder.context = new BuildContext(avatarGameObject, AvatarProcessor.TemporaryAssetRoot, VRChatPlatform.Instance);
 
-                AvatarProcessor.ProcessAvatar(holder.context, BuildPhase.Resolving, BuildPhase.Transforming);
+                AvatarProcessor.ProcessAvatar(holder.context, BuildPhase.First, BuildPhase.Transforming);
                 holder.context.Serialize();
 
                 return true;
@@ -81,7 +81,7 @@ namespace nadena.dev.ndmf.VRChat
 
             try
             {
-                AvatarProcessor.ProcessAvatar(holder.context, BuildPhase.Optimizing, BuildPhase.Optimizing);
+                AvatarProcessor.ProcessAvatar(holder.context, BuildPhase.Optimizing, BuildPhase.Last);
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
                 holder.context.Finish();
