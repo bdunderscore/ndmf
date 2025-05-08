@@ -54,12 +54,16 @@ namespace nadena.dev.ndmf.platform
 
         public SkinnedMeshRenderer? VisemeRenderer { get; set; }
         public readonly Dictionary<string, string> VisemeBlendshapes = new();
-
-
+        
+        /// <summary>
+        /// Copies settings from `other` into this CommonAvatarInfo. If settings are present in both, `other` takes
+        /// precedence.
+        /// </summary>
+        /// <param name="other"></param>
         public void MergeFrom(CommonAvatarInfo other)
         {
-            EyePosition ??= other.EyePosition;
-            VisemeRenderer ??= other.VisemeRenderer;
+            EyePosition = other.EyePosition ?? EyePosition;
+            VisemeRenderer = other.VisemeRenderer ?? VisemeRenderer;
             foreach ((var k, var v) in other.VisemeBlendshapes)
             {
                 if (k != null && v != null) VisemeBlendshapes[k] = v;

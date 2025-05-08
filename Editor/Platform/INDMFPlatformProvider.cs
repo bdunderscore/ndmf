@@ -10,7 +10,9 @@ namespace nadena.dev.ndmf.platform
     {
         string QualifiedName { get; }
         string DisplayName { get; }
-        Texture2D? Icon => null; 
+        Texture2D? Icon => null;
+
+        bool HasNativeConfigData => false;
 
         // if unset, we use a generic Animator (or NDMFAvatarRoot) 
         Type? AvatarRootComponentType { get => null; } 
