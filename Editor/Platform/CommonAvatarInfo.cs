@@ -29,6 +29,26 @@ namespace nadena.dev.ndmf.platform
         public const string Viseme_oh = "oh";
         public const string Viseme_ou = "ou";
         public const string Viseme_laugh = "laugh";
+
+        public readonly static ImmutableList<string> KnownVisemes = ImmutableList.Create(new string[]
+        {
+            Viseme_Silence,
+            Viseme_PP,
+            Viseme_FF,
+            Viseme_TH,
+            Viseme_DD,
+            Viseme_kk,
+            Viseme_CH,
+            Viseme_SS,
+            Viseme_nn,
+            Viseme_RR,
+            Viseme_aa,
+            Viseme_E,
+            Viseme_ih,
+            Viseme_oh,
+            Viseme_ou,
+            Viseme_laugh,
+        });
         
         public Vector3? EyePosition { get; set; }
 
@@ -40,7 +60,10 @@ namespace nadena.dev.ndmf.platform
         {
             EyePosition ??= other.EyePosition;
             VisemeRenderer ??= other.VisemeRenderer;
-            VisemeBlendshapes.AddRange(other.VisemeBlendshapes);
+            foreach ((var k, var v) in other.VisemeBlendshapes)
+            {
+                if (k != null && v != null) VisemeBlendshapes[k] = v;
+            }
         }
     }
 }

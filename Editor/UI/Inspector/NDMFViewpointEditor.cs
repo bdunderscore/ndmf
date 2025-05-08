@@ -3,8 +3,8 @@ using UnityEditor;
 
 namespace nadena.dev.ndmf.ui.inspector
 {
-    [CustomEditor(typeof(NDMFAvatarRoot))]
-    internal class NDMFAvatarRootEditor : Editor
+    [CustomEditor(typeof(NDMFViewpoint))]
+    internal class NDMFViewpointEditor : Editor
     {
         public override void OnInspectorGUI()
         {
