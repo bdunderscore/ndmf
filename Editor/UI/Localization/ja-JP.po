@@ -31,3 +31,18 @@ msgstr "スタックトレースを表示（バグ報告に添付してくださ
 
 msgid "AvatarProcessor:ProcessingFailed"
 msgstr "アバター処理中にエラーが発生しました。詳しくはNDMFコンソールをご確認ください。"
+
+msgid "PreviewEnable:Title"
+msgstr "プラグインのプレビューを無効化/有効化"
+
+msgid "ExperimentalFeatures:Title"
+msgstr "NDMF 実験的機能"
+
+msgid "ExperimentalFeatures:Warning"
+msgstr "実験的機能は予告なく変更される可能性があります。今後のバージョンで削除・変更され、使用しているアセットやアバターが壊れる可能性があります。自己責任でご利用ください。"
+
+msgid "ExperimentalFeatures:Enable"
+msgstr "実験的機能を有効化"
+
+msgid "ExperimentalFeatures:Apply"
+msgstr "設定を適用"

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Experimental: Added NDMF Viewpoint component
 - Experimental: Added Portable Viseme component
 - Experimental: Added copy to/from platform UI in NDMF Avatar Root
+- Experimental: Added UI to enable/disable experimental features
 
 ### Fixed
 - VRChat build hooks did not run certain NDMF passes (in newly added build phases)

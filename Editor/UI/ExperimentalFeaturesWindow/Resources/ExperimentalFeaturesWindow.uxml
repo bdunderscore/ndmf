@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+        xmlns:ndmf="nadena.dev.ndmf.ui"
+        xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="container">
+    <engine:VisualElement name="root">
+        <engine:VisualElement name="topHeader">
+            <engine:Label text="ExperimentalFeatures:Title" class="ndmf-tr"/>
+        </engine:VisualElement>
+        
+        <engine:HelpBox text="ExperimentalFeatures:Warning" class="ndmf-tr" message-type="Warning" name="warning-box"/>
+        
+        <engine:VisualElement name="interactable">
+            <engine:VisualElement class="left-toggle">
+                <engine:Toggle name="enable-experimental-features" class="ndmf-tr"/>
+                <engine:Label text="ExperimentalFeatures:Enable"  class="ndmf-tr"/>
+            </engine:VisualElement>
+            <engine:Button text="ExperimentalFeatures:Apply" name="apply-button" class="ndmf-tr apply-button"/>
+        </engine:VisualElement>
+    </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

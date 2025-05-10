@@ -1,0 +1,37 @@
+VisualElement {
+
+}
+
+#container {
+    min-height: 800px;
+}
+
+#root {
+    padding: 5px;
+    /*margin-bottom: 5px;*/
+    overflow: visible;
+}
+
+.left-toggle {
+    flex-direction: row;
+}
+
+.WindowRoot {
+    padding: 5px;
+}
+
+.WindowRoot > TemplateContainer {
+    height: 100%;
+}
+
+.WindowRoot > TemplateContainer > Localized {
+    height: 100%;
+}
+
+#topHeader {
+    -unity-font-style: bold;
+    width: 100%;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding-bottom: 5px;
+}

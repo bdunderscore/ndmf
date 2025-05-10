@@ -37,3 +37,15 @@ msgstr "There were errors processing the avatar. Check the NDMF Console for deta
 
 msgid "PreviewEnable:Title"
 msgstr "Disable/Enable plugin preview"
+
+msgid "ExperimentalFeatures:Title"
+msgstr "NDMF Experimental Features"
+
+msgid "ExperimentalFeatures:Warning"
+msgstr "Experimental features are subject to change at any time; they may be removed or modified in future versions of NDMF. This means your assets or avatars using them might break in the future - use at your own risk!"
+
+msgid "ExperimentalFeatures:Enable"
+msgstr "Enable experimental features"
+
+msgid "ExperimentalFeatures:Apply"
+msgstr "Apply changes"
