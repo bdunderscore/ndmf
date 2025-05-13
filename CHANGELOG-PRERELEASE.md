@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - VRChat build hooks did not run certain NDMF passes (in newly added build phases)
+- [#625] Null object keyframes break RewriteObjectCurves
 
 ### Changed
 
