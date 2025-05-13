@@ -142,7 +142,8 @@ namespace nadena.dev.ndmf.animator
             _stateMachine = context.Clone(layer.stateMachine);
 
             _syncedLayerMotionOverrides = SyncedLayerOverrideAccess.ExtractStateMotionPairs(layer)
-                                              ?.ToImmutableDictionary(kvp => context.Clone(kvp.Key),
+                                              ?.Where(kvp => kvp.Key).ToImmutableDictionary(
+                                                  kvp => context.Clone(kvp.Key),
                                                   kvp => context.Clone(kvp.Value))
                                           ?? ImmutableDictionary<VirtualState, VirtualMotion>.Empty;
 
