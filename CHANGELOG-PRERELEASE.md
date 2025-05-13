@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0-alpha.12] - [2025-05-13]
+
+### Added
 - Experimental: Added NDMF Viewpoint component
 - Experimental: Added Portable Viseme component
 - Experimental: Added copy to/from platform UI in NDMF Avatar Root
@@ -17,14 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#626] Fixed an issue where an exception would be thrown if the base state corresponding to a synced layer override is destroyed.
 - VRChat build hooks did not run certain NDMF passes (in newly added build phases)
 - [#625] Null object keyframes break RewriteObjectCurves
-
-### Changed
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.8.0-alpha.11] - [2025-05-01]
 
