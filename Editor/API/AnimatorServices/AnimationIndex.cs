@@ -77,9 +77,9 @@ namespace nadena.dev.ndmf.animator
             {
                 return ClipsWithObjectCurves.SelectMany(
                     clip => clip.GetObjectCurveBindings()
-                        .SelectMany(ecb => clip.GetObjectCurve(ecb))
+                        .SelectMany(clip.GetObjectCurve)
                         .Select(kf => kf.value)
-                        .Where(obj => obj != null)
+                        .Where(obj => obj)
                 ).Distinct();
             }
         }
@@ -102,6 +102,7 @@ namespace nadena.dev.ndmf.animator
                     var curve = clip.GetObjectCurve(ecb)!;
                     for (var i = 0; i < curve.Length; i++)
                     {
+                        if (curve[i].value == null) continue;
                         curve[i].value = mapping(curve[i].value) ??
                                          throw new InvalidOperationException("Mapping function returned null");
                     }

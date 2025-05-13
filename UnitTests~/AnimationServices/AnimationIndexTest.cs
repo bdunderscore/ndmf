@@ -270,5 +270,59 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(m1, newCurve[0].value);
             Assert.AreEqual(m3, newCurve[1].value);
         }
+
+        [Test]
+        public void NullObjectKeyframeTest()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(context, "test");
+            var layer = controller.AddLayer(LayerPriority.Default, "test");
+            
+            var clip1 = VirtualClip.Create("c1");
+            layer.StateMachine!.AddState("s1", motion: clip1);
+
+            var shader = Shader.Find("Standard");
+            var m1 = new Material(shader);
+            m1.name = "m1";
+            var m2 = new Material(shader);
+            m2.name = "m2";
+            
+            var ecb = EditorCurveBinding.PPtrCurve("path", typeof(MeshRenderer), "m_Materials.Array.data[0]");
+            clip1.SetObjectCurve(ecb, new ObjectReferenceKeyframe[]
+            {
+                new ObjectReferenceKeyframe
+                {
+                    time = 0,
+                    value = m1
+                },
+                new ObjectReferenceKeyframe()
+                {
+                    time = 0.5f,
+                    value = null
+                },
+                new ObjectReferenceKeyframe
+                {
+                    time = 1,
+                    value = m2
+                }
+            });
+            
+            
+            var index = new AnimationIndex( new [] { controller });
+            
+            Assert.That(index.GetPPtrReferencedObjects, Is.EquivalentTo(new [] { m1, m2 }));
+            
+            var m3 = new Material(shader);
+            m3.name = "m3";
+            
+            index.RewriteObjectCurves(mat => mat == m2 ? m3 : mat);
+            
+            var newCurve = clip1.GetObjectCurve(ecb);
+            
+            Assert.AreEqual(3, newCurve.Length);
+            Assert.AreEqual(m1, newCurve[0].value);
+            Assert.AreEqual(null, newCurve[1].value);
+            Assert.AreEqual(m3, newCurve[2].value);
+        }
     }
 }
