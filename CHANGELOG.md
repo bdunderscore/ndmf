@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#626] Fixed an issue where an exception would be thrown if the base state corresponding to a synced layer override is destroyed.
-- [#607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
-- [#625] Null object keyframes break RewriteObjectCurves
 
 ### Changed
 
@@ -22,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.7.10] - [2025-05-13]
+
+### Fixed
+- [#626] Fixed an issue where an exception would be thrown if the base state corresponding to a synced layer override is destroyed.
+- [#607] Fixed an issue where zh-Hans l10n text fallback to zh-Hant.
+- [#625] Null object keyframes break RewriteObjectCurves
 
 ## [1.7.9] - [2025-04-22]
 
