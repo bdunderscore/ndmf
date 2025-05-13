@@ -153,6 +153,25 @@ namespace UnitTests.AnimationServices
         }
         
         [Test]
+        public void DeletedSyncedLayerOverridesAreExcluded()
+        {
+            var testController = LoadAsset<AnimatorController>("TestAssets/SyncedLayers.controller");
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var virtualController = context.Clone(testController);
+            
+            // First, clone the test controller
+            var commitContext = new CommitContext();
+            var committed = commitContext.CommitObject(virtualController);
+            
+            // Destroy the base state and reload the controller
+            UnityEngine.Object.DestroyImmediate(committed.layers[0].stateMachine.defaultState);
+            
+            context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            // Shouldn't throw an exception
+            context.Clone(committed);
+        }
+        
+        [Test]
         public void SyncedLayerOverridesCanBeChanged()
         {
             var testController = LoadAsset<AnimatorController>("TestAssets/SyncedLayers.controller");
