@@ -10,7 +10,7 @@ using UnityEngine;
 namespace nadena.dev.ndmf.platform
 {
     /// <summary>
-    /// The CommonAvatarInfo structure provides an intermediate repreesentation of frequently-used avatar-wide
+    /// The CommonAvatarInfo structure provides an intermediate representation of frequently-used avatar-wide
     /// configuration in order to facilitate automatic conversion between different types of SDKs.
     /// </summary>
     [PublicAPI]
