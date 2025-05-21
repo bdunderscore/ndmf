@@ -6,13 +6,18 @@ using nadena.dev.ndmf.runtime.components;
 
 namespace nadena.dev.ndmf.platform
 {
-    internal static class AmbientPlatform
+    /// <summary>
+    /// Provides access to the currently selected NDMF build platform, even outside of the context of the build process.
+    /// </summary>
+    public static class AmbientPlatform
     {
         public static event Action? OnDefaultPlatformChanged;
         
         private static INDMFPlatformProvider _defaultPlatform = GenericPlatform.Instance;
         /// <summary>
-        ///     The default platform to use in legacy calls like AvatarProcessor.ProcessAvatar
+        ///     The default platform to use in legacy calls like AvatarProcessor.ProcessAvatar.
+        ///     This is _not_ necessarily the platform in use in a build; use CurrentPlatform or BuildContext.PlatformProvider
+        ///     for that.
         /// </summary>
         public static INDMFPlatformProvider DefaultPlatform
         {
@@ -26,6 +31,10 @@ namespace nadena.dev.ndmf.platform
         }
 
         private static INDMFPlatformProvider? _currentPlatform = null;
+        
+        /// <summary>
+        /// Returns the current platform; either the one in use in the current build context, or the default platform.
+        /// </summary>
         public static INDMFPlatformProvider CurrentPlatform => _currentPlatform ?? _defaultPlatform;
 
         internal class Scope : IDisposable

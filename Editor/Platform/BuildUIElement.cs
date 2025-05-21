@@ -2,8 +2,11 @@
 
 namespace nadena.dev.ndmf.platform
 {
-    internal abstract class BuildUIElement : VisualElement
+    public abstract class BuildUIElement : VisualElement
     {
+        /// <summary>
+        /// The currently selected avatar root. Will be invoked when the user selects a new avatar root.
+        /// </summary>
         public virtual UnityEngine.GameObject AvatarRoot { get; set; }
     }
 }

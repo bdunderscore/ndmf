@@ -2,17 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace nadena.dev.ndmf.runtime.components
 {
-#if NDMF_EXPERIMENTAL
     [AddComponentMenu("NDMF/NDMF Portable Visemes")]
-#else
-    [AddComponentMenu("")]
-#endif
-    //[PublicAPI]
-    [NDMFExperimental]
+    [PublicAPI]
     public class PortableBlendshapeVisemes : MonoBehaviour, INDMFEditorOnly, IPortableAvatarConfigTag
     {
         [Serializable]

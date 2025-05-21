@@ -9,9 +9,13 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.platform
 {
+    /// <summary>
+    /// The CommonAvatarInfo structure provides an intermediate representation of frequently-used avatar-wide
+    /// configuration in order to facilitate automatic conversion between different types of SDKs.
+    /// </summary>
     [PublicAPI]
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal sealed class CommonAvatarInfo
+    public sealed class CommonAvatarInfo
     {
         public const string Viseme_Silence = "silence";
         public const string Viseme_PP = "PP";
@@ -50,9 +54,18 @@ namespace nadena.dev.ndmf.platform
             Viseme_laugh,
         });
         
+        /// <summary>
+        /// The position of the user viewpoint in world space. We assume a Z+ orientation.
+        /// </summary>
         public Vector3? EyePosition { get; set; }
 
+        /// <summary>
+        /// The skinned mesh renderer that will be used to render viseme blendshapes, typically the face mesh.
+        /// </summary>
         public SkinnedMeshRenderer? VisemeRenderer { get; set; }
+        /// <summary>
+        /// A dictionary of viseme key to viseme blendshape name.
+        /// </summary>
         public readonly Dictionary<string, string> VisemeBlendshapes = new();
         
         /// <summary>

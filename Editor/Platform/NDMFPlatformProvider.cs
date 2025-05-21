@@ -3,9 +3,13 @@ using JetBrains.Annotations;
 
 namespace nadena.dev.ndmf.platform
 {
+    /// <summary>
+    /// This attribute marks implementations of NDMF platforms, and registers them for use.
+    /// </summary>
+    [PublicAPI]
     [AttributeUsage(AttributeTargets.Class)]
     [MeansImplicitUse]
-    internal sealed class NDMFPlatformProvider : Attribute
+    public sealed class NDMFPlatformProvider : Attribute
     {
         
     }

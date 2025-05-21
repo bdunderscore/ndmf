@@ -9,15 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
-#### Added (experimental features)
-- Added internal APIs and components to support experimental Resonite backend support.
-  - These components are very much subject to change in future builds (and are hidden behind the NDMF_EXPERIMENTAL feature flag)
-- Experimental: Added NDMF Avatar Root component
-- Experimental: Added NDMF Viewpoint component
-- Experimental: Added Portable Viseme component
-- Experimental: Added Portable Dynamic Bone component
-- Experimental: Added Portable Dynamic Bone Collider component
+- Added APIs and components to support Resonite build support.
+  - Added NDMF Avatar Root component
+  - Added NDMF Viewpoint component
+  - Added Portable Viseme component
+  - Added Portable Dynamic Bone component
+  - Added Portable Dynamic Bone Collider component
 
 ### Fixed
 

@@ -8,8 +8,11 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.platform
 {
+    /// <summary>
+    /// A minimal "generic" platform. This is only really useful for manual bake avatar.
+    /// </summary>
     [NDMFPlatformProvider]
-    internal sealed class GenericPlatform : INDMFPlatformProvider
+    public sealed class GenericPlatform : INDMFPlatformProvider
     {
         public static INDMFPlatformProvider Instance { get; } = new GenericPlatform();
 

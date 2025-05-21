@@ -5,10 +5,8 @@ using UnityEditor;
 namespace nadena.dev.ndmf.multiplatform.editor
 {
     [CustomEditor(typeof(PortableDynamicBone))]
-    public class PortableDynamicBoneEditor : Editor
+    internal class PortableDynamicBoneEditor : Editor
     {
-        private SerializedProperty p_originalComponent;
-        private SerializedProperty p_isWeak;
         private SerializedProperty p_root;
         private SerializedProperty p_templateName;
         private SerializedProperty p_baseRadius;
@@ -18,8 +16,6 @@ namespace nadena.dev.ndmf.multiplatform.editor
         
         private void OnEnable()
         {
-            p_originalComponent = serializedObject.FindProperty("m_originalComponent");
-            p_isWeak = serializedObject.FindProperty("m_isWeak");
             p_root = serializedObject.FindProperty("m_root");
             p_templateName = serializedObject.FindProperty("m_templateName");
             p_baseRadius = serializedObject.FindProperty("m_baseRadius");
@@ -31,9 +27,7 @@ namespace nadena.dev.ndmf.multiplatform.editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
-            //EditorGUILayout.PropertyField(p_originalComponent);
-            //EditorGUILayout.PropertyField(p_isWeak);
+            
             EditorGUILayout.PropertyField(p_root);
             EditorGUILayout.PropertyField(p_templateName);
             EditorGUILayout.PropertyField(p_baseRadius);

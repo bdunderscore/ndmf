@@ -12,7 +12,10 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.platform
 {
-    internal static class PlatformRegistry
+    /// <summary>
+    /// Tracks the set of known platform providers.
+    /// </summary>
+    public static class PlatformRegistry
     {
         private static ImmutableDictionary<string, INDMFPlatformProvider> _platformProviders
             = ImmutableDictionary<string, INDMFPlatformProvider>.Empty;
@@ -70,6 +73,10 @@ namespace nadena.dev.ndmf.platform
             );
         }
 
+        /// <summary>
+        /// Returns a dictionary from qualified name to platform provider.
+        /// </summary>
+        /// <exception cref="Exception"></exception>
         public static ImmutableDictionary<string, INDMFPlatformProvider> PlatformProviders
         {
             get
