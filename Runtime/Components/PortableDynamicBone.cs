@@ -14,34 +14,27 @@ namespace nadena.dev.ndmf.multiplatform.components
 #endif
     internal class PortableDynamicBone : MonoBehaviour, INDMFEditorOnly
     {
-        [SerializeField] [HideInInspector] private Component m_originalComponent = new();
-        [SerializeField] private OverrideProperty<Transform> m_root = new();
+        [SerializeField] private Transform? m_root;
         [SerializeField] private OverrideProperty<string> m_templateName = new();
         [SerializeField] private OverrideProperty<float> m_baseRadius = new();
         [SerializeField] private OverrideProperty<List<Transform>> m_ignoreTransforms = new();
         [SerializeField] private OverrideProperty<bool> m_isGrabbable = new(), m_ignoreSelf = new();
         [SerializeField] private OverrideProperty<List<PortableDynamicBoneCollider>> m_colliders = new();
-        
-        public Component OriginalComponent
-        {
-            get => m_originalComponent;
-            set => m_originalComponent = value;
-        }
 
-        public OverrideProperty<Transform> Root => m_root;
+        public Transform? Root
+        {
+            get => m_root;
+            set
+            {
+                m_root = value;
+            }
+        }
         public OverrideProperty<string> TemplateName => m_templateName;
         public OverrideProperty<float> BaseRadius => m_baseRadius;
         public OverrideProperty<List<Transform>> IgnoreTransforms => m_ignoreTransforms;
         public OverrideProperty<bool> IsGrabbable => m_isGrabbable;
         public OverrideProperty<bool> IgnoreSelf => m_ignoreSelf;
         public OverrideProperty<List<PortableDynamicBoneCollider>> Colliders => m_colliders;
-
-        [SerializeField] [HideInInspector] internal bool m_isWeak = false;
-        public bool IsWeak
-        {
-            get => m_isWeak;
-            set => m_isWeak = value;
-        }
         
         public static string GuessTemplateName(Component pb, Transform root)
         {
