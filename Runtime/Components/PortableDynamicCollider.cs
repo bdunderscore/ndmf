@@ -7,19 +7,16 @@ using UnityEngine;
 namespace nadena.dev.ndmf.multiplatform.components
 {
     [Serializable]
-    internal enum PortableDynamicColliderType
+    public enum PortableDynamicColliderType
     {
         Sphere,
         Capsule,
         Plane
     }
     
-    #if NDMF_EXPERIMENTAL
     [AddComponentMenu("NDMF/Portable/NDMF Portable Dynamic Bone Collider")]
-    #else
-    [AddComponentMenu("")]
-    #endif
-    internal class PortableDynamicBoneCollider : MonoBehaviour, INDMFEditorOnly
+    [PublicAPI]
+    public class PortableDynamicBoneCollider : MonoBehaviour, INDMFEditorOnly
     {
         [SerializeField] private Transform? m_root;
         [SerializeField] private PortableDynamicColliderType m_colliderType;

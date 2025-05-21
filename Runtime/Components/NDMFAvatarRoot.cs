@@ -4,15 +4,10 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.runtime.components
 {
-    #if NDMF_EXPERIMENTAL
     [AddComponentMenu("NDMF/NDMF Avatar Root")]
-    #else
-    [AddComponentMenu("")]
-    #endif
-    // TODO
-    //[PublicAPI]
+    [PublicAPI]
     [NDMFExperimental]
-    internal class NDMFAvatarRoot : MonoBehaviour, INDMFEditorOnly
+    public class NDMFAvatarRoot : MonoBehaviour, INDMFEditorOnly
     {
         
     }

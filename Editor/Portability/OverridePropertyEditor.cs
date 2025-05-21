@@ -5,7 +5,7 @@ using UnityEngine;
 namespace nadena.dev.ndmf.multiplatform.editor
 {
     [CustomPropertyDrawer(typeof(IOverrideProperty), true)]
-    public class OverridePropertyEditor : PropertyDrawer
+    internal class OverridePropertyEditor : PropertyDrawer
     {
         // TODO - UI Elements implementation
 

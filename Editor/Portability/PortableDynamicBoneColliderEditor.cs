@@ -5,9 +5,8 @@ using UnityEditor;
 namespace nadena.dev.ndmf.multiplatform.editor
 {
     [CustomEditor(typeof(PortableDynamicBoneCollider))]
-    public class PortableDynamicBoneColliderEditor : Editor
+    internal class PortableDynamicBoneColliderEditor : Editor
     {
-        private SerializedProperty p_originalComponent;
         private SerializedProperty p_root;
         private SerializedProperty p_colliderType;
         private SerializedProperty p_radius;
@@ -17,7 +16,6 @@ namespace nadena.dev.ndmf.multiplatform.editor
         
         private void OnEnable()
         {
-            p_originalComponent = serializedObject.FindProperty("originalComponent");
             p_root = serializedObject.FindProperty("root");
             p_colliderType = serializedObject.FindProperty("colliderType");
             p_radius = serializedObject.FindProperty("radius");
@@ -30,7 +28,6 @@ namespace nadena.dev.ndmf.multiplatform.editor
         {
             serializedObject.Update();
 
-            //EditorGUILayout.PropertyField(p_originalComponent);
             EditorGUILayout.PropertyField(p_root);
             EditorGUILayout.PropertyField(p_colliderType);
             EditorGUILayout.PropertyField(p_radius);

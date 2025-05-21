@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Various changes to `PortableDynamicBone` APIs
+- Marked the new components and APIs in 1.8.0 as public/non-experimental
 
 ### Removed
 

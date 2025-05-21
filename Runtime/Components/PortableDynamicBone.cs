@@ -7,12 +7,9 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.multiplatform.components
 {
-#if NDMF_EXPERIMENTAL
     [AddComponentMenu("NDMF/Portable/NDMF Portable Dynamic Bone")]
-#else
-    [AddComponentMenu("")]
-#endif
-    internal class PortableDynamicBone : MonoBehaviour, INDMFEditorOnly
+    [PublicAPI]
+    public class PortableDynamicBone : MonoBehaviour, INDMFEditorOnly
     {
         [SerializeField] private Transform? m_root;
         [SerializeField] private OverrideProperty<string> m_templateName = new();
