@@ -109,7 +109,6 @@ namespace nadena.dev.ndmf.vrchat
             return true;
         }
         
-        // This logic lives in the multiplatform package for now
         // ReSharper disable once MemberCanBePrivate.Global
         // ReSharper disable once FieldCanBeMadeReadOnly.Global
         internal static Action<GameObject, bool> GeneratePortableComponentsImpl = (_, _) => { };
