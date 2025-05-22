@@ -181,15 +181,20 @@ namespace nadena.dev.ndmf.runtime
     [NDMFInternal]
     public class AvatarActivator : MonoBehaviour
     {
+        [SerializeField] private bool defuse;
+        
         private void Awake()
         {
-            if (!RuntimeUtil.IsPlaying || this == null) return;
+            if (!RuntimeUtil.IsPlaying || this == null || defuse) return;
+            defuse = true; // avoid recursive activation if someone duplicates an avatar during processing
             ApplyOnPlayGlobalActivator.OnDemandProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource.Awake, this);
         }
 
         private void Start()
         {
-            if (!RuntimeUtil.IsPlaying || this == null) return;
+            if (!RuntimeUtil.IsPlaying || this == null || defuse) return;
+            defuse = true; // avoid recursive activation if someone duplicates an avatar during processing
+            
             ApplyOnPlayGlobalActivator.OnDemandProcessAvatar(ApplyOnPlayGlobalActivator.OnDemandSource.Start, this);
         }
 

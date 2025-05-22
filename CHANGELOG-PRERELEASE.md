@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#634] Avoid infinite recursion if an avatar is duplicated during play mode activation
 
 ### Changed
 
