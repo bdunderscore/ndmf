@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#635] The `IVirtualizeMotion.Motion` and `IVirtualizeAnimatorController.AnimatorController` properties now have a nullable type.
+  - While this is an API change, it should not result in build failures (but rather, warnings, which should have been there in the first place...)
 - Improved the UI for Enable-Disable Plugins Window
 
 ### Removed

@@ -17,7 +17,7 @@ namespace nadena.dev.ndmf.animator
     [PublicAPI]
     public interface IVirtualizeAnimatorController
     {
-        public RuntimeAnimatorController AnimatorController { get; set; }
+        public RuntimeAnimatorController? AnimatorController { get; set; }
 
         /// <summary>
         ///     Returns the base path prefix that should be applied to curves in the animator controller.
