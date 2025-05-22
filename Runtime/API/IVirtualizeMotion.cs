@@ -19,7 +19,7 @@ namespace nadena.dev.ndmf.animator
         /// <summary>
         ///     The motion to virtualize.
         /// </summary>
-        public Motion Motion { get; set; }
+        public Motion? Motion { get; set; }
 
         /// <summary>
         ///     Returns the base path prefix that should be applied to curves in the motion.

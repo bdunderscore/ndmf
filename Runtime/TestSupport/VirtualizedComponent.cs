@@ -8,7 +8,7 @@ namespace nadena.dev.ndmf.UnitTestSupport
     internal class VirtualizedComponent : MonoBehaviour, IVirtualizeAnimatorController
     {
         public string MotionBasePath { get; set; } = "";
-        public RuntimeAnimatorController AnimatorController { get; set; }
+        public RuntimeAnimatorController? AnimatorController { get; set; }
 
         public string GetMotionBasePath(object ndmfBuildContext, bool clearPath = true)
         {
