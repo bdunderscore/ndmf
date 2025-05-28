@@ -54,7 +54,7 @@ namespace nadena.dev.ndmf
         internal readonly ObjectRegistry _registry;
         internal readonly ErrorReport _report;
 
-        internal INDMFPlatformProvider PlatformProvider { get; }
+        public INDMFPlatformProvider PlatformProvider { get; }
         
         public ObjectRegistry ObjectRegistry => _registry;
         public ErrorReport ErrorReport => _report;
