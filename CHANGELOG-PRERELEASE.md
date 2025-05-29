@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0-beta.1] - [2025-05-29]
+
+### Fixed
 - [#634] Avoid infinite recursion if an avatar is duplicated during play mode activation
 - [#640] Fixed an issue where the viewpoint would be detected incorrectly for VRChat avatars with a scaled avatar root,
   when building for other platforms.
@@ -18,12 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [#635] The `IVirtualizeMotion.Motion` and `IVirtualizeAnimatorController.AnimatorController` properties now have a nullable type.
   - While this is an API change, it should not result in build failures (but rather, warnings, which should have been there in the first place...)
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.8.0-beta.0] - [2025-05-21]
 
