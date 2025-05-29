@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#642] NDMFViewpoint was handled incorrectly in avatars with a scaled avatar root
 
 ### Changed
 
