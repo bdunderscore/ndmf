@@ -156,7 +156,7 @@ namespace nadena.dev.ndmf.platform
                 viewpoint = viewpoints[0];
             }
 
-            viewpoint.transform.position = avatarRoot.transform.InverseTransformPoint(eyePosition);
+            viewpoint.transform.position = avatarRoot.transform.TransformPoint(eyePosition);
         }
 
         public void InitBuildFromCommonAvatarInfo(BuildContext context, CommonAvatarInfo info)
