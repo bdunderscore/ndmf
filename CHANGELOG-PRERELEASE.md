@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#634] Avoid infinite recursion if an avatar is duplicated during play mode activation
 - [#640] Fixed an issue where the viewpoint would be detected incorrectly for VRChat avatars with a scaled avatar root,
   when building for other platforms.
+- [#641] During VRChat builds, if a non-VRChat platform was selected, that platform would be used for build transformations.
 
 ### Changed
 - [#635] The `IVirtualizeMotion.Motion` and `IVirtualizeAnimatorController.AnimatorController` properties now have a nullable type.
