@@ -202,6 +202,8 @@ namespace nadena.dev.ndmf
 
         internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)
         {
+            using var _platformScope = new AmbientPlatform.Scope(buildContext.PlatformProvider);
+            
             var resolver = new PluginResolver();
             bool processing = false;
 
