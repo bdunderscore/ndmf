@@ -50,7 +50,9 @@ namespace nadena.dev.ndmf.vrchat
             var vrcAvDesc = avatarRoot.GetComponent<VRCAvatarDescriptor>();
 
             var cai = new CommonAvatarInfo();
-            cai.EyePosition = vrcAvDesc.ViewPosition;
+            // We don't use InverseTransformPoint here as we want to ignore any offset that the avatar root has from the
+            // origin.
+            cai.EyePosition = avatarRoot.transform.InverseTransformVector(vrcAvDesc.ViewPosition);
             cai.VisemeRenderer = vrcAvDesc.VisemeSkinnedMesh;
             if (cai.VisemeRenderer != null)
             {
@@ -79,7 +81,8 @@ namespace nadena.dev.ndmf.vrchat
 
             if (cai.EyePosition != null)
             {
-                vrcAvDesc.ViewPosition = cai.EyePosition.Value;
+                // VRChat's viewposition uses world distance from the avatar root, which is a bit of a strange metric.
+                vrcAvDesc.ViewPosition = avatarRoot.transform.TransformVector(cai.EyePosition.Value);
             }
 
             if (cai.VisemeRenderer != null)

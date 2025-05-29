@@ -55,7 +55,7 @@ namespace nadena.dev.ndmf.platform
         });
         
         /// <summary>
-        /// The position of the user viewpoint in world space. We assume a Z+ orientation.
+        /// The position of the user viewpoint in avatar root space. We assume a Z+ orientation.
         /// </summary>
         public Vector3? EyePosition { get; set; }
 
