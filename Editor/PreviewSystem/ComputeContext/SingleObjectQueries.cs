@@ -278,6 +278,18 @@ namespace nadena.dev.ndmf.preview
             return obj.GetComponents<C>();
         }
 
+        public static void GetComponents<C>(this ComputeContext ctx, GameObject obj, List<C> results,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        ) where C : class
+        {
+            if (obj == null) return;
+
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+
+            obj.GetComponents(results);
+        }
+
         public static Component[] GetComponents(this ComputeContext ctx, GameObject obj, Type type,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -288,6 +300,17 @@ namespace nadena.dev.ndmf.preview
             ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
 
             return obj.GetComponents(type);
+        }
+
+        public static void GetComponents(this ComputeContext ctx, GameObject obj, Type type, List<Component> results,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
+        {
+            if (obj == null) return;
+
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
+            obj.GetComponents(type, results);
         }
 
         public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive,
@@ -301,6 +324,19 @@ namespace nadena.dev.ndmf.preview
             ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
 
             return obj.GetComponentsInChildren<C>(includeInactive);
+        }
+
+        public static void GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive, List<C> results,
+            [CallerFilePath] string callerPath = "",
+            [CallerLineNumber] int callerLine = 0
+        )
+            where C : class
+        {
+            if (obj == null) return;
+
+            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
+
+            obj.GetComponentsInChildren(includeInactive, results);
         }
 
         public static Component[] GetComponentsInChildren(this ComputeContext ctx, GameObject obj, Type type,

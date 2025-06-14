@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Portable Dynamic Bone component
   - Added Portable Dynamic Bone Collider component
 
+- [#644] No alloc overload for `ComputeContext.GetComponentsXXX`
+
 ### Fixed
 - [#634] Avoid infinite recursion if an avatar is duplicated during play mode activation
 
