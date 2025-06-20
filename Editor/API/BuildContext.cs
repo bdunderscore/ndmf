@@ -115,7 +115,7 @@ namespace nadena.dev.ndmf
             : this(obj, assetRootPath, null, isClone) 
         {}
         
-        internal BuildContext(GameObject obj, string assetRootPath, INDMFPlatformProvider platform, bool isClone = true)
+        public BuildContext(GameObject obj, string assetRootPath, INDMFPlatformProvider platform, bool isClone = true)
         {
             platform ??= AmbientPlatform.DefaultPlatform;
             using var _platformScope = new AmbientPlatform.Scope(platform);
