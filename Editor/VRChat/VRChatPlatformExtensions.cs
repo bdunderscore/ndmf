@@ -79,7 +79,8 @@ namespace nadena.dev.ndmf.multiplatform.editor
                 var rootBone = pb.rootTransform ?? pb.transform;
                 var portable = explicitDynBones.GetValueOrDefault(rootBone) ??
                                pb.gameObject.AddComponent<PortableDynamicBone>();
-                
+
+                portable.enabled = pb.enabled;
                 portable.TemplateName.WeakSet(PortableDynamicBone.GuessTemplateName(pb, pb.rootTransform != null ? pb.rootTransform : pb.transform));
                 portable.BaseRadius.WeakSet(pb.radius);
                 portable.IsGrabbable.WeakSet(pb.allowGrabbing == VRCPhysBoneBase.AdvancedBool.True);
