@@ -8,12 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#644] No alloc overload for `ComputeContext.GetComponentsXXX`
-- Made a new `BuildContext` constructor overload with a platform specifier public
 
 ### Fixed
-- [#642] NDMFViewpoint was handled incorrectly in avatars with a scaled avatar root
-- [#647] The VRChat platform extension ignored component enable state when creating portable PB components
 
 ### Changed
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.8.0-beta.2] - [2025-06-20]
+
+### Added
+- [#644] No alloc overload for `ComputeContext.GetComponentsXXX`
+- Made a new `BuildContext` constructor overload with a platform specifier public
+
+### Fixed
+- [#642] NDMFViewpoint was handled incorrectly in avatars with a scaled avatar root
+- [#647] The VRChat platform extension ignored component enable state when creating portable PB components
 
 ## [1.8.0-beta.1] - [2025-05-29]
 
