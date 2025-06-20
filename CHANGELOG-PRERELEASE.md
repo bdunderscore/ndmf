@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#642] NDMFViewpoint was handled incorrectly in avatars with a scaled avatar root
+- [#647] The VRChat platform extension ignored component enable state when creating portable PB components
 
 ### Changed
 
