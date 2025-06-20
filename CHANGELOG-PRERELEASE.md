@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#644] No alloc overload for `ComputeContext.GetComponentsXXX`
+- Made a new `BuildContext` constructor overload with a platform specifier public
 
 ### Fixed
 - [#642] NDMFViewpoint was handled incorrectly in avatars with a scaled avatar root
