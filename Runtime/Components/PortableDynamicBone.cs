@@ -17,7 +17,9 @@ namespace nadena.dev.ndmf.multiplatform.components
         [SerializeField] private OverrideProperty<List<Transform>> m_ignoreTransforms = new();
         [SerializeField] private OverrideProperty<bool> m_isGrabbable = new(), m_ignoreSelf = new();
         [SerializeField] private OverrideProperty<List<PortableDynamicBoneCollider>> m_colliders = new();
-
+        [SerializeField] private OverrideProperty<bool> m_ignoreMultiChild = new();
+        [SerializeField] private OverrideProperty<AnimationCurve> m_radiusCurve = new();
+        
         public Transform? Root
         {
             get => m_root;
@@ -32,6 +34,8 @@ namespace nadena.dev.ndmf.multiplatform.components
         public OverrideProperty<bool> IsGrabbable => m_isGrabbable;
         public OverrideProperty<bool> IgnoreSelf => m_ignoreSelf;
         public OverrideProperty<List<PortableDynamicBoneCollider>> Colliders => m_colliders;
+        public OverrideProperty<bool> IgnoreMultiChild => m_ignoreMultiChild;
+        public OverrideProperty<AnimationCurve> RadiusCurve => m_radiusCurve;
         
         public static string GuessTemplateName(Component pb, Transform root)
         {

@@ -93,7 +93,34 @@ namespace nadena.dev.ndmf.multiplatform.editor
                     .Select(c => colliders.GetValueOrDefault(c))
                     .Where(c => c != null)
                     .ToList());
+                portable.IgnoreMultiChild.WeakSet(pb.multiChildType == VRCPhysBoneBase.MultiChildType.Ignore);
+
+                var radiusCurve = new AnimationCurve(pb.radiusCurve.keys);
+                // We don't currently support endpoint bones, so try to correct the animation curve if they were present...
+                if (pb.endpointPosition.sqrMagnitude > 0 && rootBone != null)
+                {
+                    var maxBoneDepth = (float)GetMaxBoneDepth(rootBone, new HashSet<Transform>(pb.ignoreTransforms));
+                    for (int i = 0; i < radiusCurve.keys.Length; i++)
+                    {
+                        radiusCurve.keys[i].time =
+                            radiusCurve.keys[i].time * (maxBoneDepth) / (maxBoneDepth + 1);
+                    }
+                }
+                portable.RadiusCurve.WeakSet(pb.radiusCurve);
             }
+        }
+
+        private static int GetMaxBoneDepth(Transform pbRootTransform, HashSet<Transform> ignores)
+        {
+            int max = 0;
+
+            foreach (Transform t in pbRootTransform)
+            {
+                if (ignores.Contains(t)) continue;
+                max = Math.Max(max, GetMaxBoneDepth(t, ignores));
+            }
+
+            return max + 1;
         }
     }
 }
