@@ -37,10 +37,18 @@ namespace nadena.dev.ndmf.platform
         /// </summary>
         public static INDMFPlatformProvider CurrentPlatform => _currentPlatform ?? _defaultPlatform;
 
-        internal class Scope : IDisposable
+        /// <summary>
+        /// This disposable scope allows you to temporarily set the current platform for the duration of the scope.
+        /// </summary>
+        public class Scope : IDisposable
         {
             private readonly INDMFPlatformProvider? _previous;
             
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="platform">The platform to set as the ambient platform, or null to use the default platform</param>
+            /// <exception cref="ArgumentNullException"></exception>
             public Scope(INDMFPlatformProvider? platform)
             {
                 _previous = _currentPlatform;

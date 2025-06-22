@@ -23,7 +23,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         /// <param name="receiver"></param>
         /// <param name="target"></param>
-        internal static void RunOnMainThread(SendOrPostCallback receiver, object target)
+        public static void RunOnMainThread(SendOrPostCallback receiver, object target)
         {
             if (Thread.CurrentThread.ManagedThreadId == InternalContext.unityMainThreadId)
             {
