@@ -18,12 +18,13 @@ namespace nadena.dev.ndmf.multiplatform.components
     [PublicAPI]
     public class PortableDynamicBoneCollider : MonoBehaviour, INDMFEditorOnly
     {
-        [SerializeField] private Transform? m_root;
-        [SerializeField] private PortableDynamicColliderType m_colliderType;
-        [SerializeField] private float m_radius;
-        [SerializeField] private float m_height;
-        [SerializeField] private Vector3 m_positionOffset;
-        [SerializeField] private Quaternion m_rotationOffset;
+        [SerializeField] internal Transform? m_root;
+        [SerializeField] internal PortableDynamicColliderType m_colliderType;
+        [SerializeField] internal float m_radius;
+        [SerializeField] internal float m_height;
+        [SerializeField] internal Vector3 m_positionOffset;
+        [SerializeField] internal Quaternion m_rotationOffset;
+        [SerializeField] internal bool m_insideBounds;
     
         public Transform? Root
         {
@@ -59,6 +60,12 @@ namespace nadena.dev.ndmf.multiplatform.components
         {
             get => m_rotationOffset;
             set => m_rotationOffset = value;
+        }
+        
+        public bool InsideBounds
+        {
+            get => m_insideBounds;
+            set => m_insideBounds = value;
         }
     }
 }

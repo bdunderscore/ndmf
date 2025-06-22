@@ -70,6 +70,7 @@ namespace nadena.dev.ndmf.multiplatform.editor
                 portable.Height = pbc.height;
                 portable.PositionOffset = pbc.position;
                 portable.RotationOffset = pbc.rotation;
+                portable.InsideBounds = pbc.insideBounds;
 
                 colliders[pbc] = portable;
             }
