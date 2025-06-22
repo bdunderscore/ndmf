@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#650] Expose radius curves and multiChildType to portable dynamic bones
-- [#651] Expose inside bounds flag to portable dynamic bone colliders
 
 ### Fixed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.8.0-beta.3] - [2025-06-22]
+
+### Added
+- [#650] Expose radius curves and multiChildType to portable dynamic bones
+- [#651] Expose inside bounds flag to portable dynamic bone colliders
 
 ## [1.8.0-beta.2] - [2025-06-20]
 
