@@ -9,5 +9,8 @@
     "name": "bd_",
     "email": "bd_@nadena.dev",
     "url": "https://github.com/bdunderscore/ndmf"
+  },
+  "dependencies": {
+    "com.unity.modules.animation": "1.0.0"
   }
 }
