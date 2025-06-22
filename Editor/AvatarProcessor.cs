@@ -25,11 +25,19 @@ namespace nadena.dev.ndmf
 
     #endregion
 
-    internal class OverrideTemporaryDirectoryScope : IDisposable
+    /// <summary>
+    /// Temporarily overrides the directory where NDMF will save temporary assets.
+    /// </summary>
+    public class OverrideTemporaryDirectoryScope : IDisposable
     {
         private string priorDirectory = AvatarProcessor.TemporaryAssetRoot;
 
-        public OverrideTemporaryDirectoryScope(string path)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path">The directory to use; pass null to indicate that saving assets is not required (useful
+        /// for unit tests, or for platforms which do not generate asset bundles)</param>
+        public OverrideTemporaryDirectoryScope([CanBeNull] string path)
         {
             AvatarProcessor.TemporaryAssetRoot = path;
         }
@@ -142,8 +150,17 @@ namespace nadena.dev.ndmf
             ProcessAvatar(root, BuildPhase.Last);
         }
 
-        // [PublicAPI] - TODO(multiplatform)
-        internal static BuildContext ProcessAvatar(
+        /// <summary>
+        /// Processes an avatar as part of an automated process, using a specific platform provider.
+        /// The platform provider will be set as the ambient platform provider for the duration of the
+        /// build.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="platform"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [PublicAPI]
+        public static BuildContext ProcessAvatar(
             GameObject root,
             INDMFPlatformProvider platform
         )

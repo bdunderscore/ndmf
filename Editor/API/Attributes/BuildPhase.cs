@@ -40,17 +40,19 @@ namespace nadena.dev.ndmf
         ///
         ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
         /// </summary>
-        internal static readonly BuildPhase FirstChance = new("FirstChance");
+        public static readonly BuildPhase FirstChance = new("FirstChance");
 
         internal static readonly BuildPhase InternalPrePlatformInit = new("Before platform initialization");
         
         /// <summary>
         ///     The PlatformInit phase runs early in the build process, and is intended for platform backend initialization.
-        ///     In particular, this is the phase where common avatar configuration is synced between platforms.
+        ///     Note that syncing of platform configuration - e.g. ExtractCommonAvatarInfo - is done before PlatformInit
+        ///     (but after FirstChance).
         ///
-        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them yourself :(
+        ///     For compatibility reasons, EditorOnly objects are not removed in this phase. You'll need to exclude them
+        ///     yourself :(
         /// </summary>
-        internal static readonly BuildPhase PlatformInit = new("PlatformInit");
+        public static readonly BuildPhase PlatformInit = new("PlatformInit");
 
         /// <summary>
         /// The resolving phase is intended for use by passes which perform very early processing of components and
@@ -83,10 +85,10 @@ namespace nadena.dev.ndmf
         public static readonly BuildPhase Optimizing = new BuildPhase("Optimizing");
 
         /// <summary>
-        ///     The platform finish phase is run after optimizations, and is intended for platform-specific cleanup.
-        ///     For example, validating that we haven't exceeded the VRChat parameter limit.
+        ///     The platform finish phase is run after optimizations, and is intended for platform-specific cleanup
+        ///     and validation. For example, validating that we haven't exceeded the VRChat parameter limit.
         /// </summary>
-        internal static readonly BuildPhase PlatformFinish = new("PlatformFinish");
+        public static readonly BuildPhase PlatformFinish = new("PlatformFinish");
         
         /// <summary>
         /// This list contains all built-in phases in the order that they will be executed.
