@@ -12,13 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- [#653] Move bone template name determination into the resonite platform plugin
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.8.0-beta.4] - [2025-06-22]
+
+### Changed
+- [#653] Move bone template name determination into the resonite platform plugin
 
 ## [1.8.0-beta.3] - [2025-06-22]
 
