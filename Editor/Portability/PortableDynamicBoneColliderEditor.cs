@@ -13,15 +13,17 @@ namespace nadena.dev.ndmf.multiplatform.editor
         private SerializedProperty p_height;
         private SerializedProperty p_positionOffset;
         private SerializedProperty p_rotationOffset;
+        private SerializedProperty p_insideCollider;
         
         private void OnEnable()
         {
-            p_root = serializedObject.FindProperty("root");
-            p_colliderType = serializedObject.FindProperty("colliderType");
-            p_radius = serializedObject.FindProperty("radius");
-            p_height = serializedObject.FindProperty("height");
-            p_positionOffset = serializedObject.FindProperty("positionOffset");
-            p_rotationOffset = serializedObject.FindProperty("rotationOffset");
+            p_root = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_root));
+            p_colliderType = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_colliderType));
+            p_radius = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_radius));
+            p_height = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_height));
+            p_positionOffset = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_positionOffset));
+            p_rotationOffset = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_rotationOffset));
+            p_insideCollider = serializedObject.FindProperty(nameof(PortableDynamicBoneCollider.m_insideBounds));
         }
         
         public override void OnInspectorGUI()
@@ -34,6 +36,7 @@ namespace nadena.dev.ndmf.multiplatform.editor
             EditorGUILayout.PropertyField(p_height);
             EditorGUILayout.PropertyField(p_positionOffset);
             EditorGUILayout.PropertyField(p_rotationOffset);
+            EditorGUILayout.PropertyField(p_insideCollider);
 
             serializedObject.ApplyModifiedProperties();
         }
