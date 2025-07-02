@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0-rc.0] - [2025-07-02]
+
+### Added
 - [#654] [#660] Marked a number of platform APIs as public
 - [#661] Added `CompatibleWithContext` attribute for plugin passes.
 - [#665] Added `AnimationIndex.GetPPtrReferencedObjectsWithBinding` and a new overload for  
@@ -22,12 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   experimental features enabled.
   - Experimental features still gate access to the "Generic" platform when no other platforms are detected, as well as
     access to portable components.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.8.0-beta.4] - [2025-06-22]
 
