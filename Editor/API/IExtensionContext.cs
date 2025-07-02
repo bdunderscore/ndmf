@@ -25,18 +25,55 @@ namespace nadena.dev.ndmf
     internal static class ExtensionContextUtil
     {
         private static readonly Dictionary<Type, ImmutableList<Type>> RecursiveDependenciesCache = new();
-        
-        public static IEnumerable<Type> ContextDependencies(this Type ty, bool recurse)
+
+        public static IEnumerable<Type> CompatibleContexts(this Type ty, bool recurse)
+        {
+            var visited = new HashSet<Type>();
+            var queue = new Queue<Type>();
+
+            queue.Enqueue(ty);
+
+            foreach (var attr in ty.GetCustomAttributes(typeof(CompatibleWithContext), true))
+            {
+                if (attr is CompatibleWithContext compatible && compatible.ExtensionContext != null)
+                {
+                    if (visited.Add(compatible.ExtensionContext))
+                    {
+                        yield return compatible.ExtensionContext;
+                        if (recurse) queue.Enqueue(compatible.ExtensionContext);
+                    }
+                }
+            }
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                foreach (var attr in current.GetCustomAttributes(typeof(DependsOnContext), true))
+                {
+                    if (attr is DependsOnContext dependsOn && dependsOn.ExtensionContext != null)
+                    {
+                        if (visited.Add(dependsOn.ExtensionContext))
+                        {
+                            yield return dependsOn.ExtensionContext;
+                            if (recurse) queue.Enqueue(dependsOn.ExtensionContext);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<Type> RequiredContexts(this Type ty, bool recurse)
         {
             if (recurse)
             {
                 return RecursiveContextDependencies(ty);
             }
 
-            return ContextDependencies(ty);
+            return RequiredContexts(ty);
         }
 
-        public static IEnumerable<Type> ContextDependencies(this Type ty)
+        public static IEnumerable<Type> RequiredContexts(this Type ty)
         {
             foreach (var attr in ty.GetCustomAttributes(typeof(DependsOnContext), true))
             {
@@ -74,7 +111,7 @@ namespace nadena.dev.ndmf
 
                 yield return current;
 
-                foreach (var dep in ContextDependencies(current))
+                foreach (var dep in RequiredContexts(current))
                 {
                     if (enqueued.Add(dep))
                     {

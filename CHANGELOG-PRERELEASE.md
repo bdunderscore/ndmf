@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#654] [#660] Marked a number of platform APIs as public
+- [#661] Added `CompatibleWithContext` attribute for plugin passes.
 
 ### Fixed
 - [#655] Missing dependency to Animation module

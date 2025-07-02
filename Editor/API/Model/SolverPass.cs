@@ -7,6 +7,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
+using UnityEngine;
 
 #endregion
 
@@ -46,9 +47,9 @@ namespace nadena.dev.ndmf.model
                     continue;
                 }
 
-                if (active.ContextDependencies(true).Contains(ty)) return true;
+                if (active.RequiredContexts(true).Contains(ty)) return true;
             }
-
+            
             return false;
         }
 
@@ -64,8 +65,11 @@ namespace nadena.dev.ndmf.model
             Plugin = plugin;
             Pass = pass;
             Phase = phase;
-            CompatibleExtensions = compatibleExtensions;
-            RequiredExtensions = requiredExtensions.Union(pass.GetType().ContextDependencies());
+            CompatibleExtensions =
+                compatibleExtensions.Union(pass.GetType().CompatibleContexts(true).Select(ty => ty.FullName));
+            Debug.Log(
+                $"For type {pass.GetType().Name}, compatible extensions: {string.Join(", ", CompatibleExtensions)}");
+            RequiredExtensions = requiredExtensions.Union(pass.GetType().RequiredContexts());
 
             var attrs = pass.GetType().GetCustomAttributes(false);
             var allPlatformsAttribute = attrs.Any(a => a is RunsOnAllPlatforms);

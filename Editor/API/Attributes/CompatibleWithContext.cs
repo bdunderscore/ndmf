@@ -4,17 +4,17 @@ using JetBrains.Annotations;
 namespace nadena.dev.ndmf
 {
     /// <summary>
-    ///     This attribute declares a pass or an extension context to depend on another context.
-    ///     When an extension context depends on another, it will implicitly activate the other context whenever the
-    ///     depending context is activated.
+    ///     This attribute is used to mark a class as compatible with a specific context.
+    ///     NDMF will not activate the context solely based on this attribute, but will avoid deactivating it if it is
+    ///     already active. This attribute also implicitly includes any dependencies of the specified context.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     [PublicAPI]
-    public sealed class DependsOnContext : Attribute
+    public sealed class CompatibleWithContext : Attribute
     {
         public Type ExtensionContext { get; }
 
-        public DependsOnContext(Type extensionContext)
+        public CompatibleWithContext(Type extensionContext)
         {
             if (!typeof(IExtensionContext).IsAssignableFrom(extensionContext))
             {
@@ -22,7 +22,7 @@ namespace nadena.dev.ndmf
                     $"{extensionContext.FullName} does not implement {nameof(IExtensionContext)}",
                     nameof(extensionContext));
             }
-            
+
             ExtensionContext = extensionContext;
         }
     }

@@ -370,7 +370,7 @@ namespace nadena.dev.ndmf
             Dictionary<Type, List<Type>> depIndex = new();
             foreach (var ty in _activeExtensions.Keys)
             {
-                foreach (var dep in ty.ContextDependencies())
+                foreach (var dep in ty.RequiredContexts())
                 {
                     if (!depIndex.ContainsKey(dep))
                     {
@@ -404,7 +404,7 @@ namespace nadena.dev.ndmf
         
         public IExtensionContext ActivateExtensionContextRecursive(Type ty)
         {
-            foreach (var dependency in ty.ContextDependencies())
+            foreach (var dependency in ty.RequiredContexts())
             {
                 ActivateExtensionContextRecursive(dependency);
             }
