@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
@@ -236,8 +235,7 @@ namespace nadena.dev.ndmf
 
                 // To ensure that we deactivate extensions in the correct order, we sort them by the number of dependencies
                 // as a very crude toposort, with name as a tiebreaker (mostly for our tests)
-                foreach (var t in activeExtensions.OrderByDescending(
-                             t => (t.ContextDependencies(true).Count(), t.FullName)
+                foreach (var t in activeExtensions.OrderByDescending(t => (t.RequiredContexts(true).Count(), t.FullName)
                          ).ToList())
                 {
                     if (!pass.IsExtensionCompatible(t, activeExtensions))
@@ -303,7 +301,7 @@ namespace nadena.dev.ndmf
 
                 stack.Push(ty);
 
-                foreach (var dep in new SortedSet<Type>(ty.ContextDependencies(), new TypeComparer()))
+                foreach (var dep in new SortedSet<Type>(ty.RequiredContexts(), new TypeComparer()))
                 {
                     VisitType(dep);
                 }
