@@ -3,6 +3,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using JetBrains.Annotations;
 using nadena.dev.ndmf.model;
 using nadena.dev.ndmf.platform;
 using UnityEditor;
@@ -122,10 +123,22 @@ namespace nadena.dev.ndmf.vrchat
         }
     }
 
-    internal static class VRChatContextExtensions
+    [PublicAPI]
+    public static class VRChatContextExtensions
     {
+        /// <summary>
+        /// Returns the VRChatAvatarDescriptor component on the avatar root object.
+        /// Throws an InvalidOperationException if a platform other than VRChat is being built for.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static VRCAvatarDescriptor VRChatAvatarDescriptor(this BuildContext context)
         {
+            if (context.PlatformProvider != VRChatPlatform.Instance)
+            {
+                throw new InvalidOperationException("The VRChat avatar descriptor can only be accessed via this method in a VRChat build.");
+            }
+            
             return context.AvatarRootObject.GetComponent<VRCAvatarDescriptor>();
         }
     }
