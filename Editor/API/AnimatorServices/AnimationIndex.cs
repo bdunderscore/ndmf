@@ -85,6 +85,23 @@ namespace nadena.dev.ndmf.animator
         }
 
         /// <summary>
+        ///     Returns all (EditorCurveBinding, Object) pairs referenced by object curves in the animation index.
+        /// </summary>
+        [PublicAPI]
+        public IEnumerable<(EditorCurveBinding binding, Object obj)> GetPPtrReferencedObjectsWithBinding
+        {
+            get
+            {
+                return ClipsWithObjectCurves.SelectMany(clip => clip.GetObjectCurveBindings()
+                    .SelectMany(ecb => clip.GetObjectCurve(ecb)
+                        .Where(kf => kf.value)
+                        .Select(kf => (ecb, kf.value))
+                    )
+                ).Distinct();
+            }
+        }
+
+        /// <summary>
         ///     Maps all object curves in the animation index according to the provided mapping function.
         ///     The mapping function must not return null. <see cref="ClipsWithObjectCurves" /> if you need to perform
         ///     more complex manipulations.
@@ -104,6 +121,35 @@ namespace nadena.dev.ndmf.animator
                     {
                         if (curve[i].value == null) continue;
                         curve[i].value = mapping(curve[i].value) ??
+                                         throw new InvalidOperationException("Mapping function returned null");
+                    }
+
+                    clip.SetObjectCurve(ecb, curve);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Maps all object curves in the animation index according to the provided mapping function, which receives the
+        ///     binding and the object.
+        ///     The mapping function must not return null. <see cref="ClipsWithObjectCurves" /> if you need to perform
+        ///     more complex manipulations.
+        /// </summary>
+        /// <param name="mapping">Mapping function to apply (EditorCurveBinding, Object) => Object</param>
+        [PublicAPI]
+        public void RewriteObjectCurves(Func<EditorCurveBinding, Object, Object> mapping)
+        {
+            var clips = ClipsWithObjectCurves.ToList();
+
+            foreach (var clip in clips)
+            {
+                foreach (var ecb in clip.GetObjectCurveBindings())
+                {
+                    var curve = clip.GetObjectCurve(ecb)!;
+                    for (var i = 0; i < curve.Length; i++)
+                    {
+                        if (curve[i].value == null) continue;
+                        curve[i].value = mapping(ecb, curve[i].value) ??
                                          throw new InvalidOperationException("Mapping function returned null");
                     }
 

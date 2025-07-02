@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [#654] [#660] Marked a number of platform APIs as public
 - [#661] Added `CompatibleWithContext` attribute for plugin passes.
+- [#665] Added `AnimationIndex.GetPPtrReferencedObjectsWithBinding` and a new overload for  
+  `AnimationIndex.RewriteObjectCurves` which provides the curve binding to the rewrite callback.
 
 ### Fixed
 - [#655] Missing dependency to Animation module
