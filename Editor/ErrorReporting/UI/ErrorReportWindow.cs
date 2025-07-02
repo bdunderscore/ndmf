@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.runtime;
@@ -145,11 +144,22 @@ namespace nadena.dev.ndmf.ui
         private void SetupPlatformSelector()
         {
             var platformSelectorField = rootVisualElement.Q<DropdownField>("platform-selector");
-            #if !NDMF_EXPERIMENTAL
-            platformSelectorField.style.display = DisplayStyle.None;
-            return;
-            #else
 
+            var showPlatformSelector = true;
+            #if !NDMF_EXPERIMENTAL
+
+            // Show the build UI if we have platforms other than VRChat and generic installed
+            showPlatformSelector = PlatformRegistry.PlatformProviders.Any(pp =>
+                pp.Key != WellKnownPlatforms.Generic && pp.Key != WellKnownPlatforms.VRChatAvatar30
+            );
+
+#endif
+
+            if (!showPlatformSelector)
+            {
+                platformSelectorField.style.display = DisplayStyle.None;
+                return;
+            }
 
             var platforms = PlatformRegistry.PlatformProviders
                 .OrderBy(kv => kv.Value.DisplayName)
@@ -170,10 +180,8 @@ namespace nadena.dev.ndmf.ui
             });
             
             BuildPlatformUI();
-            #endif
         }
 
-        [UsedImplicitly] // suppress warning when not using experimental features
         private void BuildPlatformUI()
         {
             var container = rootVisualElement.Q<VisualElement>("platform-build-ui");

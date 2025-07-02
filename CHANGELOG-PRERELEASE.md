@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#655] Missing dependency to Animation module
 
 ### Changed
+- [#662] The platform selector will now be shown if any platforms other than Generic and VRChat are detected, even without
+  experimental features enabled.
+  - Experimental features still gate access to the "Generic" platform when no other platforms are detected, as well as
+    access to portable components.
 
 ### Removed
 
