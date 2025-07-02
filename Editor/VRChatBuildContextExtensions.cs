@@ -20,9 +20,10 @@ namespace nadena.dev.ndmf
         /// <summary>
         /// The VRChat avatar descriptor for the avatar being built.
         /// Obsolete: Platform-specific properties on BuildContext are deprecated.
-        /// Please use the VRChatAvatarDescriptor() extension method instead.
+        /// Please use the VRChatAvatarDescriptor() extension method instead
+        /// (found in the nadena.dev.ndmf.vrchat assembly's VRChatContextExtensions class).
         /// </summary>
-        [Obsolete]
+        [Obsolete("Use the VRChatAvatarDescriptor() extension method instead", false)]
         public VRCAvatarDescriptor AvatarDescriptor => _avatarDescriptor;
 
         public BuildContext(VRCAvatarDescriptor obj, string assetRootPath)

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#654] Marked a number of platform APIs as public
+- [#654] [#660] Marked a number of platform APIs as public
 
 ### Fixed
 - [#655] Missing dependency to Animation module
