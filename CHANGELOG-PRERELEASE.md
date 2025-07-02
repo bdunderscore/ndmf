@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#655] Missing dependency to Animation module
+- [#664] VRChat proxy animation clips would be reserialized in some cases, causing noise in `git diff` and the like
 
 ### Changed
 

@@ -257,6 +257,9 @@ namespace nadena.dev.ndmf.animator
                     _pptrCurveCache[binding] = new CachedCurve<ObjectReferenceKeyframe[]>();
                 }
             }
+
+            // Don't mess with clip settings on marker clips, as they are immutable.
+            if (isMarker) return;
             
             var settings = AnimationUtility.GetAnimationClipSettings(oldClip);
             // cloneContext == null should only happen on new clips, or ones cloned from another VirtualClip
