@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.8.0] - [2025-07-12]
+
+### Added
 - Added APIs and components to support Resonite build support.
   - Added NDMF Avatar Root component
   - Added NDMF Viewpoint component
@@ -29,12 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#635] The `IVirtualizeMotion.Motion` and `IVirtualizeAnimatorController.AnimatorController` properties now have a nullable type.
   - While this is an API change, it should not result in build failures (but rather, warnings, which should have been there in the first place...)
 - Improved the UI for Enable-Disable Plugins Window
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.7.10] - [2025-05-13]
 
