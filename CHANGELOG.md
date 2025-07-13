@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#667] NullReferenceException when `VRCPhysBone.radiusCurve` is null
 
 ### Changed
 
@@ -20,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.8.1] - [2025-07-13]
+
+### Fixed
+- [#667] NullReferenceException when `VRCPhysBone.radiusCurve` is null
 
 ## [1.8.0] - [2025-07-12]
 
