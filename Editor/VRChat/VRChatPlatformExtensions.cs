@@ -88,25 +88,30 @@ namespace nadena.dev.ndmf.multiplatform.editor
                 portable.IgnoreTransforms.WeakSet(pb.ignoreTransforms.ToList());
 
                 portable.Root = rootBone;
-                portable.Colliders.WeakSet(pb.colliders
+                portable.Colliders.WeakSet((pb.colliders ?? new())
                     .OfType<VRCPhysBoneCollider>()
                     .Select(c => colliders.GetValueOrDefault(c))
                     .Where(c => c != null)
                     .ToList());
                 portable.IgnoreMultiChild.WeakSet(pb.multiChildType == VRCPhysBoneBase.MultiChildType.Ignore);
 
-                var radiusCurve = new AnimationCurve(pb.radiusCurve.keys);
-                // We don't currently support endpoint bones, so try to correct the animation curve if they were present...
-                if (pb.endpointPosition.sqrMagnitude > 0 && rootBone != null)
+                if (pb.radiusCurve != null)
                 {
-                    var maxBoneDepth = (float)GetMaxBoneDepth(rootBone, new HashSet<Transform>(pb.ignoreTransforms));
-                    for (int i = 0; i < radiusCurve.keys.Length; i++)
+                    var radiusCurve = new AnimationCurve(pb.radiusCurve.keys);
+                    // We don't currently support endpoint bones, so try to correct the animation curve if they were present...
+                    if (pb.endpointPosition.sqrMagnitude > 0 && rootBone != null)
                     {
-                        radiusCurve.keys[i].time =
-                            radiusCurve.keys[i].time * (maxBoneDepth) / (maxBoneDepth + 1);
+                        var maxBoneDepth =
+                            (float)GetMaxBoneDepth(rootBone, new HashSet<Transform>(pb.ignoreTransforms));
+                        for (int i = 0; i < radiusCurve.keys.Length; i++)
+                        {
+                            radiusCurve.keys[i].time =
+                                radiusCurve.keys[i].time * (maxBoneDepth) / (maxBoneDepth + 1);
+                        }
                     }
+
+                    portable.RadiusCurve.WeakSet(radiusCurve);
                 }
-                portable.RadiusCurve.WeakSet(pb.radiusCurve);
             }
         }
 
