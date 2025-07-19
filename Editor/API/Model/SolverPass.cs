@@ -67,8 +67,6 @@ namespace nadena.dev.ndmf.model
             Phase = phase;
             CompatibleExtensions =
                 compatibleExtensions.Union(pass.GetType().CompatibleContexts(true).Select(ty => ty.FullName));
-            Debug.Log(
-                $"For type {pass.GetType().Name}, compatible extensions: {string.Join(", ", CompatibleExtensions)}");
             RequiredExtensions = requiredExtensions.Union(pass.GetType().RequiredContexts());
 
             var attrs = pass.GetType().GetCustomAttributes(false);
