@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#669] Fixed an issue where viseme modes other than blendshapes were not properly handled
 
 ### Changed
 

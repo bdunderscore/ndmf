@@ -54,16 +54,16 @@ namespace nadena.dev.ndmf.vrchat
             // We don't use InverseTransformPoint here as we want to ignore any offset that the avatar root has from the
             // origin.
             cai.EyePosition = avatarRoot.transform.InverseTransformVector(vrcAvDesc.ViewPosition);
-            cai.VisemeRenderer = vrcAvDesc.VisemeSkinnedMesh;
-            if (cai.VisemeRenderer != null)
+            if (vrcAvDesc.VisemeSkinnedMesh != null && vrcAvDesc.VisemeBlendShapes != null && vrcAvDesc.lipSync == VRC_AvatarDescriptor.LipSyncStyle.VisemeBlendShape)
             {
+                cai.VisemeRenderer = vrcAvDesc.VisemeSkinnedMesh;
                 var names = Enum.GetNames(typeof(VRC_AvatarDescriptor.Viseme));
                 for (int i = 0; i < names.Length - 1; i++)
                 {
                     var name = names[i];
                     if (i == 0) name = CommonAvatarInfo.Viseme_Silence;
                     
-                    if (vrcAvDesc.VisemeBlendShapes[i] != null)
+                    if (i < vrcAvDesc.VisemeBlendShapes.Length && vrcAvDesc.VisemeBlendShapes[i] != null)
                     {
                         cai.VisemeBlendshapes.Add(name, vrcAvDesc.VisemeBlendShapes[i]);
                     }
