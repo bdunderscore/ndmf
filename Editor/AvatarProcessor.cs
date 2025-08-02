@@ -203,7 +203,7 @@ namespace nadena.dev.ndmf
                 }
             }
             
-            var buildContext = new BuildContext(root, TemporaryAssetRoot);
+            var buildContext = new BuildContext(root, TemporaryAssetRoot, AmbientPlatform.CurrentPlatform);
 
             ProcessAvatar(buildContext, BuildPhase.First, lastPhase);
             buildContext.Finish();

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#670] Removed noisy debug log
+- [#673] Fix issue where `AvatarProcessor.ProcessAvatar` would not respect the passed `INDMFPlatformProvider`.
 
 ### Changed
 
