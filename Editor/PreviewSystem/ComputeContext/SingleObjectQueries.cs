@@ -192,9 +192,9 @@ namespace nadena.dev.ndmf.preview
             {
                 ctx.Observe(node, obj => (obj.localPosition, obj.localRotation, obj.localScale), (a, b) =>
                 {
-                    return Vector3.Distance(a.Item1, b.Item1) > 0.0001f ||
-                           Quaternion.Angle(a.Item2, b.Item2) > 0.0001f ||
-                           Vector3.Distance(a.Item3, b.Item3) > 0.0001f;
+                    return Vector3.Distance(a.Item1, b.Item1) <= 0.0001f &&
+                           Quaternion.Angle(a.Item2, b.Item2) <= 0.0001f &&
+                           Vector3.Distance(a.Item3, b.Item3) <= 0.0001f;
                 });
             }
 

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#675] Fixed comparison function in `SingleObjectQuery.ObserveTransformPosition`
 
 ### Changed
 
