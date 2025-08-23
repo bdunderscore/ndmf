@@ -106,6 +106,22 @@ namespace nadena.dev.ndmf.animator
             set => _tree.useAutomaticThresholds = I(value);
         }
 
+        // https://discussions.unity.com/t/enabling-normalized-blend-values-via-script/813452/6
+        public bool NormalizedBlendValues
+        {
+            get
+            {
+                using var so = new SerializedObject(_tree);
+                return so.FindProperty("m_NormalizedBlendValues").boolValue;
+            }
+            set
+            {
+                using var so = new SerializedObject(_tree);
+                so.FindProperty("m_NormalizedBlendValues").boolValue = I(value);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         private ImmutableList<VirtualChildMotion> _children;
 
         public ImmutableList<VirtualChildMotion> Children
