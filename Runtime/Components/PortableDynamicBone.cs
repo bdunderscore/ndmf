@@ -42,10 +42,13 @@ namespace nadena.dev.ndmf.multiplatform.components
             var rootPath = RuntimeUtil.AvatarRootPath(root.gameObject);
             var path = RuntimeUtil.AvatarRootPath(pb.gameObject)!.ToLowerInvariant();
             
-            foreach (var segment in rootPath.Split("/"))
+            if (rootPath != null)
             {
-                var template = TemplateFromObjectName(segment);
-                if (template != null) return template;
+                foreach (var segment in rootPath.Split("/"))
+                {
+                    var template = TemplateFromObjectName(segment);
+                    if (template != null) return template;
+                }
             }
             
             foreach (var segment in path.Split("/"))

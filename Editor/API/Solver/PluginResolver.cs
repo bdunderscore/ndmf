@@ -103,7 +103,7 @@ namespace nadena.dev.ndmf
         }
 
         internal PluginResolver(IEnumerable<Type> plugins, INDMFPlatformProvider? platform, bool includeDisabled = false) 
-            : this(plugins.Select(InstantiatePlugin), platform, includeDisabled)
+            : this(plugins.Select(InstantiatePlugin).Where(p => p != null)!, platform, includeDisabled)
         {
         }
 
