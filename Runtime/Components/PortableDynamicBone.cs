@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.runtime;
@@ -45,7 +44,7 @@ namespace nadena.dev.ndmf.multiplatform.components
             
             if (rootPath == null)
             {
-                throw new InvalidOperationException("Root transform is not under an avatar");
+                return "generic";
             }
             
             foreach (var segment in rootPath.Split("/"))
