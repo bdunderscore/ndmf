@@ -381,14 +381,24 @@ namespace UnitTests.AnimationServices
             
             // Add transitions using the Transitions property (ImmutableList)
             var toOn = VirtualStateTransition.Create();
-            toOn.DestinationState = onState;
-            toOn.AddCondition(AnimatorConditionMode.If, 0, "ToggleMyObject");
+            toOn.SetDestination(onState);
+            toOn.Conditions = toOn.Conditions.Add(new AnimatorCondition
+            {
+                mode = AnimatorConditionMode.If,
+                parameter = "ToggleMyObject",
+                threshold = 0
+            });
             toOn.Duration = 0;
             offState.Transitions = offState.Transitions.Add(toOn);
             
             var toOff = VirtualStateTransition.Create();
-            toOff.DestinationState = offState;
-            toOff.AddCondition(AnimatorConditionMode.IfNot, 0, "ToggleMyObject");
+            toOff.SetDestination(offState);
+            toOff.Conditions = toOff.Conditions.Add(new AnimatorCondition
+            {
+                mode = AnimatorConditionMode.IfNot,
+                parameter = "ToggleMyObject",
+                threshold = 0
+            });
             toOff.Duration = 0;
             onState.Transitions = onState.Transitions.Add(toOff);
         }
