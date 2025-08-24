@@ -42,13 +42,15 @@ namespace nadena.dev.ndmf.multiplatform.components
             var rootPath = RuntimeUtil.AvatarRootPath(root.gameObject);
             var path = RuntimeUtil.AvatarRootPath(pb.gameObject)!.ToLowerInvariant();
             
-            if (rootPath != null)
+            if (rootPath == null)
             {
-                foreach (var segment in rootPath.Split("/"))
-                {
-                    var template = TemplateFromObjectName(segment);
-                    if (template != null) return template;
-                }
+                throw new InvalidOperationException("Root component is not under an avatar");
+            }
+            
+            foreach (var segment in rootPath.Split("/"))
+            {
+                var template = TemplateFromObjectName(segment);
+                if (template != null) return template;
             }
             
             foreach (var segment in path.Split("/"))

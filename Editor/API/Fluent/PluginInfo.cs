@@ -49,7 +49,7 @@ namespace nadena.dev.ndmf
         internal Sequence NewSequence(BuildPhase phase)
         {
             string sequencePrefix = _plugin.QualifiedName + "/sequence#" + sequenceIndex++;
-            return new Sequence(phase, _solverContext, _plugin, sequencePrefix, _defaultPlatforms ?? ImmutableHashSet<string>.Empty);
+            return new Sequence(phase, _solverContext, _plugin, sequencePrefix, _defaultPlatforms);
         }
     }
 }
