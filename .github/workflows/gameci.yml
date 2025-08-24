@@ -70,7 +70,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           
       - run: |
-          sudo apt-get -y install libxml2-utils # xmllint
+          sudo apt-get update && sudo apt-get -y install libxml2-utils # xmllint
 
       - id: prepare-project
         name: Prepare project
