@@ -1,0 +1,148 @@
+name: Auto-approve Copilot workflows
+
+on:
+  push:
+    branches:
+      - 'copilot/**'
+
+concurrency:
+  group: copilot-auto-approve-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  auto-approve-copilot:
+    name: Auto-approve Copilot workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find associated PR
+        id: find-pr
+        run: |
+          # Get the branch name
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch: $BRANCH_NAME"
+          
+          # Find PR for this branch
+          PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number // empty')
+          
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No open PR found for branch $BRANCH_NAME"
+            echo "pr-found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Found PR #$PR_NUMBER"
+          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr-found=true" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check PR author and files
+        id: check-pr
+        if: steps.find-pr.outputs.pr-found == 'true'
+        run: |
+          PR_NUMBER=${{ steps.find-pr.outputs.pr-number }}
+          
+          # Get PR details
+          PR_AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login // "unknown"')
+          echo "PR Author: $PR_AUTHOR"
+          
+          # Check if author is GitHub Copilot bot
+          if [[ "$PR_AUTHOR" != "copilot-swe-agent[bot]" ]] && [[ "$PR_AUTHOR" != "github-actions[bot]" ]]; then
+            echo "PR is not from GitHub Copilot bot (author: $PR_AUTHOR)"
+            echo "Only PRs from copilot-swe-agent[bot] or github-actions[bot] are auto-approved"
+            echo "should-approve=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "✅ PR author is approved bot: $PR_AUTHOR"
+          
+          # Get list of changed files
+          CHANGED_FILES=""
+          if ! CHANGED_FILES=$(gh pr view "$PR_NUMBER" --json files --jq '.files[].path // empty'); then
+            echo "❌ Error fetching changed files for PR #$PR_NUMBER"
+            echo "should-approve=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "Changed files:"
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "$CHANGED_FILES"
+          else
+            echo "(No files detected)"
+          fi
+          
+          # Check if any files under .github/ are modified
+          if echo "$CHANGED_FILES" | grep -q "^\.github/"; then
+            echo "❌ PR modifies files under .github/ - not auto-approving for security"
+            echo "Modified .github files:"
+            echo "$CHANGED_FILES" | grep "^\.github/" || true
+            echo "should-approve=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "✅ PR is safe to auto-approve (no .github/ modifications)"
+          echo "should-approve=true" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Approve workflow runs
+        if: steps.check-pr.outputs.should-approve == 'true'
+        run: |
+          # Wait a few seconds to ensure workflows have time to be created
+          echo "⏳ Waiting 5 seconds for workflows to be created..."
+          sleep 5
+          
+          PR_NUMBER=${{ steps.find-pr.outputs.pr-number }}
+          
+          echo "🤖 Auto-approving workflows for Copilot PR #$PR_NUMBER"
+          
+          # Get the workflow runs that need approval for this PR
+          # We need to find workflow runs for the HEAD SHA of the PR
+          PR_HEAD_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq '.headRefOid // empty')
+          if [ -z "$PR_HEAD_SHA" ]; then
+            echo "❌ Could not get PR HEAD SHA"
+            exit 1
+          fi
+          echo "PR HEAD SHA: $PR_HEAD_SHA"
+          
+          # List workflow runs for this SHA that are waiting for approval
+          WORKFLOW_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.head_sha == "'"$PR_HEAD_SHA"'" and .status == "waiting") | .id' 2>/dev/null || echo "")
+          
+          if [ -z "$WORKFLOW_RUNS" ]; then
+            echo "ℹ️ No workflow runs waiting for approval for SHA $PR_HEAD_SHA"
+            
+            # Also check for workflow runs that might be queued
+            QUEUED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
+              --jq '.workflow_runs[] | select(.head_sha == "'"$PR_HEAD_SHA"'" and .status == "queued") | .id' 2>/dev/null || echo "")
+            if [ -n "$QUEUED_RUNS" ]; then
+              echo "ℹ️ Found queued workflow runs (these may not need approval):"
+              echo "$QUEUED_RUNS"
+            fi
+            exit 0
+          fi
+          
+          # Approve each waiting workflow run
+          APPROVED_COUNT=0
+          for RUN_ID in $WORKFLOW_RUNS; do
+            echo "⏳ Approving workflow run $RUN_ID..."
+            if gh api repos/${{ github.repository }}/actions/runs/$RUN_ID/approve --method POST 2>/dev/null; then
+              echo "✅ Successfully approved workflow run $RUN_ID"
+              APPROVED_COUNT=$((APPROVED_COUNT + 1))
+            else
+              echo "⚠️ Failed to approve run $RUN_ID (may already be approved or completed)"
+            fi
+          done
+          
+          echo "✅ Auto-approved $APPROVED_COUNT workflow run(s) for PR #$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ github.token }}
