@@ -137,6 +137,11 @@ jobs:
         if: failure()
         run: |
           perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
+
+      - name: List compiler warnings
+        if: true
+        run: |
+          grep ': warning CS' ${{ steps.gameci.outputs.artifactsPath }}/editmode.log
           
       - name: List test failures
         continue-on-error: true
