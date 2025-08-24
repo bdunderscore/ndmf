@@ -12,6 +12,7 @@ using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.preview.UI;
 using UnityEditor;
+using UnityEngine;
 
 #endregion
 
@@ -93,8 +94,15 @@ namespace nadena.dev.ndmf
             .ToImmutableSortedSet(new TypeComparer())
             .Prepend(typeof(InternalPasses));
 
-        private static IPluginInternal? InstantiatePlugin(Type pluginType) =>
-            pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
+        private static IPluginInternal? InstantiatePlugin(Type pluginType)
+        {
+            var plugin = pluginType.GetConstructor(Type.EmptyTypes)?.Invoke(Array.Empty<object>()) as IPluginInternal;
+            if (plugin == null)
+            {
+                Debug.LogWarning($"Failed to instantiate plugin of type {pluginType.FullName}. Plugin may not have a parameterless constructor or may not implement IPluginInternal.");
+            }
+            return plugin;
+        }
 
         public static IEnumerable<IPluginInternal> FindAllPlugins() => FindPluginTypes().Select(InstantiatePlugin).Where(p => p != null)!;
 
@@ -103,7 +111,14 @@ namespace nadena.dev.ndmf
         }
 
         internal PluginResolver(IEnumerable<Type> plugins, INDMFPlatformProvider? platform, bool includeDisabled = false) 
-            : this(plugins.Select(InstantiatePlugin).Where(p => p != null)!, platform, includeDisabled)
+            : this(plugins.Select(pluginType => {
+                var plugin = InstantiatePlugin(pluginType);
+                if (plugin == null)
+                {
+                    throw new InvalidOperationException($"Failed to instantiate plugin of type {pluginType.FullName}. Plugin must have a parameterless constructor and implement IPluginInternal.");
+                }
+                return plugin;
+            }), platform, includeDisabled)
         {
         }
 
