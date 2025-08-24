@@ -103,11 +103,11 @@ namespace nadena.dev.ndmf
         }
 
         internal PluginResolver(IEnumerable<Type> plugins, INDMFPlatformProvider? platform, bool includeDisabled = false) 
-            : this(plugins.Select(InstantiatePlugin).Where(p => p != null)!, platform, includeDisabled)
+            : this(plugins.Select(InstantiatePlugin), platform, includeDisabled)
         {
         }
 
-        public PluginResolver(IEnumerable<IPluginInternal> pluginTemplates, INDMFPlatformProvider? platform, bool includeDisabled = false)
+        public PluginResolver(IEnumerable<IPluginInternal?> pluginTemplates, INDMFPlatformProvider? platform, bool includeDisabled = false)
         {
             platform ??= AmbientPlatform.CurrentPlatform;
             _platform = platform;
@@ -116,8 +116,11 @@ namespace nadena.dev.ndmf
 
             foreach (var plugin in pluginTemplates)
             {
-                var pluginInfo = new PluginInfo(solverContext, plugin);
-                plugin.Configure(pluginInfo);
+                if (plugin != null)
+                {
+                    var pluginInfo = new PluginInfo(solverContext, plugin);
+                    plugin.Configure(pluginInfo);
+                }
             }
 
             Dictionary<string, SolverPass> passByName = new Dictionary<string, SolverPass>();
