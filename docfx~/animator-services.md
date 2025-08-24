@@ -176,9 +176,6 @@ pathRemapper.RecordObjectTree(newPrefab.transform);
 
 // Replace an object before removing it
 pathRemapper.ReplaceObject(oldObject, newObject);
-
-// Get final path mappings (typically done automatically on deactivation)
-var pathMappings = pathRemapper.GetVirtualToRealPathMap();
 ```
 
 ### Animation Indexing and Querying
@@ -239,6 +236,8 @@ public class AddToggleAnimationPass : Pass<AddToggleAnimationPass>
         
         #if NDMF_VRCSDK3_AVATARS
         // Get the FX layer
+        // NOTE: The animator services context will automatically create a default FX layer, 
+        // so this should not normally happen when performing a build for a VRChat avatar.
         if (!controllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.FX, out var fxController))
             return;
         
@@ -293,9 +292,3 @@ public class AddToggleAnimationPass : Pass<AddToggleAnimationPass>
 5. **Check for platform availability** when working with platform-specific features like VRChat layers
 6. **Clean up properly** - the system handles most cleanup automatically when the context is deactivated
 
-## Troubleshooting
-
-- **"Path not found" errors**: Make sure you're using `GetVirtualPathForObject()` for new animations
-- **Objects not being tracked**: Call `RecordObjectTree()` for newly instantiated prefabs
-- **Changes not persisting**: Ensure the AnimatorServicesContext remains active during your modifications
-- **Path collisions**: Use unique names or check paths with `GetVirtualPathForObject()` before creating objects

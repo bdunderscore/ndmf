@@ -55,7 +55,7 @@ namespace UnitTests.AnimationServices
             var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
             
             // Execute the pass
-            testPass.Execute(context);
+            testPass.ExecutePublic(context);
             
             // Verify the pass executed successfully
             Assert.True(testPass.ExecutedSuccessfully);
@@ -123,11 +123,11 @@ namespace UnitTests.AnimationServices
             virtualClip.SetFloatCurve(binding, AnimationCurve.Linear(0, 0, 1, 10));
             
             // Verify the curve was added
-            var curves = virtualClip.GetAllCurves();
-            Assert.AreEqual(1, curves.Length);
-            Assert.AreEqual(binding.path, curves[0].binding.path);
-            Assert.AreEqual(binding.type, curves[0].binding.type);
-            Assert.AreEqual(binding.propertyName, curves[0].binding.propertyName);
+            var bindings = virtualClip.GetFloatCurveBindings().ToArray();
+            Assert.AreEqual(1, bindings.Length);
+            Assert.AreEqual(binding.path, bindings[0].path);
+            Assert.AreEqual(binding.type, bindings[0].type);
+            Assert.AreEqual(binding.propertyName, bindings[0].propertyName);
             
             context.DeactivateAllExtensionContexts();
         }
@@ -212,7 +212,7 @@ namespace UnitTests.AnimationServices
             var togglePass = new AddToggleAnimationPass();
             
             var animatorServices = context.ActivateExtensionContextRecursive<AnimatorServicesContext>();
-            togglePass.Execute(context);
+            togglePass.ExecutePublic(context);
             context.DeactivateAllExtensionContexts();
             
             // Verify the toggle animation was created
@@ -262,26 +262,26 @@ namespace UnitTests.AnimationServices
             {
                 // Test adding a new layer as shown in docs
                 var newLayer = virtualController.AddLayer(LayerPriority.Default, "MyLayer");
-                newLayer.Weight = 1.0f;
+                newLayer.DefaultWeight = 1.0f;
                 newLayer.BlendingMode = AnimatorLayerBlendingMode.Override;
                 
                 Assert.NotNull(newLayer);
                 Assert.AreEqual("MyLayer", newLayer.Name);
-                Assert.AreEqual(1.0f, newLayer.Weight);
+                Assert.AreEqual(1.0f, newLayer.DefaultWeight);
                 Assert.AreEqual(AnimatorLayerBlendingMode.Override, newLayer.BlendingMode);
                 
                 // Test modifying existing layer
                 var existingLayer = virtualController.Layers.FirstOrDefault(l => l.Name == "MyLayer");
                 Assert.NotNull(existingLayer);
-                existingLayer.Weight = 0.5f;
+                existingLayer.DefaultWeight = 0.5f;
                 existingLayer.BlendingMode = AnimatorLayerBlendingMode.Additive;
                 
-                Assert.AreEqual(0.5f, existingLayer.Weight);
+                Assert.AreEqual(0.5f, existingLayer.DefaultWeight);
                 Assert.AreEqual(AnimatorLayerBlendingMode.Additive, existingLayer.BlendingMode);
                 
                 // Test removing a layer
                 int layerCountBefore = virtualController.Layers.Count();
-                virtualController.RemoveLayer("MyLayer");
+                virtualController.RemoveLayer(newLayer);
                 int layerCountAfter = virtualController.Layers.Count();
                 
                 Assert.AreEqual(layerCountBefore - 1, layerCountAfter, "Layer should have been removed");
@@ -301,6 +301,11 @@ namespace UnitTests.AnimationServices
         public bool ExecutedSuccessfully { get; private set; }
         
         protected override void Execute(BuildContext context)
+        {
+            ExecutePublic(context);
+        }
+        
+        public void ExecutePublic(BuildContext context)
         {
             // This code is from the documentation example
             var animatorServices = context.Extension<AnimatorServicesContext>();
@@ -327,6 +332,11 @@ namespace UnitTests.AnimationServices
     {
         protected override void Execute(BuildContext context)
         {
+            ExecutePublic(context);
+        }
+        
+        public void ExecutePublic(BuildContext context)
+        {
             var animatorServices = context.Extension<AnimatorServicesContext>();
             var controllerContext = animatorServices.ControllerContext;
             var pathRemapper = animatorServices.ObjectPathRemapper;
@@ -342,8 +352,13 @@ namespace UnitTests.AnimationServices
             // Get virtual path for the object
             string virtualPath = pathRemapper.GetVirtualPathForObject(targetObject.gameObject);
             
-            // Add parameter
-            fxController.AddParameter("ToggleMyObject", AnimatorControllerParameterType.Bool);
+            // Add parameter using the Parameters property (ImmutableDictionary)
+            fxController.Parameters = fxController.Parameters.Add("ToggleMyObject", 
+                new AnimatorControllerParameter 
+                { 
+                    name = "ToggleMyObject", 
+                    type = AnimatorControllerParameterType.Bool 
+                });
             
             // Create animation clips
             var onClip = VirtualClip.Create("MyObject_On");
@@ -364,14 +379,18 @@ namespace UnitTests.AnimationServices
             // Set default state
             toggleLayer.StateMachine.DefaultState = offState;
             
-            // Add transitions
-            var toOn = offState.AddTransition(onState);
+            // Add transitions using the Transitions property (ImmutableList)
+            var toOn = VirtualStateTransition.Create();
+            toOn.DestinationState = onState;
             toOn.AddCondition(AnimatorConditionMode.If, 0, "ToggleMyObject");
             toOn.Duration = 0;
+            offState.Transitions = offState.Transitions.Add(toOn);
             
-            var toOff = onState.AddTransition(offState);
+            var toOff = VirtualStateTransition.Create();
+            toOff.DestinationState = offState;
             toOff.AddCondition(AnimatorConditionMode.IfNot, 0, "ToggleMyObject");
             toOff.Duration = 0;
+            onState.Transitions = onState.Transitions.Add(toOff);
         }
     }
 #endif
