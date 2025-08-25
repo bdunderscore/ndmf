@@ -11,6 +11,11 @@ To use the AnimatorServices system, your plugin needs to activate the `AnimatorS
 #### Using WithRequiredExtensions
 
 ```csharp
+using System.Collections.Immutable;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
+
 [assembly: ExportsPlugin(typeof(MyAnimationPlugin))]
 
 public class MyAnimationPlugin : Plugin<MyAnimationPlugin>
@@ -38,6 +43,11 @@ public class MyAnimationPlugin : Plugin<MyAnimationPlugin>
 #### Using DependsOnContext Attribute
 
 ```csharp
+using System.Collections.Immutable;
+using nadena.dev.ndmf;
+using nadena.dev.ndmf.animator;
+using UnityEditor.Animations;
+
 [DependsOnContext(typeof(AnimatorServicesContext))]
 public class MyAnimationPass : Pass<MyAnimationPass>
 {
@@ -126,8 +136,15 @@ if (controllerContext.Controllers.TryGetValue(VRCAvatarDescriptor.AnimLayerType.
     var activeState = newLayer.StateMachine.AddState("Active", motion: myVirtualClip);
     
     // Add transition with conditions
-    var transition = idleState.AddTransition(activeState);
-    transition.AddCondition(AnimatorConditionMode.If, 0, "MyParameter");
+    var transition = VirtualStateTransition.Create();
+    transition.SetDestination(activeState);
+    transition.Conditions = transition.Conditions.Add(new AnimatorCondition
+    {
+        mode = AnimatorConditionMode.If,
+        parameter = "MyParameter",
+        threshold = 0
+    });
+    idleState.Transitions = idleState.Transitions.Add(transition);
 }
 
 // Access other layers
@@ -249,7 +266,12 @@ public class AddToggleAnimationPass : Pass<AddToggleAnimationPass>
         string virtualPath = pathRemapper.GetVirtualPathForObject(targetObject.gameObject);
         
         // Add parameter
-        fxController.AddParameter("ToggleMyObject", AnimatorControllerParameterType.Bool);
+        fxController.Parameters = fxController.Parameters.Add("ToggleMyObject", 
+            new AnimatorControllerParameter 
+            { 
+                name = "ToggleMyObject", 
+                type = AnimatorControllerParameterType.Bool 
+            });
         
         // Create animation clips
         var onClip = VirtualClip.Create("MyObject_On");
@@ -271,13 +293,27 @@ public class AddToggleAnimationPass : Pass<AddToggleAnimationPass>
         toggleLayer.StateMachine.DefaultState = offState;
         
         // Add transitions
-        var toOn = offState.AddTransition(onState);
-        toOn.AddCondition(AnimatorConditionMode.If, 0, "ToggleMyObject");
+        var toOn = VirtualStateTransition.Create();
+        toOn.SetDestination(onState);
+        toOn.Conditions = toOn.Conditions.Add(new AnimatorCondition
+        {
+            mode = AnimatorConditionMode.If,
+            parameter = "ToggleMyObject",
+            threshold = 0
+        });
         toOn.Duration = 0;
+        offState.Transitions = offState.Transitions.Add(toOn);
         
-        var toOff = onState.AddTransition(offState);
-        toOff.AddCondition(AnimatorConditionMode.IfNot, 0, "ToggleMyObject");
+        var toOff = VirtualStateTransition.Create();
+        toOff.SetDestination(offState);
+        toOff.Conditions = toOff.Conditions.Add(new AnimatorCondition
+        {
+            mode = AnimatorConditionMode.IfNot,
+            parameter = "ToggleMyObject",
+            threshold = 0
+        });
         toOff.Duration = 0;
+        onState.Transitions = onState.Transitions.Add(toOff);
         #endif
     }
 }
