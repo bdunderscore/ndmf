@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using AnimatorController = UnityEditor.Animations.AnimatorController;
 #if NDMF_VRCSDK3_AVATARS
 using VRC.SDK3.Avatars.Components;
 #endif
@@ -354,12 +355,13 @@ namespace UnitTests.AnimationServices
             string virtualPath = pathRemapper.GetVirtualPathForObject(targetObject.gameObject);
             
             // Add parameter using the Parameters property (ImmutableDictionary)
-            fxController.Parameters = fxController.Parameters.Add("ToggleMyObject", 
-                new AnimatorControllerParameter 
-                { 
-                    name = "ToggleMyObject", 
-                    type = AnimatorControllerParameterType.Bool 
-                });
+            var toggleParameter = new AnimatorControllerParameter 
+            { 
+                name = "ToggleMyObject", 
+                type = AnimatorControllerParameterType.Bool 
+            };
+            var updatedParameters = fxController.Parameters.Add("ToggleMyObject", toggleParameter);
+            fxController.Parameters = updatedParameters;
             
             // Create animation clips
             var onClip = VirtualClip.Create("MyObject_On");
@@ -383,25 +385,29 @@ namespace UnitTests.AnimationServices
             // Add transitions using the Transitions property (ImmutableList)
             var toOn = VirtualStateTransition.Create();
             toOn.SetDestination(onState);
-            toOn.Conditions = toOn.Conditions.Add(new AnimatorCondition
+            var toOnConditions = toOn.Conditions.Add(new AnimatorCondition
             {
                 mode = AnimatorConditionMode.If,
                 parameter = "ToggleMyObject",
                 threshold = 0
             });
+            toOn.Conditions = toOnConditions;
             toOn.Duration = 0;
-            offState.Transitions = offState.Transitions.Add(toOn);
+            var offStateTransitions = offState.Transitions.Add(toOn);
+            offState.Transitions = offStateTransitions;
             
             var toOff = VirtualStateTransition.Create();
             toOff.SetDestination(offState);
-            toOff.Conditions = toOff.Conditions.Add(new AnimatorCondition
+            var toOffConditions = toOff.Conditions.Add(new AnimatorCondition
             {
                 mode = AnimatorConditionMode.IfNot,
                 parameter = "ToggleMyObject",
                 threshold = 0
             });
+            toOff.Conditions = toOffConditions;
             toOff.Duration = 0;
-            onState.Transitions = onState.Transitions.Add(toOff);
+            var onStateTransitions = onState.Transitions.Add(toOff);
+            onState.Transitions = onStateTransitions;
         }
     }
 #endif
