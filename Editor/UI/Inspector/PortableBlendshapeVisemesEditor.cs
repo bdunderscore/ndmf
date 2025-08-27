@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using nadena.dev.ndmf.platform;
@@ -50,7 +52,6 @@ namespace nadena.dev.ndmf.ui.inspector
             
             Dictionary<string, int> visemeList = new Dictionary<string, int>();
 
-            int blankEntries = 0;
             for (int i = 0; i < prop_shapeList.arraySize; i++)
             {
                 var entry = prop_shapeList.GetArrayElementAtIndex(i)

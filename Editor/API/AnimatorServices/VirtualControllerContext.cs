@@ -265,7 +265,7 @@ namespace nadena.dev.ndmf.animator
                     if (basePath != "")
                     {
                         var index = new AnimationIndex(new[] { vc });
-                        index.PlatformBindings = _platformBindings;
+                        index.PlatformBindings = _platformBindings!;
                         index.ApplyPathPrefix(basePath);
                     }
                 }
@@ -283,7 +283,7 @@ namespace nadena.dev.ndmf.animator
                 if (virtualizeMotion.GetMotionBasePath(context, false) == "" &&
                     _layerStates.TryGetValue(virtualizeMotion, out var currentLayer))
                 {
-                    currentLayer.Revalidate(virtualizeMotion.Motion);
+                    currentLayer.Revalidate(motion);
                 }
                 else
                 {
