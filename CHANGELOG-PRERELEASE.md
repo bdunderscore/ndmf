@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#690] Now `UIElementLocalizer` prefers `label` property over `text` property
 
 ### Removed
 

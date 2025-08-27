@@ -52,7 +52,7 @@ namespace nadena.dev.ndmf.localization
         {
             if (!_localizers.TryGetValue(ty, out var action))
             {
-                PropertyInfo m_label = ty.GetProperty("text") ?? ty.GetProperty("label");
+                PropertyInfo m_label = ty.GetProperty("label") ?? ty.GetProperty("text");
                
                 if (m_label == null)
                 {
