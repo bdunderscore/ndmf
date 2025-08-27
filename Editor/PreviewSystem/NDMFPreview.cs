@@ -116,5 +116,22 @@ namespace nadena.dev.ndmf.preview
 
             return sess.ProxyToOriginalObject.GetValueOrDefault(proxy);
         }
+
+        /// <summary>
+        /// If the given game object has a preview proxy object, returns it.
+        /// </summary>
+        /// <param name="original">The suspected original object</param>
+        /// <returns>The proxy object, or null if the given object does not have a proxy</returns>
+        public static GameObject? GetProxyObjectForOriginal(GameObject original)
+        {
+            var sess = PreviewSession.Current;
+
+            if (sess == null)
+            {
+                return null;
+            }
+
+            return sess.OriginalToProxyObject.GetValueOrDefault(original);
+        }
     }
 }
