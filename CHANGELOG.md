@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose `NormalizedBlendValues` from `VirtualBlendTree`
 
 ### Fixed
+- [#675] Fixed comparison function in `SingleObjectQuery.ObserveTransformPosition`
 
 ### Changed
 - [#690] Now `UIElementLocalizer` prefers `label` property over `text` property
