@@ -69,33 +69,56 @@ namespace nadena.dev.ndmf.preview
             internal int unityMainThreadId = -1;
             private readonly List<WorkRequest> asyncQueue = new();
             private readonly List<WorkRequest> localQueue = new();
-            private bool isRegistered, isTurning;
+            private bool isRequested, isUpdateRegistered, isTurning;
 
             internal Impl()
             {
                 _turnDelegate = Turn;
+                // isRequested: whether any thread has sent a notification to the unity synchronization context to wake
+                // up the main thread
+                isRequested = false;
+                // isUpdateRegistered: whether we've registered our update callback with EditorApplication.update
+                isUpdateRegistered = false;
+
+                // We need to do a bit of setup before the first invocation, so have delayCall get things set up, then
+                // kick off normal processing.
                 EditorApplication.delayCall += () =>
                 {
                     // Obtain the unity synchronization context
                     _unityMainThreadContext = Current;
                     unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
 
-                    Turn(); // process anything that was queued before we had a chance to initialize
+                    lock (_lock)
+                    {
+                        // Process anything queued before we initialized.
+                        RegisterCallback();
+                    }
                 };
             }
 
             // invoked under _lock
             private void RegisterCallback()
             {
-                if (isRegistered || _unityMainThreadContext == null) return;
-                isRegistered = true;
+                if (isRequested || _unityMainThreadContext == null) return;
+                isRequested = true;
 
+                // Wake up the main thread
                 _unityMainThreadContext.Post(InvokeTurn, this);
             }
 
             private void InvokeTurn(object state)
             {
-                ((Impl)state).Turn();
+                if (isUpdateRegistered) return;
+                isUpdateRegistered = true;
+
+                // Although we're on the main thread, Unity does not consider this to be an editor context, which means
+                // we can't access mesh data on read-only meshes. As such we delegate the actual processing to the editor
+                // update function, which does not have this restriction.
+                //
+                // We don't want to stay on EditorApplication.update however, because this would prevent the editor from
+                // sleeping when it doesn't have anything to do, so we'll deregister ourselves later if we have nothing
+                // to do.
+                EditorApplication.update += _turnDelegate;
             }
 
             // visible for tests
@@ -103,8 +126,6 @@ namespace nadena.dev.ndmf.preview
             {
                 lock (_lock)
                 {
-                    isRegistered = false;
-                    EditorApplication.update -= _turnDelegate;
                     try
                     {
                         unityMainThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -141,9 +162,11 @@ namespace nadena.dev.ndmf.preview
 
                 lock (_lock)
                 {
-                    if (localQueue.Count > 0)
+                    if (localQueue.Count == 0)
                     {
-                        RegisterCallback();
+                        EditorApplication.update -= _turnDelegate;
+                        isUpdateRegistered = false;
+                        isRequested = false;
                     }
 
                     isTurning = false;

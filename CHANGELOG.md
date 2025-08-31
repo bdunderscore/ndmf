@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#675] Fixed comparison function in `SingleObjectQuery.ObserveTransformPosition`
+- [#692] Fixed issues where mesh manipulation would fail on readonly meshes, potentially breaking the preview system
+entirely.
 
 ### Changed
 - [#690] Now `UIElementLocalizer` prefers `label` property over `text` property
