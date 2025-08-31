@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 entirely.
 
 ### Changed
-
 - [#693] `VirtualAnimatorController` will adjust VRChat parameter drivers to preserve behavior when parameter types are changed
 - [#693] `VirtualAnimatorController.Parameters` will now clone `AnimatorControllerParameter` objects on get and set.
 - [#690] Now `UIElementLocalizer` prefers `label` property over `text` property

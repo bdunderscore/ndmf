@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#694] When correcting parameter drivers when parameter types change, multiple intermediate copy stages would be
+  generated. This has no negative effect, but made writing tests in downstream packages more complex.
+
 ### Changed
 
 ### Removed
