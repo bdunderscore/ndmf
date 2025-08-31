@@ -29,10 +29,61 @@ namespace nadena.dev.ndmf.animator
 
         private ImmutableDictionary<string, AnimatorControllerParameter> _parameters;
 
+        private AnimatorControllerParameter CloneParameter(AnimatorControllerParameter acp)
+        {
+            return new AnimatorControllerParameter
+            {
+                name = acp.name,
+                type = acp.type,
+                defaultBool = acp.defaultBool,
+                defaultFloat = acp.defaultFloat,
+                defaultInt = acp.defaultInt
+            };
+        }
+        
+        /// <summary>
+        /// The animator controller parameters. The value returned from this property is an immutable dictionary,
+        /// with all values being cloned parameters, so you must explicitly set this property in order to change it.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
         public ImmutableDictionary<string, AnimatorControllerParameter> Parameters
         {
-            get => _parameters;
-            set => _parameters = I(value ?? throw new ArgumentNullException(nameof(value)));
+            // Clone all of the parameter objects to ensure immutability
+            get => _parameters.ToImmutableDictionary(
+                p => p.Key,
+                p => CloneParameter(p.Value)
+            );
+            set
+            {
+                var oldParameters = _parameters;
+                _parameters = I(value ?? throw new ArgumentNullException(nameof(value)))
+                    // Clone all of the parameter objects to ensure immutability
+                    .ToImmutableDictionary(
+                        p => p.Key,
+                        p => CloneParameter(p.Value)
+                    );
+
+                var changed = oldParameters.Keys.SelectMany(key =>
+                {
+                    if (!_parameters.TryGetValue(key, out var newParam))
+                    {
+                        return Enumerable
+                            .Empty<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)>();
+                    }
+
+                    if (oldParameters[key].type == newParam.type)
+                    {
+                        return Enumerable
+                            .Empty<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)>();
+                    }
+
+                    return new[] { (key, oldParameters[key].type, newParam.type) };
+                }).ToList();
+                if (changed.Count > 0)
+                {
+                    _context.PlatformBindings.OnParameterTypeChanges(this, changed);
+                }
+            }
         }
 
         private readonly SortedDictionary<LayerPriority, LayerGroup> _layers = new();
