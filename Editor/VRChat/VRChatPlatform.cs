@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.vrchat
 
         public string QualifiedName => WellKnownPlatforms.VRChatAvatar30;
         public string DisplayName => "VRChat";
-        public Texture2D Icon => null;
+        public Texture2D? Icon => null;
         public Type AvatarRootComponentType => typeof(VRCAvatarDescriptor);
         public bool HasNativeConfigData => true;
 
