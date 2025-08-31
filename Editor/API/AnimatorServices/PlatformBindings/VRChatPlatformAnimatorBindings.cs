@@ -275,7 +275,8 @@ namespace nadena.dev.ndmf.animator
                     // intermediate bool and copy the result
                     driver.parameters = driver.parameters.SelectMany(p =>
                     {
-                        if (!changed.TryGetValue(p.name, out var oldType)) return new[] { p };
+                        if (!changed.TryGetValue(p.name, out var oldType)
+                            || p.type == VRC_AvatarParameterDriver.ChangeType.Copy) return new[] { p };
 
                         var tmp = GUID.Generate().ToString();
                         var oldName = p.name;
