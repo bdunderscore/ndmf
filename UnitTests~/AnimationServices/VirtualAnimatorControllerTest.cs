@@ -49,6 +49,20 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+        public void ParametersAreImmutable()
+        {
+            CloneContext context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            
+            var controller = TrackObject(new AnimatorController());
+            controller.AddParameter("x", AnimatorControllerParameterType.Bool);
+            
+            var virtualController = context.Clone(controller);
+            virtualController.Parameters["x"].type = AnimatorControllerParameterType.Float;
+            
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, virtualController.Parameters["x"].type);
+        }
+
+        [Test]
         public void HandlesNullStateMachineReferences()
         {
             CloneContext context = new CloneContext(GenericPlatformAnimatorBindings.Instance);

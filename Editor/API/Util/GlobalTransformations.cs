@@ -81,10 +81,14 @@ namespace nadena.dev.ndmf.util
 
             foreach (var controller in controllers)
             {
+                var newParams = controller.Parameters;
                 foreach (var (name, acp) in controller.Parameters)
                 {
                     acp.type = parameterTypes[name];
+                    newParams = newParams.SetItem(name, acp);
                 }
+
+                controller.Parameters = newParams;
 
                 foreach (var node in controller.AllReachableNodes())
                 {

@@ -1,9 +1,11 @@
 ﻿#if NDMF_VRCSDK3_AVATARS
 
+using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.UnitTestSupport;
+using nadena.dev.ndmf.util;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Advertisements;
@@ -352,6 +354,61 @@ namespace UnitTests.AnimationServices
             };
 
             return ac;
+        }
+
+        [Test]
+        public void WhenParameterTypeChanged_DriversAreCorrected(
+            [Values(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Int)]
+            AnimatorControllerParameterType priorType
+        )
+        {
+            var cloneContext = new CloneContext(VRChatPlatformAnimatorBindings.Instance);
+            var ac1 = VirtualAnimatorController.Create(cloneContext, "1");
+
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x", new AnimatorControllerParameter() { name = "x", type = priorType })
+                .Add("y", new AnimatorControllerParameter() { name = "y", type = priorType });
+
+            var vs1 = ac1.AddLayer(LayerPriority.Default, "l1").StateMachine!.AddState("s1");
+
+            var b1 = ScriptableObject.CreateInstance<VRCAvatarParameterDriver>();
+            b1.parameters = new[]
+            {
+                new VRC_AvatarParameterDriver.Parameter()
+                {
+                    name = "x",
+                    type = VRC_AvatarParameterDriver.ChangeType.Random,
+                    destMin = 0,
+                    destMax = 1
+                },
+                new VRC_AvatarParameterDriver.Parameter()
+                {
+                    name = "y",
+                    type = VRC_AvatarParameterDriver.ChangeType.Random,
+                    destMin = 0,
+                    destMax = 1
+                }
+            }.ToList();
+            
+            vs1.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(b1);
+            
+            // Alter the parameter types. Pray I don't change them further.
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x", new AnimatorControllerParameter() { name = "x", type = AnimatorControllerParameterType.Float })
+                .Add("y", new AnimatorControllerParameter() { name = "y", type = priorType });
+            
+            // b1 parameter driver contents are changed
+            Assert.AreEqual(3, b1.parameters.Count);
+            var tmp = b1.parameters[0].name;
+            Assert.AreNotEqual("x", tmp);
+            Assert.AreEqual(tmp, b1.parameters[1].source);
+            Assert.AreEqual("x", b1.parameters[1].name);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Random, b1.parameters[0].type);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Copy, b1.parameters[1].type);
+            
+            // The additional y random should still be present at the end
+            Assert.AreEqual("y", b1.parameters[2].name);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Random, b1.parameters[2].type);
         }
     }
 }

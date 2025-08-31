@@ -84,5 +84,18 @@ namespace nadena.dev.ndmf.animator
         void RemapPathsInStateBehaviour(StateMachineBehaviour behaviour, Func<string, string?> remapPath)
         {
         }
+
+        /// <summary>
+        ///     Invoked when the type of an existing parameter is changed. This is used in the VRChat bindings to
+        ///     adjust parameter drivers when a parameter is changed from bool to float, in order to preserve behavior.
+        /// </summary>
+        /// <param name="controller">The controller that was modified</param>
+        /// <param name="changes">A map of (parameter name, old type, new type)</param>
+        void OnParameterTypeChanges(
+            VirtualAnimatorController controller,
+            IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)> changes
+        )
+        {
+        }
     }
 }

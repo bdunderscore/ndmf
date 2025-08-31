@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HarmonyLib;
 using UnityEditor;
@@ -28,7 +29,7 @@ namespace nadena.dev.ndmf.animator
             "Packages/com.vrchat.avatars/Samples/AV3 Demo Assets/Animation/Controllers";
 
         private HashSet<Motion>? _specialMotions;
-
+        
         private VRChatPlatformAnimatorBindings()
         {
         }
@@ -240,6 +241,64 @@ namespace nadena.dev.ndmf.animator
                 case VRC_AnimatorLayerControl.BlendableLayer.FX: return VRCAvatarDescriptor.AnimLayerType.FX;
                 case VRC_AnimatorLayerControl.BlendableLayer.Gesture: return VRCAvatarDescriptor.AnimLayerType.Gesture;
                 default: throw new ArgumentOutOfRangeException("Unknown blendable layer type: " + playable);
+            }
+        }
+
+        public void OnParameterTypeChanges(
+            VirtualAnimatorController controller,
+            IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)> changes
+        )
+        {
+            var changed = changes
+                .Where(tuple =>
+                    tuple.Item2 != AnimatorControllerParameterType.Float &&
+                    tuple.Item3 == AnimatorControllerParameterType.Float)
+                .ToDictionary(tuple => tuple.Item1, tuple => tuple.Item2);
+            if (changed.Count == 0) return;
+
+            foreach (var reachable in controller.AllReachableNodes())
+            {
+                ImmutableList<StateMachineBehaviour> behaviors;
+
+                switch (reachable)
+                {
+                    case VirtualState vs: behaviors = vs.Behaviours; break;
+                    case VirtualStateMachine vsm: behaviors = vsm.Behaviours; break;
+                    default: continue;
+                }
+
+                if (behaviors.Count == 0) continue;
+
+                foreach (var driver in behaviors.OfType<VRCAvatarParameterDriver>())
+                {
+                    // bool and float parameters are interpreted differently in a parameter driver, so create an
+                    // intermediate bool and copy the result
+                    driver.parameters = driver.parameters.SelectMany(p =>
+                    {
+                        if (!changed.TryGetValue(p.name, out var oldType)) return new[] { p };
+
+                        var tmp = GUID.Generate().ToString();
+                        var oldName = p.name;
+                        p.name = tmp;
+
+                        controller.Parameters = controller.Parameters.Add(tmp, new AnimatorControllerParameter
+                        {
+                            name = tmp,
+                            type = oldType
+                        });
+
+                        return new[]
+                        {
+                            p,
+                            new VRC_AvatarParameterDriver.Parameter
+                            {
+                                name = oldName,
+                                source = tmp,
+                                type = VRC_AvatarParameterDriver.ChangeType.Copy
+                            }
+                        };
+                    }).ToList();
+                }
             }
         }
     }
