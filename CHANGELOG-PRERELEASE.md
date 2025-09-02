@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added `IPlatformAnimatorBindings.PreCommitController`
 
 ### Fixed
+- [#696] Fixed compatibility issue with the new parameter driver correction logic.
 
 ### Changed
 

@@ -45,6 +45,18 @@ namespace nadena.dev.ndmf.animator
         }
 
         /// <summary>
+        ///     Invoked just before committing an animator controller. This callback can be used, for example,
+        ///     to ensure that any synthetic parameters are added to the controller.
+        ///     Note that, if multiple controllers share animation clips or other objects, changes to those
+        ///     objects may not be reflected in the final animator controller assets, as they may have already
+        ///     been committed to unity objects.
+        /// </summary>
+        /// <param name="controller"></param>
+        void PreCommitController(VirtualAnimatorController controller)
+        {
+        }
+
+        /// <summary>
         /// Invoked after a StateMachineBehavior is cloned, to allow for any platform-specific modifications.
         /// For example, in VRChat, this is used to replace the layer indexes with virtual layer indexes in the
         /// VRChatAnimatorLayerControl behavior.

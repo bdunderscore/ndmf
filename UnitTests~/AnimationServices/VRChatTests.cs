@@ -36,6 +36,52 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+        public void CorrectParameterDrivers_WhenParameterTypesChanged(
+            [Values(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Int)]
+            AnimatorControllerParameterType paramType
+        )
+        {
+            var cloneContext = new CloneContext(VRChatPlatformAnimatorBindings.Instance);
+            var ac1 = VirtualAnimatorController.Create(cloneContext, "1");
+            
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x", new AnimatorControllerParameter() { name = "x", type = paramType });
+            
+            var vs1 = ac1.AddLayer(LayerPriority.Default, "l1").StateMachine!.AddState("s1");
+            
+            var behaviour = ScriptableObject.CreateInstance<VRCAvatarParameterDriver>();
+            behaviour.parameters = new[]
+            {
+                new VRC_AvatarParameterDriver.Parameter()
+                {
+                    name = "x",
+                    type = VRC_AvatarParameterDriver.ChangeType.Random,
+                    destMin = 0,
+                    destMax = 1
+                }
+            }.ToList();
+            vs1.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(behaviour);
+            
+            // Change to be a float
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x",
+                    new AnimatorControllerParameter() { name = "x", type = AnimatorControllerParameterType.Float });
+
+            // We have not yet added the synthetic parameter, but it exists in the behaviour
+            Assert.AreEqual(1, ac1.Parameters.Count);
+            var tmpParamName = behaviour.parameters[0].name;
+            Assert.AreNotEqual("x", tmpParamName);
+            
+            // After commit, we have registered the parameter
+            var animator = new CommitContext(VRChatPlatformAnimatorBindings.Instance).CommitObject(ac1);
+            var finalParams = animator.parameters.ToDictionary(p => p.name, p => p);
+            Assert.AreEqual(2, finalParams.Count);
+            Assert.IsTrue(finalParams.ContainsKey("x"));
+            Assert.IsTrue(finalParams.ContainsKey(tmpParamName));
+            Assert.AreEqual(paramType, finalParams[tmpParamName].type);
+        }
+
+        [Test]
         public void LoadsOverrideControllers()
         {
             var root = CreatePrefab("TestAssets/EmptyAvatar.prefab");
