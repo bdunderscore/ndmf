@@ -289,6 +289,8 @@ namespace nadena.dev.ndmf.animator
 
         AnimatorController ICommittable<AnimatorController>.Prepare(CommitContext context)
         {
+            _context.PlatformBindings.PreCommitController(this);
+            
             if (_cachedController == null) _cachedController = new AnimatorController();
 
             _cachedController.name = Name;

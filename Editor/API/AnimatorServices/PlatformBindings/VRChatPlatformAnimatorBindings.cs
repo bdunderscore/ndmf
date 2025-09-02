@@ -21,6 +21,9 @@ namespace nadena.dev.ndmf.animator
     public sealed class VRChatPlatformAnimatorBindings : IPlatformAnimatorBindings
     {
         public static readonly VRChatPlatformAnimatorBindings Instance = new();
+
+        private const string SYNTHETIC_BOOL_PREFIX = "ModularAvatar$synthetic$bool$";
+        private const string SYNTHETIC_INT_PREFIX = "ModularAvatar$synthetic$int$";
         
         private const string SAMPLE_PATH_PACKAGE =
             "Packages/com.vrchat.avatars";
@@ -244,6 +247,56 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
+        public void PreCommitController(VirtualAnimatorController controller)
+        {
+            // Create any synthetic bools required by changed done by OnParameterTypeChanges
+            foreach (var reachable in controller.AllReachableNodes())
+            {
+                ImmutableList<StateMachineBehaviour> behaviors;
+
+                switch (reachable)
+                {
+                    case VirtualState vs: behaviors = vs.Behaviours; break;
+                    case VirtualStateMachine vsm: behaviors = vsm.Behaviours; break;
+                    default: continue;
+                }
+
+                if (behaviors.Count == 0) continue;
+
+                var parameters = controller.Parameters;
+
+                foreach (var behavior in behaviors.OfType<VRCAvatarParameterDriver>())
+                {
+                    if (behavior == null) continue;
+
+                    foreach (var p in behavior.parameters)
+                    {
+                        var isSynthBool = p.name?.StartsWith(SYNTHETIC_BOOL_PREFIX) == true;
+                        var isSynthInt = p.name?.StartsWith(SYNTHETIC_INT_PREFIX) == true;
+                        if (!isSynthInt && !isSynthBool)
+                        {
+                            continue;
+                        }
+
+                        var type = isSynthBool
+                            ? AnimatorControllerParameterType.Bool
+                            : AnimatorControllerParameterType.Int;
+
+                        if (!parameters.ContainsKey(p.name!))
+                        {
+                            parameters = parameters.Add(p.name!, new AnimatorControllerParameter
+                            {
+                                name = p.name,
+                                type = type
+                            });
+                        }
+                    }
+                }
+
+                controller.Parameters = parameters;
+            }
+        }
+
         public void OnParameterTypeChanges(
             VirtualAnimatorController controller,
             IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)> changes
@@ -278,15 +331,12 @@ namespace nadena.dev.ndmf.animator
                         if (!changed.TryGetValue(p.name, out var oldType)
                             || p.type == VRC_AvatarParameterDriver.ChangeType.Copy) return new[] { p };
 
-                        var tmp = GUID.Generate().ToString();
+                        var prefix = oldType == AnimatorControllerParameterType.Bool
+                            ? SYNTHETIC_BOOL_PREFIX
+                            : SYNTHETIC_INT_PREFIX;
+                        var tmp = prefix + GUID.Generate();
                         var oldName = p.name;
                         p.name = tmp;
-
-                        controller.Parameters = controller.Parameters.Add(tmp, new AnimatorControllerParameter
-                        {
-                            name = tmp,
-                            type = oldType
-                        });
 
                         return new[]
                         {
