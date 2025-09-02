@@ -44,7 +44,7 @@ namespace nadena.dev.ndmf.animator
             
         }
 
-         /// <summary>
+        /// <summary>
         ///     Invoked just before committing an animator controller. This callback can be used, for example,
         ///     to ensure that any synthetic parameters are added to the controller.
         ///     Note that, if multiple controllers share animation clips or other objects, changes to those
