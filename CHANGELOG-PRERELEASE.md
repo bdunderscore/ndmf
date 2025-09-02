@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added `IPlatformAnimatorBindings.PreCommitController`
 
 ### Fixed
-- [#696] Fixed compatibility issue with the new parameter driver correction logic.
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.9.0-rc.2] - [2025-09-02]
+
+### Added
+- Added `IPlatformAnimatorBindings.PreCommitController`
+
+### Fixed
+- [#696] Fixed compatibility issue with the new parameter driver correction logic.
 
 ## [1.9.0-rc.1] - [2025-09-01]
 
