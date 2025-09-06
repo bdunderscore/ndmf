@@ -30,7 +30,11 @@ public class ConvertTransitionTypes : TestBase
                 {
                     if (existing.type != v.type)
                     {
-                        existing.type = AnimatorControllerParameterType.Float;
+                        existing = new AnimatorControllerParameter()
+                        {
+                            name = existing.name,
+                            type = AnimatorControllerParameterType.Float,
+                        };
                         vac.Parameters = vac.Parameters.SetItem(k, existing);
                     }
                 }

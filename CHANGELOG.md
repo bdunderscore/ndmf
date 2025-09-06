@@ -19,7 +19,7 @@ entirely.
 
 ### Changed
 - [#693] `VirtualAnimatorController` will adjust VRChat parameter drivers to preserve behavior when parameter types are changed
-- [#693] `VirtualAnimatorController.Parameters` will now clone `AnimatorControllerParameter` objects on get and set.
+- [#693] `VirtualAnimatorController.Parameters` will now clone `AnimatorControllerParameter` objects on set.
 - [#690] Now `UIElementLocalizer` prefers `label` property over `text` property
 
 ### Removed
@@ -27,6 +27,13 @@ entirely.
 ### Security
 
 ### Deprecated
+
+Currently, `VirtualAnimatorController.Parameters` returns an immutable dictionary, but the values in that dictionary
+are mutable. This is not intended behavior; a warning has been added that will be logged if the type of parameters
+are mutated in-place, and this behavior will break in the future.
+
+Plugins that want to change the type of a parameter should construct a new `AnimatorControllerParameter` object,
+and assign an ImmutableDictionary containing it to `VirtualAnimatorController.Parameters` instead.
 
 ## [1.8.3] - [2025-08-02]
 
