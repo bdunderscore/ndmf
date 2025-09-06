@@ -13,11 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reverted changes to clone AnimatorControllerParameters on the getter for `VirtualAnimatorController.Parameters`
+  due to backwards-compatibility concerns.
+
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+Currently, `VirtualAnimatorController.Parameters` returns an immutable dictionary, but the values in that dictionary
+are mutable. This is not intended behavior; a warning has been added that will be logged if the type of parameters
+are mutated in-place, and this behavior will break in the future.
+
+Plugins that want to change the type of a parameter should construct a new `AnimatorControllerParameter` object,
+and assign an ImmutableDictionary containing it to `VirtualAnimatorController.Parameters` instead.
 
 ## [1.9.0-rc.2] - [2025-09-02]
 
