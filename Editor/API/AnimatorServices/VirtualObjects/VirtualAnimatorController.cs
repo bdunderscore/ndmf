@@ -40,6 +40,38 @@ namespace nadena.dev.ndmf.animator
                 defaultInt = acp.defaultInt
             };
         }
+
+        // For tests
+        internal bool DetectedParametersInteriorMutability;
+
+        private Dictionary<string, AnimatorControllerParameterType> _lastParameterType = new();
+
+        private void CheckParameterMutation()
+        {
+            foreach (var (k, v) in _parameters)
+            {
+                if (DetectedParametersInteriorMutability) break;
+
+                if (_lastParameterType.TryGetValue(k, out var lastType) && lastType != v.type)
+                {
+                    DetectedParametersInteriorMutability = true;
+                    Debug.LogError($"Parameter {k} changed type from {lastType} to {v.type} in-place. This is not " +
+                                   "supported and will become an error in future versions. If you need to change a " +
+                                   "parameter type, create a new AnimatorControllerParameter object and use the " +
+                                   "Parameters setter to update the parameters map.");
+                }
+            }
+        }
+
+        private void UpdateParameterCache()
+        {
+            _lastParameterType.Clear();
+
+            foreach (var (k, v) in _parameters)
+            {
+                _lastParameterType[k] = v.type;
+            }
+        }
         
         /// <summary>
         /// The animator controller parameters. The value returned from this property is an immutable dictionary,
@@ -49,12 +81,19 @@ namespace nadena.dev.ndmf.animator
         public ImmutableDictionary<string, AnimatorControllerParameter> Parameters
         {
             // Clone all of the parameter objects to ensure immutability
-            get => _parameters.ToImmutableDictionary(
+            /*get => _parameters.ToImmutableDictionary(
                 p => p.Key,
                 p => CloneParameter(p.Value)
-            );
+            );*/
+
+            // For backwards compatibility, we can't clone parameters (yet). But we can detect when mutability
+            // occurs and issue a log message (and eventually make it a fatal error)
+            get => _parameters;
             set
             {
+                if (ReferenceEquals(_parameters, value)) return;
+                CheckParameterMutation();
+                
                 var oldParameters = _parameters;
                 _parameters = I(value ?? throw new ArgumentNullException(nameof(value)))
                     // Clone all of the parameter objects to ensure immutability
@@ -62,6 +101,7 @@ namespace nadena.dev.ndmf.animator
                         p => p.Key,
                         p => CloneParameter(p.Value)
                     );
+                UpdateParameterCache();
 
                 var changed = oldParameters.Keys.SelectMany(key =>
                 {
@@ -269,6 +309,7 @@ namespace nadena.dev.ndmf.animator
                 .GroupBy(p => p.name)
                 .Select(pg => pg.Last())
                 .ToImmutableDictionary(p => p.name);
+            UpdateParameterCache();
 
             var srcLayers = controller.layers;
             _virtualLayerBase = context.AllocateVirtualLayerSpace(srcLayers.Length);
@@ -290,6 +331,8 @@ namespace nadena.dev.ndmf.animator
         AnimatorController ICommittable<AnimatorController>.Prepare(CommitContext context)
         {
             _context.PlatformBindings.PreCommitController(this);
+
+            CheckParameterMutation();
             
             if (_cachedController == null) _cachedController = new AnimatorController();
 

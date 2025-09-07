@@ -1,9 +1,11 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.TestTools;
 using AnimatorController = UnityEditor.Animations.AnimatorController;
 using Assert = UnityEngine.Assertions.Assert;
 
@@ -57,9 +59,17 @@ namespace UnitTests.AnimationServices
             controller.AddParameter("x", AnimatorControllerParameterType.Bool);
             
             var virtualController = context.Clone(controller);
+            Assert.IsFalse(virtualController.DetectedParametersInteriorMutability);
             virtualController.Parameters["x"].type = AnimatorControllerParameterType.Float;
             
-            Assert.AreEqual(AnimatorControllerParameterType.Bool, virtualController.Parameters["x"].type);
+            //Assert.AreEqual(AnimatorControllerParameterType.Bool, virtualController.Parameters["x"].type);
+            
+            var commitContext = new CommitContext();
+            commitContext.CommitObject(virtualController);
+            
+            Assert.AreEqual(AnimatorControllerParameterType.Float, virtualController.Parameters["x"].type);
+            Assert.IsTrue(virtualController.DetectedParametersInteriorMutability);
+            LogAssert.Expect(LogType.Error, new Regex(".*changed type from.*"));
         }
 
         [Test]
