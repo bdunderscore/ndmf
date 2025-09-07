@@ -13,12 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Reverted changes to clone AnimatorControllerParameters on the getter for `VirtualAnimatorController.Parameters`
-  due to backwards-compatibility concerns.
-
 ### Removed
 
 ### Security
+
+### Deprecated
+
+## [1.9.0-rc.3] - [2025-09-07]
+
+### Changed
+
+- Reverted changes to clone AnimatorControllerParameters on the getter for `VirtualAnimatorController.Parameters`
+  due to backwards-compatibility concerns.
 
 ### Deprecated
 
