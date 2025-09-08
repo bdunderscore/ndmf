@@ -11,3 +11,7 @@
       href: extension-context.md
     - name: Versioning Policy
       href: versioning-policy.md
+- name: Guides
+  items:
+    - name: AnimatorServices System
+      href: animator-services.md
