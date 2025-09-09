@@ -78,6 +78,8 @@ namespace nadena.dev.ndmf.vrchat
             if (!avatarRoot.TryGetComponent<VRCAvatarDescriptor>(out var vrcAvDesc))
             {
                 vrcAvDesc = avatarRoot.AddComponent<VRCAvatarDescriptor>();
+                // Initialize array SerializeFields with empty array instances
+                EditorUtility.CopySerialized(vrcAvDesc, vrcAvDesc);
             }
 
             if (cai.EyePosition != null)
