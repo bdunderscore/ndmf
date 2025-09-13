@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#675] Fixed comparison function in `SingleObjectQuery.ObserveTransformPosition`
 - [#692] Fixed issues where mesh manipulation would fail on readonly meshes, potentially breaking the preview system
 entirely.
+- [#702] Converting non-VRChat platform avatars to VRChat resulted in incompletely initialized avatar descriptors.
 
 ### Changed
 - [#693] `VirtualAnimatorController` will adjust VRChat parameter drivers to preserve behavior when parameter types are changed
