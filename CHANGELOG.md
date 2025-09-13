@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.9.0] - [2025-09-13]
+
+### Added
 - Expose `NormalizedBlendValues` from `VirtualBlendTree`
 - Added `IPlatformAnimatorBindings.PreCommitController`
 
@@ -22,10 +36,6 @@ entirely.
 - [#693] `VirtualAnimatorController` will adjust VRChat parameter drivers to preserve behavior when parameter types are changed
 - [#693] `VirtualAnimatorController.Parameters` will now clone `AnimatorControllerParameter` objects on set.
 - [#690] Now `UIElementLocalizer` prefers `label` property over `text` property
-
-### Removed
-
-### Security
 
 ### Deprecated
 
