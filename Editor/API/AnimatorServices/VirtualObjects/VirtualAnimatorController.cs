@@ -306,6 +306,7 @@ namespace nadena.dev.ndmf.animator
             _context = context;
             Name = controller.name;
             _parameters = controller.parameters
+                .Select(CloneParameter)
                 .GroupBy(p => p.name)
                 .Select(pg => pg.Last())
                 .ToImmutableDictionary(p => p.name);

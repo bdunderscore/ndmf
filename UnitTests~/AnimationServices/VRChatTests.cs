@@ -457,6 +457,70 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Random, b1.parameters[2].type);
         }
         
+        
+        [Test]
+        public void WhenParameterTypeChanged_AddDriversAreCorrected(
+            [Values(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Int)]
+            AnimatorControllerParameterType priorType
+        )
+        {
+            var cloneContext = new CloneContext(VRChatPlatformAnimatorBindings.Instance);
+            var ac1 = VirtualAnimatorController.Create(cloneContext, "1");
+
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x", new AnimatorControllerParameter() { name = "x", type = priorType })
+                .Add("y", new AnimatorControllerParameter() { name = "y", type = priorType });
+
+            var vs1 = ac1.AddLayer(LayerPriority.Default, "l1").StateMachine!.AddState("s1");
+
+            var b1 = ScriptableObject.CreateInstance<VRCAvatarParameterDriver>();
+            b1.parameters = new[]
+            {
+                new VRC_AvatarParameterDriver.Parameter()
+                {
+                    name = "x",
+                    type = VRC_AvatarParameterDriver.ChangeType.Add,
+                    destMin = 0,
+                    destMax = 1
+                },
+                new VRC_AvatarParameterDriver.Parameter()
+                {
+                    name = "y",
+                    type = VRC_AvatarParameterDriver.ChangeType.Add,
+                    destMin = 0,
+                    destMax = 1
+                }
+            }.ToList();
+            
+            vs1.Behaviours = ImmutableList<StateMachineBehaviour>.Empty.Add(b1);
+            
+            // Alter the parameter types. Pray I don't change them further.
+            ac1.Parameters = ImmutableDictionary<string, AnimatorControllerParameter>.Empty
+                .Add("x", new AnimatorControllerParameter() { name = "x", type = AnimatorControllerParameterType.Float })
+                .Add("y", new AnimatorControllerParameter() { name = "y", type = priorType });
+            
+            // b1 parameter driver contents are changed
+            Assert.AreEqual(4, b1.parameters.Count);
+            var copyIn = b1.parameters[0];
+            var add = b1.parameters[1];
+            var copyOut = b1.parameters[2];
+            
+            var tmp = add.name;
+            Assert.AreNotEqual("x", tmp);
+            Assert.AreEqual(tmp, copyOut.source);
+            Assert.AreEqual(tmp, copyIn.name);
+            Assert.AreEqual("x", copyOut.name);
+            Assert.AreEqual("x", copyIn.source);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Copy, copyOut.type);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Add, add.type);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Copy, copyIn.type);
+            
+            // The additional y random should still be present at the end
+            Assert.AreEqual("y", b1.parameters[3].name);
+            Assert.AreEqual(VRC_AvatarParameterDriver.ChangeType.Add, b1.parameters[3].type);
+        }
+        
+        
         [Test]
         public void WhenParameterTypeChanged_CopyDriversAreNotChanged(
             [Values(AnimatorControllerParameterType.Bool, AnimatorControllerParameterType.Int)]

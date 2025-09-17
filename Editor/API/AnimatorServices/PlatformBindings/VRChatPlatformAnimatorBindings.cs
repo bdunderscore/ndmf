@@ -325,7 +325,10 @@ namespace nadena.dev.ndmf.animator
                 foreach (var driver in behaviors.OfType<VRCAvatarParameterDriver>())
                 {
                     // bool and float parameters are interpreted differently in a parameter driver, so create an
-                    // intermediate bool and copy the result
+                    // intermediate value and copy the result.
+                    
+                    // Note that for drivers other than Random, because the prior value is used, we need to
+                    // copy from the float to the int first.
                     driver.parameters = driver.parameters.SelectMany(p =>
                     {
                         if (!changed.TryGetValue(p.name, out var oldType)
@@ -338,16 +341,26 @@ namespace nadena.dev.ndmf.animator
                         var oldName = p.name;
                         p.name = tmp;
 
-                        return new[]
+                        List<VRC_AvatarParameterDriver.Parameter> parameters = new();
+                        if (p.type != VRC_AvatarParameterDriver.ChangeType.Random)
                         {
-                            p,
-                            new VRC_AvatarParameterDriver.Parameter
+                            parameters.Add(new VRC_AvatarParameterDriver.Parameter
                             {
-                                name = oldName,
-                                source = tmp,
+                                name = tmp,
+                                source = oldName,
                                 type = VRC_AvatarParameterDriver.ChangeType.Copy
-                            }
-                        };
+                            });
+                        }
+                        
+                        parameters.Add(p);
+                        parameters.Add(new VRC_AvatarParameterDriver.Parameter
+                        {
+                            name = oldName,
+                            source = tmp,
+                            type = VRC_AvatarParameterDriver.ChangeType.Copy
+                        });
+
+                        return parameters.ToArray();
                     }).ToList();
                 }
             }

@@ -84,8 +84,15 @@ namespace nadena.dev.ndmf.util
                 var newParams = controller.Parameters;
                 foreach (var (name, acp) in controller.Parameters)
                 {
-                    acp.type = parameterTypes[name];
-                    newParams = newParams.SetItem(name, acp);
+                    var newAcp = new AnimatorControllerParameter
+                    {
+                        name = acp.name,
+                        defaultBool = acp.defaultBool,
+                        defaultFloat = acp.defaultFloat,
+                        defaultInt = acp.defaultInt,
+                        type = parameterTypes[name]
+                    };
+                    newParams = newParams.SetItem(name, newAcp);
                 }
 
                 controller.Parameters = newParams;
