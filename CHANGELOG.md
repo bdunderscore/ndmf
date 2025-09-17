@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#705] Fixed an issue where parameter drivers in Add mode might be handled incorrectly when parameter types are harmonized.
 
 ### Changed
 
@@ -20,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.9.1] - [2025-09-17]
+
+### Fixed
+- [#705] Fixed an issue where parameter drivers in Add mode might be handled incorrectly when parameter types are harmonized.
 
 ## [1.9.0] - [2025-09-13]
 
