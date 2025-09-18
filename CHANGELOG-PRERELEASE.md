@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#706] `NDMFPreview.GetOriginalObjectForProxy` would return null when called on a proxy renderer while the proxy
-  pipeline was not yet fully built (from a preview filter)
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.9.2] - [2025-09-18]
+
+### Fixed
+- [#706] `NDMFPreview.GetOriginalObjectForProxy` would return null when called on a proxy renderer while the proxy
+  pipeline was not yet fully built (from a preview filter)
 
 ## [1.9.1] - [2025-09-17]
 
