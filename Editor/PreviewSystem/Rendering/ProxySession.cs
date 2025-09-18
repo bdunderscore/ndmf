@@ -31,6 +31,12 @@ namespace nadena.dev.ndmf.preview
         internal ProxyObjectCache _proxyCache = new();
         private static readonly FieldInfo _selectionCacheDirtyField;
 
+        internal GameObject GetOriginalObjectForProxy(GameObject proxy)
+        {
+            return _active?.ProxyToOriginalObject.GetValueOrDefault(proxy)
+                   ?? _next?.ProxyToOriginalObject.GetValueOrDefault(proxy);
+        }
+        
         static ProxySession()
         {
             _selectionCacheDirtyField = typeof(SceneView)

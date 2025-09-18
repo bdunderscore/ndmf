@@ -209,6 +209,11 @@ namespace nadena.dev.ndmf.preview
                             // we render for real).
                             _proxies.Add(r, proxy);
 
+                            // Publish proxies immediately so that they can be referred to in preview filters
+                            OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
+                            OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
+                            ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
+                            
                             var registry = new ObjectRegistry(null);
                             ((IObjectRegistry)registry).RegisterReplacedObject(r, proxy.Renderer);
 
@@ -306,12 +311,7 @@ namespace nadena.dev.ndmf.preview
                 if (proxy.Renderer == null)
                 {
                     Invalidate();
-                    continue;
                 }
-
-                OriginalToProxyRenderer = OriginalToProxyRenderer.Add(r, proxy.Renderer);
-                OriginalToProxyObject = OriginalToProxyObject.Add(r.gameObject, proxy.Renderer.gameObject);
-                ProxyToOriginalObject = ProxyToOriginalObject.Add(proxy.Renderer.gameObject, r.gameObject);
             }
             
 #if NDMF_DEBUG
