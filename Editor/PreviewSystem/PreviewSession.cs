@@ -65,7 +65,12 @@ namespace nadena.dev.ndmf.preview
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
 
         private ProxySession _proxySession;
-        
+
+        internal GameObject GetOriginalObjectForProxy(GameObject proxy)
+        {
+            return _proxySession?.GetOriginalObjectForProxy(proxy);
+        }
+
         public PreviewSession()
         {
             _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);

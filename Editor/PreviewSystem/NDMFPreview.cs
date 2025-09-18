@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System.Collections.Immutable;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.preview.UI;
 using nadena.dev.ndmf.ui;
@@ -107,14 +106,7 @@ namespace nadena.dev.ndmf.preview
         /// <returns>The original object, or null if the given object is not a proxy</returns>
         public static GameObject? GetOriginalObjectForProxy(GameObject proxy)
         {
-            var sess = PreviewSession.Current;
-
-            if (sess == null)
-            {
-                return null;
-            }
-
-            return sess.ProxyToOriginalObject.GetValueOrDefault(proxy);
+            return PreviewSession.Current?.GetOriginalObjectForProxy(proxy);
         }
     }
 }
