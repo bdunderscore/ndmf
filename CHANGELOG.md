@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#709] Scene view selection would select proxy renderers instead of originals
 
 ### Changed
 
