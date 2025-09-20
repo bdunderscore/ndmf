@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#710] Scene view selection would (still) select proxy renderers instead of originals
-- [#710] Sometimes, NDMF preview would get "stuck", particularly after domain reload
 
 ### Changed
 
@@ -21,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.9.4] - [2025-09-20]
+
+### Fixed
+- [#710] Scene view selection would (still) select proxy renderers instead of originals
+- [#710] Sometimes, NDMF preview would get "stuck", particularly after domain reload
 
 ## [1.9.3] - [2025-09-19]
 
