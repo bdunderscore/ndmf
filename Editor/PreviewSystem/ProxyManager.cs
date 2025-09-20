@@ -1,6 +1,8 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -23,13 +25,48 @@ namespace nadena.dev.ndmf.preview
                 Camera.onPostRender += OnPostRender;
                 EditorSceneManager.sceneSaving += (_, _) => ResetStates();
                 AssemblyReloadEvents.beforeAssemblyReload += ResetStates;
+
+
+                var onGuiStartedAdder =
+                    typeof(SceneView)
+                        .GetEvent("onGUIStarted", BindingFlags.Static | BindingFlags.NonPublic)
+                        ?.GetAddMethod(true);
+                var onGuiEndedAdder =
+                    typeof(SceneView)
+                        .GetEvent("onGUIEnded", BindingFlags.Static | BindingFlags.NonPublic)
+                        ?.GetAddMethod(true);
+
+                // Hooking OnGUIStarted/Ended avoids multiple OnPreCull calls in the same frame, but is not
+                // essential for proper behavior. As such, we'll take advantage of them if they're found,
+                // but otherwise avoid exploding.
+                if (onGuiEndedAdder != null && onGuiStartedAdder != null)
+                {
+                    onGuiStartedAdder.Invoke(null, new object[] { (Action<SceneView>)OnGUIStarted });
+                    onGuiEndedAdder.Invoke(null, new object[] { (Action<SceneView>)OnGUIEnded });
+                }
             };
         }
 
+        private static void OnGUIStarted(SceneView sceneView)
+        {
+            OnPreCull(sceneView.camera);
+            _inSceneViewRendering = true;
+        }
+
+        private static void OnGUIEnded(SceneView sceneView)
+        {
+            _inSceneViewRendering = false;
+            ResetStates();
+        }
+
+        private static bool _inSceneViewRendering;
         private static List<(Renderer, bool)> _resetActions = new();
 
         private static bool IsSceneCamera(Camera cam)
         {
+            if (cam == null) return false;
+            if (cam.hideFlags == HideFlags.HideAndDontSave && cam.gameObject.name == "SceneCamera") return true;
+
             return cam != null && SceneView.currentDrawingSceneView?.camera == cam;
         }
         
@@ -49,6 +86,8 @@ namespace nadena.dev.ndmf.preview
 
         private static void OnPreCull(Camera cam)
         {
+            if (_inSceneViewRendering) return;
+            
             ResetStates();
 
             bool sceneCam = IsSceneCamera(cam);
@@ -59,7 +98,7 @@ namespace nadena.dev.ndmf.preview
             // TODO: fully support prefab isolation view
             if (PrefabStageUtility.GetCurrentPrefabStage() != null) return;
 
-            var sess = PreviewSession.Current;
+            var sess = PreviewSession.ForCamera(cam);
             if (sess == null) return;
 
             foreach (var (original, replacement) in sess.OnPreCull(sceneCam))
@@ -82,6 +121,8 @@ namespace nadena.dev.ndmf.preview
 
         private static void ResetStates()
         {
+            if (_inSceneViewRendering) return;
+            
             foreach (var (renderer, state) in _resetActions)
             {
                 if (renderer != null) renderer.forceRenderingOff = state;

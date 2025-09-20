@@ -27,6 +27,7 @@ namespace nadena.dev.ndmf.preview
         private static Scene _previewScene;
 
         private static bool _showPreviewScene;
+        private static bool _assemblyReloading;
 
         private static bool ShowPreviewScene
         {
@@ -87,7 +88,11 @@ namespace nadena.dev.ndmf.preview
             };
 
             // Reset preview scene on assembly reload
-            AssemblyReloadEvents.beforeAssemblyReload += () => { ResetPreviewScene(); };
+            AssemblyReloadEvents.beforeAssemblyReload += () =>
+            {
+                ResetPreviewScene();
+                _assemblyReloading = true;
+            };
 
             // Create scene on scene transition. Unity doesn't allow us to create a new scene additively when an unsaved
             // scene is open, so we do this now to head off user interaction.
@@ -127,6 +132,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (_previewScene.IsValid()) return _previewScene;
             if (EditorApplication.isPlayingOrWillChangePlaymode) return default;
+            if (_assemblyReloading) return default;
 
             _previewScene = SceneManager.GetSceneByName(PreviewSceneName);
             if (!_previewScene.IsValid())

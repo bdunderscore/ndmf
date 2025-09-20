@@ -1,9 +1,12 @@
 ﻿#region
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 
 #endregion
@@ -15,23 +18,29 @@ namespace nadena.dev.ndmf.preview
     ///
     /// (For now, this isn't very useful; use  `DeclaringPass.PreviewingWith` instead)
     /// </summary>
-    internal class PreviewSession // : IDisposable
+    public class PreviewSession : IDisposable
     {
         #region Static State
 
         /// <summary>
         /// The PreviewSession used for any cameras not overriden using `OverrideCamera`.
         /// </summary>
-        public static PreviewSession Current { get; set; }
+        public static PreviewSession? Current { get; set; }
 
-#if FUTURE_API
+        private static readonly Dictionary<Camera, PreviewSession> _cameraOverrides = new();
+
+        internal static PreviewSession? ForCamera(Camera camera)
+        {
+            return _cameraOverrides.GetValueOrDefault(camera) ?? Current;
+        }
+        
         /// <summary>
         /// Applies this PreviewSession to the `target` camera.
         /// </summary>
         /// <param name="target"></param>
         public void OverrideCamera(Camera target)
         {
-            throw new NotImplementedException();
+            _cameraOverrides[target] = this;
         }
 
         /// <summary>
@@ -40,10 +49,9 @@ namespace nadena.dev.ndmf.preview
         /// <param name="target"></param>
         public static void ClearCameraOverride(Camera target)
         {
-            throw new NotImplementedException();
+            _cameraOverrides.Remove(target);
         }
-#endif
-
+        
         #endregion
 
         internal IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
@@ -66,6 +74,10 @@ namespace nadena.dev.ndmf.preview
 
         private ProxySession _proxySession;
 
+        [UsedImplicitly] // primarily for debugger usage
+        private readonly string _name;
+        
+
         internal GameObject GetOriginalObjectForProxy(GameObject proxy)
         {
             return _proxySession?.GetOriginalObjectForProxy(proxy);
@@ -74,6 +86,16 @@ namespace nadena.dev.ndmf.preview
         public PreviewSession()
         {
             _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
+            _name = "Default";
+        }
+
+        private PreviewSession(PreviewSession source, string name)
+        {
+            _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
+            _sequence = source._sequence.Clone();
+            _filters = source._filters.ToDictionary(kv => kv.Key, kv => kv.Value);
+            _name = name;
+            ForceRebuild();
         }
 
         public void ForceRebuild()
@@ -133,22 +155,25 @@ namespace nadena.dev.ndmf.preview
             _proxySession.Filters = filters;
         }
 
-#if FUTURE_API
         /// <summary>
         /// Returns a new PreviewSession which inherits all mutators from the parent session. Any mutators added to this
         /// new session run after the parent session's mutators.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public PreviewSession Fork()
+        public PreviewSession Fork(string name = "Preview session")
         {
-            throw new NotImplementedException();
+            return new PreviewSession(this, name);
         }
-#endif
         
         public void Dispose()
         {
             _proxySession.Dispose();
+
+            foreach (var (k, _) in _cameraOverrides.Where(kv => kv.Key == null || kv.Value == this).ToList())
+            {
+                _cameraOverrides.Remove(k);
+            }
         }
     }
 }
