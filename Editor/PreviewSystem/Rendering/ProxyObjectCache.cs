@@ -58,6 +58,8 @@ namespace nadena.dev.ndmf.preview
 
             public void ReturnSetupProxy(Renderer proxy)
             {
+                if (proxy == null) return;
+
                 if (_state.InactiveSetupProxy != null || _state.ActivePrimaryCount == 0)
                 {
                     DestroyProxy(proxy);
