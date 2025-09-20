@@ -162,7 +162,7 @@ namespace nadena.dev.ndmf.preview
 
                 lock (_lock)
                 {
-                    if (localQueue.Count == 0)
+                    if (localQueue.Count == 0 && asyncQueue.Count == 0)
                     {
                         EditorApplication.update -= _turnDelegate;
                         isUpdateRegistered = false;
