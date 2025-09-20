@@ -9,10 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Exposed `PreviewSession` class, allowing for custom preview behavior to be set for specific cameras.
-
 ### Fixed
-- [#712] Fix an issue where preview might break if certain internal objects are destroyed unexpectedly.
 
 ### Changed
 
@@ -21,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-beta.0] - [2025-09-20]
+
+### Added
+
+- Exposed `PreviewSession` class, allowing for custom preview behavior to be set for specific cameras.
+
+### Fixed
+- [#712] Fix an issue where preview might break if certain internal objects are destroyed unexpectedly.
 
 ## [1.9.4] - [2025-09-20]
 
