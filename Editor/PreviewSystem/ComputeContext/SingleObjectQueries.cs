@@ -1,8 +1,5 @@
 #region
 
-#if NDMF_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

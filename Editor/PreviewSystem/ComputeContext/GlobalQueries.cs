@@ -6,12 +6,6 @@ using System.Linq;
 using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
-#if NDMF_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-
-#else
-using nadena.dev.ndmf.runtime;
-#endif
 
 #endregion
 
