@@ -34,6 +34,7 @@ namespace nadena.dev.ndmf.preview
             if (obj == null) return null;
 
             GameObject candidate = null;
+            // We have to observe all the way to the top of the hierarchy to see if avatar root component are added to ancestors
             foreach (var elem in context.ObservePath(obj.transform))
             {
                 ObjectWatcher.Instance.MonitorGetComponents(elem.gameObject, context, false);
