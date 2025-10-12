@@ -39,7 +39,7 @@ namespace nadena.dev.ndmf.preview
             GameObject candidate = null;
             foreach (var elem in context.ObservePath(obj.transform))
             {
-                ObjectWatcher.Instance.MonitorGetComponents(obj, context, false);
+                ObjectWatcher.Instance.MonitorGetComponents(elem.gameObject, context, false);
                 if (RuntimeUtil.AllRootTypes.Any(type => elem.TryGetComponent(type, out _)))
                 {
                     candidate = elem.gameObject;
