@@ -39,18 +39,11 @@ namespace nadena.dev.ndmf.preview
             GameObject candidate = null;
             foreach (var elem in context.ObservePath(obj.transform))
             {
-#if NDMF_VRCSDK3_AVATARS
-                if (context.GetComponent<VRCAvatarDescriptor>(elem.gameObject) != null)
-                {
-                    candidate = elem.gameObject;
-                    break;
-                }
-#else
-                if (context.GetComponent<Animator>(elem.gameObject) != null)
+                ObjectWatcher.Instance.MonitorGetComponents(obj, context, false);
+                if (RuntimeUtil.AllRootTypes.Any(type => elem.TryGetComponent(type, out _)))
                 {
                     candidate = elem.gameObject;
                 }
-#endif
             }
 
             return candidate;
