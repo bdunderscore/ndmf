@@ -89,13 +89,16 @@ namespace nadena.dev.ndmf
         /// that will not be cleaned up by CleanTemporaryAssets.
         /// </summary>
         /// <param name="obj"></param>
+        /// <param name="platform"></param>
         /// <returns></returns>
-        public static GameObject ProcessAvatarUI(GameObject obj)
+        [PublicAPI]
+        public static GameObject ProcessAvatarUI(GameObject obj, INDMFPlatformProvider platform = null)
         {
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
                 var avatar = UnityObject.Instantiate(obj);
-                var buildContext = new BuildContext(avatar, TemporaryAssetRoot);
+                platform ??= AmbientPlatform.CurrentPlatform;
+                var buildContext = new BuildContext(avatar, TemporaryAssetRoot, platform);
 
                 avatar.transform.position += Vector3.forward * 2f;
                 try
