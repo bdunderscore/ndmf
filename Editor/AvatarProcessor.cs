@@ -84,6 +84,12 @@ namespace nadena.dev.ndmf
             return PlatformExtensions.CanProcessObject(avatar);
         }
 
+        [Obsolete("ProcessAvatarUI() does not handle platforms correctly. Please use ManualProcessAvatar() instead, and specify VRChatPlatform to retain the behavior of ProcessAvatarUI().")]
+        public static GameObject ProcessAvatarUI(GameObject obj)
+        {
+            return ManualProcessAvatar(obj, AmbientPlatform.DefaultPlatform);
+        }
+
         /// <summary>
         /// Process an avatar on request by the user. The resulting assets will be saved in a persistent directory
         /// that will not be cleaned up by CleanTemporaryAssets.
@@ -92,7 +98,7 @@ namespace nadena.dev.ndmf
         /// <param name="platform"></param>
         /// <returns></returns>
         [PublicAPI]
-        public static GameObject ProcessAvatarUI(GameObject obj, INDMFPlatformProvider platform = null)
+        public static GameObject ManualProcessAvatar(GameObject obj, INDMFPlatformProvider platform = null)
         {
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
