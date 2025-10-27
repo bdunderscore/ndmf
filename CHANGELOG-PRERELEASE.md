@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
 
 ### Fixed
 

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using nadena.dev.ndmf.localization;
+using nadena.dev.ndmf.ui;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf
@@ -68,5 +69,27 @@ namespace nadena.dev.ndmf
         public override string[] TitleSubst => _subst;
         public override string[] DetailsSubst => _subst;
         public override string[] HintSubst => _subst;
+    }
+
+    internal class InlineErrorWithAutofix : InlineError
+    {
+        private readonly Action _autofix;
+
+        public InlineErrorWithAutofix(Action autofix, Localizer localizer, ErrorSeverity errorSeverity, string key,
+            params object[] args) : base(localizer, errorSeverity, key, args)
+        {
+            _autofix = autofix;
+        }
+
+        public override VisualElement CreateVisualElement(ErrorReport report)
+        {
+            var elem = base.CreateVisualElement(report);
+            if (elem is SimpleErrorUI ui)
+            {
+                ui.AddAutofix(_autofix);
+            }
+
+            return elem;
+        }
     }
 }
