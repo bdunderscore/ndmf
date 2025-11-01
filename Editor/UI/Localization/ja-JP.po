@@ -20,11 +20,29 @@ msgstr "アバターが選択されていません。"
 msgid "ErrorReport:Unbuilt"
 msgstr "アバターはまだビルドされていません。"
 
+msgid "ErrorReport:AutoFix"
+msgstr "お任せ修正"
+
+msgid "ErrorReport:Fixed"
+msgstr "修正済み"
+
 msgid "Errors:InternalError"
 msgstr "内部エラーが発生しました。"
 
 msgid "Errors:InternalError:description"
 msgstr "プラグインに{0}のエラーが発生しました。プラグイン作者にご報告ください。"
+
+msgid "Errors:MipStreamingMissingOnAsset"
+msgstr "一部のテクスチャアセットに、ミップストリーミングがオフになっています"
+
+msgid "Errors:MipStreamingMissingOnAsset:description"
+msgstr "以下のアセットでは、VRChatでは必須になっているミップストリーミング設定が抜けています。設定するか、「お任せ修正」ボタンを押してください。"
+
+msgid "Errors:MipStreamingMissingOnTempAsset"
+msgstr "他のツールに生成されたと思われるテクスチャアセットに、ミップストリーミングがオフになっています"
+
+msgid "Errors:MipStreamingMissingOnTempAsset:description"
+msgstr "以下のテクスチャアセットでは、VRChatでは必須になっているミップストリーミング設定が抜けています。このテクスチャを生成したツールにバグ報告を行ってください。"
 
 msgid "InternalError:StackTraceFoldout"
 msgstr "スタックトレースを表示（バグ報告に添付してください！）"
