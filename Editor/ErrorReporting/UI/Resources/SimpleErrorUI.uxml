@@ -20,6 +20,9 @@
                 <engine:TextField name="stack-trace" text="Error stacktrace" multiline="true" readonly="true"/>
             </engine:Foldout>
         </engine:VisualElement>
-
+        <engine:VisualElement name="error-list-buttons">
+            <engine:Button name="autofix" text="ErrorReport:AutoFix" class="ndmf-tr"/>
+            <engine:Button name="fixed" text="ErrorReport:Fixed" class="ndmf-tr"/>
+        </engine:VisualElement>
     </engine:VisualElement>
 </engine:UXML>

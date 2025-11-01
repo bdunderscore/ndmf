@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
+- [#729] Fixed some false positives and build failures with CheckMipStreamingPass
 
 ### Changed
 
@@ -19,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-beta.1] - [2025-10-27]
+
+### Added
+- [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
 
 ## [1.10.0-beta.0] - [2025-09-20]
 

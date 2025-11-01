@@ -6,6 +6,11 @@
     align-items: center;
     padding: 2px;
     margin: 2px;
+    flex-grow: 1;
+}
+
+.error-list-main {
+    flex-grow: 1;
 }
 
 .ErrorElement > Image {
@@ -49,5 +54,15 @@ Label {
 }
 
 #stack-trace-foldout {
+    display: none;
+}
+
+#error-list-buttons {
+    flex-direction: column-reverse;
+    display: none;
+    height: 100%;
+}
+
+#error-list-buttons Button {
     display: none;
 }

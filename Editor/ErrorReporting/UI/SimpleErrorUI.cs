@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf.localization;
 using UnityEditor;
@@ -32,9 +33,29 @@ namespace nadena.dev.ndmf.ui
             traceElem.value = trace;
         }
 
+        internal void AddAutofix(Action autofix)
+        {
+            var buttons = this.Q<VisualElement>("error-list-buttons");
+            buttons.style.display = DisplayStyle.Flex;
+
+            var autofixButton = this.Q<Button>("autofix");
+            var fixedButton = this.Q<Button>("fixed");
+            fixedButton.SetEnabled(false);
+
+            autofixButton.clickable.clicked += () =>
+            {
+                autofix();
+                autofixButton.style.display = DisplayStyle.None;
+                fixedButton.style.display = DisplayStyle.Flex;
+            };
+            autofixButton.style.display = DisplayStyle.Flex;
+        }
+        
         private void RenderContent()
         {
             Clear();
+
+            style.flexGrow = 1;
 
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
