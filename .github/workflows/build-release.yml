@@ -140,7 +140,7 @@ jobs:
           git push origin ${{ needs.prechecks.outputs.version }}
 
       - name: Make Release
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
         if: needs.prechecks.outputs.need-new-tag == 'true' || startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
