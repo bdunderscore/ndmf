@@ -4,13 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf.cs;
-using UnityEngine;
-#if NDMF_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-
-#else
 using nadena.dev.ndmf.runtime;
-#endif
+using UnityEngine;
 
 #endregion
 
@@ -56,16 +51,17 @@ namespace nadena.dev.ndmf.preview
 
         public static ImmutableList<GameObject> GetAvatarRoots(this ComputeContext ctx)
         {
-            // TODO: multiple platform support
-#if NDMF_VRCSDK3_AVATARS
-            return ctx.GetComponentsByType<VRCAvatarDescriptor>()
-                .Select(c => c.gameObject).ToImmutableList();
-#else
-            return ctx.GetComponentsByType<Animator>()
-                .Select(c => c.gameObject)
-                .Where(g => RuntimeUtil.IsAvatarRoot(g.transform))
-                .ToImmutableList();
-#endif
+            var roots = ctx.GetSceneRoots();
+
+            var components = roots.SelectMany(root =>
+            {
+                // We are iterating scene roots, so it is okay to monitor just child components
+                // (parent components may affect avatar rootness) 
+                ObjectWatcher.Instance.MonitorGetComponents(root, ctx, true);
+                return RuntimeUtil.FindAvatarRoots(root, true);
+            });
+
+            return components.ToImmutableList();
         }
     }
 }

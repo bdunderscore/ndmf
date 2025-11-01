@@ -138,7 +138,7 @@ namespace nadena.dev.ndmf.runtime
         /// of its operation may change in patch releases.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<GameObject> FindAvatarRoots(GameObject? root = null)
+        public static IEnumerable<GameObject> FindAvatarRoots(GameObject? root = null, bool includeInactive = false)
         {
             if (root == null)
             {
@@ -162,7 +162,7 @@ namespace nadena.dev.ndmf.runtime
 
                 foreach (var ty in AllRootTypes)
                 {
-                    foreach (var c in root.GetComponentsInChildren(ty, false))
+                    foreach (var c in root.GetComponentsInChildren(ty, includeInactive))
                     {
                         candidates[c] = true;
                     }

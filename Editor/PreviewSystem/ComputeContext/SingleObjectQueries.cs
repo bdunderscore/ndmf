@@ -1,14 +1,13 @@
 #region
 
-#if NDMF_VRCSDK3_AVATARS
-using VRC.SDK3.Avatars.Components;
-#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
+using nadena.dev.ndmf.runtime;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -35,20 +34,14 @@ namespace nadena.dev.ndmf.preview
             if (obj == null) return null;
 
             GameObject candidate = null;
+            // We have to observe all the way to the top of the hierarchy to see if avatar root component are added to ancestors
             foreach (var elem in context.ObservePath(obj.transform))
             {
-#if NDMF_VRCSDK3_AVATARS
-                if (context.GetComponent<VRCAvatarDescriptor>(elem.gameObject) != null)
-                {
-                    candidate = elem.gameObject;
-                    break;
-                }
-#else
-                if (context.GetComponent<Animator>(elem.gameObject) != null)
+                ObjectWatcher.Instance.MonitorGetComponents(elem.gameObject, context, false);
+                if (RuntimeUtil.AllRootTypes.Any(type => elem.TryGetComponent(type, out _)))
                 {
                     candidate = elem.gameObject;
                 }
-#endif
             }
 
             return candidate;
