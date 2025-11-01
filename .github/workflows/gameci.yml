@@ -151,14 +151,14 @@ jobs:
             xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: '!cancelled()'
         continue-on-error: true
         with:
           name: Coverage results ${{ matrix.unity_version }} ${{ matrix.sdk }}
           path: ${{ steps.gameci.outputs.coveragePath }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: '!cancelled()'
         continue-on-error: true
         with:
