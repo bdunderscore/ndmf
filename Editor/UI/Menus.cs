@@ -46,7 +46,7 @@ namespace nadena.dev.ndmf.ui
         [MenuItem("GameObject/NDM Framework/Manual bake avatar", false, 49)]
         private static void ManualBakeGameObject()
         {
-            AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
+            AvatarProcessor.ManualProcessAvatar(Selection.activeGameObject);
         }
 
         [MenuItem(TOPLEVEL_MANUAL_BAKE_MENU_NAME, true, TOPLEVEL_MANUAL_BAKE_PRIO)]
@@ -58,7 +58,7 @@ namespace nadena.dev.ndmf.ui
         [MenuItem(TOPLEVEL_MANUAL_BAKE_MENU_NAME, false, TOPLEVEL_MANUAL_BAKE_PRIO)]
         private static void ManualBakeToplevel()
         {
-            AvatarProcessor.ProcessAvatarUI(Selection.activeGameObject);
+            AvatarProcessor.ManualProcessAvatar(Selection.activeGameObject);
         }
 
         [MenuItem(APPLY_ON_PLAY_MENU_NAME, false, APPLY_ON_PLAY_PRIO)]

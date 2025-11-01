@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Exposed `PreviewSession` class, allowing for custom preview behavior to be set for specific cameras.
+- [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 - [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
 
 ### Fixed

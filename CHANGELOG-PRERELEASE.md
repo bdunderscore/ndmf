@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
+
 ### Fixed
 - [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
 - [#729] Fixed some false positives and build failures with CheckMipStreamingPass
