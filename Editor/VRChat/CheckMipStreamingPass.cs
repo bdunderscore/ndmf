@@ -12,6 +12,11 @@ namespace nadena.dev.ndmf.VRChat
     [DependsOnContext(typeof(AnimatorServicesContext))]
     internal class CheckMipStreamingPass : Pass<CheckMipStreamingPass>
     {
+        internal void TestExecute(BuildContext context)
+        {
+            Execute(context);
+        }
+        
         protected override void Execute(BuildContext context)
         {
             var examined = new HashSet<Object>();
@@ -33,23 +38,33 @@ namespace nadena.dev.ndmf.VRChat
 
             foreach (var mat in materials)
             {
-                if (mat.shader == null) continue;
+                if (mat?.shader == null) continue;
                 if (!examined.Add(mat)) continue;
 
                 texNamePropIds.Clear();
                 mat.GetTexturePropertyNameIDs(texNamePropIds);
                 foreach (var prop in texNamePropIds)
                 {
-                    var tex = mat.GetTexture(prop);
-                    if (tex == null) continue;
-
-                    if (!examined.Add(tex)) continue;
-
-                    var sTexture = new SerializedObject(tex);
-                    var sStreamingMipmaps = sTexture.FindProperty("m_StreamingMipmaps");
-                    if (!sStreamingMipmaps.boolValue)
+                    try
                     {
-                        warningTextures.Add(tex);
+                        var tex = mat.GetTexture(prop);
+                        if (tex == null) continue;
+
+                        if (!examined.Add(tex)) continue;
+
+                        if (tex.mipmapCount <= 1) continue;
+
+                        var sTexture = new SerializedObject(tex);
+                        var sStreamingMipmaps = sTexture.FindProperty("m_StreamingMipmaps");
+                        if (sStreamingMipmaps?.boolValue == false)
+                        {
+                            warningTextures.Add(tex);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Don't break the build
+                        continue;
                     }
                 }
             }
