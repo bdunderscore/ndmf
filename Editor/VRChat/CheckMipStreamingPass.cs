@@ -44,6 +44,8 @@ namespace nadena.dev.ndmf.VRChat
                     if (tex == null) continue;
 
                     if (!examined.Add(tex)) continue;
+                    // If mipmap disabled, there is not must mipmap streaming.
+                    if (tex.mipmapCount <= 1) continue;
 
                     var sTexture = new SerializedObject(tex);
                     var sStreamingMipmaps = sTexture.FindProperty("m_StreamingMipmaps");
