@@ -103,6 +103,16 @@ namespace nadena.dev.ndmf.preview
 
             foreach (var (original, replacement) in sess.OnPreCull(sceneCam))
             {
+                // NOTE: Non-Unity null check!
+                if ((object)replacement == null)
+                {
+                    if (original != null)
+                    {
+                        original.forceRenderingOff = true;
+                        _resetActions.Add((original, false));
+                    }
+                }
+                
                 // TODO: Optimize to cull meshes that don't have an active-state override registered
                 if (original == null || replacement == null || !original.enabled)
                 {

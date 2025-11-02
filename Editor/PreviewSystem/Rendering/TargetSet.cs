@@ -15,19 +15,24 @@ namespace nadena.dev.ndmf.preview
         );
 
         private readonly ImmutableList<IRenderFilter> _filters;
+        private readonly ImmutableHashSet<Renderer> _hideRenderers;
         private readonly ComputeContext _targetSetContext = new ComputeContext("Target Set");
         private ImmutableList<Stage> _stages;
 
-        
+
         public struct Stage
         {
             public IRenderFilter Filter;
             public ImmutableList<RenderGroup> Groups; 
         }
         
-        public TargetSet(ImmutableList<IRenderFilter> filters)
+        public TargetSet(
+            ImmutableList<IRenderFilter> filters,
+            ImmutableHashSet<Renderer> hideRenderers
+        )
         {
             _filters = filters;
+            _hideRenderers = hideRenderers;
             
             TraceBuffer.RecordTraceEvent("TargetSet.ctor", (ev) => "Get target groups");
             
@@ -80,19 +85,20 @@ namespace nadena.dev.ndmf.preview
             }
         }
         
-        public TargetSet Refresh(ImmutableList<IRenderFilter> filters)
+        public TargetSet Refresh(ImmutableList<IRenderFilter> filters, ImmutableHashSet<Renderer> hideRenderers)
         {
-            if (!_targetSetContext.IsInvalidated && _filters.SequenceEqual(filters))
+            if (!_targetSetContext.IsInvalidated && _filters.SequenceEqual(filters) && hideRenderers.SetEquals(_hideRenderers))
             {
                 return this;
             }
             
-            return new TargetSet(filters);
+            return new TargetSet(filters, hideRenderers);
         }
 
-        private static bool RendererIsShown(ComputeContext context, Renderer renderer)
+        private bool RendererIsShown(ComputeContext context, Renderer renderer)
         {
             if (renderer == null) return false;
+            if (_hideRenderers.Contains(renderer)) return false;
             if (!context.ActiveInHierarchy(renderer.gameObject)) return false;
 
             return context.Observe(renderer, r => r.enabled);

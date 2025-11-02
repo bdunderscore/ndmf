@@ -1,4 +1,6 @@
-﻿#region
+﻿#nullable enable
+
+#region
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +17,7 @@ namespace nadena.dev.ndmf.preview
 {
     internal class ProxySession : IDisposable
     {
-        private ProxyPipeline _active, _next;
-
-        private IDisposable _unsubscribe;
+        private ProxyPipeline? _active, _next;
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>
             _active?.OriginalToProxyRenderer ?? ImmutableDictionary<Renderer, Renderer>.Empty;
@@ -29,9 +29,9 @@ namespace nadena.dev.ndmf.preview
             _active?.ProxyToOriginalObject ?? ImmutableDictionary<GameObject, GameObject>.Empty;
 
         internal ProxyObjectCache _proxyCache = new();
-        private static readonly FieldInfo _selectionCacheDirtyField;
+        private static readonly FieldInfo? _selectionCacheDirtyField;
 
-        internal GameObject GetOriginalObjectForProxy(GameObject proxy)
+        internal GameObject? GetOriginalObjectForProxy(GameObject proxy)
         {
             return _active?.ProxyToOriginalObject.GetValueOrDefault(proxy)
                    ?? _next?.ProxyToOriginalObject.GetValueOrDefault(proxy);
@@ -45,7 +45,7 @@ namespace nadena.dev.ndmf.preview
 
         private void ClearSelectionCache()
         {
-            _selectionCacheDirtyField.SetValue(null, true);
+            _selectionCacheDirtyField?.SetValue(null, true);
         }
         
         private ImmutableList<IRenderFilter> _filters;
@@ -55,17 +55,33 @@ namespace nadena.dev.ndmf.preview
             set
             {
                 if (_filters != null && _filters.SequenceEqual(value)) return;
+
+                _filters = value;
                 
                 _active?.Invalidate();
                 _next?.Invalidate();
-
-                _filters = value;
             } 
         }
-        
+
+        private HiddenRenderersDelegate? _hideRenderers;
+
+        public HiddenRenderersDelegate? HideRenderers
+        {
+            get => _hideRenderers;
+            set
+            {
+                if (_hideRenderers == value) return;
+                
+                _hideRenderers = value;
+                
+                _active?.Invalidate();
+                _next?.Invalidate();
+            }
+        }
+
         public ProxySession(ImmutableList<IRenderFilter> filters)
         {
-            Filters = filters;
+            _filters = filters;
 
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
@@ -86,11 +102,10 @@ namespace nadena.dev.ndmf.preview
         {
             Reset();
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-            _unsubscribe?.Dispose();
             _proxyCache.Dispose();
         }
 
-        public IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
+        public IEnumerable<(Renderer, Renderer?)> OnPreCull(bool isSceneCamera)
         {
             var ev = TraceBuffer.RecordTraceEvent(
                 "ProxySession.OnPreCull",
@@ -115,7 +130,7 @@ namespace nadena.dev.ndmf.preview
 
                 if (activeNeedsReplacement && _next == null)
                 {
-                    _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _active);
+                    _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _hideRenderers, _active);
                 }
 
                 if (activeNeedsReplacement && _next?.IsReady == true)
@@ -128,12 +143,12 @@ namespace nadena.dev.ndmf.preview
 
                 if (activeIsReady)
                 {
-                    _active.OnFrame(isSceneCamera);
-                    return _active.Renderers;
+                    _active?.OnFrame(isSceneCamera);
+                    return _active?.Renderers ?? Array.Empty<(Renderer, Renderer?)>();
                 }
                 else
                 {
-                    return Array.Empty<(Renderer, Renderer)>();
+                    return Array.Empty<(Renderer, Renderer?)>();
                 }
             }
         }
