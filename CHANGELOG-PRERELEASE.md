@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- [#730] Added `PreviewSession.HiddenRenderers` and `HiddenRenderersDelegate`
 - [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 
 ### Fixed

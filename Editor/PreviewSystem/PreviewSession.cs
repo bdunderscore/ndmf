@@ -13,10 +13,12 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.preview
 {
+    public delegate ImmutableHashSet<Renderer> HiddenRenderersDelegate(ComputeContext ctx);
+    
     /// <summary>
-    /// TODO: Document
-    ///
-    /// (For now, this isn't very useful; use  `DeclaringPass.PreviewingWith` instead)
+    /// The PreviewSession class allows you to override preview behavior for a particular camera.
+    /// This in particularly allows you to display only specific renderers, or apply additional
+    /// transformations to the preview.
     /// </summary>
     public class PreviewSession : IDisposable
     {
@@ -54,9 +56,9 @@ namespace nadena.dev.ndmf.preview
         
         #endregion
 
-        internal IEnumerable<(Renderer, Renderer)> OnPreCull(bool isSceneCamera)
+        internal IEnumerable<(Renderer, Renderer?)> OnPreCull(bool isSceneCamera)
         {
-            return _proxySession?.OnPreCull(isSceneCamera) ?? Enumerable.Empty<(Renderer, Renderer)>();
+            return _proxySession?.OnPreCull(isSceneCamera) ?? Enumerable.Empty<(Renderer, Renderer?)>();
         }
         
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =>
@@ -76,7 +78,21 @@ namespace nadena.dev.ndmf.preview
 
         [UsedImplicitly] // primarily for debugger usage
         private readonly string _name;
-        
+
+        private HiddenRenderersDelegate? _hiddenRenderers;
+
+        /// <summary>
+        /// This delegate is invoked to obtain a list of renderers to hide in cameras bound to this session.
+        /// </summary>
+        public HiddenRenderersDelegate? HiddenRenderers
+        {
+            get => _hiddenRenderers;
+            set
+            {
+                _hiddenRenderers = value;
+                RebuildSequence();
+            }
+        }
 
         internal GameObject GetOriginalObjectForProxy(GameObject proxy)
         {
@@ -153,6 +169,7 @@ namespace nadena.dev.ndmf.preview
             var filters = sequence.Select(p => _filters.GetValueOrDefault(p)).Where(f => f != null).ToImmutableList();
 
             _proxySession.Filters = filters;
+            _proxySession.HideRenderers = HiddenRenderers;
         }
 
         /// <summary>

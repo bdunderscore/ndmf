@@ -1,6 +1,7 @@
+#nullable enable
+
 #region
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -52,14 +53,14 @@ namespace nadena.dev.ndmf.preview
     /// </summary>
     internal class ProxyPipeline
     {
-        private TargetSet _targetSet;
+        private TargetSet? _targetSet;
         private List<StageDescriptor> _stages = new();
         private Dictionary<Renderer, ProxyObjectController> _proxies = new();
         private List<NodeController> _nodes = new(); // in OnFrame execution order
 
-        private Task _buildTask;
+        private readonly Task _buildTask;
 
-        private TaskCompletionSource<object> _completedBuild = new();
+        private readonly TaskCompletionSource<object?> _completedBuild = new();
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
             ImmutableDictionary<Renderer, Renderer>.Empty;
@@ -74,7 +75,7 @@ namespace nadena.dev.ndmf.preview
         
         // ReSharper disable once NotAccessedField.Local
         // needed to prevent GC of the ComputeContext
-        private ComputeContext _ctx;
+        private readonly ComputeContext _ctx;
         internal bool IsInvalidated => _ctx.OnInvalidate.IsCompleted;
         
         internal void Invalidate()
@@ -82,20 +83,29 @@ namespace nadena.dev.ndmf.preview
             _ctx.Invalidate();
         }
 
-        private readonly Action InvalidateAction;
+        private readonly ImmutableHashSet<Renderer> _hiddenRenderers;
 
         public bool IsReady => _buildTask.IsCompletedSuccessfully;
         public bool IsFailed => _buildTask.IsFaulted;
 
-        public IEnumerable<(Renderer, Renderer)> Renderers
-            => _proxies.Select(kvp => (kvp.Key, kvp.Value.Renderer));
+        public IEnumerable<(Renderer, Renderer?)> Renderers
+            => _proxies.Select(kvp => (kvp.Key, (Renderer?)kvp.Value.Renderer))
+                .Where(kvp => kvp.Key != null && !_hiddenRenderers.Contains(kvp.Item2!))
+                .Concat(_hiddenRenderers.Select(r => (r, (Renderer?)null)));
 
-        public ProxyPipeline(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
-            ProxyPipeline priorPipeline = null)
+        public ProxyPipeline(
+            ProxyObjectCache proxyCache,
+            IEnumerable<IRenderFilter> filters,
+            HiddenRenderersDelegate? hideRenderers,
+            ProxyPipeline? priorPipeline = null
+        )
         {
             _generation = (priorPipeline?._generation ?? 0) + 1;
-            InvalidateAction = Invalidate;
+            var context = new ComputeContext($"ProxyPipeline {_generation}");
+            _ctx = context; // prevent GC
 
+            _hiddenRenderers = hideRenderers?.Invoke(context) ?? ImmutableHashSet<Renderer>.Empty;
+            
             var buildEvent = TraceBuffer.RecordTraceEvent(
                 "ProxyPipeline.Build",
                 (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Start build",
@@ -120,14 +130,15 @@ namespace nadena.dev.ndmf.preview
             RepaintTrigger.RequestRepaint();
         }
 
-        private async Task Build(ProxyObjectCache proxyCache, IEnumerable<IRenderFilter> filters,
-            ProxyPipeline priorPipeline)
+        private async Task Build(
+            ProxyObjectCache proxyCache, 
+            IEnumerable<IRenderFilter> filters,
+            ProxyPipeline? priorPipeline
+        )
         {
             await TaskThrottle.MaybeThrottle();
             
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
-            var context = new ComputeContext($"ProxyPipeline {_generation}");
-            _ctx = context; // prevent GC
             
             _ctx.InvokeOnInvalidate(this, OnInvalidateRedraw);
 
@@ -136,9 +147,9 @@ namespace nadena.dev.ndmf.preview
 #endif
 
             var filterList = filters.ToImmutableList();
-            _targetSet = priorPipeline?._targetSet?.Refresh(filterList) ?? new TargetSet(filterList);
+            _targetSet = priorPipeline?._targetSet?.Refresh(filterList, _hiddenRenderers) ?? new TargetSet(filterList, _hiddenRenderers);
 
-            var activeStages = _targetSet.ResolveActiveStages(context);
+            var activeStages = _targetSet.ResolveActiveStages(_ctx);
 
 #if NDMF_TRACE_FILTERS
             var sb = new System.Text.StringBuilder();
@@ -198,11 +209,11 @@ namespace nadena.dev.ndmf.preview
                         }
                         else
                         {
-                            ProxyObjectController priorProxy = null;
+                            ProxyObjectController? priorProxy = null;
                             priorPipeline?._proxies.TryGetValue(r, out priorProxy);
                             
                             var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
-                            proxy.InvalidateMonitor.Invalidates(context);
+                            proxy.InvalidateMonitor.Invalidates(_ctx);
 
                             if (!proxy.OnPreFrame()) Invalidate();
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
@@ -246,7 +257,7 @@ namespace nadena.dev.ndmf.preview
                             Debug.Log(
                                 $"Creating node for {stage.Filter} on {group.Renderers[0].gameObject.name} for generation {_generation}");
 #endif
-                            NodeController node = null;
+                            NodeController? node = null;
                             
                             if (priorNode != null)
                             {
@@ -293,7 +304,7 @@ namespace nadena.dev.ndmf.preview
             Profiler.EndSample();
 
             await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
-                .ContinueWith(result =>
+                .ContinueWith(_ =>
                 {
                     TraceBuffer.RecordTraceEvent(
                         "ProxyPipeline.Build",
