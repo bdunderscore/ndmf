@@ -8,12 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#730] Added `PreviewSession.HiddenRenderers` and `HiddenRenderersDelegate`
-- [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 
 ### Fixed
-- [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
-- [#729] Fixed some false positives and build failures with CheckMipStreamingPass
 
 ### Changed
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-beta.2] - [2025-11-02]
+
+### Added
+- [#730] Added `PreviewSession.HiddenRenderers` and `HiddenRenderersDelegate`
+- [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
+
+### Fixed
+- [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
+- [#729] Fixed some false positives and build failures with CheckMipStreamingPass
 
 ## [1.10.0-beta.1] - [2025-10-27]
 
