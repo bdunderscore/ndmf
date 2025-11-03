@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#731] Mip streaming checks now ignore built-in resources
-- [#731] Mip streaming checks now produce a non-fatal error
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-beta.3] - [2025-11-03]
+
+### Fixed
+- [#731] Mip streaming checks now ignore built-in resources
+- [#731] Mip streaming checks now produce a non-fatal error
 
 ## [1.10.0-beta.2] - [2025-11-02]
 
