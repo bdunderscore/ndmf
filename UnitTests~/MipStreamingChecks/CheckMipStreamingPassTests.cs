@@ -46,7 +46,16 @@ namespace UnitTests.MipStreamingChecks
             var errors = RunPassAndCapture(root);
             Assert.IsEmpty(errors);
         }
+        
+        [Test]
+        public void NoErrorWhenProcessingBuiltInResource()
+        {
+            var root = CreatePrefab("BuiltinResourceTest.prefab");
 
+            var errors = RunPassAndCapture(root);
+            Assert.IsEmpty(errors);
+        }
+        
         [Test]
         public void ErrorWhenAssetTextureMissingMip()
         {

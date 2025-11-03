@@ -58,6 +58,16 @@ namespace nadena.dev.ndmf.VRChat
                         var sStreamingMipmaps = sTexture.FindProperty("m_StreamingMipmaps");
                         if (sStreamingMipmaps?.boolValue == false)
                         {
+                            var path = AssetDatabase.GetAssetPath(tex);
+                            var isPersistent = EditorUtility.IsPersistent(tex);
+                            var invalidPath = string.IsNullOrEmpty(path)
+                                              || !(path.StartsWith("Assets/") || path.StartsWith("Packages/"));
+
+                            if (isPersistent && invalidPath)
+                            {
+                                // Might be a built-in texture
+                                continue;
+                            }
                             warningTextures.Add(tex);
                         }
                     }
@@ -107,7 +117,7 @@ namespace nadena.dev.ndmf.VRChat
                 };
                 ErrorReport.ReportError(new InlineErrorWithAutofix(
                     autofix,
-                    NDMFLocales.L, ErrorSeverity.Error, "Errors:MipStreamingMissingOnAsset",
+                    NDMFLocales.L, ErrorSeverity.NonFatal, "Errors:MipStreamingMissingOnAsset",
                     persistentWarningTextures
                 ));
             }
