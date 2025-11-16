@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.10.0-beta.4] - [2025-11-16]
+
+### Added
 - [#734] Exposes the `PropCache` class (previously a Modular Avatar private API), which allows for ComputeContext-aware
   memoization and caching.
 
@@ -18,12 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.10.0-beta.3] - [2025-11-03]
 
