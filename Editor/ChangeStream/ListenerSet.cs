@@ -120,7 +120,8 @@ namespace nadena.dev.ndmf.cs
 
             private bool TargetIsExpended(object target)
             {
-                return target is ComputeContext ctx && _receiver == InvalidateContext && ctx.IsInvalidated;
+                return target is ComputeContext ctx && ReferenceEquals(_receiver, InvalidateContextAction) &&
+                       ctx.IsInvalidated;
             }
 
             public override string ToString()
