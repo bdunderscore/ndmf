@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.preview.trace;
-using UnityEditor;
 using UnityEngine;
 
 #endregion
@@ -20,7 +20,6 @@ namespace nadena.dev.ndmf.preview
     public sealed class ComputeContext
     {
         [PublicAPI] public static ComputeContext NullContext { get; }
-        private readonly TaskCompletionSource<object> _invalidater = new();
 
         private static object _pendingInvalidatesLock = new();
         private static bool _pendingInvalidatesScheduled;
@@ -40,10 +39,19 @@ namespace nadena.dev.ndmf.preview
         }
 
         /// <summary>
-        /// ComputeContext deferres some processing until EditorApplication.delayCall on invalidate. Invoke this function
+        /// ComputeContext defers some processing until EditorApplication.delayCall on invalidate. Invoke this function
         /// to flush and execute all pending invalidates immediately.
         /// </summary>
         public static void FlushInvalidates()
+        {
+            bool didFlush;
+            do
+            {
+                FlushInvalidates(out didFlush);
+            } while (didFlush);
+        }
+
+        private static void FlushInvalidates(out bool didFlush)
         {
             _pendingInvalidatesScheduled = false;
             
@@ -55,6 +63,8 @@ namespace nadena.dev.ndmf.preview
                 list.AddRange(_pendingInvalidates);
                 _pendingInvalidates.Clear();
             }
+
+            didFlush = list.Count > 0;
 
             while (list.Count > 0)
             {
@@ -115,14 +125,11 @@ namespace nadena.dev.ndmf.preview
         {
             get => _onInvalidateTask.Task;
         }
-        private TaskCompletionSource<bool> _onInvalidateTask = new();
 
-        private ListenerSet<object> _onInvalidateListeners = new();
+        private readonly TaskCompletionSource<bool> _onInvalidateTask = new();
+        private readonly ListenerSet<object> _onInvalidateListeners = new();
 
-        public bool IsInvalidated => _invalidatePending || _invalidater.Task.IsCompleted;
-        private bool _invalidatePending;
-
-        private long? _invalidateTriggerEvent;
+        public bool IsInvalidated { get; private set; }
 
         public ComputeContext(string description)
         {
@@ -137,37 +144,38 @@ namespace nadena.dev.ndmf.preview
                 Debug.Log("Invalidating " + Description);
 #endif
 
-                if (_invalidatePending || IsInvalidated) return;
-                
-                _invalidateTriggerEvent = TraceBuffer.RecordTraceEvent(
+                if (IsInvalidated) return;
+
+                TraceBuffer.RecordTraceEvent(
                     "ComputeContext.Invalidate",
                     (ev) => "Invalidate: " + ev.Arg0,
                     arg0: this
-                ).EventId;
+                );
                 
                 NDMFSyncContext.RunOnMainThread(target => DoInvalidate((ComputeContext)target), this);
             };
             Description = description;
-
-            _invalidater.Task.ContinueWith(_ => ScheduleInvalidate(this));
         }
 
         private static void DoInvalidate(ComputeContext ctx)
         {
             lock (ctx)
             {
-                if (ctx._invalidatePending) return;
-                ctx._invalidatePending = true;
+                if (ctx.IsInvalidated) return;
+                ctx.IsInvalidated = true;
 
-                ctx._invalidater.TrySetResult(null);
+                ScheduleInvalidate(ctx);
             }
         }
 
-        private ComputeContext(string description, object nullToken)
+        private ComputeContext(
+            string description,
+            [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+            object nullToken
+        )
         {
             Invalidate = () => { };
             _onInvalidateTask.TrySetResult(true);
-            _invalidater.TrySetResult(null);
             Description = description;
         }
 
