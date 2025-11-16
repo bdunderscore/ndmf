@@ -12,7 +12,8 @@ namespace nadena.dev.ndmf.preview
     
     internal static class TaskThrottle // TODO: make this a public API?
     {
-        private const int TASK_TIME_LIMIT_MS = 200;
+        // Maintain about 40 fps or so
+        private const int TASK_TIME_LIMIT_MS = 1000/40;
         private static readonly Stopwatch _taskTime = new();
 
         private static TaskCompletionSource<bool> _nextFrame { get; set; }

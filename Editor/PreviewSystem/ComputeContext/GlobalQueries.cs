@@ -61,7 +61,7 @@ namespace nadena.dev.ndmf.preview
                 return RuntimeUtil.FindAvatarRoots(root, true);
             });
 
-            return components.ToImmutableList();
+            return components.Where(c => ctx.ActiveInHierarchy(c)).ToImmutableList();
         }
     }
 }
