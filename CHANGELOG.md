@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Exposed `PreviewSession` class, allowing for custom preview behavior to be set for specific cameras.
+- [#734] Exposes the `PropCache` class (previously a Modular Avatar private API), which allows for ComputeContext-aware
+memoization and caching.
 - [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 - [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
 
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#712] Fix an issue where preview might break if certain internal objects are destroyed unexpectedly.
 - [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
 - [#733] Improve preview system performance
+- [#734] Sometimes, `ComputeContext.FlushInvalidates` would not reliably flush all pending invalidate calls
 
 ### Changed
 

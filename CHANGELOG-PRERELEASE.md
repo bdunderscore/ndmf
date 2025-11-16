@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#734] Exposes the `PropCache` class (previously a Modular Avatar private API), which allows for ComputeContext-aware
+  memoization and caching.
 
 ### Fixed
 - [#733] Improve preview system performance
+- [#734] Sometimes, `ComputeContext.FlushInvalidates` would not reliably flush all pending invalidate calls
 
 ### Changed
 
