@@ -23,6 +23,8 @@ memoization and caching.
 
 ### Changed
 
+- [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
+
 ### Removed
 
 ### Security

@@ -13,6 +13,26 @@ namespace nadena.dev.ndmf.preview
 {
     public static partial class ComputeContextQueries
     {
+        private static PropCache<object, ImmutableList<GameObject>> AVATAR_ROOTS =
+            new(
+                "ComputeContextQueries.GetAvatarRoots",
+                (ctx, _ignored) =>
+                {
+                    var roots = ctx.GetSceneRoots();
+
+                    var components = roots.SelectMany(root =>
+                    {
+                        // We are iterating scene roots, so it is okay to monitor just child components
+                        // (parent components may affect avatar rootness) 
+                        ObjectWatcher.Instance.MonitorGetComponents(root, ctx, true);
+                        return RuntimeUtil.FindAvatarRoots(root, true);
+                    });
+
+                    return components.Where(c => ctx.ActiveInHierarchy(c)).ToImmutableList();
+                },
+                Enumerable.SequenceEqual
+            );
+        
         /// <summary>
         /// Returns a list of all root game objects in all loaded scenes. Excludes objects with
         /// nonzero hide flags.
@@ -51,17 +71,7 @@ namespace nadena.dev.ndmf.preview
 
         public static ImmutableList<GameObject> GetAvatarRoots(this ComputeContext ctx)
         {
-            var roots = ctx.GetSceneRoots();
-
-            var components = roots.SelectMany(root =>
-            {
-                // We are iterating scene roots, so it is okay to monitor just child components
-                // (parent components may affect avatar rootness) 
-                ObjectWatcher.Instance.MonitorGetComponents(root, ctx, true);
-                return RuntimeUtil.FindAvatarRoots(root, true);
-            });
-
-            return components.Where(c => ctx.ActiveInHierarchy(c)).ToImmutableList();
+            return AVATAR_ROOTS.Get(ctx, AVATAR_ROOTS);
         }
     }
 }
