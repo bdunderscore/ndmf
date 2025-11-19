@@ -136,6 +136,9 @@ namespace nadena.dev.ndmf.preview
             ProxyPipeline? priorPipeline
         )
         {
+            using var syncContextScope = NDMFSyncContext.Scope();
+            var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            
             await TaskThrottle.MaybeThrottle();
             
             Profiler.BeginSample("ProxyPipeline.Build.Synchronous");
@@ -205,7 +208,7 @@ namespace nadena.dev.ndmf.preview
                         if (nodeTasks.TryGetValue(r, out var task))
                         {
                             return task.ContinueWith(task1 =>
-                                (r, task1.Result.GetProxyFor(r), task1.Result.ObjectRegistry));
+                                (r, task1.Result.GetProxyFor(r), task1.Result.ObjectRegistry), scheduler);
                         }
                         else
                         {
@@ -289,7 +292,7 @@ namespace nadena.dev.ndmf.preview
                             }
 
                             return node;
-                        })
+                        }, scheduler)
                         .Unwrap();
 
                     stage.NodeTasks.Add(node);
@@ -313,7 +316,7 @@ namespace nadena.dev.ndmf.preview
                     );
                     _completedBuild.TrySetResult(null);
                     RepaintTrigger.RequestRepaint();
-                });
+                }, scheduler);
 
             //UnityEngine.Debug.Log($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
@@ -398,6 +401,8 @@ namespace nadena.dev.ndmf.preview
         public void Dispose()
         {
             // We need to make sure this task runs on the unity main thread so it can delete the proxy objects
+            using var scope = NDMFSyncContext.Scope(); 
+            
             _completedBuild.Task.ContinueWith(_ =>
                 {
                     foreach (var stage in _stages)
