@@ -20,9 +20,9 @@ memoization and caching.
 - [#718] Fix NDMF preview in cross platform projects not handling cross platform avatar roots appropriately.
 - [#733] Improve preview system performance
 - [#734] Sometimes, `ComputeContext.FlushInvalidates` would not reliably flush all pending invalidate calls
+- [#737] Fixed an issue that occasionally resulted in errors while processing previews
 
 ### Changed
-
 - [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
 
 ### Removed
