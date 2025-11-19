@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#737] Fixed an issue that occasionally resulted in errors while processing previews
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-rc.0] - [2025-11-19]
+
+### Fixed
+- [#737] Fixed an issue that occasionally resulted in errors while processing previews
 
 ## [1.10.0-beta.4] - [2025-11-16]
 
