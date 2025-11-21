@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#738] Included depenendencies directory in build for use in non-VRCSDK projects
 
 ### Fixed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.0-rc.1] - [2025-11-21]
+
+### Added
+- [#738] Included depenendencies directory in build for use in non-VRCSDK projects
 
 ## [1.10.0-rc.0] - [2025-11-19]
 
