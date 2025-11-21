@@ -15,7 +15,7 @@ env:
 jobs:
   run-tests:
     needs: [prechecks]
-    if: needs.prechecks.outputs.need-new-tag == 'true'
+    if: needs.prechecks.outputs.need-new-tag == 'true' || github.event_name == 'workflow_dispatch'
     uses: bdunderscore/ndmf/.github/workflows/gameci.yml@main
     permissions:
       checks: write
@@ -81,7 +81,6 @@ jobs:
   create-release:
     needs: [prechecks, run-tests]
     runs-on: ubuntu-latest
-    if: needs.prechecks.outputs.need-new-tag == 'true' || startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
@@ -99,7 +98,7 @@ jobs:
 
       # Re-check semver syntax in case this is being triggered by a manual tag push
       - name: Check semver syntax
-        if: steps.check_tagged.outputs.need_tag == 'true'
+        if: startsWith(github.ref, 'refs/tags/')
         id: semver-check
         run: |
           chmod +x .github/workflows/*.sh
@@ -121,6 +120,7 @@ jobs:
       - name: Create Zip
         run: |
           zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
+          zip -u ".github/${{env.zipFile}}" ./Dependencies~
 
       - name: Move zipfile
         run: |
@@ -130,18 +130,10 @@ jobs:
         with:
           name: package-zip
           path: ${{ env.zipFile }}
-          
-      - name: Create tag
-        if: needs.prechecks.outputs.need-new-tag == 'true'
-        run: |
-          git config user.name "Github Actions"
-          git config user.email "github-actions@nadena.dev"
-          git tag ${{ needs.prechecks.outputs.version }}
-          git push origin ${{ needs.prechecks.outputs.version }}
-
+   
       - name: Make Release
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
-        if: needs.prechecks.outputs.need-new-tag == 'true' || startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
           generate_release_notes: true
