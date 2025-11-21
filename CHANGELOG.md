@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 memoization and caching.
 - [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 - [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
+- [#738] Included depenendencies directory in build for use in non-VRCSDK projects
 
 ### Fixed
 - [#712] Fix an issue where preview might break if certain internal objects are destroyed unexpectedly.
