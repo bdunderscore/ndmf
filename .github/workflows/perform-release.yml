@@ -197,6 +197,8 @@ jobs:
       - name: Create Zip
         run: |
           zip ".github/${{env.zipFile}}" ./* -r -x .github .git '.git/*' '*~/*' '*.ps1*'
+          # also add Dependencies~ directory
+          zip -u ".github/${{env.zipFile}}" ./Dependencies~
 
       - name: Move zipfile
         run: |
