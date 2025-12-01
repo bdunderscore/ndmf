@@ -15,6 +15,7 @@ memoization and caching.
 - [#719] Added `AvatarProcessor.ManualProcessAvatar()`, which handles platform aware manual avatar builds.
 - [#723] Added better error reporting when mip streaming is missing on a texture in a VRChat avatar build
 - [#738] Included depenendencies directory in build for use in non-VRCSDK projects
+- [#744] Added `AvatarProcessor.OnManualProcessAvatar` event, which allows subscribing to manual avatar builds.
 
 ### Fixed
 - [#712] Fix an issue where preview might break if certain internal objects are destroyed unexpectedly.
