@@ -64,7 +64,7 @@ namespace nadena.dev.ndmf
         /// <summary>
         /// Event that is invoked when an avatar is manually processed.
         /// </summary>
-        public static event Action<GameObject> OnManualProcessAvatar;
+        public static event Action<GameObject, INDMFPlatformProvider> OnManualProcessAvatar;
 
         /// <summary>
         /// Deletes all temporary assets after a build.
@@ -119,7 +119,7 @@ namespace nadena.dev.ndmf
 
                     buildContext.Finish();
 
-                    OnManualProcessAvatar?.Invoke(avatar);
+                    OnManualProcessAvatar?.Invoke(avatar, platform);
                     return avatar;
                 }
                 finally
