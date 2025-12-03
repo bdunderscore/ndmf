@@ -62,6 +62,11 @@ namespace nadena.dev.ndmf
         internal static string TemporaryAssetRoot = "Packages/nadena.dev.ndmf/__Generated";
 
         /// <summary>
+        /// Event that is invoked when an avatar is manually processed.
+        /// </summary>
+        public static event Action<GameObject, INDMFPlatformProvider> OnManualProcessAvatar;
+
+        /// <summary>
         /// Deletes all temporary assets after a build.
         /// </summary>
         public static void CleanTemporaryAssets()
@@ -114,6 +119,7 @@ namespace nadena.dev.ndmf
 
                     buildContext.Finish();
 
+                    OnManualProcessAvatar?.Invoke(avatar, platform);
                     return avatar;
                 }
                 finally
