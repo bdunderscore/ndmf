@@ -2,6 +2,7 @@
 
 #region
 
+using System;
 using System.Collections.Immutable;
 using JetBrains.Annotations;
 
@@ -20,7 +21,7 @@ namespace nadena.dev.ndmf
     /// - Optimizing
     /// </summary>
     [PublicAPI]
-    public sealed class BuildPhase
+    public sealed class BuildPhase : IEquatable<BuildPhase>
     {
         public string Name { get; }
 
@@ -105,6 +106,9 @@ namespace nadena.dev.ndmf
                 PlatformFinish
             );
 
+        public bool Equals(BuildPhase? other) => Name == other?.Name;
+        public override bool Equals(object? obj) => obj is BuildPhase other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(Name);
         public override string ToString() => Name;
     }
 }
