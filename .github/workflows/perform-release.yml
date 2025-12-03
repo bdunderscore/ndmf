@@ -45,7 +45,7 @@ jobs:
     # TODO: Refactor into reusable workflow?
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install docfx
         run: |
@@ -115,7 +115,7 @@ jobs:
           esac
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}

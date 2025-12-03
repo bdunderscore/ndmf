@@ -28,7 +28,7 @@ jobs:
       need-new-tag: ${{ steps.check-tag.outputs.need-new-tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: get version
         id: version
@@ -85,7 +85,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         
       - name: Reexport version
         id: version
