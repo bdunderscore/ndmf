@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#746] Added an overload of `AvatarProcessor.ManualProcessAvatar()` that allows specifying build phases.
 
 ### Fixed
 
