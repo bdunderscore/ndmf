@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.platform;
@@ -234,15 +235,24 @@ namespace nadena.dev.ndmf
 
         internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)
         {
+            var phases = new List<BuildPhase>();
+            for (var i = BuildPhase.BuiltInPhases.IndexOf(firstPhase); i <= BuildPhase.BuiltInPhases.IndexOf(lastPhase); i++)
+            {
+                phases.Add(BuildPhase.BuiltInPhases[i]);
+            }
+            ProcessAvatar(buildContext, phases);
+        }
+
+        internal static void ProcessAvatar(BuildContext buildContext, IEnumerable<BuildPhase> phases)
+        {
             using var _platformScope = new AmbientPlatform.Scope(buildContext.PlatformProvider);
             
             var resolver = new PluginResolver();
-            bool processing = false;
+            var phasesSet = phases.ToHashSet();
 
             foreach (var (phase, passes) in resolver.Passes)
             {
-                if (firstPhase == phase) processing = true;
-                if (!processing) continue;
+                if (!phasesSet.Contains(phase)) continue;
 
                 Debug.Log($"=== Processing phase {phase} ===");
 
@@ -265,8 +275,6 @@ namespace nadena.dev.ndmf
 
                     Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
                 }
-
-                if (lastPhase == phase) break;
             }
         }
     }
