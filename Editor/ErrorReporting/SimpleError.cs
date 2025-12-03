@@ -95,7 +95,7 @@ namespace nadena.dev.ndmf
         /// <returns></returns>
         public virtual string FormatTitle()
         {
-            return SafeSubstByKey(TitleKey, TitleSubst);
+            return SafeSubstByKey(TitleKey, TitleSubst) ?? $"<{TitleKey}>";
         }
 
         /// <summary>

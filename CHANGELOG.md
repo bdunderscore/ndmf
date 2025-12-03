@@ -25,6 +25,7 @@ memoization and caching.
 
 ### Changed
 - [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
+- [#740] Localization key will be shown as a fallback if no localized title is provided.
 
 ### Removed
 
