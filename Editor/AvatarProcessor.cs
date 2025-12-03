@@ -106,6 +106,20 @@ namespace nadena.dev.ndmf
         [PublicAPI]
         public static GameObject ManualProcessAvatar(GameObject obj, INDMFPlatformProvider platform = null)
         {
+            return ManualProcessAvatar(obj, BuildPhase.BuiltInPhases, platform);
+        }
+
+        /// <summary>
+        /// Process an avatar on request by the user. The resulting assets will be saved in a persistent directory
+        /// that will not be cleaned up by CleanTemporaryAssets.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="phases"></param>
+        /// <param name="platform"></param>
+        /// <returns></returns>
+        [PublicAPI]
+        public static GameObject ManualProcessAvatar(GameObject obj, IEnumerable<BuildPhase> phases, INDMFPlatformProvider platform = null)
+        {
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
                 var avatar = UnityObject.Instantiate(obj);
@@ -116,7 +130,7 @@ namespace nadena.dev.ndmf
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext, BuildPhase.BuiltInPhases.First(), BuildPhase.BuiltInPhases.Last());
+                    ProcessAvatar(buildContext, phases);
 
                     buildContext.Finish();
 
