@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.10.0] - [2025-12-03]
+
+### Added
 - Exposed `PreviewSession` class, allowing for custom preview behavior to be set for specific cameras.
 - [#734] Exposes the `PropCache` class (previously a Modular Avatar private API), which allows for ComputeContext-aware
 memoization and caching.
@@ -26,12 +40,6 @@ memoization and caching.
 ### Changed
 - [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
 - [#740] Localization key will be shown as a fallback if no localized title is provided.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.9.4] - [2025-09-20]
 

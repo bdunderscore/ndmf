@@ -12,13 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
-- [#740] Localization key will be shown as a fallback if no localized title is provided.
 
 ### Removed
 
 ### Security
 
 ### Deprecated
+
+## [1.10.0] - [2025-12-03]
+
+### Changed
+- [#740] Localization key will be shown as a fallback if no localized title is provided.
 
 ## [1.10.0-rc.2] - [2025-11-21]
 
