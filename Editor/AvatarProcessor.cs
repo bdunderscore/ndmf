@@ -250,9 +250,13 @@ namespace nadena.dev.ndmf
         internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)
         {
             var phases = new List<BuildPhase>();
-            for (var i = BuildPhase.BuiltInPhases.IndexOf(firstPhase); i <= BuildPhase.BuiltInPhases.IndexOf(lastPhase); i++)
+            bool processing = false;
+            foreach (var phase in BuildPhase.BuiltInPhases)
             {
-                phases.Add(BuildPhase.BuiltInPhases[i]);
+                if (phase == firstPhase) processing = true;
+                if (!processing) continue;
+                phases.Add(phase);
+                if (phase == lastPhase) break;
             }
             ProcessAvatar(buildContext, phases);
         }
