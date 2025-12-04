@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.platform;
@@ -105,6 +106,20 @@ namespace nadena.dev.ndmf
         [PublicAPI]
         public static GameObject ManualProcessAvatar(GameObject obj, INDMFPlatformProvider platform = null)
         {
+            return ManualProcessAvatar(obj, BuildPhase.BuiltInPhases, platform);
+        }
+
+        /// <summary>
+        /// Process an avatar on request by the user. The resulting assets will be saved in a persistent directory
+        /// that will not be cleaned up by CleanTemporaryAssets.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="phases"></param>
+        /// <param name="platform"></param>
+        /// <returns></returns>
+        [PublicAPI]
+        public static GameObject ManualProcessAvatar(GameObject obj, IEnumerable<BuildPhase> phases, INDMFPlatformProvider platform = null)
+        {
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
                 var avatar = UnityObject.Instantiate(obj);
@@ -115,7 +130,7 @@ namespace nadena.dev.ndmf
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext, BuildPhase.BuiltInPhases.First(), BuildPhase.BuiltInPhases.Last());
+                    ProcessAvatar(buildContext, phases);
 
                     buildContext.Finish();
 
@@ -234,15 +249,28 @@ namespace nadena.dev.ndmf
 
         internal static void ProcessAvatar(BuildContext buildContext, BuildPhase firstPhase, BuildPhase lastPhase)
         {
+            var phases = new List<BuildPhase>();
+            bool processing = false;
+            foreach (var phase in BuildPhase.BuiltInPhases)
+            {
+                if (phase == firstPhase) processing = true;
+                if (!processing) continue;
+                phases.Add(phase);
+                if (phase == lastPhase) break;
+            }
+            ProcessAvatar(buildContext, phases);
+        }
+
+        internal static void ProcessAvatar(BuildContext buildContext, IEnumerable<BuildPhase> phases)
+        {
             using var _platformScope = new AmbientPlatform.Scope(buildContext.PlatformProvider);
             
             var resolver = new PluginResolver();
-            bool processing = false;
+            var phasesSet = phases.ToHashSet();
 
             foreach (var (phase, passes) in resolver.Passes)
             {
-                if (firstPhase == phase) processing = true;
-                if (!processing) continue;
+                if (!phasesSet.Contains(phase)) continue;
 
                 Debug.Log($"=== Processing phase {phase} ===");
 
@@ -265,8 +293,6 @@ namespace nadena.dev.ndmf
 
                     Debug.Log($"Processed pass {pass.Description} in {stopwatch.ElapsedMilliseconds} ms");
                 }
-
-                if (lastPhase == phase) break;
             }
         }
     }
