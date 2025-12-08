@@ -27,7 +27,7 @@ For example, you should not cache assets you retrieved from the avatar between S
 A common mistake is reading settings and assets from the avatar and generating new objects in the generating phase, then assigning them in the transforming phase.
 You should instead assign objects in the same Sequences during the generating phase, or read and generate in the same Sequences during the transforming phase, depending on your use case.
 
-### Avoid cloning objects if it's already cloned
+### Avoid cloning objects if they're already cloned
 
 [`BuildContext.IsTemporaryAsset`] can be used to check if an object is already a temporary clone.
 When possible, you should avoid cloning objects that are already temporary clones to reduce memory usage and improve performance.
@@ -41,7 +41,7 @@ However, you should avoid this pattern to pass data between phases or sequences.
 
 One plugin instance may be used for multiple avatar builds, and single local variables may be shared between different builds.
 Instead, you should use the build context's [`GetState` method][`BuildContext.GetState`] to store and retrieve data between phases or sequences.
-You may also use [Extension Contexts](~/extension-context.md) for more some kinds of data.
+You may also use [Extension Contexts](~/extension-context.md) for some kinds of data.
 
 <details>
 <summary>Examples</summary>
