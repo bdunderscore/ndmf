@@ -96,6 +96,17 @@ The states are distinguished by their types.
 Therefore, you should create your own state type rather than using existing types like `Dictionary<string, object>` or `List<GameObject>`.
 This helps avoid conflicts with other plugins that may use the same state type for different purposes.
 
+### Register cloned objects with ObjectRegistry
+
+If your plugin clones object to modify them, you should register relationships between original objects and cloned objects
+with the [`RegisterReplacedObject`][`ObjectRegistry.RegisterReplacedObject`].
+This will help other plugins to find the correct objects to work with, and better error reports.
+
+### Provide objects relates to the error
+
+When your plugin encounters an error related to a specific object, you should provide related object with additional parameter to the [`ReportError`](`ErrorReport.ReportError`).
+This will help users to identify and fix the issue more easily.
+
 [`Object.DestroyImmediate`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Object.DestroyImmediate.html
 [`Sequence.Run`]: xref:nadena.dev.ndmf.fluent.Sequence.Run(System.String,nadena.dev.ndmf.fluent.InlinePass,System.String,System.Int32)
 [`Sequence.BeforePlugin`]: xref:nadena.dev.ndmf.fluent.Sequence.BeforePlugin(System.String,System.String,System.Int32)
@@ -103,3 +114,5 @@ This helps avoid conflicts with other plugins that may use the same state type f
 [`BuildContext.IsTemporaryAsset`]: xref:nadena.dev.ndmf.BuildContext.IsTemporaryAsset(UnityEngine.Object)
 [`BuildContext.GetState`]: xref:nadena.dev.ndmf.BuildContext.GetState*
 [`Plugin.Configure`]: xref:nadena.dev.ndmf.Plugin`1.Configure*
+[`ObjectRegistry.RegisterReplacedObject`]: xref:nadena.dev.ndmf.ObjectRegistry.RegisterReplacedObject(UnityEngine.Object,UnityEngine.Object)
+[`ErrorReport.ReportError`]: xref:nadena.dev.ndmf.ErrorReport.ReportError(nadena.dev.ndmf.localization.Localizer,nadena.dev.ndmf.ErrorSeverity,System.String,Systen.Object[])
