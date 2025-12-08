@@ -27,12 +27,16 @@ For example, you should not cache assets you retrieved from the avatar between S
 A common mistake is reading settings and assets from the avatar and generating new objects in the generating phase, then assigning them in the transforming phase.
 You should instead assign objects in the same Sequences during the generating phase, or read and generate in the same Sequences during the transforming phase, depending on your use case.
 
-### Avoid cloning objects if they're already cloned
+### Avoid cloning objects when possible
 
 [`BuildContext.IsTemporaryAsset`] can be used to check if an object is already a temporary clone.
-When possible, you should avoid cloning objects that are already temporary clones to reduce memory usage and improve performance.
+If your plugin is intended to apply avatar globally, you should consider avoiding cloning objects that are already temporary clones to reduce memory usage and improve performance.
+Remember that you have to replace references to the original objects with the temporary clones when you do cloning to ensure the same behavior regardless of whether the object was cloned or not.
 
 Please note that temporary clones are not recursively cloned. You should still clone child objects or referenced assets as needed.
+
+If your plugin is indented to modify some limited portion of the avatar, you may still need to clone objects even if they are temporary clones.
+Any assets including temporary ones can be shared between multiple places on the avatar, like one material is shared between multiple renderers, so modifying them directly may modify unintended parts of the avatar.
 
 ### Avoid passing data between phases or sequences with lambda captures
 
