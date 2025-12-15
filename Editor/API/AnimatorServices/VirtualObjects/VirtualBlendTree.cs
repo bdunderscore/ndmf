@@ -32,6 +32,7 @@ namespace nadena.dev.ndmf.animator
 
         private VirtualBlendTree(CloneContext? context, BlendTree cloned)
         {
+            OriginalObject = cloned;
             _tree = cloned;
             _children = ImmutableList<VirtualChildMotion>.Empty;
 

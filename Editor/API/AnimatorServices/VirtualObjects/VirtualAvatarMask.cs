@@ -15,6 +15,7 @@ namespace nadena.dev.ndmf.animator
     [PublicAPI]
     public class VirtualAvatarMask : VirtualNode, ICommittable<AvatarMask>
     {
+        public override string Name { get; set; } = "";
         private ImmutableDictionary<string, float> _elements;
 
         public ImmutableDictionary<string, float> Elements
@@ -36,7 +37,9 @@ namespace nadena.dev.ndmf.animator
 
         private VirtualAvatarMask(AvatarMask mask)
         {
+            OriginalObject = mask;
             _mask = Object.Instantiate(mask);
+            Name = mask.name;
 
             var elements = ImmutableDictionary<string, float>.Empty.ToBuilder();
 
@@ -62,6 +65,7 @@ namespace nadena.dev.ndmf.animator
 
         public void Commit(CommitContext context, AvatarMask obj)
         {
+            obj.name = Name;
             var maskSo = new SerializedObject(obj);
             var orderedElements = _elements.Keys.OrderBy(k => k).ToList();
 

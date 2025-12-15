@@ -25,7 +25,7 @@ namespace nadena.dev.ndmf.animator
     public sealed class VirtualAnimatorController : VirtualNode, ICommittable<AnimatorController>
     {
         private readonly CloneContext _context;
-        public string Name { get; set; }
+        public override string Name { get; set; } = "";
 
         private ImmutableDictionary<string, AnimatorControllerParameter> _parameters;
 
@@ -303,6 +303,7 @@ namespace nadena.dev.ndmf.animator
 
         private VirtualAnimatorController(CloneContext context, AnimatorController controller)
         {
+            OriginalObject = controller;
             _context = context;
             Name = controller.name;
             _parameters = controller.parameters

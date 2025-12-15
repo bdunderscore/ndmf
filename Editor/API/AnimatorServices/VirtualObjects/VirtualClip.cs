@@ -214,6 +214,7 @@ namespace nadena.dev.ndmf.animator
 
         private VirtualClip(CloneContext? cloneContext, AnimationClip oldClip, bool isMarker)
         {
+            OriginalObject = oldClip;
             IsDirty = false;
             IsMarkerClip = isMarker;
             
