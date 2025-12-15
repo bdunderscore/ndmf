@@ -50,7 +50,7 @@ namespace nadena.dev.ndmf.animator
 
         public abstract VirtualTransitionBase Clone();
 
-        public string Name
+        public override string Name
         {
             get => _transition.name;
             set => _transition.name = I(value);
@@ -118,11 +118,16 @@ namespace nadena.dev.ndmf.animator
             var cloned = Object.Instantiate(transition)!;
             cloned.name = transition.name;
 
+            VirtualTransitionBase virtualTransition;
             switch (cloned)
             {
-                case AnimatorStateTransition ast: return new VirtualStateTransition(context, ast);
-                default: return new VirtualTransition(context, cloned);
+                case AnimatorStateTransition ast: virtualTransition = new VirtualStateTransition(context, ast); break;
+                default: virtualTransition = new VirtualTransition(context, cloned); break;
             }
+
+            virtualTransition.OriginalObject = transition;
+
+            return virtualTransition;
         }
 
         public void SetDestination(VirtualState state)

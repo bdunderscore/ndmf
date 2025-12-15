@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.animator
 {
@@ -40,14 +42,63 @@ namespace nadena.dev.ndmf.animator
 
             _lastCacheObserver = observer;
         }
+        
+        /// <summary>
+        /// The original unity object that this node represents. Used in ToString debug output.
+        /// </summary>
+        protected Object? OriginalObject { get; set; }
+
+        // The name of the associated unity object. 
+        public abstract string Name { get; set; }
+
+        public override string ToString()
+        {
+            // Always include the runtime type
+            var typeName = GetType().Name;
+            
+            var assetPart = "";
+            string assetName = "";
+            try
+            {
+                assetName = OriginalObject?.name ?? "";
+                if (!string.IsNullOrEmpty(assetName)) assetPart = $"asset:{assetName}";
+            }
+            catch (Exception)
+            {
+                assetPart = "asset:[destroyed]";
+            }
+            
+            var namePart = "";
+            string virtualNodeName = "";
+            try
+            {
+                virtualNodeName = Name;
+                if (!string.IsNullOrEmpty(virtualNodeName)) namePart = $"current:{virtualNodeName}";
+            }
+            catch (Exception)
+            {
+                namePart = "current:[destroyed]";
+            }
+
+            if (assetPart.Length > 0 && namePart.Length > 0 && virtualNodeName != assetName)
+            {
+                return $"[{typeName} {assetPart} renamedTo:{virtualNodeName}]";
+            }
+
+            if (assetPart.Length > 0) return $"[{typeName} {assetPart}]";
+            if (namePart.Length > 0) return $"[{typeName} {namePart}]";
+
+            return $"[{typeName}]";
+        }
 
         public IEnumerable<VirtualNode> AllReachableNodes()
         {
-            var visited = new HashSet<VirtualNode>();
+            // node -> source
+            var visited = new Dictionary<VirtualNode, VirtualNode?>();
             var queue = new Queue<VirtualNode>();
             
             queue.Enqueue(this);
-            visited.Add(this);
+            visited[this] = null;
 
             while (queue.Count > 0)
             {
@@ -56,8 +107,28 @@ namespace nadena.dev.ndmf.animator
 
                 foreach (var child in node.EnumerateChildren())
                 {
-                    if (visited.Add(child))
+                    if (child == null)
                     {
+                        // Trace origin
+                        List<string> trace = new();
+                        var pointer = node;
+
+                        while (pointer != null)
+                        {
+                            trace.Add(pointer.ToString());
+                            pointer = visited[pointer];
+                        }
+
+                        // Print debug message
+                        trace.Reverse();
+                        Debug.LogWarning("[NDMF VirtualNode.AllReachableNodes] Null child node in " +
+                                         string.Join(" -> ", trace));
+                        continue;
+                    }
+
+                    if (!visited.ContainsKey(child))
+                    {
+                        visited[child] = node;
                         queue.Enqueue(child);
                     }
                 }
@@ -73,5 +144,7 @@ namespace nadena.dev.ndmf.animator
         {
             yield break;
         }
+        
+        
     }
 }

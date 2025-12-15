@@ -34,7 +34,7 @@ namespace nadena.dev.ndmf.animator
             // We can't use Instantiate for AnimatorStates, for some reason...
             EditorUtility.CopySerialized(state, clonedState);
 
-            return new VirtualState(context, clonedState);
+            return new VirtualState(context, clonedState, state);
         }
 
         public static VirtualState Create(string name = "unnamed")
@@ -49,8 +49,9 @@ namespace nadena.dev.ndmf.animator
             _transitions = ImmutableList<VirtualStateTransition>.Empty;
         }
 
-        private VirtualState(CloneContext context, AnimatorState clonedState)
+        private VirtualState(CloneContext context, AnimatorState clonedState, AnimatorState originalState)
         {
+            OriginalObject = originalState;
             _state = clonedState;
 
             Behaviours = _state.behaviours.Select(context.ImportBehaviour).ToImmutableList();
@@ -75,7 +76,7 @@ namespace nadena.dev.ndmf.animator
             set => _motion = I(value);
         }
 
-        public string Name
+        public override string Name
         {
             get => _state.name;
             set => _state.name = I(value);

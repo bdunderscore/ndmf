@@ -69,7 +69,7 @@ namespace nadena.dev.ndmf.animator
 
         private string _name;
 
-        public string Name
+        public override string Name
         {
             get => _name;
             set => _name = I(value);
