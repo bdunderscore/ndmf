@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#744] Added `AvatarProcessor.OnManualProcessAvatar` event, which allows subscribing to manual avatar builds.
 
 ### Fixed
-- [#749] Tolerated some cases of null nodes being found in animator traversal, and added additional debugging for this
-  case.
 
 ### Changed
 
@@ -21,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.10.1] - [2025-12-15]
+
+### Added
+- [#744] Added `AvatarProcessor.OnManualProcessAvatar` event, which allows subscribing to manual avatar builds.
+
+### Fixed
+- [#749] Tolerated some cases of null nodes being found in animator traversal, and added additional debugging for this
+  case.
 
 ## [1.10.0] - [2025-12-03]
 
