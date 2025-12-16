@@ -20,6 +20,7 @@ ScrollView Foldout {
 }
 
 #buttons {
+    flex-shrink: 0;
     flex-direction: row;
     justify-content: space-between;
 }
