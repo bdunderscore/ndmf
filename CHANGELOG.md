@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#757] Added `ObjectPathRemapper.GetAllPathsForObject`
 
 ### Fixed
 
@@ -20,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.11.0] - [2026-02-06]
+
+### Added
+- [#757] Added `ObjectPathRemapper.GetAllPathsForObject`
 
 ## [1.10.1] - [2025-12-15]
 
