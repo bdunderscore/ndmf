@@ -136,5 +136,24 @@ namespace UnitTests.AnimationServices
                 }
             ));
         }
+
+        [Test]
+        public void Test_GetAllPathsForObject()
+        {
+            var root = CreateRoot("x");
+            var c1 = CreateChild(root, "c1");
+            var c2 = CreateChild(root, "c2");
+
+            var mapper = new ObjectPathRemapper(root.transform);
+            mapper.GetVirtualPathForObject(c2);
+            mapper.ReplaceObject(c1, c2);
+
+            Assert.That(mapper.GetAllPathsForObject(c2), Is.EquivalentTo(
+                new[] { "c2", "c1" }
+            ));
+            Assert.That(mapper.GetAllPathsForObject(c2.gameObject), Is.EquivalentTo(
+                new[] { "c2", "c1" }
+            ));
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.runtime;
 using UnityEngine;
@@ -125,6 +125,28 @@ namespace nadena.dev.ndmf.animator
             return GetVirtualPathForObject(obj.transform);
         }
 
+        /// <summary>
+        ///     Returns all paths currently mapped to the specified object. There can be multiple paths mapped, for example,
+        ///     in the case of an object replaced using ReplaceObject.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public IEnumerable<string> GetAllPathsForObject(GameObject obj)
+        {
+            return GetAllPathsForObject(obj.transform);
+        }
+
+        /// <summary>
+        ///     Returns all paths currently mapped to the specified object. There can be multiple paths mapped, for example,
+        ///     in the case of an object replaced using ReplaceObject.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public IEnumerable<string> GetAllPathsForObject(Transform t)
+        {
+            return _objectToOriginalPaths.GetValueOrDefault(t)?.ToArray() ?? Array.Empty<string>();
+        }
+        
         /// <summary>
         ///     Returns a virtual path for the given Transform. For most objects, this will be their actual path; however,
         ///     if that path is unusable (e.g. another object was previously at that path), a new path will be generated
