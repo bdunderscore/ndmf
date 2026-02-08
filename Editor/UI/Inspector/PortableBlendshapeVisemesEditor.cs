@@ -13,8 +13,8 @@ namespace nadena.dev.ndmf.ui.inspector
     [CustomEditor(typeof(PortableBlendshapeVisemes))]
     internal class PortableBlendshapeVisemesEditor : Editor
     {
-        private SerializedProperty prop_targetRenderer;
-        private SerializedProperty prop_shapeList;
+        private SerializedProperty prop_targetRenderer = null!;
+        private SerializedProperty prop_shapeList = null!;
         
         private void OnEnable()
         {

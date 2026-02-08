@@ -15,8 +15,8 @@ namespace nadena.dev.ndmf.ui.inspector
     {
         private int selectedPlatform = -1;
 
-        private List<KeyValuePair<string, INDMFPlatformProvider>> usablePlatforms;
-        private string[] platformDisplayNames;
+        private List<KeyValuePair<string, INDMFPlatformProvider>> usablePlatforms = null!;
+        private string[] platformDisplayNames = null!;
         
         private void OnEnable()
         {
