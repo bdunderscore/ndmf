@@ -94,7 +94,7 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        internal GameObject GetOriginalObjectForProxy(GameObject proxy)
+        internal GameObject? GetOriginalObjectForProxy(GameObject proxy)
         {
             return _proxySession?.GetOriginalObjectForProxy(proxy);
         }

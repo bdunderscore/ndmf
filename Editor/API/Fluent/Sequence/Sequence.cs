@@ -160,7 +160,7 @@ namespace nadena.dev.ndmf.fluent
         private int inlinePassIndex = 0;
 
         internal Sequence(BuildPhase phase, SolverContext solverContext, IPluginInternal plugin,
-            string sequenceBaseName, ImmutableHashSet<string> defaultPlatforms)
+            string sequenceBaseName, ImmutableHashSet<string>? defaultPlatforms)
         {
             _phase = phase;
             _solverContext = solverContext;
