@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#760] `ErrorReport.ReportError` now resolves VirtualNode objects (e.g., VirtualClip) to their original Unity objects
 
 ### Fixed
 

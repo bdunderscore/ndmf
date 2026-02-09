@@ -100,8 +100,7 @@ namespace UnitTests
         public void TestVirtualNodeWithoutOriginalObject()
         {
             // Create a mock VirtualNode without an original object
-            var virtualClip = VirtualClip.NewClip(new CloneContext(GenericPlatformAnimatorBindings.Instance));
-            virtualClip.Name = "NewClip";
+            var virtualClip = VirtualClip.Create("NewClip");
             
             // Create an error that includes the VirtualClip without an original object
             var error = new InlineError(TEST_LOCALIZER, ErrorSeverity.Error, "Errors:test",
