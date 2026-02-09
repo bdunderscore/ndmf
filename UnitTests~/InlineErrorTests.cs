@@ -107,8 +107,11 @@ namespace UnitTests
             var error = new InlineError(TEST_LOCALIZER, ErrorSeverity.Error, "Errors:test",
                 virtualClip, "arg1", "arg2");
             
-            // The error should still be created, even without a reference
-            // It should use the VirtualNode's ToString representation instead
+            // The error should still be created, and should use the VirtualNode's ToString representation
+            // Since there's no original object, no reference should be added
+            Assert.AreEqual(0, error.References.Length, "Expected no references to be added for VirtualNode without original object");
+            
+            // The title should still be created successfully
             var title = error.FormatTitle();
             Assert.IsNotEmpty(title, "Expected a non-empty title");
         }
