@@ -47,6 +47,13 @@ namespace nadena.dev.ndmf.animator
         /// The original unity object that this node represents. Used in ToString debug output.
         /// </summary>
         protected Object? OriginalObject { get; set; }
+        
+        /// <summary>
+        /// Gets the original Unity object that this virtual node represents, if any.
+        /// This is used by the error reporting system to resolve virtual objects to their original objects.
+        /// </summary>
+        /// <returns>The original Unity object, or null if none exists</returns>
+        protected internal virtual Object? GetOriginalObject() => OriginalObject;
 
         // The name of the associated unity object. 
         public abstract string Name { get; set; }

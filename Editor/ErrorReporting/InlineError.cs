@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.ui;
 using UnityEngine.UIElements;
@@ -40,6 +41,22 @@ namespace nadena.dev.ndmf
                 {
                     AddReference(or);
                     substitutions.Add(or.ToString());
+                }
+                else if (arg is VirtualNode vn)
+                {
+                    // Resolve VirtualNode to its original Unity object if it exists
+                    var originalObject = vn.GetOriginalObject();
+                    if (originalObject != null)
+                    {
+                        var objectReference = ObjectRegistry.GetReference(originalObject);
+                        AddReference(objectReference);
+                        substitutions.Add(objectReference.ToString());
+                    }
+                    else
+                    {
+                        // If no original object, use the VirtualNode's string representation
+                        substitutions.Add(vn.ToString());
+                    }
                 }
                 else if (arg is Object uo)
                 {
