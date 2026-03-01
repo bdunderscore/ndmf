@@ -51,7 +51,6 @@ memoization and caching.
 - [#733] Improve preview system performance
 - [#734] Sometimes, `ComputeContext.FlushInvalidates` would not reliably flush all pending invalidate calls
 - [#737] Fixed an issue that occasionally resulted in errors while processing previews
-- [#740]
 
 ### Changed
 - [#733] `ComputeContext.GetAvatarRoots` will now return only active-in-hierarchy avatar roots
