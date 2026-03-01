@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf.preview
 
         public static ImmutableList<GameObject> GetAvatarRoots(this ComputeContext ctx)
         {
-            return AVATAR_ROOTS.Get(ctx, AVATAR_ROOTS);
+            return AVATAR_ROOTS.Get(ctx, AVATAR_ROOTS).Distinct().ToImmutableList();
         }
     }
 }
