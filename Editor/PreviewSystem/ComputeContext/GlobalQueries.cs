@@ -26,7 +26,7 @@ namespace nadena.dev.ndmf.preview
                         // (parent components may affect avatar rootness) 
                         ObjectWatcher.Instance.MonitorGetComponents(root, ctx, true);
                         return RuntimeUtil.FindAvatarRoots(root, true);
-                    });
+                    }).Distinct();
 
                     return components.Where(c => ctx.ActiveInHierarchy(c)).ToImmutableList();
                 },
@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf.preview
 
         public static ImmutableList<GameObject> GetAvatarRoots(this ComputeContext ctx)
         {
-            return AVATAR_ROOTS.Get(ctx, AVATAR_ROOTS).Distinct().ToImmutableList();
+            return AVATAR_ROOTS.Get(ctx, AVATAR_ROOTS);
         }
     }
 }
