@@ -64,7 +64,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     if (!filter.IsEnabled(_targetSetContext)) continue;
                     
-                    Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
+                    Profiler.BeginSample("TargetSet.GetTargetGroupsUsingCache[" + filter + "]");
                     var sortedGroups = _groupsByFilterCache.Get(_targetSetContext, filter).SortedGroups;
                     Profiler.EndSample();
                     if (sortedGroups.IsEmpty) continue;
@@ -96,8 +96,10 @@ namespace nadena.dev.ndmf.preview
 
         private static CachedGroups ComputeGroupsForFilter(ComputeContext context, IRenderFilter filter)
         {
+            Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
             var groups = filter.GetTargetGroups(context);
-            if (groups.IsEmpty)
+            Profiler.EndSample();
+            if (groups.IsEmpty) 
             {
                 return new CachedGroups(ImmutableList<RenderGroup>.Empty);
             }
