@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,8 +18,19 @@ namespace nadena.dev.ndmf.preview
         private readonly ImmutableList<IRenderFilter> _filters;
         private readonly ImmutableHashSet<Renderer> _hideRenderers;
         private readonly ComputeContext _targetSetContext = new ComputeContext("Target Set");
+        private readonly PropCache<IRenderFilter, CachedGroups> _groupsByFilterCache;
         private ImmutableList<Stage> _stages;
 
+
+        private sealed class CachedGroups
+        {
+            internal ImmutableList<RenderGroup> SortedGroups { get; }
+
+            internal CachedGroups(ImmutableList<RenderGroup> sortedGroups)
+            {
+                SortedGroups = sortedGroups;
+            }
+        }
 
         public struct Stage
         {
@@ -28,11 +40,19 @@ namespace nadena.dev.ndmf.preview
         
         public TargetSet(
             ImmutableList<IRenderFilter> filters,
-            ImmutableHashSet<Renderer> hideRenderers
+            ImmutableHashSet<Renderer> hideRenderers,
+            TargetSet prior = null
         )
         {
             _filters = filters;
             _hideRenderers = hideRenderers;
+            _groupsByFilterCache = prior?._groupsByFilterCache ?? new PropCache<IRenderFilter, CachedGroups>(
+                "TargetSet.GetTargetGroups",
+                ComputeGroupsForFilter,
+                (a, b) => a.SortedGroups.SequenceEqual(b.SortedGroups),
+                // Use reference equality comparer to avoid issues if user has overridden Equals or GetHashCode
+                ReferenceEqualityComparer<IRenderFilter>.Instance
+            );
             
             TraceBuffer.RecordTraceEvent("TargetSet.ctor", (ev) => "Get target groups");
             
@@ -45,35 +65,14 @@ namespace nadena.dev.ndmf.preview
                     if (!filter.IsEnabled(_targetSetContext)) continue;
                     
                     Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
-                    var groups = filter.GetTargetGroups(_targetSetContext);
+                    var sortedGroups = _groupsByFilterCache.Get(_targetSetContext, filter).SortedGroups;
                     Profiler.EndSample();
-                    if (groups.IsEmpty) continue;
-
-                    var unsupportedRenderer = groups.SelectMany(g => g.Renderers)
-                        .FirstOrDefault(x => x is not MeshRenderer and not SkinnedMeshRenderer);
-                    if (unsupportedRenderer != null)
-                    {
-                        Debug.LogError("[" + filter + "] Unsupported renderer " + unsupportedRenderer +
-                                       " in groups: " + string.Join(", ", groups));
-                        // Suppress this filter
-                        continue;
-                    }
-
-                    var duplicateRenderers = groups.SelectMany(g => g.Renderers)
-                        .GroupBy(r => r)
-                        .FirstOrDefault(agg => agg.Count() > 1);
-                    if (duplicateRenderers != null)
-                    {
-                        Debug.LogError("[" + filter + "] Duplicate renderer " + duplicateRenderers.Key +
-                                       " in groups: " + string.Join(", ", groups));
-                        // Suppress this filter
-                        continue;
-                    }
+                    if (sortedGroups.IsEmpty) continue;
                     
                     builder.Add(new Stage
                     {
                         Filter = filter,
-                        Groups = groups.Sort(GroupComparer)
+                        Groups = sortedGroups
                     });
                 }
                 
@@ -92,7 +91,38 @@ namespace nadena.dev.ndmf.preview
                 return this;
             }
             
-            return new TargetSet(filters, hideRenderers);
+            return new TargetSet(filters, hideRenderers, this);
+        }
+
+        private static CachedGroups ComputeGroupsForFilter(ComputeContext context, IRenderFilter filter)
+        {
+            var groups = filter.GetTargetGroups(context);
+            if (groups.IsEmpty)
+            {
+                return new CachedGroups(ImmutableList<RenderGroup>.Empty);
+            }
+
+            var unsupportedRenderer = groups.SelectMany(g => g.Renderers)
+                .FirstOrDefault(x => x is not MeshRenderer and not SkinnedMeshRenderer);
+            if (unsupportedRenderer != null)
+            {
+                Debug.LogError("[" + filter + "] Unsupported renderer " + unsupportedRenderer +
+                               " in groups: " + string.Join(", ", groups));
+                return new CachedGroups(ImmutableList<RenderGroup>.Empty);
+            }
+
+            var duplicateRenderers = groups.SelectMany(g => g.Renderers)
+                .GroupBy(r => r)
+                .FirstOrDefault(agg => agg.Count() > 1);
+            if (duplicateRenderers != null)
+            {
+                Debug.LogError("[" + filter + "] Duplicate renderer " + duplicateRenderers.Key +
+                               " in groups: " + string.Join(", ", groups));
+                return new CachedGroups(ImmutableList<RenderGroup>.Empty);
+            }
+
+            var sortedGroups = groups.Sort(GroupComparer);
+            return new CachedGroups(sortedGroups);
         }
 
         private bool RendererIsShown(ComputeContext context, Renderer renderer)
