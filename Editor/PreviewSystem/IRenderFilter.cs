@@ -64,11 +64,12 @@ namespace nadena.dev.ndmf.preview
         /// <summary>
         /// Attaches data to this render group and provides explicit equality for RenderGroup identity.
         /// The supplied equality defines when two groups should be treated as the same for preview purposes,
-        /// including node reuse and cached target-group retention. Any mutable state that affects preview output should
-        /// be tracked through ComputeContext observation.
+        /// including cached target-group retention and node reuse.
         /// </summary>
         public RenderGroup WithData<T>(T data, Func<T, T, bool> equals, Func<T, int> getHashCode = null)
         {
+            // We take delegates instead of IEqualityComparer<T> because RenderGroup equality also needs a stable
+            // equality contract for the comparer itself.
             return new RenderGroup<T>(Renderers, DebugNames, data, new DelegateEqualityComparer<T>(equals, getHashCode));
         }
 
