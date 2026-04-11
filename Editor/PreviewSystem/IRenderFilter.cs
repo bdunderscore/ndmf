@@ -51,9 +51,25 @@ namespace nadena.dev.ndmf.preview
             );
         }
 
+        /// <summary>
+        /// Attaches data to this render group.
+        /// This overload participates in RenderGroup equality using heuristic comparison rules.
+        /// To avoid heuristic comparison, use the explicit equality overload instead.
+        /// </summary>
         public RenderGroup WithData<T>(T data)
         {
-            return new RenderGroup<T>(Renderers, DebugNames, data);
+            return new RenderGroup<T>(Renderers, DebugNames, data, null);
+        }
+
+        /// <summary>
+        /// Attaches data to this render group and provides explicit equality for RenderGroup identity.
+        /// The supplied equality defines when two groups should be treated as the same for preview purposes,
+        /// including node reuse and cached target-group retention. Any mutable state that affects preview output should
+        /// be tracked through ComputeContext observation.
+        /// </summary>
+        public RenderGroup WithData<T>(T data, Func<T, T, bool> equals, Func<T, int> getHashCode = null)
+        {
+            return new RenderGroup<T>(Renderers, DebugNames, data, new DelegateEqualityComparer<T>(equals, getHashCode));
         }
 
         internal virtual RenderGroup Filter(HashSet<Renderer> activeRenderers)
@@ -106,20 +122,38 @@ namespace nadena.dev.ndmf.preview
     internal sealed class RenderGroup<T> : RenderGroup
     {
         public T Context { get; }
+        private readonly IEqualityComparer<T> _contextComparer;
 
         internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> DebugNames,
-            T context) : base(renderers, DebugNames)
+            T context, IEqualityComparer<T> contextComparer = null) : base(renderers, DebugNames)
         {
             Context = context;
+            _contextComparer = contextComparer;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
         {
-            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), DebugNames, Context);
+            var filtered = Renderers.RemoveAll(r => !activeRenderers.Contains(r));
+            return new RenderGroup<T>(filtered, DebugNames, Context, _contextComparer);
         }
         
         private bool Equals(RenderGroup<T> other)
         {
+            if (_contextComparer != null && other._contextComparer != null)
+            {
+                if (!_contextComparer.Equals(other._contextComparer))
+                {
+                    return false;
+                }
+
+                return base.Equals(other) && _contextComparer.Equals(Context, other.Context);
+            }
+
+            if (_contextComparer != null || other._contextComparer != null)
+            {
+                return false;
+            }
+
             if (Context is IEnumerable l && other.Context is IEnumerable ol)
             {
                 // This is a common mistake; List does not implement a useful Equals for us. Work around it
@@ -137,6 +171,15 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
+            if (_contextComparer != null)
+            {
+                return HashCode.Combine(
+                    base.GetHashCode(),
+                    _contextComparer.GetHashCode(),
+                    _contextComparer.GetHashCode(Context)
+                );
+            }
+
             if (Context is IEnumerable l)
             {
                 return l.Cast<object>().Aggregate(base.GetHashCode(), (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
@@ -149,7 +192,54 @@ namespace nadena.dev.ndmf.preview
         {
             if (Renderers.All(r => r != null)) return this;
 
-            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), DebugNames, Context);
+            var live = Renderers.Where(r => r != null).ToImmutableList();
+            return new RenderGroup<T>(live, DebugNames, Context, _contextComparer);
+        }
+    }
+
+    internal sealed class DelegateEqualityComparer<T> : IEqualityComparer<T>, IEquatable<DelegateEqualityComparer<T>>
+    {
+        private readonly Func<T, T, bool> _equals;
+        private readonly Func<T, int> _getHashCode;
+
+        internal DelegateEqualityComparer(Func<T, T, bool> equals, Func<T, int> getHashCode = null)
+        {
+            _equals = equals;
+            _getHashCode = getHashCode;
+        }
+
+        public bool Equals(T x, T y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (x is null || y is null) return false;
+
+            return _equals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            if (obj is null) return 0;
+            return _getHashCode?.Invoke(obj) ?? 0;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DelegateEqualityComparer<T> other && Equals(other);
+        }
+
+        public bool Equals(DelegateEqualityComparer<T> other)
+        {
+            if (ReferenceEquals(this, other)) return true;
+            if (other is null) return false;
+            if (!_equals.Equals(other._equals)) return false;
+            if (_getHashCode is null && other._getHashCode is null) return true;
+            if (_getHashCode is null || other._getHashCode is null) return false;
+            return _getHashCode.Equals(other._getHashCode);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_equals, _getHashCode);
         }
     }
 
