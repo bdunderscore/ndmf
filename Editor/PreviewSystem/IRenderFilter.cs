@@ -129,7 +129,7 @@ namespace nadena.dev.ndmf.preview
             T context, IEqualityComparer<T> contextComparer = null) : base(renderers, DebugNames)
         {
             Context = context;
-            _contextComparer = contextComparer;
+            _contextComparer = contextComparer ?? HeuristicContextEqualityComparer<T>.Instance;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
@@ -140,29 +140,12 @@ namespace nadena.dev.ndmf.preview
         
         private bool Equals(RenderGroup<T> other)
         {
-            if (_contextComparer != null && other._contextComparer != null)
-            {
-                if (!_contextComparer.Equals(other._contextComparer))
-                {
-                    return false;
-                }
-
-                return base.Equals(other) && _contextComparer.Equals(Context, other.Context);
-            }
-
-            if (_contextComparer != null || other._contextComparer != null)
+            if (!_contextComparer.Equals(other._contextComparer))
             {
                 return false;
             }
 
-            if (Context is IEnumerable l && other.Context is IEnumerable ol)
-            {
-                // This is a common mistake; List does not implement a useful Equals for us. Work around it
-                // on behalf of our consumers...
-                return base.Equals(other) && l.Cast<object>().SequenceEqual(ol.Cast<object>());
-            }
-            
-            return base.Equals(other) && EqualityComparer<T>.Default.Equals(Context, other.Context);
+            return base.Equals(other) && _contextComparer.Equals(Context, other.Context);
         }
 
         public override bool Equals(object obj)
@@ -172,21 +155,7 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            if (_contextComparer != null)
-            {
-                return HashCode.Combine(
-                    base.GetHashCode(),
-                    _contextComparer.GetHashCode(),
-                    _contextComparer.GetHashCode(Context)
-                );
-            }
-
-            if (Context is IEnumerable l)
-            {
-                return l.Cast<object>().Aggregate(base.GetHashCode(), (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
-            }
-            
-            return HashCode.Combine(base.GetHashCode(), EqualityComparer<T>.Default.GetHashCode(Context));
+            return HashCode.Combine(base.GetHashCode(), _contextComparer.GetHashCode(), _contextComparer.GetHashCode(Context));
         }
 
         internal override RenderGroup FilterLive()
@@ -195,6 +164,33 @@ namespace nadena.dev.ndmf.preview
 
             var live = Renderers.Where(r => r != null).ToImmutableList();
             return new RenderGroup<T>(live, DebugNames, Context, _contextComparer);
+        }
+    }
+
+    internal sealed class HeuristicContextEqualityComparer<T> : IEqualityComparer<T>
+    {
+        public static readonly HeuristicContextEqualityComparer<T> Instance = new();
+
+        public bool Equals(T x, T y)
+        {
+            if (x is IEnumerable l && y is IEnumerable ol)
+            {
+                // This is a common mistake; List does not implement a useful Equals for us. Work around it
+                // on behalf of our consumers...
+                return l.Cast<object>().SequenceEqual(ol.Cast<object>());
+            }
+            
+            return EqualityComparer<T>.Default.Equals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            if (obj is IEnumerable l)
+            {
+                return l.Cast<object>().Aggregate(0, (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
+            }
+            
+            return EqualityComparer<T>.Default.GetHashCode(obj);
         }
     }
 
