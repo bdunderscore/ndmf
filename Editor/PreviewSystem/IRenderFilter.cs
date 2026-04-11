@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -173,24 +174,75 @@ namespace nadena.dev.ndmf.preview
 
         public bool Equals(T x, T y)
         {
-            if (x is IEnumerable l && y is IEnumerable ol)
-            {
-                // This is a common mistake; List does not implement a useful Equals for us. Work around it
-                // on behalf of our consumers...
-                return l.Cast<object>().SequenceEqual(ol.Cast<object>());
-            }
-            
-            return EqualityComparer<T>.Default.Equals(x, y);
+            return HeuristicEquals(x, y);
         }
 
         public int GetHashCode(T obj)
         {
-            if (obj is IEnumerable l)
+            return HeuristicGetHashCode(obj);
+        }
+
+        private static bool HeuristicEquals(object x, object y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (x == null || y == null) return false;
+
+            if (x is ITuple tuple && y is ITuple otherTuple)
             {
-                return l.Cast<object>().Aggregate(0, (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
+                if (tuple.Length != otherTuple.Length) return false;
+                for (var i = 0; i < tuple.Length; i++)
+                {
+                    if (!HeuristicEquals(tuple[i], otherTuple[i])) return false;
+                }
+
+                return true;
             }
-            
-            return EqualityComparer<T>.Default.GetHashCode(obj);
+
+            if (x is IEnumerable enumerable && y is IEnumerable otherEnumerable)
+            {
+                var left = enumerable.GetEnumerator();
+                var right = otherEnumerable.GetEnumerator();
+
+                while (true)
+                {
+                    var leftHasNext = left.MoveNext();
+                    var rightHasNext = right.MoveNext();
+                    if (leftHasNext != rightHasNext) return false;
+                    if (!leftHasNext) return true;
+                    if (!HeuristicEquals(left.Current, right.Current)) return false;
+                }
+            }
+
+            return x.Equals(y);
+        }
+
+        private static int HeuristicGetHashCode(object obj)
+        {
+            if (obj == null) return 0;
+
+            if (obj is ITuple tuple)
+            {
+                var hash = 0;
+                for (var i = 0; i < tuple.Length; i++)
+                {
+                    hash = HashCode.Combine(hash, HeuristicGetHashCode(tuple[i]));
+                }
+
+                return hash;
+            }
+
+            if (obj is IEnumerable enumerable)
+            {
+                var hash = 0;
+                foreach (var entry in enumerable)
+                {
+                    hash = HashCode.Combine(hash, HeuristicGetHashCode(entry));
+                }
+
+                return hash;
+            }
+
+            return obj.GetHashCode();
         }
     }
 
