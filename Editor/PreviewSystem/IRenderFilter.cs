@@ -59,7 +59,7 @@ namespace nadena.dev.ndmf.preview
         /// </summary>
         public RenderGroup WithData<T>(T data)
         {
-            return new RenderGroup<T>(Renderers, DebugNames, data, null);
+            return new RenderGroup<T>(Renderers, DebugNames, data, HeuristicContextEqualityComparer<T>.Instance);
         }
 
         /// <summary>
@@ -127,10 +127,10 @@ namespace nadena.dev.ndmf.preview
         private readonly IEqualityComparer<T> _contextComparer;
 
         internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> DebugNames,
-            T context, IEqualityComparer<T> contextComparer = null) : base(renderers, DebugNames)
+            T context, IEqualityComparer<T> contextComparer) : base(renderers, DebugNames)
         {
             Context = context;
-            _contextComparer = contextComparer ?? HeuristicContextEqualityComparer<T>.Instance;
+            _contextComparer = contextComparer;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
@@ -172,6 +172,8 @@ namespace nadena.dev.ndmf.preview
     {
         public static readonly HeuristicContextEqualityComparer<T> Instance = new();
 
+        private HeuristicContextEqualityComparer() { }
+        
         public bool Equals(T x, T y)
         {
             return HeuristicEquals(x, y);
