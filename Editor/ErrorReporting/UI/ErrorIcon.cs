@@ -13,7 +13,10 @@ namespace nadena.dev.ndmf.ui
     /// <summary>
     /// Displays a severity icon for a particular ErrorLevel.
     /// </summary>
-    public sealed class ErrorIcon : VisualElement
+#if UNITY_6000_4_OR_NEWER
+    [UxmlElement]
+#endif
+    public sealed partial class ErrorIcon : VisualElement
     {
         private ErrorSeverity _severity;
 
@@ -54,7 +57,24 @@ namespace nadena.dev.ndmf.ui
 
             _image.image = tex;
         }
+#if UNITY_6000_4_OR_NEWER
+        [UxmlAttribute]
+        public string category
+        {
+            get => _severity.ToString();
+            set
+            {
+                if (value == null || !Enum.TryParse<ErrorSeverity>(value, out var categoryVal))
+                {
+                    categoryVal = ErrorSeverity.Error;
+                }
 
+                _severity = categoryVal;
+            }
+        }
+#endif
+
+#if !UNITY_6000_4_OR_NEWER
         public new class UxmlFactory : UxmlFactory<ErrorIcon, UxmlTraits>
         {
         }
@@ -84,5 +104,6 @@ namespace nadena.dev.ndmf.ui
                 elem.Severity = categoryVal;
             }
         }
+#endif
     }
 }
