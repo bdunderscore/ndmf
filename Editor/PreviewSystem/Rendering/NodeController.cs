@@ -221,12 +221,7 @@ namespace nadena.dev.ndmf.preview
                 var nodeChanges = reusedNodeInEntirety ? 0 : node.WhatChanged;
 
                 var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
-                controller.WhatChanged = changes | nodeChanges;
-
-                foreach (var proxy in proxies)
-                {
-                    proxy.Item2.ChangeFlags |= nodeChanges;
-                }
+                controller.WhatChanged = nodeChanges;
 
                 return controller;
             }
