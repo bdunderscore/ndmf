@@ -181,12 +181,14 @@ namespace nadena.dev.ndmf.preview
                                                  _group.Renderers[0].gameObject.name);
 
                 IRenderFilterNode node;
+                bool reusedNodeInEntirety;
 
                 if (changes == 0 && !IsInvalidated)
                 {
                     // Reuse the old node in its entirety
                     node = _node;
                     context = _context;
+                    reusedNodeInEntirety = true;
                 }
                 else
                 {
@@ -198,6 +200,7 @@ namespace nadena.dev.ndmf.preview
                             changes
                         );
                     }
+                    reusedNodeInEntirety = false;
                 }
 
                 RefCount refCount;
@@ -215,12 +218,14 @@ namespace nadena.dev.ndmf.preview
                     refCount = new RefCount();
                 }
 
+                var nodeChanges = reusedNodeInEntirety ? 0 : node.WhatChanged;
+
                 var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
-                controller.WhatChanged = changes | node.WhatChanged;
+                controller.WhatChanged = changes | nodeChanges;
 
                 foreach (var proxy in proxies)
                 {
-                    proxy.Item2.ChangeFlags |= node.WhatChanged;
+                    proxy.Item2.ChangeFlags |= nodeChanges;
                 }
 
                 return controller;
