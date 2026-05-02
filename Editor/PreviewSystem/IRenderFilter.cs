@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -52,26 +51,9 @@ namespace nadena.dev.ndmf.preview
             );
         }
 
-        /// <summary>
-        /// Attaches data to this render group.
-        /// This overload participates in RenderGroup equality using heuristic comparison rules.
-        /// To avoid heuristic comparison, use the explicit equality overload instead.
-        /// </summary>
         public RenderGroup WithData<T>(T data)
         {
-            return new RenderGroup<T>(Renderers, DebugNames, data, HeuristicContextEqualityComparer<T>.Instance);
-        }
-
-        /// <summary>
-        /// Attaches data to this render group and provides explicit equality for RenderGroup identity.
-        /// The supplied equality defines when two groups should be treated as the same for preview purposes,
-        /// including cached target-group retention and node reuse.
-        /// </summary>
-        public RenderGroup WithData<T>(T data, Func<T, T, bool> equals, Func<T, int> getHashCode = null)
-        {
-            // We take delegates instead of IEqualityComparer<T> because RenderGroup equality also needs a stable
-            // equality contract for the comparer itself.
-            return new RenderGroup<T>(Renderers, DebugNames, data, new DelegateEqualityComparer<T>(equals, getHashCode));
+            return new RenderGroup<T>(Renderers, DebugNames, data);
         }
 
         internal virtual RenderGroup Filter(HashSet<Renderer> activeRenderers)
@@ -124,29 +106,28 @@ namespace nadena.dev.ndmf.preview
     internal sealed class RenderGroup<T> : RenderGroup
     {
         public T Context { get; }
-        private readonly IEqualityComparer<T> _contextComparer;
 
         internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> DebugNames,
-            T context, IEqualityComparer<T> contextComparer) : base(renderers, DebugNames)
+            T context) : base(renderers, DebugNames)
         {
             Context = context;
-            _contextComparer = contextComparer;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
         {
-            var filtered = Renderers.RemoveAll(r => !activeRenderers.Contains(r));
-            return new RenderGroup<T>(filtered, DebugNames, Context, _contextComparer);
+            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), DebugNames, Context);
         }
         
         private bool Equals(RenderGroup<T> other)
         {
-            if (!_contextComparer.Equals(other._contextComparer))
+            if (Context is IEnumerable l && other.Context is IEnumerable ol)
             {
-                return false;
+                // This is a common mistake; List does not implement a useful Equals for us. Work around it
+                // on behalf of our consumers...
+                return base.Equals(other) && l.Cast<object>().SequenceEqual(ol.Cast<object>());
             }
-
-            return base.Equals(other) && _contextComparer.Equals(Context, other.Context);
+            
+            return base.Equals(other) && EqualityComparer<T>.Default.Equals(Context, other.Context);
         }
 
         public override bool Equals(object obj)
@@ -156,141 +137,19 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), _contextComparer.GetHashCode(), _contextComparer.GetHashCode(Context));
+            if (Context is IEnumerable l)
+            {
+                return l.Cast<object>().Aggregate(base.GetHashCode(), (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
+            }
+            
+            return HashCode.Combine(base.GetHashCode(), EqualityComparer<T>.Default.GetHashCode(Context));
         }
 
         internal override RenderGroup FilterLive()
         {
             if (Renderers.All(r => r != null)) return this;
 
-            var live = Renderers.Where(r => r != null).ToImmutableList();
-            return new RenderGroup<T>(live, DebugNames, Context, _contextComparer);
-        }
-    }
-
-    internal sealed class HeuristicContextEqualityComparer<T> : IEqualityComparer<T>
-    {
-        public static readonly HeuristicContextEqualityComparer<T> Instance = new();
-
-        private HeuristicContextEqualityComparer() { }
-        
-        public bool Equals(T x, T y)
-        {
-            return HeuristicEquals(x, y);
-        }
-
-        public int GetHashCode(T obj)
-        {
-            return HeuristicGetHashCode(obj);
-        }
-
-        private static bool HeuristicEquals(object x, object y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (x == null || y == null) return false;
-
-            if (x is ITuple tuple && y is ITuple otherTuple)
-            {
-                if (tuple.Length != otherTuple.Length) return false;
-                for (var i = 0; i < tuple.Length; i++)
-                {
-                    if (!HeuristicEquals(tuple[i], otherTuple[i])) return false;
-                }
-
-                return true;
-            }
-
-            if (x is IEnumerable enumerable && y is IEnumerable otherEnumerable)
-            {
-                var left = enumerable.GetEnumerator();
-                var right = otherEnumerable.GetEnumerator();
-
-                while (true)
-                {
-                    var leftHasNext = left.MoveNext();
-                    var rightHasNext = right.MoveNext();
-                    if (leftHasNext != rightHasNext) return false;
-                    if (!leftHasNext) return true;
-                    if (!HeuristicEquals(left.Current, right.Current)) return false;
-                }
-            }
-
-            return x.Equals(y);
-        }
-
-        private static int HeuristicGetHashCode(object obj)
-        {
-            if (obj == null) return 0;
-
-            if (obj is ITuple tuple)
-            {
-                var hash = 0;
-                for (var i = 0; i < tuple.Length; i++)
-                {
-                    hash = HashCode.Combine(hash, HeuristicGetHashCode(tuple[i]));
-                }
-
-                return hash;
-            }
-
-            if (obj is IEnumerable enumerable)
-            {
-                var hash = 0;
-                foreach (var entry in enumerable)
-                {
-                    hash = HashCode.Combine(hash, HeuristicGetHashCode(entry));
-                }
-
-                return hash;
-            }
-
-            return obj.GetHashCode();
-        }
-    }
-
-    internal sealed class DelegateEqualityComparer<T> : IEqualityComparer<T>, IEquatable<DelegateEqualityComparer<T>>
-    {
-        private readonly Func<T, T, bool> _equals;
-        private readonly Func<T, int> _getHashCode;
-
-        internal DelegateEqualityComparer(Func<T, T, bool> equals, Func<T, int> getHashCode = null)
-        {
-            _equals = equals;
-            _getHashCode = getHashCode;
-        }
-
-        public bool Equals(T x, T y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (x is null || y is null) return false;
-
-            return _equals(x, y);
-        }
-
-        public int GetHashCode(T obj)
-        {
-            if (obj is null) return 0;
-            return _getHashCode?.Invoke(obj) ?? 0;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is DelegateEqualityComparer<T> other && Equals(other);
-        }
-
-        public bool Equals(DelegateEqualityComparer<T> other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            if (!_equals.Equals(other._equals)) return false;
-            if (_getHashCode is null && other._getHashCode is null) return true;
-            if (_getHashCode is null || other._getHashCode is null) return false;
-            return _getHashCode.Equals(other._getHashCode);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(_equals, _getHashCode);
+            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), DebugNames, Context);
         }
     }
 
