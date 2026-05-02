@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#766] Deduplicate results in `ComputeContext.GetAvatarRoots()`
 
 ### Changed
+- [#775] Improve target acquisition performance in preview.
 
 ### Removed
 
