@@ -138,6 +138,36 @@ namespace UnitTests.Parameters
             Assert.IsFalse(param.WantSynced);
             Assert.IsTrue(param.IsAnimatorOnly);
         }
+        
+#if NDMF_VRCSDK3_AVATARS_3_10_3_OR_NEWER
+        [Test]
+        public void TestRaycast()
+        {
+            var root = CreateRoot("avatar");
+            var desc = root.GetComponent<VRCAvatarDescriptor>();
+            desc.expressionParameters = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+
+            var obj = CreateChild(root, "foo");
+            var pb = obj.AddComponent<VRCRaycast>();
+            
+            var parameters = ParameterInfo.ForUI.GetParametersForObject(obj)
+                .ToImmutableDictionary(p => p.EffectiveName, p => p);
+            Assert.IsTrue(parameters.IsEmpty);
+            
+            pb.Parameter = "abc";
+            
+            parameters = ParameterInfo.ForUI.GetParametersForObject(obj)
+                .ToImmutableDictionary(p => p.EffectiveName, p => p);
+            
+            Assert.AreEqual(1, parameters.Count);
+            var param = parameters["abc"];
+            Assert.AreEqual(null, param.ParameterType);
+            Assert.AreEqual(0, param.BitUsage);
+            Assert.AreEqual(ParameterNamespace.PhysBonesPrefix, param.Namespace);
+            Assert.IsFalse(param.WantSynced);
+            Assert.IsTrue(param.IsAnimatorOnly);
+        }
+#endif
     }
 }
 #endif
