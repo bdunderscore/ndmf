@@ -18,7 +18,7 @@ namespace nadena.dev.ndmf
         Animator,
 
         /// <summary>
-        /// Indicates that this is a PhysBones parameter prefix
+        /// Indicates that this is a PhysBones (or Raycast, or other similar VRChat component) parameter prefix
         /// </summary>
         PhysBonesPrefix
     }

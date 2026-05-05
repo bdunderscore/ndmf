@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#775] Add Optional KeyComparer argument to `PropCache`.
+- [#783] Add support for `VRCRaycast` to parameters introspection API
 
 ### Fixed
 - [#764] `VirtualControllerContext.Controllers.Values` and `VirtualControllerContext.Controllers.Keys` always returns empty collection
