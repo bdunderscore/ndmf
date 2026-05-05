@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.12.0] - [2026-05-05]
+
+### Added
 - [#775] Add Optional KeyComparer argument to `PropCache`.
 - [#783] Add support for `VRCRaycast` to parameters introspection API
 
@@ -19,12 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#775] Improve target acquisition performance in preview.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.11.0] - [2026-02-06]
 
