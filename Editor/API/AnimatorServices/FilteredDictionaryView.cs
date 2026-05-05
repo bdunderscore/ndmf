@@ -156,10 +156,10 @@ namespace nadena.dev.ndmf.animator
         }
 
         public ICollection<K> Keys =>
-            new FilteredCollectionView<K, K>(_delegate.Keys, kv => !_filter.Contains(kv), kv => kv);
+            new FilteredCollectionView<K, K>(_delegate.Keys, kv => _filter.Contains(kv), kv => kv);
 
         public ICollection<V> Values => new FilteredCollectionView<KeyValuePair<K, I>, V>(_delegate,
-            kv => !_filter.Contains(kv.Key), kv => _valueFilter(kv.Key, kv.Value));
+            kv => _filter.Contains(kv.Key), kv => _valueFilter(kv.Key, kv.Value));
 
         public void Add(KeyValuePair<K, V> item)
         {
