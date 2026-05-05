@@ -150,7 +150,8 @@ namespace nadena.dev.ndmf.preview
 #endif
 
             var filterList = filters.ToImmutableList();
-            _targetSet = priorPipeline?._targetSet?.Refresh(filterList, _hiddenRenderers) ?? new TargetSet(filterList, _hiddenRenderers);
+            var priorTargetSet = priorPipeline?._targetSet;
+            _targetSet = priorTargetSet?.Refresh(filterList, _hiddenRenderers) ?? new TargetSet(filterList, _hiddenRenderers, priorTargetSet);
 
             var activeStages = _targetSet.ResolveActiveStages(_ctx);
 
