@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#780] Add `RenderGroup.WithData<T>(T, IEqualityComparer<T>)` to explicitly define data equality.
 
 ### Fixed
 
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+- [#780] Deprecate `RenderGroup.WithData<T>(T)` in favor of the explicit comparer overload.
 
 ## [1.12.0] - [2026-05-05]
 
