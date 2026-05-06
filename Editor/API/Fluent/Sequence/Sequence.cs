@@ -59,6 +59,9 @@ namespace nadena.dev.ndmf.fluent
             _seq = seq;
         }
 
+        /// <summary>
+        /// Registers preview filters for this pass. Each filter instance may be registered only once.
+        /// </summary>
         public DeclaringPass PreviewingWith(params IRenderFilter[] filters)
         {
             foreach (var filter in filters)
