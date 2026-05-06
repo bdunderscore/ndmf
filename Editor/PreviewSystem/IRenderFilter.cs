@@ -148,7 +148,15 @@ namespace nadena.dev.ndmf.preview
             // across preview updates, and WithData requires consistent equality
             // semantics for the same data type. Mixing different semantics is outside
             // that contract.
-            return base.Equals(other) && _contextComparer.Equals(Context, other.Context);
+            return base.Equals(other) && ContextEquals(Context, other.Context);
+        }
+
+        private bool ContextEquals(T x, T y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (x is null || y is null) return false;
+
+            return _contextComparer.Equals(x, y);
         }
 
         public override bool Equals(object obj)
@@ -158,7 +166,10 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), _contextComparer.GetHashCode(Context));
+            return HashCode.Combine(
+                base.GetHashCode(),
+                Context is null ? 0 : _contextComparer.GetHashCode(Context)
+            );
         }
 
         internal override RenderGroup FilterLive()
