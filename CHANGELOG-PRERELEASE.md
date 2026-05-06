@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
 
 ### Changed
 
