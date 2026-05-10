@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#785] Add explicit equality overloads for `RenderGroup.WithData<T>()`.
 
 ### Fixed
 - [#792] Removing MeshFilter causes the scene view to stop rendering.
+- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
 
 ### Changed
 
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+- [#785] Deprecate `RenderGroup.WithData<T>(T)` because it uses heuristic equality rules.
 
 ## [1.12.0] - [2026-05-05]
 
