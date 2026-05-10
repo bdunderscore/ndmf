@@ -8,18 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#785] Add explicit equality overloads for `RenderGroup.WithData<T>()`.
 
 ### Fixed
-- [#794] `IRenderFilterNode.Refresh()` is not called when MeshFilter's mesh is replaced.
-- [#792] Removing MeshFilter causes the scene view to stop rendering.
-- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
 
 ### Changed
 
 ### Removed
 
 ### Security
+
+### Deprecated
+
+## [1.13.0] - [2026-05-10]
+
+### Added
+- [#785] Add explicit equality overloads for `RenderGroup.WithData<T>()`.
+
+### Fixed
+- [#794] `IRenderFilterNode.Refresh()` is not called when MeshFilter's mesh is replaced.
+- [#792] Removing MeshFilter causes the scene view to stop rendering.
+- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
 
 ### Deprecated
 - [#785] Deprecate `RenderGroup.WithData<T>(T)` because it uses heuristic equality rules.
