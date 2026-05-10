@@ -197,7 +197,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
                     var filter = Renderer.GetComponent<MeshFilter>();
-                    filter.sharedMesh = originalFilter.sharedMesh;
+                    filter.sharedMesh = originalFilter != null ? originalFilter.sharedMesh : null;
 
                     var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
 
