@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#794] `IRenderFilterNode.Refresh()` is not called when MeshFilter's mesh is replaced.
 
 ### Changed
 
