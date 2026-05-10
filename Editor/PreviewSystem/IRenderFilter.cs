@@ -51,9 +51,42 @@ namespace nadena.dev.ndmf.preview
             );
         }
 
+        /// <summary>
+        /// Returns a RenderGroup with additional data attached.
+        /// The attached data can be retrieved later using GetData.
+        /// 
+        /// This overload uses legacy heuristic equality rules; use an explicit equality overload instead.
+        /// </summary>
+        [Obsolete("Use an explicit equality overload instead.")]
         public RenderGroup WithData<T>(T data)
         {
-            return new RenderGroup<T>(Renderers, DebugNames, data);
+            return new RenderGroup<T>(Renderers, DebugNames, data, LegacyContextEqualityComparer<T>.Instance);
+        }
+
+        /// <summary>
+        /// Returns a RenderGroup with additional data attached.
+        /// The attached data can be retrieved later using GetData.
+        /// 
+        /// The equality function defines how the attached data participates in RenderGroup identity,
+        /// which may be used to retain target groups or reuse preview nodes.
+        /// A filter must use consistent equality semantics for the same data type.
+        /// </summary>
+        public RenderGroup WithData<T>(T data, Func<T, T, bool> equals)
+        {
+            return new RenderGroup<T>(Renderers, DebugNames, data, new DelegateEqualityComparer<T>(equals));
+        }
+
+        /// <summary>
+        /// Returns a RenderGroup with additional data attached.
+        /// The attached data can be retrieved later using GetData.
+        /// 
+        /// The comparer defines how the attached data participates in RenderGroup identity,
+        /// which may be used to retain target groups or reuse preview nodes.
+        /// A filter must use consistent equality semantics for the same data type.
+        /// </summary>
+        public RenderGroup WithData<T>(T data, IEqualityComparer<T> comparer)
+        {
+            return new RenderGroup<T>(Renderers, DebugNames, data, comparer);
         }
 
         internal virtual RenderGroup Filter(HashSet<Renderer> activeRenderers)
@@ -106,28 +139,37 @@ namespace nadena.dev.ndmf.preview
     internal sealed class RenderGroup<T> : RenderGroup
     {
         public T Context { get; }
+        private readonly IEqualityComparer<T> _contextComparer;
 
         internal RenderGroup(ImmutableList<Renderer> renderers, ImmutableDictionary<Renderer, string> DebugNames,
-            T context) : base(renderers, DebugNames)
+            T context, IEqualityComparer<T> contextComparer) : base(renderers, DebugNames)
         {
             Context = context;
+            _contextComparer = contextComparer;
         }
         
         internal override RenderGroup Filter(HashSet<Renderer> activeRenderers)
         {
-            return new RenderGroup<T>(Renderers.RemoveAll(r => !activeRenderers.Contains(r)), DebugNames, Context);
+            var filtered = Renderers.RemoveAll(r => !activeRenderers.Contains(r));
+            return new RenderGroup<T>(filtered, DebugNames, Context, _contextComparer);
         }
         
         private bool Equals(RenderGroup<T> other)
         {
-            if (Context is IEnumerable l && other.Context is IEnumerable ol)
-            {
-                // This is a common mistake; List does not implement a useful Equals for us. Work around it
-                // on behalf of our consumers...
-                return base.Equals(other) && l.Cast<object>().SequenceEqual(ol.Cast<object>());
-            }
-            
-            return base.Equals(other) && EqualityComparer<T>.Default.Equals(Context, other.Context);
+            // Do not compare the comparer itself.
+            // RenderGroup equality is evaluated for groups produced by the same filter
+            // across preview updates, and WithData requires consistent equality
+            // semantics for the same data type. Mixing different semantics is outside
+            // that contract.
+            return base.Equals(other) && ContextEquals(Context, other.Context);
+        }
+
+        private bool ContextEquals(T x, T y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (x is null || y is null) return false;
+
+            return _contextComparer.Equals(x, y);
         }
 
         public override bool Equals(object obj)
@@ -137,19 +179,67 @@ namespace nadena.dev.ndmf.preview
 
         public override int GetHashCode()
         {
-            if (Context is IEnumerable l)
-            {
-                return l.Cast<object>().Aggregate(base.GetHashCode(), (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
-            }
-            
-            return HashCode.Combine(base.GetHashCode(), EqualityComparer<T>.Default.GetHashCode(Context));
+            return HashCode.Combine(
+                base.GetHashCode(),
+                Context is null ? 0 : _contextComparer.GetHashCode(Context)
+            );
         }
 
         internal override RenderGroup FilterLive()
         {
             if (Renderers.All(r => r != null)) return this;
 
-            return new RenderGroup<T>(Renderers.Where(r => r != null).ToImmutableList(), DebugNames, Context);
+            var live = Renderers.Where(r => r != null).ToImmutableList();
+            return new RenderGroup<T>(live, DebugNames, Context, _contextComparer);
+        }
+    }
+
+    internal sealed class DelegateEqualityComparer<T> : IEqualityComparer<T>
+    {
+        private readonly Func<T, T, bool> _equals;
+
+        public DelegateEqualityComparer(Func<T, T, bool> equals)
+        {
+            _equals = equals;
+        }
+
+        public bool Equals(T x, T y)
+        {
+            return _equals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return 0;
+        }
+    }
+
+    internal sealed class LegacyContextEqualityComparer<T> : IEqualityComparer<T>
+    {
+        public static readonly LegacyContextEqualityComparer<T> Instance = new();
+
+        private LegacyContextEqualityComparer() { }
+        
+        public bool Equals(T x, T y)
+        {
+            if (x is IEnumerable l && y is IEnumerable ol)
+            {
+                // This is a common mistake; List does not implement a useful Equals for us. Work around it
+                // on behalf of our consumers...
+                return l.Cast<object>().SequenceEqual(ol.Cast<object>());
+            }
+
+            return EqualityComparer<T>.Default.Equals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            if (obj is IEnumerable l)
+            {
+                return l.Cast<object>().Aggregate(0, (acc, o) => HashCode.Combine(acc, o.GetHashCode()));
+            }
+            
+            return EqualityComparer<T>.Default.GetHashCode(obj); 
         }
     }
 
