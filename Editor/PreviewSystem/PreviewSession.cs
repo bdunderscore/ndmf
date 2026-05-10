@@ -73,6 +73,7 @@ namespace nadena.dev.ndmf.preview
         private readonly Sequencer _sequence = new Sequencer();
 
         private Dictionary<SequencePoint, IRenderFilter> _filters = new();
+        private HashSet<IRenderFilter> _registeredFilters = new(ReferenceEqualityComparer<IRenderFilter>.Instance);
 
         private ProxySession _proxySession;
 
@@ -110,6 +111,7 @@ namespace nadena.dev.ndmf.preview
             _proxySession = new ProxySession(ImmutableList<IRenderFilter>.Empty);
             _sequence = source._sequence.Clone();
             _filters = source._filters.ToDictionary(kv => kv.Key, kv => kv.Value);
+            _registeredFilters = source._registeredFilters.ToHashSet(ReferenceEqualityComparer<IRenderFilter>.Instance);
             _name = name;
             ForceRebuild();
         }
@@ -134,8 +136,20 @@ namespace nadena.dev.ndmf.preview
             RebuildSequence();
         }
 
+        /// <summary>
+        /// A render filter instance must be registered at only one sequence point.
+        /// </summary>
         public IDisposable AddMutator(SequencePoint sequencePoint, IRenderFilter filter)
         {
+            if (!_registeredFilters.Add(filter))
+            {
+                Debug.LogError(
+                    "The same IRenderFilter instance is already registered. Create a new filter instance for each SequencePoint. " +
+                    "Ignoring the duplicate registration."
+                );
+                return new EmptyDisposable();
+            }
+
             _sequence.AddPoint(sequencePoint);
 
             _filters.Add(sequencePoint, filter);
@@ -158,8 +172,11 @@ namespace nadena.dev.ndmf.preview
 
             public void Dispose()
             {
-                _session._filters.Remove(_point);
-                _session.RebuildSequence();
+                if (_session._filters.Remove(_point, out var filter))
+                {
+                    _session._registeredFilters.Remove(filter);
+                    _session.RebuildSequence();
+                }
             }
         }
 

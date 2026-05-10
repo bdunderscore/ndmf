@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#785] Add explicit equality overloads for `RenderGroup.WithData<T>()`.
 
 ### Fixed
+- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
 
 ### Changed
 
