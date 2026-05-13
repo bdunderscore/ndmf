@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
 using UnityEditor.Animations;
@@ -39,6 +40,52 @@ namespace UnitTests.AnimationServices
             
             Assert.AreEqual("c3", virtualS1.State.Motion.Name);
             Assert.AreEqual("c2", virtualS2.State.Motion.Name);
+        }
+
+        /// <summary>
+        /// Regression test for https://github.com/bdunderscore/ndmf/issues/800
+        /// When an AOC substitutes c1 with c2, the ObjectRegistry must record that the committed clone
+        /// replaces c2 (the override clip), not c1 (the original clip in the base controller).
+        /// </summary>
+        [Test]
+        public void ObjectRegistry_MapsOverrideClipNotOriginalClip()
+        {
+            var objectRegistry = new ObjectRegistry(null);
+            var reg = (IObjectRegistry)objectRegistry;
+
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+
+            var originalController = new AnimatorController();
+            var originalStateMachine = new AnimatorStateMachine();
+            originalController.layers = new[] {new AnimatorControllerLayer {stateMachine = originalStateMachine}};
+
+            var c1 = new AnimationClip {name = "c1"};
+            var c2 = new AnimationClip {name = "c2"};
+
+            var s1 = new AnimatorState {name = "s1", motion = c1};
+            originalStateMachine.states = new[] {new ChildAnimatorState {state = s1}};
+            originalStateMachine.defaultState = s1;
+
+            var overrideController = new AnimatorOverrideController();
+            overrideController.runtimeAnimatorController = originalController;
+            overrideController[c1] = c2;
+
+            VirtualAnimatorController virtualController;
+            AnimatorController committed;
+
+            using (new ObjectRegistryScope(objectRegistry))
+            {
+                virtualController = cloneContext.Clone(overrideController);
+
+                var commitContext = new CommitContext();
+                commitContext.NodeToReference = cloneContext.NodeToReference;
+                committed = commitContext.CommitObject(virtualController);
+            }
+
+            var committedMotion = (AnimationClip) committed.layers[0].stateMachine.defaultState.motion;
+
+            // The committed clip must resolve to c2's reference, not c1's.
+            Assert.AreEqual(reg.GetReference(c2), reg.GetReference(committedMotion));
         }
 
         [Test]
