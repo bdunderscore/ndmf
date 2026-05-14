@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#801] Fixed issue where AnimatorOverrideControllers mapping from proxy animations could be ignored when other tools
-  directly manipulate animator controllers.
 
 ### Changed
 
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.1] - [2026-05-14]
+
+### Fixed
+- [#801] Fixed issue where AnimatorOverrideControllers mapping from proxy animations could be ignored when other tools
+  directly manipulate animator controllers.
 
 ## [1.13.0] - [2026-05-10]
 
