@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#801] Fixed issue where AnimatorOverrideControllers mapping from proxy animations could be ignored when other tools
+  directly manipulate animator controllers.
 
 ### Changed
 
