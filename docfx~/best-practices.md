@@ -98,21 +98,25 @@ This helps avoid conflicts with other plugins that may use the same state type f
 
 ### Don't call AssetDatabase.SaveAssets or related methods during builds
 
-During a build, NDMF wraps all passes in [`AssetDatabase.StartAssetEditing`] / [`AssetDatabase.StopAssetEditing`] internally.
-Calling [`AssetDatabase.SaveAssets`], [`AssetDatabase.Refresh`], [`AssetDatabase.StartAssetEditing`], or [`AssetDatabase.StopAssetEditing`] yourself inside a build pass can corrupt the temporary assets being created and cause unpredictable failures.
+It's not necessary for NDMF Plugins to save generated assets immediately so any NDMF Plugin may receives Avatar with non-persisted assets referenced.
+In some cases, at the time NDMF Plugin runs, some persisted temporary assets may references non-persisted assets.
+Therefore, do not call [`AssetDatabase.SaveAssets`], [`AssetDatabase.Refresh`] or other methods triggers asset save.
+They will corrupt the temporary assets being created and cause unpredictable failures.
 
 To save assets you create during a build, use [`BuildContext.AssetSaver`] instead:
 
 ```csharp
-ctx.AssetSaver.SaveAsset(myGeneratedObject);
+ctx.AssetSaver.SaveAsset(generatedObject);
 ```
 
-NDMF automatically saves all assets referenced by the avatar at the end of the build, so in many cases you do not need to call `SaveAsset` at all — just create your objects and assign them to the avatar hierarchy.
+When you actually want to reload some assets, use [`AssetDatabase.ImportAsset`] instead of [`AssetDatabase.Refresh`].
+
+NDMF automatically saves all assets referenced by the avatar at the end of the build, so in many cases you do not need to call `SaveAsset` at all.
+You can just create your objects and assign them to the avatar hierarchy.
 
 [`AssetDatabase.SaveAssets`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.SaveAssets.html
 [`AssetDatabase.Refresh`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.Refresh.html
-[`AssetDatabase.StartAssetEditing`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.StartAssetEditing.html
-[`AssetDatabase.StopAssetEditing`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.StopAssetEditing.html
+[`AssetDatabase.ImportAsset`]: https://docs.unity3d.com/ja/2021.2/ScriptReference/AssetDatabase.ImportAsset.html
 [`BuildContext.AssetSaver`]: xref:nadena.dev.ndmf.BuildContext.AssetSaver
 
 ### Register cloned objects with ObjectRegistry
