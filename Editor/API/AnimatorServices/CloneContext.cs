@@ -157,7 +157,7 @@ namespace nadena.dev.ndmf.animator
                 value = clone(this, key);
                 _clones[key] = value;
 
-                if (value is object node && key is Object unityObj)
+                if (value is VirtualNode node && node.OriginalObjectExposed is { } unityObj)
                 {
                     NodeToReference[node] = ObjectRegistry.GetReference(unityObj);
                 }

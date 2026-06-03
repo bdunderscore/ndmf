@@ -96,6 +96,31 @@ The states are distinguished by their types.
 Therefore, you should create your own state type rather than using existing types like `Dictionary<string, object>` or `List<GameObject>`.
 This helps avoid conflicts with other plugins that may use the same state type for different purposes.
 
+### Don't call AssetDatabase.SaveAssets or related methods during builds
+
+It's not necessary for NDMF plugins to save generated assets immediately, so plugins may receive an avatar with references to non-persisted assets.
+
+In some cases, persisted temporary assets may themselves reference non-persisted assets at the time a plugin runs.
+
+Therefore, do not call [`AssetDatabase.SaveAssets`], [`AssetDatabase.Refresh`], or any other method that triggers asset saving.
+Doing so can corrupt temporary assets being created during the build process and cause unpredictable failures.
+
+To save assets created during a build, use [`BuildContext.AssetSaver`] instead:
+
+```csharp
+ctx.AssetSaver.SaveAsset(generatedObject);
+```
+
+If you need to reload specific assets, use [`AssetDatabase.ImportAsset`] instead of [`AssetDatabase.Refresh`].
+
+NDMF automatically saves all assets referenced by the avatar at the end of the build process, so in many cases you do not need to call `SaveAsset` at all.
+You can simply create objects and assign them to the avatar hierarchy.
+
+[`AssetDatabase.SaveAssets`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.SaveAssets.html
+[`AssetDatabase.Refresh`]: https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetDatabase.Refresh.html
+[`AssetDatabase.ImportAsset`]: https://docs.unity3d.com/ja/2021.2/ScriptReference/AssetDatabase.ImportAsset.html
+[`BuildContext.AssetSaver`]: xref:nadena.dev.ndmf.BuildContext.AssetSaver
+
 ### Register cloned objects with ObjectRegistry
 
 If your plugin clones object to modify them, you should register relationships between original objects and cloned objects
