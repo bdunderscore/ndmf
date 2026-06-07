@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using nadena.dev.ndmf.animator;
 using NUnit.Framework;
@@ -296,7 +298,7 @@ namespace UnitTests.AnimationServices
                     defaultFloat = 2
                 }
             };
-            
+
             var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
             var virtualController = cloneContext.Clone(original);
 
@@ -304,6 +306,105 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("a", param.name);
             Assert.AreEqual(AnimatorControllerParameterType.Float, param.type);
             Assert.AreEqual(2, param.defaultFloat);
+        }
+
+        [Test]
+        public void SetParameter_AddsNewParameter()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(context);
+
+            controller.SetParameter("x", new AnimatorControllerParameter
+            {
+                name = "ignored",
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1.5f
+            });
+
+            Assert.AreEqual(1, controller.Parameters.Count);
+            Assert.IsTrue(controller.Parameters.ContainsKey("x"));
+            Assert.AreEqual(AnimatorControllerParameterType.Float, controller.Parameters["x"].type);
+            Assert.AreEqual(1.5f, controller.Parameters["x"].defaultFloat);
+        }
+
+        [Test]
+        public void SetParameter_UpdatesExistingParameter_SameType_NoTypeChangeNotification()
+        {
+            var typeChangeFired = false;
+            var context = new CloneContext(new TrackingBindings(_ => typeChangeFired = true));
+            var controller = VirtualAnimatorController.Create(context);
+
+            controller.SetParameter("x", new AnimatorControllerParameter
+            {
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1.0f
+            });
+            controller.SetParameter("x", new AnimatorControllerParameter
+            {
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 2.0f
+            });
+
+            Assert.IsFalse(typeChangeFired);
+            Assert.AreEqual(2.0f, controller.Parameters["x"].defaultFloat);
+        }
+
+        [Test]
+        public void SetParameter_UpdatesExistingParameter_DifferentType_FiresTypeChangeNotification()
+        {
+            List<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)> captured = null;
+            var context = new CloneContext(new TrackingBindings(changes => captured = changes.ToList()));
+            var controller = VirtualAnimatorController.Create(context);
+
+            controller.SetParameter("x", new AnimatorControllerParameter
+            {
+                type = AnimatorControllerParameterType.Bool
+            });
+            controller.SetParameter("x", new AnimatorControllerParameter
+            {
+                type = AnimatorControllerParameterType.Float
+            });
+
+            Assert.IsNotNull(captured);
+            Assert.AreEqual(1, captured.Count);
+            Assert.AreEqual("x", captured[0].Item1);
+            Assert.AreEqual(AnimatorControllerParameterType.Bool, captured[0].Item2);
+            Assert.AreEqual(AnimatorControllerParameterType.Float, captured[0].Item3);
+        }
+
+        [Test]
+        public void SetParameter_ClonesParameter()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(context);
+
+            var original = new AnimatorControllerParameter
+            {
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1.0f
+            };
+            controller.SetParameter("x", original);
+
+            original.defaultFloat = 99.0f;
+
+            Assert.AreEqual(1.0f, controller.Parameters["x"].defaultFloat);
+        }
+
+        private class TrackingBindings : IPlatformAnimatorBindings
+        {
+            private readonly Action<IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)>> _onTypeChange;
+
+            public TrackingBindings(Action<IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)>> onTypeChange)
+            {
+                _onTypeChange = onTypeChange;
+            }
+
+            public void OnParameterTypeChanges(
+                VirtualAnimatorController controller,
+                IEnumerable<(string, AnimatorControllerParameterType, AnimatorControllerParameterType)> changes)
+            {
+                _onTypeChange(changes);
+            }
         }
     }
 }

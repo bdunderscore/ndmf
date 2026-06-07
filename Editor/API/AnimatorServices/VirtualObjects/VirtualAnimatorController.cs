@@ -54,13 +54,20 @@ namespace nadena.dev.ndmf.animator
 
                 if (_lastParameterType.TryGetValue(k, out var lastType) && lastType != v.type)
                 {
-                    DetectedParametersInteriorMutability = true;
-                    Debug.LogError($"Parameter {k} changed type from {lastType} to {v.type} in-place. This is not " +
-                                   "supported and will become an error in future versions. If you need to change a " +
-                                   "parameter type, create a new AnimatorControllerParameter object and use the " +
-                                   "Parameters setter to update the parameters map.");
+                    ReportParameterMutation(k, lastType, v);
                 }
             }
+        }
+
+        private void ReportParameterMutation(string name, AnimatorControllerParameterType lastType,
+            AnimatorControllerParameter currentParameter)
+        {
+            DetectedParametersInteriorMutability = true;
+            Debug.LogError(
+                $"Parameter {name} changed type from {lastType} to {currentParameter.type} in-place. This is not " +
+                "supported and will become an error in future versions. If you need to change a " +
+                "parameter type, create a new AnimatorControllerParameter object and use the " +
+                "Parameters setter to update the parameters map.");
         }
 
         private void UpdateParameterCache()
@@ -71,6 +78,33 @@ namespace nadena.dev.ndmf.animator
             {
                 _lastParameterType[k] = v.type;
             }
+        }
+
+        /// <summary>
+        ///     Adds or changes a single parameter. This API can be significantly faster than setting the Parameters dictionary
+        ///     directly.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="acp"></param>
+        public void SetParameter(string name, AnimatorControllerParameter acp)
+        {
+            // Note: we avoid calling CheckParameterMutation here for performance reasons (this function is often called
+            // in a tight loop). We can however check just the one parameter being set.
+            
+            var hadPriorValue = _parameters.TryGetValue(name, out var existing);
+            _parameters = I(_parameters.SetItem(name, CloneParameter(acp)));
+
+            if (hadPriorValue && existing.type != acp.type)
+            {
+                if (_lastParameterType.TryGetValue(name, out var lastType) && lastType != existing.type)
+                {
+                    ReportParameterMutation(name, lastType, acp);
+                }
+                
+                _context.PlatformBindings.OnParameterTypeChanges(this, new[] { (name, existing.type, acp.type) });
+            }
+
+            _lastParameterType[name] = acp.type;
         }
         
         /// <summary>
