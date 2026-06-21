@@ -104,11 +104,12 @@ namespace nadena.dev.ndmf.preview
             }
             else if (r is MeshRenderer mr)
             {
-                var meshRenderer = _monitorMesh.GetComponent<MeshFilter>(r.gameObject);
-                if (meshRenderer != null)
+                var meshFilter = _monitorMesh.GetComponent<MeshFilter>(r.gameObject);
+                if (meshFilter != null)
                 {
-                    _monitorMesh.Observe(meshRenderer.sharedMesh);
-                    _initialSharedMesh = meshRenderer.sharedMesh;
+                    _monitorMesh.Observe(meshFilter);
+                    _monitorMesh.Observe(meshFilter.sharedMesh);
+                    _initialSharedMesh = meshFilter.sharedMesh;
                 }
             }
 
@@ -196,7 +197,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
                     var filter = Renderer.GetComponent<MeshFilter>();
-                    filter.sharedMesh = originalFilter.sharedMesh;
+                    filter.sharedMesh = originalFilter != null ? originalFilter.sharedMesh : null;
 
                     var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
 

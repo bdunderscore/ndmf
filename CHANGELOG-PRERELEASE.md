@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#804] Added `VirtualAnimatorController.SetParameter`
 - [#760] `ErrorReport.ReportError` now resolves VirtualNode objects (e.g., VirtualClip) to their original Unity objects
 
 ### Fixed
@@ -19,6 +20,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.13.1] - [2026-05-14]
+
+### Fixed
+- [#801] Fixed issue where AnimatorOverrideControllers mapping from proxy animations could be ignored when other tools
+  directly manipulate animator controllers.
+
+## [1.13.0] - [2026-05-10]
+
+### Added
+- [#785] Add explicit equality overloads for `RenderGroup.WithData<T>()`.
+
+### Fixed
+- [#794] `IRenderFilterNode.Refresh()` is not called when MeshFilter's mesh is replaced.
+- [#792] Removing MeshFilter causes the scene view to stop rendering.
+- [#786] Fixed an issue where an `IRenderFilter` instance could be registered multiple times.
+
+### Deprecated
+- [#785] Deprecate `RenderGroup.WithData<T>(T)` because it uses heuristic equality rules.
+
+## [1.12.0] - [2026-05-05]
+
+### Added
+- [#775] Add Optional KeyComparer argument to `PropCache`.
+- [#783] Add support for `VRCRaycast` to parameters introspection API
+
+### Fixed
+- [#764] `VirtualControllerContext.Controllers.Values` and `VirtualControllerContext.Controllers.Keys` always returns empty collection
+- [#766] Deduplicate results in `ComputeContext.GetAvatarRoots()`
+- [#777] Unnecessary preview refreshes during pipeline rebuilds.
+
+### Changed
+- [#775] Improve target acquisition performance in preview.
 
 ## [1.11.0] - [2026-02-06]
 

@@ -55,6 +55,10 @@ namespace nadena.dev.ndmf.animator
         /// <returns>The original Unity object, or null if none exists</returns>
         protected internal virtual Object? GetOriginalObject() => OriginalObject;
 
+        // this workaround is needed to allow other internal classes to access OriginalObject without adding it to the
+        // public API
+        internal Object? OriginalObjectExposed => OriginalObject;
+
         // The name of the associated unity object. 
         public abstract string Name { get; set; }
 

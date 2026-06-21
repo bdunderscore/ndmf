@@ -81,7 +81,7 @@ namespace nadena.dev.ndmf.preview
         private readonly string _debugName;
         private readonly Func<ComputeContext, TKey, TValue> _operator;
         private readonly Func<TValue, TValue, bool>? _equalityComparer;
-        private readonly Dictionary<TKey, CacheEntry> _cache = new();
+        private readonly Dictionary<TKey, CacheEntry> _cache;
 
         // This is used only for debugging purposes to identify when the propcache is regenerated,
         // we don't mind it not being shared across different instantiations.
@@ -98,15 +98,20 @@ namespace nadena.dev.ndmf.preview
         ///     result. If this function returns true, then downstream consumers will not be invalidated. Note that if the
         ///     equality comparator is present, the function may be re-evaluated multiple times per cache invalidation.
         /// </param>
+        /// <param name="keyComparer">
+        ///     Optional comparer used for cache keys. If null, EqualityComparer<TKey>.Default is used.
+        /// </param>
         public PropCache(
             string debugName,
             Func<ComputeContext, TKey, TValue> operatorFunc,
-            Func<TValue, TValue, bool>? equalityComparer = null
+            Func<TValue, TValue, bool>? equalityComparer = null,
+            IEqualityComparer<TKey>? keyComparer = null
         )
         {
             _debugName = debugName;
             _operator = operatorFunc;
             _equalityComparer = equalityComparer;
+            _cache = new Dictionary<TKey, CacheEntry>(keyComparer ?? EqualityComparer<TKey>.Default);
 
             WeakReference<PropCache<TKey, TValue>> selfRef = new(this);
             PropCacheDebug.InternalRegister(this, () =>
