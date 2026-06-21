@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#795] Fix issues with preview system on Unity 6000.4
 
 ### Changed
 
