@@ -13,7 +13,7 @@ namespace nadena.dev.ndmf.ui
     /// <summary>
     /// Displays a severity icon for a particular ErrorLevel.
     /// </summary>
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_0_OR_NEWER
     [UxmlElement]
 #endif
     public sealed partial class ErrorIcon : VisualElement
@@ -74,7 +74,7 @@ namespace nadena.dev.ndmf.ui
         }
 #endif
 
-#if !UNITY_6000_4_OR_NEWER
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<ErrorIcon, UxmlTraits>
         {
         }
