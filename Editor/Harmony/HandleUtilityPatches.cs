@@ -70,17 +70,21 @@ namespace nadena.dev.ndmf.preview
                 return array;
             }
         }
-        
+
         internal static void Patch_FilterInstanceIDs(Harmony h)
         {
             var t_HandleUtility = AccessTools.TypeByName("UnityEditor.HandleUtility");
-            var m_orig = AccessTools.Method(t_HandleUtility, "FilterInstanceIDs");
-
+            var m_orig = AccessTools.Method(t_HandleUtility,
+#if UNITY_6000_4_OR_NEWER
+            "FilterEntityIds"
+#else
+            "FilterInstanceIDs"
+#endif
+            );
             var m_prefix = AccessTools.Method(typeof(HandleUtilityPatches), "Prefix_FilterInstanceIDs");
             var m_postfix = AccessTools.Method(typeof(HandleUtilityPatches), "Postfix_FilterInstanceIDs");
 
             h.Patch(original: m_orig, prefix: new HarmonyMethod(m_prefix), postfix: new HarmonyMethod(m_postfix));
-
             var m_internal_getclosestpickingid = AccessTools.Method(t_HandleUtility, "Internal_GetClosestPickingID");
             var m_prefix_internal_getclosestpickingid = AccessTools.Method(typeof(HandleUtilityPatches),
                 nameof(Prefix_Internal_GetClosestPickingID));
@@ -161,18 +165,34 @@ namespace nadena.dev.ndmf.preview
             bool drawGizmos,
             ref int materialIndex,
             ref bool isEntity,
+#if UNITY_6000_4_OR_NEWER
+            ref ulong __result
+#else
             ref uint __result
+#endif
         )
         {
             var sess = PreviewSession.Current;
             if (sess == null) return;
 
-            var go = EditorUtility.InstanceIDToObject((int)__result) as GameObject;
+            var go =
+#if UNITY_6000_4_OR_NEWER
+            EditorUtility.EntityIdToObject(EntityId.FromULong(__result))
+#else
+            EditorUtility.InstanceIDToObject((int)__result)
+#endif
+             as GameObject;
             if (go == null) return;
 
             if (sess.ProxyToOriginalObject.TryGetValue(go, out var original) && original != null)
             {
-                __result = (uint)original.GetInstanceID();
+                __result =
+#if UNITY_6000_4_OR_NEWER
+               EntityId.ToULong(original.GetEntityId())
+#else
+                (uint)original.GetInstanceID()
+#endif
+                ;
             }
         }
 
@@ -199,6 +219,21 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+#if UNITY_6000_4_OR_NEWER
+        [UsedImplicitly]
+        private static bool Prefix_FilterInstanceIDs(
+            ref IEnumerable<GameObject> gameObjects,
+            out EntityId[] parentEntityIds,
+            out EntityId[] childEntityIds,
+            out HashSet<EntityId> childEntityIdsHashSet
+        )
+        {
+            gameObjects = RemapObjects(gameObjects);
+            parentEntityIds = childEntityIds = null;
+            childEntityIdsHashSet = null;
+            return true;
+        }
+#else
         [UsedImplicitly]
         private static bool Prefix_FilterInstanceIDs(
             ref IEnumerable<GameObject> gameObjects,
@@ -210,7 +245,22 @@ namespace nadena.dev.ndmf.preview
             parentInstanceIDs = childInstanceIDs = null;
             return true;
         }
+#endif
 
+#if UNITY_6000_4_OR_NEWER
+
+        [UsedImplicitly]
+        private static void Postfix_FilterInstanceIDs(
+            ref IEnumerable<GameObject> gameObjects,
+            ref EntityId[] parentEntityIds,
+            ref EntityId[] childEntityIds,
+            ref HashSet<EntityId> childEntityIdsHashSet
+        )
+        {
+            ref var parentInstanceIDs = ref parentEntityIds;
+            ref var childInstanceIDs = ref childEntityIds;
+            childEntityIdsHashSet = null;
+#else
         [UsedImplicitly]
         private static void Postfix_FilterInstanceIDs(
             ref IEnumerable<GameObject> gameObjects,
@@ -218,10 +268,12 @@ namespace nadena.dev.ndmf.preview
             ref int[] childInstanceIDs
         )
         {
+            HashSet<int> childEntityIdsHashSet = null;
+#endif
             var sess = PreviewSession.Current;
             if (sess == null) return;
 
-            HashSet<int> newChildInstanceIDs = null;
+
 
             foreach (var parent in gameObjects)
             {
@@ -229,15 +281,21 @@ namespace nadena.dev.ndmf.preview
                 {
                     if (sess.OriginalToProxyRenderer.TryGetValue(renderer, out var proxy) && proxy != null)
                     {
-                        if (newChildInstanceIDs == null) newChildInstanceIDs = new HashSet<int>(childInstanceIDs);
-                        newChildInstanceIDs.Add(proxy.GetInstanceID());
+                        if (childEntityIdsHashSet == null) childEntityIdsHashSet = new(childInstanceIDs);
+                        childEntityIdsHashSet.Add(
+#if UNITY_6000_4_OR_NEWER
+                            proxy.GetEntityId()
+#else
+                            proxy.GetInstanceID()
+#endif
+                        );
                     }
                 }
             }
 
-            if (newChildInstanceIDs != null)
+            if (childEntityIdsHashSet != null)
             {
-                childInstanceIDs = newChildInstanceIDs.ToArray();
+                childInstanceIDs = childEntityIdsHashSet.ToArray();
             }
         }
 

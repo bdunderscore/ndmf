@@ -8,8 +8,12 @@ namespace nadena.dev.ndmf.ui
     /// <summary>
     /// VisualElement to display a language selector.
     /// </summary>
-    public sealed class LanguageSwitcher : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    public sealed partial class LanguageSwitcher : VisualElement
     {
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<LanguageSwitcher, UxmlTraits>
         {
         }
@@ -17,6 +21,7 @@ namespace nadena.dev.ndmf.ui
         public new class UxmlTraits : VisualElement.UxmlTraits
         {
         }
+#endif
 
         public LanguageSwitcher()
         {
