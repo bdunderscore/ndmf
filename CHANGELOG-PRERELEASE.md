@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [#804] Added `VirtualAnimatorController.SetParameter`
+- [#760] `ErrorReport.ReportError` now resolves VirtualNode objects (e.g., VirtualClip) to their original Unity objects
 
 ### Fixed
 - [#795] Fix compatibility issues with Unity 6000.x
