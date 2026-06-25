@@ -136,6 +136,12 @@ namespace nadena.dev.ndmf
             return obj is EntityId eid && Equals(eid);
         }
         public override int GetHashCode() => InstanceID;
+
+        internal int CompareTo(EntityId entityId)
+        {
+            return InstanceID.CompareTo(entityId);
+        }
+
         public static EntityId None => default(EntityId);
 
 
