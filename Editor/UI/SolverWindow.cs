@@ -9,13 +9,9 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 #if UNITY_6000_4_OR_NEWER
-using TV = UnityEditor.IMGUI.Controls.TreeView<int>;
-using TVS = UnityEditor.IMGUI.Controls.TreeViewState<int>;
-using TVI = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
-#else
-using TV = UnityEditor.IMGUI.Controls.TreeView;
-using TVS = UnityEditor.IMGUI.Controls.TreeViewState;
-using TVI = UnityEditor.IMGUI.Controls.TreeViewItem;
+using TreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
+using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
+using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
 #endif
 
 #endregion
@@ -68,22 +64,22 @@ namespace nadena.dev.ndmf.ui
         }
     }
 
-    internal class SolverUIItem : TVI
+    internal class SolverUIItem : TreeViewItem
     {
         public double? ExecutionTimeMS;
         public bool IsDisabled;
         public bool IsPlugin;
     }
 
-    internal class SolverUI : TV, IDisposable
+    internal class SolverUI : TreeView, IDisposable
     {
         private Dictionary<string, List<SolverUIItem>> _pluginItems = new();
 
-        public SolverUI() : this(new TVS())
+        public SolverUI() : this(new TreeViewState())
         {
         }
 
-        public SolverUI(TVS state) : base(state)
+        public SolverUI(TreeViewState state) : base(state)
         {
             Reload();
 
@@ -122,7 +118,7 @@ namespace nadena.dev.ndmf.ui
             return null;
         }
 
-        protected override TVI BuildRoot()
+        protected override TreeViewItem BuildRoot()
         {
             PluginResolver Resolver = new PluginResolver(includeDisabled: true);
             
@@ -223,7 +219,7 @@ namespace nadena.dev.ndmf.ui
                 }
             }
 
-            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TVI) i).ToList());
+            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TreeViewItem) i).ToList());
 
             return root;
         }
