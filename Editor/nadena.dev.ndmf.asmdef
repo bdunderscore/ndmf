@@ -15,7 +15,11 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "0Harmony.dll"
+        "0Harmony.dll",
+        "System.Collections.Immutable.dll",
+        "VRCSDK3A.dll",
+        "VRCSDKBase.dll",
+        "VRCSDKBase-Editor.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
