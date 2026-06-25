@@ -139,7 +139,7 @@ namespace nadena.dev.ndmf
 
         public int CompareTo(EntityId entityId)
         {
-            return InstanceID.CompareTo(entityId);
+            return InstanceID.CompareTo(entityId.InstanceID);
         }
 
         public static EntityId None => default(EntityId);
