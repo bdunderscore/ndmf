@@ -117,7 +117,7 @@ namespace nadena.dev.ndmf
 
     }
 #if !UNITY_6000_4_OR_NEWER
-    public struct EntityId : IEquatable<EntityId>
+    public struct EntityId : IEquatable<EntityId> , IComparable<EntityId>
     {
         public int InstanceID;
 
@@ -137,7 +137,7 @@ namespace nadena.dev.ndmf
         }
         public override int GetHashCode() => InstanceID;
 
-        internal int CompareTo(EntityId entityId)
+        public int CompareTo(EntityId entityId)
         {
             return InstanceID.CompareTo(entityId);
         }
