@@ -69,6 +69,21 @@ namespace nadena.dev.ndmf.preview
 
                 return array;
             }
+            public Array Distinct(Array input)
+            {
+                var objArray = new object[input.Length];
+
+                for (var i = 0; i < input.Length; i++)
+                    objArray[i] = input.GetValue(i);
+
+                objArray = objArray.Distinct().ToArray();
+                array = Array.CreateInstance(ty_elem, objArray.Length);
+
+                for (var i = 0; i < objArray.Length; i++)
+                    array.SetValue(objArray[i], i);
+
+                return array;
+            }
         }
 
         internal static void Patch_FilterInstanceIDs(Harmony h)
@@ -112,14 +127,23 @@ namespace nadena.dev.ndmf.preview
         private static readonly ShadowArrayHelper shadow_filter = new(ty_PickingObject);
 
         private static readonly ConstructorInfo m_PickingObject_ctor =
+#if UNITY_6000_6_OR_NEWER
+            AccessTools.Constructor(ty_PickingObject, new[] { typeof(EntityId), typeof(int) });
+#else
             AccessTools.Constructor(ty_PickingObject, new[] { typeof(Object), typeof(int) });
+#endif
 
         private static readonly MethodInfo m_PickingObject_Target =
-            AccessTools.PropertyGetter(ty_PickingObject, "target");
+            AccessTools.PropertyGetter(ty_PickingObject,
+#if UNITY_6000_6_OR_NEWER
+            "targetId"
+#else
+            "target"
+#endif
+            );
 
         private static readonly MethodInfo m_PickingObject_MaterialIndex =
             AccessTools.PropertyGetter(ty_PickingObject, "materialIndex");
-
         [UsedImplicitly]
         private static void Prefix_Internal_GetClosestPickingID(
             Camera cam,
@@ -144,7 +168,13 @@ namespace nadena.dev.ndmf.preview
                 if (sess.OriginalToProxyObject.TryGetValue(go, out var proxy) && proxy != null)
                 {
                     return m_PickingObject_ctor.Invoke(new[]
-                        { proxy, m_PickingObject_MaterialIndex.Invoke(obj, null) });
+                        {
+#if UNITY_6000_6_OR_NEWER
+                            go.GetEntityId()
+#else
+                            proxy
+#endif
+                        , m_PickingObject_MaterialIndex.Invoke(obj, null) });
                 }
 
                 return obj;
@@ -184,6 +214,11 @@ namespace nadena.dev.ndmf.preview
              as GameObject;
             if (go == null) return;
 
+#if UNITY_6000_6_OR_NEWER
+            // ここで ProxyToOriginalObject をしてしまうと GetAllOverlapping のコードから`GetAllOverlapping failed, could not ignore game object ' ... ' when picking` が発生する。
+            // これをしないほうが正常に動くため ... 何故なのかよくわからず謎。まぁ こんな強引なパッチはそんな程度でもいいでしょう ()
+            // By Reina_Sakiria
+#else
             if (sess.ProxyToOriginalObject.TryGetValue(go, out var original) && original != null)
             {
                 __result =
@@ -194,6 +229,7 @@ namespace nadena.dev.ndmf.preview
 #endif
                 ;
             }
+#endif
         }
 
         [UsedImplicitly]
