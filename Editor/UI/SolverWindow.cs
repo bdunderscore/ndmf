@@ -59,22 +59,22 @@ namespace nadena.dev.ndmf.ui
         }
     }
 
-    internal class SolverUIItem : TreeViewItem
+    internal class SolverUIItem : TreeViewItem<int>
     {
         public double? ExecutionTimeMS;
         public bool IsDisabled;
         public bool IsPlugin;
     }
 
-    internal class SolverUI : TreeView, IDisposable
+    internal class SolverUI : TreeView<int>, IDisposable
     {
         private Dictionary<string, List<SolverUIItem>> _pluginItems = new();
 
-        public SolverUI() : this(new TreeViewState())
+        public SolverUI() : this(new TreeViewState<int>())
         {
         }
 
-        public SolverUI(TreeViewState state) : base(state)
+        public SolverUI(TreeViewState<int> state) : base(state)
         {
             Reload();
 
@@ -113,7 +113,7 @@ namespace nadena.dev.ndmf.ui
             return null;
         }
 
-        protected override TreeViewItem BuildRoot()
+        protected override TreeViewItem<int> BuildRoot()
         {
             PluginResolver Resolver = new PluginResolver(includeDisabled: true);
             
@@ -214,7 +214,7 @@ namespace nadena.dev.ndmf.ui
                 }
             }
 
-            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TreeViewItem) i).ToList());
+            SetupParentsAndChildrenFromDepths(root, allItems.Select(i => (TreeViewItem<int>) i).ToList());
 
             return root;
         }

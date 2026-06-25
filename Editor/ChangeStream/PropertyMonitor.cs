@@ -70,15 +70,15 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        private readonly SortedDictionary<int, Registration> _registeredObjects = new();
+        private readonly SortedDictionary<EntityId, Registration> _registeredObjects = new();
 
         public ListenerSet<PropertyMonitorEvent> MonitorObjectProps(Object obj)
         {
-            if (_registeredObjects.TryGetValue(obj.GetInstanceID(), out var reg)) return reg._listeners;
+            if (_registeredObjects.TryGetValue(obj.GetEntityId(), out var reg)) return reg._listeners;
 
             reg = new Registration(obj);
 
-            _registeredObjects.Add(obj.GetInstanceID(), reg);
+            _registeredObjects.Add(obj.GetEntityId(), reg);
 
             return reg._listeners;
         }
@@ -97,7 +97,7 @@ namespace nadena.dev.ndmf.cs
             try
             {
                 Profiler.BeginSample("PropertyMonitor.CheckAllObjects");
-                var toRemove = new List<int>();
+                var toRemove = new List<EntityId>();
                 var sw = new Stopwatch();
                 sw.Start();
 
@@ -114,7 +114,7 @@ namespace nadena.dev.ndmf.cs
                     }
 
                     // Wake up all listeners to see if their monitored value has changed
-                    Profiler.BeginSample("FirePropsUpdated", EditorUtility.InstanceIDToObject(instanceId));
+                    Profiler.BeginSample("FirePropsUpdated", UnityObjectIDHelper.EntityIdToObject(instanceId));
                     reg._listeners.Fire(PropertyMonitorEvent.PropsUpdated);
                     Profiler.EndSample();
 
