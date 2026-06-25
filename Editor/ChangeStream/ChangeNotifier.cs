@@ -13,7 +13,7 @@ namespace nadena.dev.ndmf.preview
     [PublicAPI]
     public static class ChangeNotifier
     {
-        private static Dictionary<string, HashSet<int>> pathToInstanceIds = new();
+        private static Dictionary<string, HashSet<EntityId>> pathToInstanceIds = new();
 
         internal static void RecordObjectOfInterest(Object obj)
         {
@@ -22,13 +22,13 @@ namespace nadena.dev.ndmf.preview
             var path = AssetDatabase.GetAssetPath(obj);
             if (!pathToInstanceIds.TryGetValue(path, out var set))
             {
-                set = new HashSet<int>();
+                set = new HashSet<EntityId>();
                 pathToInstanceIds[path] = set;
             }
 
-            set.Add(obj.GetInstanceID());
+            set.Add(obj.GetEntityId());
         }
-        
+
         /// <summary>
         /// Notifies the reactive query and NDMF preview system of a change in an object that isn't tracked by the normal
         /// unity ObjectchangeEventStream system.
@@ -36,7 +36,7 @@ namespace nadena.dev.ndmf.preview
         /// <param name="obj"></param>
         public static void NotifyObjectUpdate(Object obj)
         {
-            if (obj != null) ObjectWatcher.Instance.Hierarchy.InvalidateTree(obj.GetInstanceID());
+            if (obj != null) ObjectWatcher.Instance.Hierarchy.InvalidateTree(obj.GetEntityId());
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace nadena.dev.ndmf.preview
         /// unity ObjectchangeEventStream system.
         /// </summary>
         /// <param name="instanceId"></param>
-        public static void NotifyObjectUpdate(int instanceId)
+        public static void NotifyObjectUpdate(EntityId instanceId)
         {
             ObjectWatcher.Instance.Hierarchy.InvalidateTree(instanceId);
         }

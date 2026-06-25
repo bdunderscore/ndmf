@@ -56,8 +56,8 @@ namespace nadena.dev.ndmf.cs
     internal class ShadowHierarchy
     {
         internal SynchronizationContext _syncContext;
-        internal Dictionary<int, ShadowGameObject> _gameObjects = new();
-        internal Dictionary<int, ShadowObject> _otherObjects = new();
+        internal Dictionary<EntityId, ShadowGameObject> _gameObjects = new();
+        internal Dictionary<EntityId, ShadowObject> _otherObjects = new();
         internal ListenerSet<HierarchyEvent> _rootSetListener = new();
 
         private struct PendingEvent
@@ -330,10 +330,10 @@ namespace nadena.dev.ndmf.cs
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] RegisterObjectListener({targetComponent.GetInstanceID()})");
 #endif
 
-            if (!_otherObjects.TryGetValue(targetObject.GetInstanceID(), out var shadowComponent))
+            if (!_otherObjects.TryGetValue(targetObject.GetEntityId(), out var shadowComponent))
             {
                 shadowComponent = new ShadowObject(targetObject);
-                _otherObjects[targetObject.GetInstanceID()] = shadowComponent;
+                _otherObjects[targetObject.GetEntityId()] = shadowComponent;
             }
 
             ChangeNotifier.RecordObjectOfInterest(targetObject);
@@ -399,7 +399,7 @@ namespace nadena.dev.ndmf.cs
             // An object is deactivated ("inert") when we traverse it and find no listeners in any of its children.
             // Inert objects are skipped for path update notifications; however, we can't just delete them, because
             // we may need to know about them for future structure change notifications at their parents.
-            int instanceId = targetObject.GetInstanceID();
+            var instanceId = targetObject.GetEntityId();
             if (!_gameObjects.TryGetValue(instanceId, out var shadow))
             {
                 shadow = new ShadowGameObject(targetObject);
@@ -432,7 +432,7 @@ namespace nadena.dev.ndmf.cs
         /// Fires a notification that properties on a specific object (GameObject or otherwise) has changed.
         /// </summary>
         /// <param name="instanceId"></param>
-        internal void FireObjectChangeNotification(int instanceId)
+        internal void FireObjectChangeNotification(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireObjectChangeNotification({instanceId})");
@@ -463,7 +463,7 @@ namespace nadena.dev.ndmf.cs
         ///     If they have changed since the last check, a structure change event will be fired.
         /// </summary>
         /// <param name="instanceId"></param>
-        internal void RequestComponentStructureCheck(int instanceId)
+        internal void RequestComponentStructureCheck(EntityId instanceId)
         {
             if (!_gameObjects.TryGetValue(instanceId, out var shadow))
             {
@@ -487,28 +487,28 @@ namespace nadena.dev.ndmf.cs
         internal void DeferredComponentStructureCheck(object erased)
         {
             var shadow = (ShadowGameObject)erased;
-            if (!_gameObjects.TryGetValue(shadow.InstanceID, out var currentShadow) || currentShadow != shadow)
+            if (!_gameObjects.TryGetValue(shadow.EntityId, out var currentShadow) || currentShadow != shadow)
             {
                 return;
             }
 
             shadow.StructureCheckQueued = false;
 
-            MaybeFireStructureChangeEvent(shadow.InstanceID);
+            MaybeFireStructureChangeEvent(shadow.EntityId);
         }
 
         /// <summary>
         /// Fires a notification that the specified GameObject has a new parent.
         /// </summary>
         /// <param name="instanceId"></param>
-        internal void FireReparentNotification(int instanceId)
+        internal void FireReparentNotification(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireReparentNotification({instanceId})");
 #endif
             
             // Always activate on reparent. This is because we might be reparenting _into_ an active hierarchy.
-            var obj = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+            var obj = UnityObjectIDHelper.EntityIdToObject(instanceId) as GameObject;
             ShadowGameObject shadow;
             if (obj != null)
             {
@@ -578,7 +578,7 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        internal void FireDestroyNotification(int instanceId)
+        internal void FireDestroyNotification(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireDestroyNotification({instanceId})");
@@ -599,7 +599,7 @@ namespace nadena.dev.ndmf.cs
 #endif
 
             FireEvent(obj._listeners, HierarchyEvent.ForceInvalidate);
-            _gameObjects.Remove(obj.InstanceID);
+            _gameObjects.Remove(obj.EntityId);
 
             foreach (var child in obj.Children)
             {
@@ -607,7 +607,7 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        internal void FireReorderNotification(int parentInstanceId)
+        internal void FireReorderNotification(EntityId parentInstanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireReorderNotification({parentInstanceId})");
@@ -621,7 +621,7 @@ namespace nadena.dev.ndmf.cs
             FireParentComponentChangeNotifications(shadow);
         }
 
-        internal void MaybeFireStructureChangeEvent(int instanceId)
+        internal void MaybeFireStructureChangeEvent(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireStructureChangeEvent({instanceId})");
@@ -648,7 +648,7 @@ namespace nadena.dev.ndmf.cs
             FlushEvents();
             
             var oldDict = _gameObjects;
-            _gameObjects = new Dictionary<int, ShadowGameObject>();
+            _gameObjects = new Dictionary<EntityId, ShadowGameObject>();
 
             foreach (var shadow in oldDict.Values)
             {
@@ -656,7 +656,7 @@ namespace nadena.dev.ndmf.cs
             }
 
             var oldComponents = _otherObjects;
-            _otherObjects = new Dictionary<int, ShadowObject>();
+            _otherObjects = new Dictionary<EntityId, ShadowObject>();
 
             foreach (var shadow in oldComponents.Values)
             {
@@ -672,7 +672,7 @@ namespace nadena.dev.ndmf.cs
         /// </summary>
         /// <param name="instanceId"></param>
         /// <exception cref="NotImplementedException"></exception>
-        public void InvalidateTree(int instanceId)
+        public void InvalidateTree(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] InvalidateTree({instanceId})");
@@ -696,7 +696,7 @@ namespace nadena.dev.ndmf.cs
                 }
 
                 // Finally recreate the target object, just in case it took up some objects from somewhere else
-                var gameObject = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+                var gameObject = UnityObjectIDHelper.EntityIdToObject(instanceId) as GameObject;
                 if (gameObject != null)
                 {
                     ActivateShadowObject(gameObject);
@@ -710,13 +710,13 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        public void FireGameObjectCreate(int instanceId)
+        public void FireGameObjectCreate(EntityId instanceId)
         {
 #if NDMF_TRACE_SHADOW
             System.Diagnostics.Debug.WriteLine($"[ShadowHierarchy] FireGameObjectCreate({instanceId})");
 #endif
             
-            var obj = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+            var obj = UnityObjectIDHelper.EntityIdToObject(instanceId) as GameObject;
             if (obj == null) return;
 
             var shadow = ActivateShadowObject(obj);
@@ -728,14 +728,14 @@ namespace nadena.dev.ndmf.cs
 
     internal class ShadowObject
     {
-        internal int InstanceID { get; private set; }
+        internal EntityId InstanceID { get; private set; }
         internal UnityObject Object { get; private set; }
 
         internal ListenerSet<HierarchyEvent> _listeners = new ListenerSet<HierarchyEvent>();
 
         internal ShadowObject(UnityObject component)
         {
-            InstanceID = component.GetInstanceID();
+            InstanceID = component.GetEntityId();
             Object = component;
         }
     }
@@ -746,10 +746,10 @@ namespace nadena.dev.ndmf.cs
     /// </summary>
     internal class ShadowGameObject
     {
-        internal int InstanceID { get; private set; }
+        internal EntityId EntityId { get; private set; }
         internal GameObject GameObject { get; private set; }
         internal Scene Scene { get; set; }
-        private readonly Dictionary<int, ShadowGameObject> _children = new Dictionary<int, ShadowGameObject>();
+        private readonly Dictionary<EntityId, ShadowGameObject> _children = new Dictionary<EntityId, ShadowGameObject>();
 
         public IEnumerable<ShadowGameObject> Children => _children.Values;
 
@@ -761,7 +761,7 @@ namespace nadena.dev.ndmf.cs
 
         internal bool StructureCheckQueued;
 
-        internal int[] ComponentStructure;
+        internal EntityId[] ComponentStructure;
         
         internal ShadowGameObject Parent
         {
@@ -776,7 +776,7 @@ namespace nadena.dev.ndmf.cs
 
             if (_parent != null)
             {
-                _parent._children.Remove(InstanceID);
+                _parent._children.Remove(EntityId);
                 // Fire off a property change notification for the parent itself
                 // TODO: tests
                 if (fireNotifications) _parent._listeners.Fire(HierarchyEvent.ObjectDirty);
@@ -786,7 +786,7 @@ namespace nadena.dev.ndmf.cs
 
             if (_parent != null)
             {
-                _parent._children[InstanceID] = this;
+                _parent._children[EntityId] = this;
                 if (fireNotifications) _parent._listeners.Fire(HierarchyEvent.ObjectDirty);
             }
         }
@@ -795,7 +795,7 @@ namespace nadena.dev.ndmf.cs
 
         internal ShadowGameObject(GameObject gameObject)
         {
-            InstanceID = gameObject.GetInstanceID();
+            EntityId = gameObject.GetEntityId();
             GameObject = gameObject;
             Scene = gameObject.scene;
             IsActive = gameObject.activeSelf;
@@ -803,18 +803,18 @@ namespace nadena.dev.ndmf.cs
             ComponentStructure = CurrentComponentStructure;
         }
 
-        internal int[] CurrentComponentStructure
+        internal EntityId[] CurrentComponentStructure
         {
             get
             {
-                if (GameObject == null) return Array.Empty<int>();
+                if (GameObject == null) return Array.Empty<EntityId>();
                 
                 var comps = GameObject.GetComponents<Component>();
-                var instanceIds = new int[comps.Length];
+                var instanceIds = new EntityId[comps.Length];
 
                 for (var i = 0; i < comps.Length; i++)
                 {
-                    instanceIds[i] = comps[i]?.GetInstanceID() ?? 0;
+                    instanceIds[i] = comps[i]?.GetEntityId() ?? EntityId.None;
                 }
 
                 return instanceIds;
