@@ -35,7 +35,7 @@ namespace nadena.dev.ndmf
 
         public static EntityId GetEntityId(this CreateGameObjectHierarchyEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -43,7 +43,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeChildrenOrderEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -51,7 +51,7 @@ namespace nadena.dev.ndmf
         }
         public static Unity.Collections.NativeArray<EntityId>.ReadOnly GetEntityIds(this UpdatePrefabInstancesEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityIds;
 #else
             return data.instanceIds.Reinterpret<EntityId>();
@@ -59,7 +59,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeAssetObjectPropertiesEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -67,7 +67,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this DestroyAssetObjectEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -75,7 +75,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this DestroyGameObjectHierarchyEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -83,7 +83,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeGameObjectOrComponentPropertiesEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -91,7 +91,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeGameObjectParentEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -99,7 +99,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeGameObjectStructureEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
@@ -107,7 +107,7 @@ namespace nadena.dev.ndmf
         }
         public static EntityId GetEntityId(this ChangeGameObjectStructureHierarchyEventArgs data)
         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
             return data.entityId;
 #else
             return new(data.instanceId);
