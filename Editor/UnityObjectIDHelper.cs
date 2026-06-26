@@ -7,7 +7,7 @@ namespace nadena.dev.ndmf
     public static class UnityObjectIDHelper
     {
 
-#if !UNITY_6000_4_OR_NEWER
+#if !UNITY_6000_2_OR_NEWER
         public static EntityId GetEntityId(this UnityEngine.Object unityObject)
         {
             return new(unityObject.GetInstanceID());
@@ -16,19 +16,12 @@ namespace nadena.dev.ndmf
 
         public static UnityEngine.Object EntityIdToObject(EntityId entityId)
         {
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
             return EditorUtility.EntityIdToObject(entityId);
+#elif UNITY_6000_2_OR_NEWER
+            return EditorUtility.InstanceIDToObject(entityId);
 #else
             return EditorUtility.InstanceIDToObject(entityId.InstanceID);
-#endif
-        }
-
-        public static EntityId ObjectReferenceEntityIdValue(this SerializedProperty unityObject)
-        {
-#if UNITY_6000_4_OR_NEWER
-            return unityObject.objectReferenceEntityIdValue;
-#else
-            return new(unityObject.objectReferenceInstanceIDValue);
 #endif
         }
 
@@ -37,6 +30,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -45,6 +40,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -61,6 +58,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -69,6 +68,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -77,6 +78,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -85,6 +88,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -93,6 +98,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -101,6 +108,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -109,6 +118,8 @@ namespace nadena.dev.ndmf
         {
 #if UNITY_6000_4_OR_NEWER
             return data.entityId;
+#elif UNITY_6000_2_OR_NEWER
+            return data.instanceId;
 #else
             return new(data.instanceId);
 #endif
@@ -116,7 +127,7 @@ namespace nadena.dev.ndmf
 
 
     }
-#if !UNITY_6000_4_OR_NEWER
+#if !UNITY_6000_2_OR_NEWER
     public struct EntityId : IEquatable<EntityId> , IComparable<EntityId>
     {
         public int InstanceID;

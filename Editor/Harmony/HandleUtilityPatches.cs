@@ -90,7 +90,7 @@ namespace nadena.dev.ndmf.preview
         {
             var t_HandleUtility = AccessTools.TypeByName("UnityEditor.HandleUtility");
             var m_orig = AccessTools.Method(t_HandleUtility,
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
             "FilterEntityIds"
 #else
             "FilterInstanceIDs"
@@ -127,7 +127,7 @@ namespace nadena.dev.ndmf.preview
         private static readonly ShadowArrayHelper shadow_filter = new(ty_PickingObject);
 
         private static readonly ConstructorInfo m_PickingObject_ctor =
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
             AccessTools.Constructor(ty_PickingObject, new[] { typeof(EntityId), typeof(int) });
 #else
             AccessTools.Constructor(ty_PickingObject, new[] { typeof(Object), typeof(int) });
@@ -135,7 +135,7 @@ namespace nadena.dev.ndmf.preview
 
         private static readonly MethodInfo m_PickingObject_Target =
             AccessTools.PropertyGetter(ty_PickingObject,
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
             "targetId"
 #else
             "target"
@@ -169,7 +169,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     return m_PickingObject_ctor.Invoke(new[]
                         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
                             go.GetEntityId()
 #else
                             proxy
@@ -195,7 +195,7 @@ namespace nadena.dev.ndmf.preview
             bool drawGizmos,
             ref int materialIndex,
             ref bool isEntity,
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
             ref ulong __result
 #else
             ref uint __result
@@ -208,13 +208,15 @@ namespace nadena.dev.ndmf.preview
             var go =
 #if UNITY_6000_4_OR_NEWER
             EditorUtility.EntityIdToObject(EntityId.FromULong(__result))
+#elif UNITY_6000_3_OR_NEWER
+            EditorUtility.EntityIdToObject((EntityId)(int)__result)
 #else
             EditorUtility.InstanceIDToObject((int)__result)
 #endif
              as GameObject;
             if (go == null) return;
 
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
             // ここで ProxyToOriginalObject をしてしまうと GetAllOverlapping のコードから`GetAllOverlapping failed, could not ignore game object ' ... ' when picking` が発生する。
             // これをしないほうが正常に動くため ... 何故なのかよくわからず謎。まぁ こんな強引なパッチはそんな程度でもいいでしょう ()
             // By Reina_Sakiria
@@ -255,7 +257,7 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
         [UsedImplicitly]
         private static bool Prefix_FilterInstanceIDs(
             ref IEnumerable<GameObject> gameObjects,
@@ -283,7 +285,7 @@ namespace nadena.dev.ndmf.preview
         }
 #endif
 
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
 
         [UsedImplicitly]
         private static void Postfix_FilterInstanceIDs(
@@ -319,7 +321,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         if (childEntityIdsHashSet == null) childEntityIdsHashSet = new(childInstanceIDs);
                         childEntityIdsHashSet.Add(
-#if UNITY_6000_4_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
                             proxy.GetEntityId()
 #else
                             proxy.GetInstanceID()
