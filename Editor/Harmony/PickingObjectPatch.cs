@@ -22,7 +22,7 @@ namespace nadena.dev.ndmf.preview
         private static ConstructorInfo ctor_l = AccessTools.Constructor(l_PickingObject);
 
         private static ConstructorInfo ctor_PickingObject =
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
             AccessTools.Constructor(t_PickingObject, new[] { typeof(EntityId), typeof(int) });
 #else
             AccessTools.Constructor(t_PickingObject, new[] { typeof(Object), typeof(int) });
@@ -68,7 +68,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         list.Add(ctor_PickingObject.Invoke(new[]
                         {
-#if UNITY_6000_6_OR_NEWER
+#if UNITY_6000_5_OR_NEWER
                             original.GetEntityId(),
 #else
                             original,

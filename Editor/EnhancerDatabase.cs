@@ -32,7 +32,7 @@ namespace nadena.dev.ndmf
         private static IImmutableDictionary<Type, Creator> FindAttributes()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, Creator>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AssemblyCollector.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypes())
                 {
