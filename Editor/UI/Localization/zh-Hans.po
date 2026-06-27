@@ -39,7 +39,7 @@ msgid "Errors:MipStreamingMissingOnAsset"
 msgstr "部分纹理未启用 Mip Streaming。"
 
 msgid "Errors:MipStreamingMissingOnAsset:description"
-msgstr "以下资源未启用 Mip Streaming 设置，但在 VRChat 中这些资源必须启用该设置。你可以在受影响资源上手动启用"Mip Streaming"，或点击"自动修复"来进行修复。"
+msgstr "以下资源未启用 Mip Streaming 设置，但在 VRChat 中这些资源必须启用该设置。你可以在受影响资源上手动启用“Mip Streaming”，或点击“自动修复”来进行修复。"
 
 msgid "Errors:MipStreamingMissingOnTempAsset"
 msgstr "由其他工具生成的纹理未启用 Mip Streaming。"
