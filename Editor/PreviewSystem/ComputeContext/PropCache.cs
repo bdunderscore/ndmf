@@ -224,6 +224,11 @@ namespace nadena.dev.ndmf.preview
                 _cache[key] = entry;
                 using (ev.Scope())
                 {
+                    try
+                    {
+                        entry.Value = _operator(entry.GenerateContext, key);
+                        entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
+                    }
                     catch
                     {
                         entry.GenerateContext.Invalidate();
