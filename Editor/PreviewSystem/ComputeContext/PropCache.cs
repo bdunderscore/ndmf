@@ -174,6 +174,7 @@ namespace nadena.dev.ndmf.preview
                 catch (Exception e)
                 {
                     Debug.LogException(e);
+                    newGenContext.Invalidate();
                     // Fall through to remove the entry and invalidate downstream
                 }
             }
@@ -223,13 +224,10 @@ namespace nadena.dev.ndmf.preview
                 _cache[key] = entry;
                 using (ev.Scope())
                 {
-                    try
-                    {
-                        entry.Value = _operator(entry.GenerateContext, key);
-                        entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
-                    }
                     catch
                     {
+                        entry.GenerateContext.Invalidate();
+                        entry.ObserverContext.Invalidate();
                         _cache.Remove(key);
                         throw;
                     }
