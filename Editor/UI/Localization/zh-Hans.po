@@ -15,7 +15,7 @@ msgid "ErrorReport:TestBuild"
 msgstr "进行测试构建"
 
 msgid "ErrorReport:NoErrors"
-msgstr "没有可报告的信息。"
+msgstr "没有信息可供提供！"
 
 msgid "ErrorReport:NoAvatarSelected"
 msgstr "没有选择 Avatar。"
