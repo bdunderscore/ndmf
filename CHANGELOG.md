@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#795] Fix compatibility issues with Unity 6000.x
 
 ### Changed
+- [#810] Update Simplified Chinese localization
 
 ### Removed
 
