@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#795] Fix compatibility issues with Unity 6000.x
 
+- [#809] `PropCache` could become permanently stale if its compute or refresh operators throw.
+
 ### Changed
 
 ### Removed

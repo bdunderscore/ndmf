@@ -1,10 +1,11 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.preview.trace;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.preview
@@ -135,22 +136,46 @@ namespace nadena.dev.ndmf.preview
 
         private static void InvalidateEntry(CacheEntry entry)
         {
+            // If the key is a destroyed Unity object, skip re-evaluation entirely — the cached value
+            // is meaningless and attempting to recompute would throw MissingReferenceException.
+            if (entry.Key is Object unityKey && unityKey == null)
+            {
+                TraceBuffer.RecordTraceEvent(
+                    "PropCache.InvalidateEntry",
+                    ev => $"[PropCache/{ev.Arg0}] Key object destroyed, invalidating",
+                    entry.DebugName
+                );
+
+                entry.Owner._cache.Remove(entry.Key);
+                entry.ObserverContext.Invalidate();
+                return;
+            }
+
             var newGenContext = new ComputeContext("PropCache/" + entry.DebugName + " key " + FormatKey(entry.Key) +
                                                    " gen=" + _generation++);
             if (entry.Owner._equalityComparer != null && !entry.ObserverContext.IsInvalidated)
             {
-                var newValue = entry.Owner._operator(newGenContext, entry.Key);
-                if (entry.Owner._equalityComparer(entry.Value!, newValue))
+                try
                 {
-                    TraceBuffer.RecordTraceEvent(
-                        "PropCache.InvalidateEntry",
-                        ev => $"[PropCache/{ev.Arg0}] Value did not change, retaining result (new gen={ev.Arg1})",
-                        entry.DebugName, entry.Generation
-                    );
+                    var newValue = entry.Owner._operator(newGenContext, entry.Key);
+                    if (entry.Owner._equalityComparer(entry.Value!, newValue))
+                    {
+                        TraceBuffer.RecordTraceEvent(
+                            "PropCache.InvalidateEntry",
+                            ev => $"[PropCache/{ev.Arg0}] Value did not change, retaining result (new gen={ev.Arg1})",
+                            entry.DebugName, entry.Generation
+                        );
 
-                    entry.GenerateContext = newGenContext;
-                    entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
-                    return;
+                        entry.GenerateContext = newGenContext;
+                        entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    newGenContext.Invalidate();
+                    // Fall through to remove the entry and invalidate downstream
                 }
             }
 
@@ -199,8 +224,18 @@ namespace nadena.dev.ndmf.preview
                 _cache[key] = entry;
                 using (ev.Scope())
                 {
-                    entry.Value = _operator(entry.GenerateContext, key);
-                    entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
+                    try
+                    {
+                        entry.Value = _operator(entry.GenerateContext, key);
+                        entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
+                    }
+                    catch
+                    {
+                        entry.GenerateContext.Invalidate();
+                        entry.ObserverContext.Invalidate();
+                        _cache.Remove(key);
+                        throw;
+                    }
                 }
             }
             else

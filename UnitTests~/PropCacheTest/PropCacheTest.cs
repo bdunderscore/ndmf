@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf.preview;
 using NUnit.Framework;
@@ -209,6 +209,40 @@ namespace UnitTests.PropCacheTest
             var ctxB2 = new ComputeContext("ctxB2");
             var valB2 = cacheB.Get(ctxB2, 1);
             Assert.AreNotEqual(valB1, valB2);
+        }
+
+        [Test]
+        public void TestOperatorException_DoesNotCreateZombieEntry()
+        {
+            // Simulates the bug where a throwing operator creates a cache entry with no invalidation
+            // callback, causing stale results to be returned forever.
+            int callCount = 0;
+
+            PropCache<int, int> cache = new PropCache<int, int>("throwTest", (ctx, k) =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    throw new InvalidOperationException("simulated transient failure");
+                }
+
+                return k * 10 + callCount;
+            });
+
+            ComputeContext ctx = new ComputeContext("c1");
+
+            // First call throws -- the entry should be cleaned up from _cache
+            Assert.Throws<InvalidOperationException>(() => cache.Get(ctx, 1));
+
+            // The observer context should NOT have been wired to the caller (we never completed Get)
+            // A subsequent Get should be a cache miss and recompute.
+            ComputeContext ctx2 = new ComputeContext("c2");
+            int val = cache.Get(ctx2, 1);
+
+            // callCount should be 2 -- the second call re-invoked the operator
+            Assert.AreEqual(2, callCount);
+            // Value from the second invocation: 1 * 10 + 2 = 12
+            Assert.AreEqual(12, val);
         }
     }
 }
