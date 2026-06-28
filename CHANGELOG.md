@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#795] Fix compatibility issues with Unity 6000.x
-
 - [#809] `PropCache` could become permanently stale if its compute or refresh operators throw.
+- [#811] Add explicit error when the avatar root is set to `EditorOnly`
 
 ### Changed
 - [#810] Update Simplified Chinese localization

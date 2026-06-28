@@ -1,4 +1,4 @@
-﻿#region
+#region
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using nadena.dev.ndmf.localization;
 using nadena.dev.ndmf.platform;
 using nadena.dev.ndmf.reporting;
 using nadena.dev.ndmf.runtime.components;
@@ -124,10 +125,23 @@ namespace nadena.dev.ndmf
             {
                 obj.AddComponent<NDMFAvatarRoot>();
             }
-            
+
             BuildEvent.Dispatch(new BuildEvent.BuildStarted(obj));
             _registry = new ObjectRegistry(obj.transform);
             _report = ErrorReport.Create(obj, isClone);
+            if (obj.CompareTag("EditorOnly"))
+            {
+                var error = new InlineError(
+                    NDMFLocales.L, ErrorSeverity.Error,
+                    "Errors:EditorOnlyAvatarRoot"
+                );
+                error.AddReference(ObjectRegistry.GetReference(obj));
+                _report.AddError(error);
+                ErrorReportWindow.ShowErrorReportWindow();
+
+                throw new Exception(
+                    "Can't process an avatar whose root object is marked as EditorOnly");
+            }
 
             Debug.Log("Starting processing for avatar: " + obj.name);
             sw.Start();
