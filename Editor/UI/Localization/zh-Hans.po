@@ -21,16 +21,49 @@ msgid "ErrorReport:NoAvatarSelected"
 msgstr "没有选择 Avatar。"
 
 msgid "ErrorReport:Unbuilt"
-msgstr "此 Avatar 尚未构建。 "
+msgstr "此 Avatar 尚未构建。"
+
+msgid "ErrorReport:AutoFix"
+msgstr "自动修复"
+
+msgid "ErrorReport:Fixed"
+msgstr "已修复！"
 
 msgid "Errors:InternalError"
 msgstr "发生内部错误。"
 
 msgid "Errors:InternalError:description"
-msgstr "一个插件抛出了类型为: {0} 的错误. 请将此信息报告给工具作者。"
+msgstr "某个插件抛出了 {0} 类型的异常。请将此问题报告给插件作者。"
+
+msgid "Errors:MipStreamingMissingOnAsset"
+msgstr "部分纹理未启用 Mip Streaming。"
+
+msgid "Errors:MipStreamingMissingOnAsset:description"
+msgstr "以下资源未启用 Mip Streaming 设置，但在 VRChat 中这些资源必须启用该设置。你可以在受影响资源上手动启用“Mip Streaming”，或点击“自动修复”来进行修复。"
+
+msgid "Errors:MipStreamingMissingOnTempAsset"
+msgstr "由其他工具生成的纹理未启用 Mip Streaming。"
+
+msgid "Errors:MipStreamingMissingOnTempAsset:description"
+msgstr "以下纹理未启用 Mip Streaming 设置，但在 VRChat 中这些纹理必须启用该设置。请将此问题报告给生成这些纹理的工具作者。"
 
 msgid "InternalError:StackTraceFoldout"
 msgstr "显示 Stack Trace (请将此信息与错误报告一同提交！)"
 
 msgid "AvatarProcessor:ProcessingFailed"
 msgstr "处理 Avatar 时发生了错误。详情请查看 NDMF 控制台。"
+
+msgid "PreviewEnable:Title"
+msgstr "禁用 / 启用插件预览"
+
+msgid "ExperimentalFeatures:Title"
+msgstr "NDMF 实验性功能"
+
+msgid "ExperimentalFeatures:Warning"
+msgstr "实验性功能选项可能会在 NDMF 的未来版本中随时被移除或修改。这意味着使用它们的资源或 Avatar 可能会在未来出现问题——请自行承担使用这些功能的风险！"
+
+msgid "ExperimentalFeatures:Enable"
+msgstr "启用实验性功能"
+
+msgid "ExperimentalFeatures:Apply"
+msgstr "应用更改"
