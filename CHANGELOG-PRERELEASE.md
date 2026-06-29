@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.0] - [2026-06-29]
+
+### Added
 - [#804] Added `VirtualAnimatorController.SetParameter`
 
 ### Fixed
@@ -17,12 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#810] Update Simplified Chinese localization
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.13.1] - [2026-05-14]
 
