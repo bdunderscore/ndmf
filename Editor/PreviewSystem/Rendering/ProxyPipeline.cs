@@ -45,8 +45,57 @@ namespace nadena.dev.ndmf.preview
 
         #endregion
 
-        public List<Task<NodeController>> NodeTasks = new();
+        public readonly List<NodeDescriptor> Nodes = new();
     } 
+
+    class NodeDescriptor
+    {
+        public readonly IRenderFilter Filter;
+        public readonly RenderGroup Group;
+        public readonly Task<NodeController> Task;
+        public readonly ImmutableList<NodeDescriptor?> Inputs;
+
+        public NodeDescriptor(
+            IRenderFilter filter,
+            RenderGroup group,
+            Task<NodeController> task,
+            ImmutableList<NodeDescriptor?> inputs
+        )
+        {
+            Filter = filter;
+            Group = group;
+            Task = task;
+            Inputs = inputs;
+        }
+
+        public bool HasLostInputNodes(ImmutableList<NodeDescriptor?> currentInputs)
+        {
+            if (Inputs.Count != currentInputs.Count)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < currentInputs.Count; i++)
+            {
+                if (!SameInputNode(currentInputs[i], Inputs[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool SameInputNode(NodeDescriptor? current, NodeDescriptor? prior)
+        {
+            if (current == null || prior == null)
+            {
+                return current == null && prior == null;
+            }
+
+            return ReferenceEquals(current.Filter, prior.Filter) && Equals(current.Group, prior.Group);
+        }
+    }
 
     /// <summary>
     /// Represents a single, instantiated pipeline for building and maintaining all proxy objects.
@@ -164,7 +213,13 @@ namespace nadena.dev.ndmf.preview
             UnityEngine.Debug.Log($"[ProxyPipeline] Active stages for pipeline {_generation}:\n{sb}");
 #endif
 
-            Dictionary<Renderer, Task<NodeController>> nodeTasks = new();
+            Dictionary<Renderer, NodeDescriptor> nodeDescriptors = new();
+
+            var priorStagesByFilter = priorPipeline?._stages.ToDictionary(
+                s => s.Filter,
+                ReferenceEqualityComparer<IRenderFilter>.Instance
+            );
+
             int total_nodes = 0;
             int reused = 0;
             int refresh_failed = 0;
@@ -180,11 +235,14 @@ namespace nadena.dev.ndmf.preview
                 
                 _stages.Add(stage);
 
-                var prior = priorPipeline?._stages.ElementAtOrDefault(i);
-                if (prior?.Filter != stage.Filter)
-                {
-                    prior = null;
-                }
+                var priorStage = priorStagesByFilter?.GetValueOrDefault(stage.Filter);
+                var priorNodesByGroup = priorStage?.Nodes
+                    .Where(priorNode => priorNode.Task.IsCompletedSuccessfully)
+                    .Aggregate(new Dictionary<RenderGroup, NodeDescriptor>(), (dict, priorNode) =>
+                    {
+                        dict.TryAdd(priorNode.Group, priorNode);
+                        return dict;
+                    });
 
                 int groupIndex = -1;
                 foreach (var group_raw in stage.Originals.OrderBy(g => g.GetHashCode()))
@@ -206,9 +264,9 @@ namespace nadena.dev.ndmf.preview
                             return null;
                         }
 
-                        if (nodeTasks.TryGetValue(r, out var task))
+                        if (nodeDescriptors.TryGetValue(r, out var descriptor))
                         {
-                            return task.ContinueWith(task1 =>
+                            return descriptor.Task.ContinueWith(task1 =>
                                 (r, task1.Result.GetProxyFor(r), task1.Result.ObjectRegistry), scheduler);
                         }
                         else
@@ -236,13 +294,12 @@ namespace nadena.dev.ndmf.preview
                         continue;
                     }
 
-                    var priorNode = prior?.NodeTasks.ElementAtOrDefault(groupIndex);
-                    var sameGroup = Equals(priorNode?.Result.Group, group);
-                    if (priorNode?.IsCompletedSuccessfully != true || !sameGroup)
-                    {
-                        //System.Diagnostics.UnityEngine.Debug.Log("Failed to reuse node: priorNode != null: " + (priorNode != null) + ", sameGroup: " + sameGroup);
-                        priorNode = null;
-                    }
+                    var inputNodes = group.Renderers
+                        .Where(r => r != null)
+                        .Select<Renderer, NodeDescriptor?>(r => nodeDescriptors.GetValueOrDefault(r))
+                        .ToImmutableList();
+                    NodeDescriptor? priorNode = null;
+                    priorNodesByGroup?.TryGetValue(group, out priorNode);
 
                     var node = Task.WhenAll(resolved).ContinueWith(async items =>
                         {
@@ -268,7 +325,14 @@ namespace nadena.dev.ndmf.preview
                                 RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
                                     .Aggregate((a, b) => a | b);
 
-                                node = await priorNode.Result.Refresh(proxies, changeFlags, trace);
+                                // Changes within upstream nodes are already carried by proxy ChangeFlags.
+                                // Escalate only when a direct input node from the prior pipeline is no longer present.
+                                if (priorNode.HasLostInputNodes(inputNodes))
+                                {
+                                    changeFlags |= RenderAspects.Everything;
+                                }
+
+                                node = await priorNode.Task.Result.Refresh(proxies, changeFlags, trace);
                                 if (node != null)
                                 {
                                     reused++;
@@ -296,18 +360,19 @@ namespace nadena.dev.ndmf.preview
                         }, scheduler)
                         .Unwrap();
 
-                    stage.NodeTasks.Add(node);
+                    var nodeDescriptor = new NodeDescriptor(stage.Filter, group, node, inputNodes);
+                    stage.Nodes.Add(nodeDescriptor);
 
                     foreach (var renderer in group.Renderers)
                     {
-                        nodeTasks[renderer] = node;
+                        nodeDescriptors[renderer] = nodeDescriptor;
                     }
                 }
             }
             
             Profiler.EndSample();
 
-            await Task.WhenAll(_stages.SelectMany(s => s.NodeTasks))
+            await Task.WhenAll(_stages.SelectMany(s => s.Nodes.Select(n => n.Task)))
                 .ContinueWith(_ =>
                 {
                     TraceBuffer.RecordTraceEvent(
@@ -344,7 +409,7 @@ namespace nadena.dev.ndmf.preview
 
             foreach (var stage in _stages)
             {
-                foreach (var node in stage.NodeTasks)
+                foreach (var node in stage.Nodes.Select(n => n.Task))
                 {
                     var resolvedNode = await node;
                     _nodes.Add(resolvedNode);
@@ -408,7 +473,7 @@ namespace nadena.dev.ndmf.preview
                 {
                     foreach (var stage in _stages)
                     {
-                        foreach (var node in stage.NodeTasks)
+                        foreach (var node in stage.Nodes.Select(n => n.Task))
                         {
                             if (node.IsCompletedSuccessfully)
                             {
