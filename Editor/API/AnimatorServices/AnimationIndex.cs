@@ -307,6 +307,7 @@ namespace nadena.dev.ndmf.animator
             foreach (var clip in recacheNeeded)
             {
                 CacheClip(clip);
+                clip.RegisterCacheObserver(_invalidateAction);
             }
         }
 
@@ -337,6 +338,7 @@ namespace nadena.dev.ndmf.animator
             foreach (var clip in toRecache)
             {
                 CacheClip(clip);
+                clip.RegisterCacheObserver(_invalidateAction);
             }
         }
 
