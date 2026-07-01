@@ -3,16 +3,25 @@
     "rootNamespace": "",
     "references": [
         "nadena.dev.ndmf",
-      "nadena.dev.ndmf.runtime",
-      "VRC.SDKBase.Editor"
+        "nadena.dev.ndmf.runtime",
+        "VRC.SDKBase.Editor"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "0Harmony.dll",
+        "VRCSDK3A.dll",
+        "VRCSDKBase.dll",
+        "VRCSDKBase-Editor.dll",
+        "VRC.Dynamics.dll",
+        "VRC.SDK3.Dynamics.PhysBone.dll",
+        "VRC.SDK3.Dynamics.Contact.dll",
+        "System.Collections.Immutable.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [
         "VRCHAT_AVATARS_PRESENT"

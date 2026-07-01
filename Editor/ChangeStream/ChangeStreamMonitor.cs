@@ -95,7 +95,7 @@ namespace nadena.dev.ndmf.cs
                     using (OpenTrace(stream, i))
                     using (new ProfilerScope("CreateGameObjectHierarchy"))
                     {
-                        ObjectWatcher.Instance.Hierarchy.FireGameObjectCreate(data.instanceId);
+                        ObjectWatcher.Instance.Hierarchy.FireGameObjectCreate(data.GetEntityId());
                     }
 
                     break;
@@ -223,14 +223,14 @@ namespace nadena.dev.ndmf.cs
 
         private static void OnChangeChildrenOrder(ChangeChildrenOrderEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.FireReorderNotification(instanceId);
         }
 
         private static void OnUpdatePrefabInstances(UpdatePrefabInstancesEventArgs data)
         {
-            foreach (var iid in data.instanceIds)
+            foreach (var iid in data.GetEntityIds())
             {
                 ObjectWatcher.Instance.Hierarchy.InvalidateTree(iid);
             }
@@ -238,51 +238,51 @@ namespace nadena.dev.ndmf.cs
 
         private static void OnChangeAssetObjectProperties(ChangeAssetObjectPropertiesEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.FireObjectChangeNotification(instanceId);
         }
 
         private static void OnDestroyAssetObject(DestroyAssetObjectEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.InvalidateTree(instanceId);
         }
 
         private static void OnDestroyGameObjectHierarchy(DestroyGameObjectHierarchyEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.InvalidateTree(instanceId);
         }
 
         private static void OnChangeGameObjectOrComponentProperties(ChangeGameObjectOrComponentPropertiesEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.FireObjectChangeNotification(instanceId);
         }
 
         private static void OnChangeGameObjectParent(ChangeGameObjectParentEventArgs data)
         {
-            var instanceId = data.instanceId;
-            var priorParentId = data.previousParentInstanceId;
-            var newParentId = data.newParentInstanceId;
+            var instanceId = data.GetEntityId();
+            // var priorParentId = data.previousParentInstanceId;
+            // var newParentId = data.newParentInstanceId;
 
             ObjectWatcher.Instance.Hierarchy.FireReparentNotification(instanceId);
         }
 
         private static void OnChangeGameObjectStructure(ChangeGameObjectStructureEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.MaybeFireStructureChangeEvent(instanceId);
         }
 
         private static void OnChangeGameObjectStructureHierarchy(ChangeGameObjectStructureHierarchyEventArgs data)
         {
-            var instanceId = data.instanceId;
+            var instanceId = data.GetEntityId();
 
             ObjectWatcher.Instance.Hierarchy.InvalidateTree(instanceId);
         }

@@ -12,7 +12,7 @@ namespace nadena.dev.ndmf.preview
     internal class TargetSet
     {
         private static readonly Comparer<RenderGroup> GroupComparer = Comparer<RenderGroup>.Create(
-            (a, b) => a.Renderers.First().GetInstanceID().CompareTo(b.Renderers.First().GetInstanceID())
+            (a, b) => a.Renderers.First().GetEntityId().CompareTo(b.Renderers.First().GetEntityId())
         );
 
         private readonly ImmutableList<IRenderFilter> _filters;

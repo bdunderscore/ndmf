@@ -9,13 +9,13 @@ namespace nadena.dev.ndmf.preview
 {
     internal class ProxyObjectCache : IDisposable
     {
-        private static HashSet<int> _proxyObjectInstanceIds = new();
+        private static HashSet<EntityId> _proxyObjectInstanceIds = new();
         
         public static bool IsProxyObject(GameObject obj)
         {
             if (obj == null) return false;
 
-            return _proxyObjectInstanceIds.Contains(obj.GetInstanceID());
+            return _proxyObjectInstanceIds.Contains(obj.GetEntityId());
         }
 
         public interface IProxyHandle : IDisposable
@@ -134,7 +134,7 @@ namespace nadena.dev.ndmf.preview
             {
                 var newProxy = create();
                 newProxy.gameObject.AddComponent<ProxyTagComponent>();
-                _proxyObjectInstanceIds.Add(newProxy.gameObject.GetInstanceID());
+                _proxyObjectInstanceIds.Add(newProxy.gameObject.GetEntityId());
 
                 return newProxy;
             };
@@ -166,7 +166,7 @@ namespace nadena.dev.ndmf.preview
             {
                 tag.Armed = false;
             }
-            _proxyObjectInstanceIds.Remove(gameObject.GetInstanceID());
+            _proxyObjectInstanceIds.Remove(gameObject.GetEntityId());
             Object.DestroyImmediate(gameObject);
         }
 
