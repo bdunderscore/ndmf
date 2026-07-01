@@ -352,6 +352,76 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+        public void TestEditClipsByBindingChainedCalls()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(context, "test");
+            var layer = controller.AddLayer(LayerPriority.Default, "test");
+
+            var clip1 = VirtualClip.Create("c1");
+            layer.StateMachine.AddState("s1", motion: clip1);
+
+            var index = new AnimationIndex(new[] { controller });
+
+            var binding1 = EditorCurveBinding.FloatCurve("Cube1", typeof(Transform), "m_LocalPosition.x");
+            var binding2 = EditorCurveBinding.FloatCurve("Cube2", typeof(Transform), "m_LocalPosition.x");
+            var binding3 = EditorCurveBinding.FloatCurve("Cube3", typeof(Transform), "m_LocalPosition.x");
+            var binding4 = EditorCurveBinding.FloatCurve("Cube4", typeof(Transform), "m_LocalPosition.x");
+
+            clip1.SetFloatCurve(binding1, AnimationCurve.Constant(0, 1, 1));
+
+            // Call 1: binding1 found, callback adds binding2
+            index.EditClipsByBinding(new[] { binding1 }, clip =>
+                clip.SetFloatCurve(binding2, AnimationCurve.Constant(0, 1, 1)));
+
+            // Call 2: binding2 should now be in the index; callback adds binding3
+            index.EditClipsByBinding(new[] { binding2 }, clip =>
+                clip.SetFloatCurve(binding3, AnimationCurve.Constant(0, 1, 1)));
+
+            // Call 3: binding3 (added in call 2) should be indexed; callback adds binding4
+            List<VirtualClip> visited = new();
+            index.EditClipsByBinding(new[] { binding3 }, clip =>
+            {
+                visited.Add(clip);
+                clip.SetFloatCurve(binding4, AnimationCurve.Constant(0, 1, 1));
+            });
+
+            Assert.AreEqual(1, visited.Count);
+            Assert.AreEqual(clip1, visited[0]);
+            Assert.AreEqual(1, index.GetClipsForBinding(binding4).Count());
+        }
+
+        [Test]
+        public void TestRewritePathsChainedCalls()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(context, "test");
+            var layer = controller.AddLayer(LayerPriority.Default, "test");
+
+            var clip1 = VirtualClip.Create("c1");
+            layer.StateMachine.AddState("s1", motion: clip1);
+
+            var index = new AnimationIndex(new[] { controller });
+
+            var binding1 = EditorCurveBinding.FloatCurve("path1", typeof(Transform), "prop1");
+            clip1.SetFloatCurve(binding1, AnimationCurve.Constant(0, 1, 1));
+
+            // First rewrite: path1 → path2
+            index.RewritePaths(new Dictionary<string, string> { { "path1", "path2" } });
+
+            // Second rewrite: path2 → path3 (path2 was introduced by the first rewrite)
+            index.RewritePaths(new Dictionary<string, string> { { "path2", "path3" } });
+
+            var paths = clip1.GetFloatCurveBindings().Select(b => b.path).ToList();
+            Assert.Contains("path3", paths);
+            Assert.IsFalse(paths.Contains("path1"));
+            Assert.IsFalse(paths.Contains("path2"));
+
+            Assert.IsEmpty(index.GetClipsForObjectPath("path2").ToList());
+            Assert.AreEqual(1, index.GetClipsForObjectPath("path3").Count());
+        }
+
+        [Test]
         public void RewriteObjectCurvesWithBindingTest()
         {
             var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
