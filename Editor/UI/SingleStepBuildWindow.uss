@@ -1,0 +1,107 @@
+.single-step-host > TemplateContainer,
+.window-root {
+    flex-grow: 1;
+}
+
+.window-root {
+    padding: 8px;
+}
+
+.target-row,
+.active-controls {
+    flex-direction: row;
+}
+
+.target-row,
+.debug-clone {
+    margin-bottom: 4px;
+}
+
+.target-avatar {
+    flex-grow: 1;
+}
+
+.start-debugging {
+    margin-left: 4px;
+}
+
+.status {
+    white-space: normal;
+    margin-top: 3px;
+    margin-bottom: 7px;
+}
+
+.status-error {
+    color: rgb(255, 115, 115);
+}
+
+.status-warning {
+    color: rgb(255, 184, 77);
+}
+
+.resume-debug-session {
+    height: 28px;
+}
+
+.active-controls {
+    margin-bottom: 6px;
+}
+
+.execution-button {
+    flex-grow: 1;
+}
+
+.step-list {
+    flex-grow: 1;
+}
+
+.phase-label {
+    -unity-font-style: bold;
+    margin-top: 6px;
+    margin-bottom: 2px;
+}
+
+.step-row {
+    height: 21px;
+    padding-left: 4px;
+    -unity-text-align: middle-left;
+}
+
+.plugin-foldout > .unity-foldout__content,
+.step-row-standalone {
+    margin-left: 15px;
+}
+
+.plugin-foldout > .unity-foldout__content {
+    margin-left: 11px;
+    border-left-width: 4px;
+    border-left-color: rgba(180, 180, 180, 0.35);
+}
+
+.step-row-current {
+    background-color: rgba(51, 115, 191, 0.28);
+    border-left-width: 3px;
+    border-left-color: rgb(89, 160, 255);
+    padding-left: 1px;
+}
+
+.step-row-executed {
+    background-color: rgba(51, 166, 77, 0.12);
+}
+
+.step-row-skipped {
+    opacity: 0.55;
+}
+
+.plugin-foldout-executed > .unity-foldout__toggle {
+    background-color: rgba(51, 166, 77, 0.12);
+}
+
+.step-row:hover,
+.plugin-foldout > .unity-foldout__toggle:hover {
+    background-color: rgba(128, 170, 230, 0.24);
+}
+
+.hidden {
+    display: none;
+}

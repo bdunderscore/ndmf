@@ -14,6 +14,8 @@ using UnityEngine;
 namespace nadena.dev.ndmf.preview
 {
     public delegate ImmutableHashSet<Renderer> HiddenRenderersDelegate(ComputeContext ctx);
+
+    internal delegate bool ExcludeRendererDelegate(Renderer renderer);
     
     /// <summary>
     /// The PreviewSession class allows you to override preview behavior for a particular camera.
@@ -81,6 +83,7 @@ namespace nadena.dev.ndmf.preview
         private readonly string _name;
 
         private HiddenRenderersDelegate? _hiddenRenderers;
+        private ExcludeRendererDelegate? _excludeRenderer;
 
         /// <summary>
         /// This delegate is invoked to obtain a list of renderers to hide in cameras bound to this session.
@@ -91,6 +94,17 @@ namespace nadena.dev.ndmf.preview
             set
             {
                 _hiddenRenderers = value;
+                RebuildSequence();
+            }
+        }
+
+        internal ExcludeRendererDelegate? ExcludeRenderer
+        {
+            get => _excludeRenderer;
+            set
+            {
+                if (_excludeRenderer == value) return;
+                _excludeRenderer = value;
                 RebuildSequence();
             }
         }
@@ -187,6 +201,7 @@ namespace nadena.dev.ndmf.preview
 
             _proxySession.Filters = filters;
             _proxySession.HideRenderers = HiddenRenderers;
+            _proxySession.ExcludeRenderer = ExcludeRenderer;
         }
 
         /// <summary>

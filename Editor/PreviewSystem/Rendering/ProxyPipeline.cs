@@ -72,6 +72,7 @@ namespace nadena.dev.ndmf.preview
             ImmutableDictionary<GameObject, GameObject>.Empty;
 
         private readonly long _generation;
+        private readonly ExcludeRendererDelegate? _excludeRenderer;
         
         // ReSharper disable once NotAccessedField.Local
         // needed to prevent GC of the ComputeContext
@@ -97,6 +98,7 @@ namespace nadena.dev.ndmf.preview
             ProxyObjectCache proxyCache,
             IEnumerable<IRenderFilter> filters,
             HiddenRenderersDelegate? hideRenderers,
+            ExcludeRendererDelegate? excludeRenderer,
             ProxyPipeline? priorPipeline = null
         )
         {
@@ -105,6 +107,7 @@ namespace nadena.dev.ndmf.preview
             _ctx = context; // prevent GC
 
             _hiddenRenderers = hideRenderers?.Invoke(context) ?? ImmutableHashSet<Renderer>.Empty;
+            _excludeRenderer = excludeRenderer;
             
             var buildEvent = TraceBuffer.RecordTraceEvent(
                 "ProxyPipeline.Build",
@@ -151,7 +154,8 @@ namespace nadena.dev.ndmf.preview
 
             var filterList = filters.ToImmutableList();
             var priorTargetSet = priorPipeline?._targetSet;
-            _targetSet = priorTargetSet?.Refresh(filterList, _hiddenRenderers) ?? new TargetSet(filterList, _hiddenRenderers, priorTargetSet);
+            _targetSet = priorTargetSet?.Refresh(filterList, _hiddenRenderers, _excludeRenderer)
+                         ?? new TargetSet(filterList, _hiddenRenderers, _excludeRenderer, priorTargetSet);
 
             var activeStages = _targetSet.ResolveActiveStages(_ctx);
 

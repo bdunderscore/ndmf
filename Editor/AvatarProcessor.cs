@@ -52,6 +52,8 @@ namespace nadena.dev.ndmf
     internal class AvatarBuildStateTracker : MonoBehaviour
     {
         internal BuildContext buildContext;
+
+        [SerializeField] [HideInInspector] internal bool singleStepDebugClone;
     }
 
     /// <summary>

@@ -54,6 +54,14 @@ namespace UnitTests
             Assert.IsTrue(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(testComponent)));
             Assert.IsTrue(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(root)));
             Assert.IsTrue(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(child)));
+
+            var lateAsset = ScriptableObject.CreateInstance<TestScriptable>();
+            testScriptable3.ref1 = lateAsset;
+            EditorUtility.SetDirty(testScriptable3);
+
+            bc.Serialize();
+
+            Assert.IsTrue(AssetDatabase.GetAssetPath(lateAsset).StartsWith(avatarRootPath));
         }
     }
 }

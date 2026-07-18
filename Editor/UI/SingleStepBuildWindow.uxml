@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+        xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="window-root" class="window-root">
+        <engine:VisualElement name="target-row" class="target-row">
+            <editor:ObjectField name="target-avatar" label="Target avatar" class="target-avatar"/>
+            <engine:Button name="start-debugging" text="Start debugging" class="start-debugging"/>
+        </engine:VisualElement>
+
+        <editor:ObjectField name="debug-clone" label="Debug clone" class="debug-clone" enabled="false"/>
+        <engine:Label name="status" class="status hidden"/>
+
+        <engine:VisualElement name="inactive-controls" class="inactive-controls">
+            <engine:Button name="resume-debug-session" text="Resume debug session" class="resume-debug-session hidden"/>
+        </engine:VisualElement>
+
+        <engine:VisualElement name="active-controls" class="active-controls hidden">
+            <engine:Button name="step-back" text="Step Back" class="execution-button"/>
+            <engine:Button name="step-forward" text="Step Forward" class="execution-button"/>
+            <engine:Button name="stop-and-keep" text="Stop and Keep Clone" class="execution-button"/>
+        </engine:VisualElement>
+
+        <engine:ScrollView name="step-list" class="step-list hidden"/>
+    </engine:VisualElement>
+</engine:UXML>

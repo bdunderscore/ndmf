@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#818] Added single-step debugger functionality
 
 ### Fixed
 - [#813] `AnimationIndex.EditClipsByBinding` bindings added in a callback were not reflected in subsequent calls.
