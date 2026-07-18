@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,6 +16,7 @@ namespace nadena.dev.ndmf.preview
 
         private readonly ImmutableList<IRenderFilter> _filters;
         private readonly ImmutableHashSet<Renderer> _hideRenderers;
+        private readonly ExcludeRendererDelegate _excludeRenderer;
         private readonly ComputeContext _targetSetContext = new ComputeContext("Target Set");
         private readonly PropCache<IRenderFilter, CachedGroups> _groupsByFilterCache;
         private ImmutableList<Stage> _stages;
@@ -41,11 +41,13 @@ namespace nadena.dev.ndmf.preview
         public TargetSet(
             ImmutableList<IRenderFilter> filters,
             ImmutableHashSet<Renderer> hideRenderers,
+            ExcludeRendererDelegate excludeRenderer,
             TargetSet prior = null
         )
         {
             _filters = filters;
             _hideRenderers = hideRenderers;
+            _excludeRenderer = excludeRenderer;
             _groupsByFilterCache = prior?._groupsByFilterCache ?? new PropCache<IRenderFilter, CachedGroups>(
                 "TargetSet.GetTargetGroups",
                 ComputeGroupsForFilter,
@@ -83,15 +85,22 @@ namespace nadena.dev.ndmf.preview
                 Profiler.EndSample();
             }
         }
-        
-        public TargetSet Refresh(ImmutableList<IRenderFilter> filters, ImmutableHashSet<Renderer> hideRenderers)
+
+        public TargetSet Refresh(
+            ImmutableList<IRenderFilter> filters,
+            ImmutableHashSet<Renderer> hideRenderers,
+            ExcludeRendererDelegate excludeRenderer
+        )
         {
-            if (!_targetSetContext.IsInvalidated && _filters.SequenceEqual(filters) && hideRenderers.SetEquals(_hideRenderers))
+            if (!_targetSetContext.IsInvalidated
+                && _filters.SequenceEqual(filters)
+                && hideRenderers.SetEquals(_hideRenderers)
+                && excludeRenderer == _excludeRenderer)
             {
                 return this;
             }
-            
-            return new TargetSet(filters, hideRenderers, this);
+
+            return new TargetSet(filters, hideRenderers, excludeRenderer, this);
         }
 
         private static CachedGroups ComputeGroupsForFilter(ComputeContext context, IRenderFilter filter)
@@ -160,6 +169,8 @@ namespace nadena.dev.ndmf.preview
                 {
                     foreach (var renderer in group.Renderers)
                     {
+                        if (_excludeRenderer?.Invoke(renderer) == true) continue;
+
                         if (RendererIsShown(context, renderer) || stage.Filter.CanEnableRenderers)
                         {
                             maybeActiveRenderers.Add(renderer);
@@ -184,6 +195,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         foreach (var renderer in group.Renderers)
                         {
+                            if (_excludeRenderer?.Invoke(renderer) == true) continue;
                             maybeActiveRenderers.Add(renderer);
                         }
                     }

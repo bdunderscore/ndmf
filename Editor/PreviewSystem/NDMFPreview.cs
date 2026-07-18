@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.preview.UI;
 using nadena.dev.ndmf.ui;
@@ -16,6 +18,7 @@ namespace nadena.dev.ndmf.preview
     public static class NDMFPreview
     {
         private static PreviewSession? _globalPreviewSession;
+        private static readonly HashSet<GameObject> _excludedAvatarRoots = new();
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -26,12 +29,15 @@ namespace nadena.dev.ndmf.preview
 
                 var resolver = new PluginResolver(includeDisabled: true);
                 _globalPreviewSession = resolver.PreviewSession;
-                PreviewSession.Current = resolver.PreviewSession;
+                ConfigureGlobalPreviewSession();
+                PreviewSession.Current = _globalPreviewSession;
 
                 PreviewPrefs.instance.OnPreviewConfigChanged += () =>
                 {
-                    var oldSession = PreviewSession.Current;
-                    PreviewSession.Current = resolver.PreviewSession;
+                    var oldSession = _globalPreviewSession;
+                    _globalPreviewSession = resolver.PreviewSession;
+                    ConfigureGlobalPreviewSession();
+                    SetPreviewState();
                     oldSession?.Dispose();
                 };
 
@@ -74,6 +80,13 @@ namespace nadena.dev.ndmf.preview
             SceneView.RepaintAll();
         }
 
+        private static void ConfigureGlobalPreviewSession()
+        {
+            if (_globalPreviewSession == null) return;
+            _globalPreviewSession.ExcludeRenderer = renderer =>
+                IsExcludedFromDefaultPreview(renderer.gameObject);
+        }
+
         internal static bool EnablePreviewsUI
         {
             get => NDMFPreviewPrefs.instance.EnablePreview;
@@ -96,6 +109,48 @@ namespace nadena.dev.ndmf.preview
         internal static void ForceResetPreview()
         {
             _globalPreviewSession?.ForceRebuild();
+        }
+
+        internal static IDisposable ExcludeAvatarFromDefaultPreview(GameObject avatarRoot)
+        {
+            if (avatarRoot == null) throw new ArgumentNullException(nameof(avatarRoot));
+
+            _excludedAvatarRoots.Add(avatarRoot);
+            _globalPreviewSession?.ForceRebuild();
+            SceneView.RepaintAll();
+            return new PreviewExclusion(avatarRoot);
+        }
+
+        internal static bool IsExcludedFromDefaultPreview(GameObject obj)
+        {
+            _excludedAvatarRoots.RemoveWhere(root => root == null);
+
+            foreach (var root in _excludedAvatarRoots)
+            {
+                if (obj.transform.IsChildOf(root.transform)) return true;
+            }
+
+            return false;
+        }
+
+        private sealed class PreviewExclusion : IDisposable
+        {
+            private GameObject? _avatarRoot;
+
+            internal PreviewExclusion(GameObject avatarRoot)
+            {
+                _avatarRoot = avatarRoot;
+            }
+
+            public void Dispose()
+            {
+                if (_avatarRoot == null) return;
+
+                _excludedAvatarRoots.Remove(_avatarRoot);
+                _avatarRoot = null;
+                _globalPreviewSession?.ForceRebuild();
+                SceneView.RepaintAll();
+            }
         }
 
         /// <summary>

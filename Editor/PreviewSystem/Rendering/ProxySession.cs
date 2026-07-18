@@ -64,6 +64,7 @@ namespace nadena.dev.ndmf.preview
         }
 
         private HiddenRenderersDelegate? _hideRenderers;
+        private ExcludeRendererDelegate? _excludeRenderer;
 
         public HiddenRenderersDelegate? HideRenderers
         {
@@ -73,7 +74,20 @@ namespace nadena.dev.ndmf.preview
                 if (_hideRenderers == value) return;
                 
                 _hideRenderers = value;
-                
+
+                _active?.Invalidate();
+                _next?.Invalidate();
+            }
+        }
+
+        internal ExcludeRendererDelegate? ExcludeRenderer
+        {
+            get => _excludeRenderer;
+            set
+            {
+                if (_excludeRenderer == value) return;
+
+                _excludeRenderer = value;
                 _active?.Invalidate();
                 _next?.Invalidate();
             }
@@ -130,7 +144,13 @@ namespace nadena.dev.ndmf.preview
 
                 if (activeNeedsReplacement && _next == null)
                 {
-                    _next = new ProxyPipeline(_proxyCache, _filters.ToList(), _hideRenderers, _active);
+                    _next = new ProxyPipeline(
+                        _proxyCache,
+                        _filters.ToList(),
+                        _hideRenderers,
+                        _excludeRenderer,
+                        _active
+                    );
                 }
 
                 if (activeNeedsReplacement && _next?.IsReady == true)
