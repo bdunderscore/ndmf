@@ -1,4 +1,4 @@
-﻿## Versioning policy
+# Versioning policy
 
 NDMF generally complies with [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). Versions are expressed as
 a MAJOR.MINOR.PATCH version triplet.

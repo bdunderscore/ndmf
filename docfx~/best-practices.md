@@ -1,6 +1,6 @@
-﻿## Best Practices
+# Best Practices
 
-### Split your plugin into multiple phases when it contains multiple features
+## Split your plugin into multiple phases when it contains multiple features
 
 When your plugin contains multiple features that can be logically separated,
 consider splitting them into different phases.
@@ -8,14 +8,14 @@ consider splitting them into different phases.
 A single component or plugin can generate, transform, and optimize at once.
 If your plugin performs multiple operations, you should consider splitting the generating, transforming, and optimizing phases rather than running everything in a single phase.
 
-### Clean up your components when no longer needed
+## Clean up your components when no longer needed
 
 After your process is complete, you should consider calling [`Object.DestroyImmediate`] on your components.
 If you destroy your components, later plugins (especially optimization plugins) won't need to consider your plugin's components.
 
 In some rare cases, you may want to keep your components data on the [state][`BuildContext.GetState`], but this is not common and should be done with caution.
 
-### Don't assume other plugins won't modify objects
+## Don't assume other plugins won't modify objects
 
 Other plugins may run after or between your Sequences.
 This is true even when you use [`Sequence.BeforePlugin`] or [`Sequence.AfterPlugin`] constraints, because multiple plugins may request to run just before or after the same plugin.
@@ -27,7 +27,7 @@ For example, you should not cache assets you retrieved from the avatar between S
 A common mistake is reading settings and assets from the avatar and generating new objects in the generating phase, then assigning them in the transforming phase.
 You should instead assign objects in the same Sequences during the generating phase, or read and generate in the same Sequences during the transforming phase, depending on your use case.
 
-### Avoid cloning objects when possible
+## Avoid cloning objects when possible
 
 [`BuildContext.IsTemporaryAsset`] can be used to check if an object is already a temporary clone.
 If your plugin is intended to apply avatar globally, you should consider avoiding cloning objects that are already temporary clones to reduce memory usage and improve performance.
@@ -38,7 +38,7 @@ Please note that temporary clones are not recursively cloned. You should still c
 If your plugin is indented to modify some limited portion of the avatar, you may still need to clone objects even if they are temporary clones.
 Any assets including temporary ones can be shared between multiple places on the avatar, like one material is shared between multiple renderers, so modifying them directly may modify unintended parts of the avatar.
 
-### Avoid passing data between phases or sequences with lambda captures
+## Avoid passing data between phases or sequences with lambda captures
 
 When writing plugins, you can create local variables on the [`Configure` method][`Plugin.Configure`] and capture them in inline passes created with [run with lambda expression][`Sequence.Run`].
 However, you should avoid this pattern to pass data between phases or sequences.
@@ -90,13 +90,13 @@ public class MyPlugin : Plugin<MyPlugin>
 
 </details>
 
-### Create your own state type rather than using existing state types
+## Create your own state type rather than using existing state types
 
 The states are distinguished by their types.
 Therefore, you should create your own state type rather than using existing types like `Dictionary<string, object>` or `List<GameObject>`.
 This helps avoid conflicts with other plugins that may use the same state type for different purposes.
 
-### Don't call AssetDatabase.SaveAssets or related methods during builds
+## Don't call AssetDatabase.SaveAssets or related methods during builds
 
 It's not necessary for NDMF plugins to save generated assets immediately, so plugins may receive an avatar with references to non-persisted assets.
 
@@ -121,13 +121,13 @@ You can simply create objects and assign them to the avatar hierarchy.
 [`AssetDatabase.ImportAsset`]: https://docs.unity3d.com/ja/2021.2/ScriptReference/AssetDatabase.ImportAsset.html
 [`BuildContext.AssetSaver`]: xref:nadena.dev.ndmf.BuildContext.AssetSaver
 
-### Register cloned objects with ObjectRegistry
+## Register cloned objects with ObjectRegistry
 
 If your plugin clones object to modify them, you should register relationships between original objects and cloned objects
 with the [`RegisterReplacedObject`][`ObjectRegistry.RegisterReplacedObject`].
 This will help other plugins to find the correct objects to work with, and better error reports.
 
-### Provide objects relates to the error
+## Provide objects relates to the error
 
 When your plugin encounters an error related to a specific object, you should provide related object with additional parameter to the [`ReportError`](`ErrorReport.ReportError`).
 This will help users to identify and fix the issue more easily.
