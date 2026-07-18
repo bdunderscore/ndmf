@@ -169,6 +169,8 @@ namespace nadena.dev.ndmf.preview
                 {
                     foreach (var renderer in group.Renderers)
                     {
+                        if (renderer == null) continue;
+                        
                         if (_excludeRenderer?.Invoke(renderer) == true) continue;
 
                         if (RendererIsShown(context, renderer) || stage.Filter.CanEnableRenderers)
@@ -195,6 +197,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         foreach (var renderer in group.Renderers)
                         {
+                            if (renderer == null) continue;
                             if (_excludeRenderer?.Invoke(renderer) == true) continue;
                             maybeActiveRenderers.Add(renderer);
                         }
