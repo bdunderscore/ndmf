@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#818] Added single-step debugger functionality
 
 ### Fixed
-- [#813] `AnimationIndex.EditClipsByBinding` bindings added in a callback were not reflected in subsequent calls.
 
 ### Changed
 
@@ -20,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.1] - [2026-07-18]
+
+### Added
+- [#818] Added single-step debugger functionality
+
+### Fixed
+- [#813] `AnimationIndex.EditClipsByBinding` bindings added in a callback were not reflected in subsequent calls.
 
 ## [1.14.0] - [2026-06-29]
 
