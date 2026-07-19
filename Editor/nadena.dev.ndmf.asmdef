@@ -5,16 +5,22 @@
         "VRC.SDKBase",
         "VRC.SDK3A",
         "VRC.SDK3A.Editor",
-      "nadena.dev.ndmf.runtime",
-      "VRC.SDKBase.Editor"
+        "nadena.dev.ndmf.runtime",
+        "VRC.SDKBase.Editor"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "0Harmony.dll",
+        "System.Collections.Immutable.dll",
+        "VRCSDK3A.dll",
+        "VRCSDKBase.dll",
+        "VRCSDKBase-Editor.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [

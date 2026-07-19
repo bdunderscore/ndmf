@@ -37,7 +37,7 @@ namespace nadena.dev.ndmf.preview
 
         public static RenderGroup For(IEnumerable<Renderer> renderers)
         {
-            var frozen = renderers.OrderBy(r => r.GetInstanceID()).ToImmutableList();
+            var frozen = renderers.OrderBy(r => r.GetEntityId()).ToImmutableList();
             var names = frozen.ToImmutableDictionary(r => r, r => r.name);
             return new RenderGroup(frozen, names);
         }
@@ -117,7 +117,7 @@ namespace nadena.dev.ndmf.preview
             var hashCode = 0;
             foreach (var renderer in Renderers)
             {
-                hashCode = HashCode.Combine(hashCode, renderer.GetInstanceID());
+                hashCode = HashCode.Combine(hashCode, renderer.GetEntityId());
             }
 
             return hashCode;

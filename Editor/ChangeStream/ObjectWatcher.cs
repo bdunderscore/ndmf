@@ -269,7 +269,7 @@ namespace nadena.dev.ndmf.cs
             var previewScene = NDMFPreviewSceneManager.GetPreviewScene();
 
             // Ensure component structure data is up-to-date
-            Hierarchy.RequestComponentStructureCheck(obj.GetInstanceID());
+            Hierarchy.RequestComponentStructureCheck(obj.GetEntityId());
             
             var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
             {
