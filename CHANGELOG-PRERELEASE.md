@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#821] Changes to VRCConstraints may not affect behavior of VRCConstraints
 - [#822] Fix an occasional NullReferenceError in ProxyPipeline
 - [#823] Performance improvements for NDMF previews
 
