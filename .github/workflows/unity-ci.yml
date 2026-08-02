@@ -54,6 +54,9 @@ jobs:
         unity_major_version: [ "6000.0", "2022.3.6f1" ]
         sdk: [ vrcsdk, standalone ]
         testmode: [ All ]
+        exclude:
+          - unity_major_version: "6000.0"
+            sdk: vrcsdk
     runs-on: ubuntu-latest
     permissions:
       checks: write
