@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#821] Changes to VRCConstraints may not affect behavior of VRCConstraints
-- [#822] Fix an occasional NullReferenceError in ProxyPipeline
-- [#823] Performance improvements for NDMF previews
 
 ### Changed
 
@@ -21,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.2] - [2026-08-02]
+
+### Fixed
+- [#821] Changes to VRCConstraints may not affect behavior of VRCConstraints
+- [#822] Fix an occasional NullReferenceError in ProxyPipeline
+- [#823] Performance improvements for NDMF previews
 
 ## [1.14.1] - [2026-07-18]
 
