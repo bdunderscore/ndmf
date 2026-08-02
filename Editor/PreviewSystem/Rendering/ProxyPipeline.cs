@@ -257,8 +257,11 @@ namespace nadena.dev.ndmf.preview
                             foreach ((var r, var proxy, _) in proxies)
                             {
                                 // Publish proxies immediately so that they can be referred to in preview filters
-                                ProxyToOriginalObject =
-                                    ProxyToOriginalObject.SetItem(proxy.Renderer.gameObject, r.gameObject);
+                                if (proxy?.Renderer != null && r != null)
+                                {
+                                    ProxyToOriginalObject =
+                                        ProxyToOriginalObject.SetItem(proxy.Renderer.gameObject, r.gameObject);
+                                }
                             }
                             
 #if NDMF_DEBUG
