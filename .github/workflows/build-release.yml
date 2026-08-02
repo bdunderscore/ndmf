@@ -16,20 +16,11 @@ jobs:
   run-tests:
     needs: [prechecks]
     if: needs.prechecks.outputs.need-new-tag == 'true' || github.event_name == 'workflow_dispatch'
-    uses: bdunderscore/ndmf/.github/workflows/gameci.yml@main
+    uses: bdunderscore/ndmf/.github/workflows/unity-ci.yml@main
     permissions:
       checks: write
       contents: read
     secrets: inherit
-    
-    run-tests-6000:
-      needs: [ prechecks ]
-      if: needs.prechecks.outputs.need-new-tag == 'true' || github.event_name == 'workflow_dispatch'
-      uses: bdunderscore/ndmf/.github/workflows/ci-6000.yml@main
-      permissions:
-        checks: write
-        contents: read
-      secrets: inherit
     
   prechecks:
     runs-on: ubuntu-latest

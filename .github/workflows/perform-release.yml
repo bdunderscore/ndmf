@@ -35,7 +35,7 @@ permissions: write-all
 
 jobs:
   check-gameci:
-    uses: bdunderscore/ndmf/.github/workflows/gameci.yml@main
+    uses: bdunderscore/ndmf/.github/workflows/unity-ci.yml@main
     permissions:
       checks: write
       contents: read
