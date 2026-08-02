@@ -28,6 +28,7 @@ namespace nadena.dev.ndmf.preview
         private readonly ComputeContext _context;
 
         private CustomSampler _profileSampler_onFrame;
+        private CustomSampler _profileSampler_onFrameGroup;
         
         internal RenderAspects WhatChanged = RenderAspects.Everything;
         internal RenderGroup Group => _group;
@@ -60,15 +61,16 @@ namespace nadena.dev.ndmf.preview
             ObjectRegistry = registry;
             
             _profileSampler_onFrame = CustomSampler.Create(filter.GetType() + ".OnFrame");
+            _profileSampler_onFrameGroup = CustomSampler.Create(filter.GetType() + ".OnFrameGroup");
             
             OnFrame();
         }
 
         internal void OnFrame()
         {
-            _profileSampler_onFrame.Begin();
+            _profileSampler_onFrameGroup.Begin();
             _node.OnFrameGroup();
-            _profileSampler_onFrame.End();
+            _profileSampler_onFrameGroup.End();
             
             foreach (var (original, proxy) in _proxies)
             {
