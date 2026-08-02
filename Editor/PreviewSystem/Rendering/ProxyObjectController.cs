@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEditor;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
@@ -39,6 +40,11 @@ namespace nadena.dev.ndmf.preview
         private readonly Stopwatch _lastWarning = new();
         
         private static CustomSampler _onPreFrameSampler = CustomSampler.Create("ProxyObjectController.OnPreFrame");
+        private static readonly ProfilerMarker _visibilityMarker = new("ProxyObjectController.OnPreFrame.Visibility");
+        private static readonly ProfilerMarker _meshSetupMarker = new("ProxyObjectController.OnPreFrame.MeshSetup");
+        private static readonly ProfilerMarker _transformCopyMarker = new("ProxyObjectController.OnPreFrame.TransformCopy");
+        private static readonly ProfilerMarker _propertyCopyMarker = new("ProxyObjectController.OnPreFrame.PropertyCopy");
+        private static readonly ProfilerMarker _serializedCopyMarker = new("ProxyObjectController.OnPreFrame.SerializedCopy");
 
         public static bool IsProxyObject(GameObject obj)
         {
@@ -49,7 +55,7 @@ namespace nadena.dev.ndmf.preview
         {
             _cache = cache;
             _originalRenderer = originalRenderer;
-            
+
             SetupRendererMonitoring(originalRenderer);
             
             if (_priorController != null)
@@ -158,86 +164,80 @@ namespace nadena.dev.ndmf.preview
                 var target = Renderer;
                 var original = _originalRenderer;
 
-                if (VisibilityMonitor.Sequence != _lastVisibilityCheck)
+                using (_visibilityMarker.Auto())
                 {
-                    _pickingOffOriginal = SceneVisibilityManager.instance.IsPickingDisabled(original.gameObject);
-                    _visibilityOffOriginal = SceneVisibilityManager.instance.IsHidden(original.gameObject);
-
-                    var pickingOffTarget = SceneVisibilityManager.instance.IsPickingDisabled(target.gameObject);
-                    if (_pickingOffOriginal != pickingOffTarget)
+                    if (VisibilityMonitor.Sequence != _lastVisibilityCheck)
                     {
-                        if (_pickingOffOriginal)
-                        {
-                            SceneVisibilityManager.instance.DisablePicking(target.gameObject, false);
-                        }
-                        else
-                        {
-                            SceneVisibilityManager.instance.EnablePicking(target.gameObject, false);
-                        }
-                    }
+                        _pickingOffOriginal = SceneVisibilityManager.instance.IsPickingDisabled(original.gameObject);
+                        _visibilityOffOriginal = SceneVisibilityManager.instance.IsHidden(original.gameObject);
 
-                    _lastVisibilityCheck = VisibilityMonitor.Sequence;
+                        var pickingOffTarget = SceneVisibilityManager.instance.IsPickingDisabled(target.gameObject);
+                        if (_pickingOffOriginal != pickingOffTarget)
+                        {
+                            if (_pickingOffOriginal)
+                            {
+                                SceneVisibilityManager.instance.DisablePicking(target.gameObject, false);
+                            }
+                            else
+                            {
+                                SceneVisibilityManager.instance.EnablePicking(target.gameObject, false);
+                            }
+                        }
+
+                        _lastVisibilityCheck = VisibilityMonitor.Sequence;
+                    }
+                }
+                
+                // Copies the mesh, bones, materials, blend shape weights, bounds, and the various shadow/probe
+                // settings in one go. Anything outside the renderer component itself still needs handling below.
+                using (_serializedCopyMarker.Auto())
+                {
+                    EditorUtility.CopySerializedIfDifferent(_originalRenderer, Renderer);
                 }
 
                 target.enabled = false;
 
-                SkinnedMeshRenderer smr = null;
-                if (_originalRenderer is SkinnedMeshRenderer smr_)
+                using (_meshSetupMarker.Auto())
                 {
-                    smr = smr_;
-
-                    var replacementSMR = (SkinnedMeshRenderer)Renderer;
-                    replacementSMR.sharedMesh = smr_.sharedMesh;
-                    replacementSMR.bones = smr_.bones;
-
-                    target.transform.position = original.transform.position;
-                    target.transform.rotation = original.transform.rotation;
-                }
-                else
-                {
-                    var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
-                    var filter = Renderer.GetComponent<MeshFilter>();
-                    filter.sharedMesh = originalFilter != null ? originalFilter.sharedMesh : null;
-
-                    var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
-
-                    var rendererTransform = Renderer.transform;
-                    if (shadowBone != rendererTransform.parent)
+                    if (_originalRenderer is SkinnedMeshRenderer)
                     {
-                        rendererTransform.SetParent(shadowBone, false);
-                        rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                        rendererTransform.localScale = Vector3.one;
+                        using (_transformCopyMarker.Auto())
+                        {
+                            target.transform.position = original.transform.position;
+                            target.transform.rotation = original.transform.rotation;
+                        }
+                    }
+                    else
+                    {
+                        var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
+                        var filter = Renderer.GetComponent<MeshFilter>();
+                        filter.sharedMesh = originalFilter != null ? originalFilter.sharedMesh : null;
+
+                        var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
+
+                        var rendererTransform = Renderer.transform;
+                        if (shadowBone != rendererTransform.parent)
+                        {
+                            using (_transformCopyMarker.Auto())
+                            {
+                                rendererTransform.SetParent(shadowBone, false);
+                                rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                                rendererTransform.localScale = Vector3.one;
+                            }
+                        }
                     }
                 }
 
                 target.enabled = original.enabled && original.gameObject.activeInHierarchy;
 
-                Renderer.sharedMaterials = _originalRenderer.sharedMaterials;
-
-
-                target.localBounds = original.localBounds;
-                if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
+                using (_propertyCopyMarker.Auto())
                 {
-                    targetSMR.rootBone = originalSMR.rootBone != null ? originalSMR.rootBone : originalSMR.transform;
-                    targetSMR.quality = originalSMR.quality;
-
-                    if (targetSMR.sharedMesh != null)
+                    // Not a plain copy: a null root bone has to be resolved to the original's own transform.
+                    if (target is SkinnedMeshRenderer targetSMR && original is SkinnedMeshRenderer originalSMR)
                     {
-                        var blendShapeCount = targetSMR.sharedMesh.blendShapeCount;
-                        for (var i = 0; i < blendShapeCount; i++)
-                        {
-                            targetSMR.SetBlendShapeWeight(i, originalSMR.GetBlendShapeWeight(i));
-                        }
+                        targetSMR.rootBone = originalSMR.rootBone != null ? originalSMR.rootBone : originalSMR.transform;
                     }
                 }
-
-                target.shadowCastingMode = original.shadowCastingMode;
-                target.receiveShadows = original.receiveShadows;
-                target.lightProbeUsage = original.lightProbeUsage;
-                target.reflectionProbeUsage = original.reflectionProbeUsage;
-                target.probeAnchor = original.probeAnchor;
-                target.motionVectorGenerationMode = original.motionVectorGenerationMode;
-                target.allowOcclusionWhenDynamic = original.allowOcclusionWhenDynamic;
 
                 return true;
             }
