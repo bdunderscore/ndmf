@@ -21,6 +21,16 @@ jobs:
       checks: write
       contents: read
     secrets: inherit
+    
+    run-tests-6000:
+      needs: [ prechecks ]
+      if: needs.prechecks.outputs.need-new-tag == 'true' || github.event_name == 'workflow_dispatch'
+      uses: bdunderscore/ndmf/.github/workflows/ci-6000.yml@main
+      permissions:
+        checks: write
+        contents: read
+      secrets: inherit
+    
   prechecks:
     runs-on: ubuntu-latest
     outputs:
@@ -28,7 +38,7 @@ jobs:
       need-new-tag: ${{ steps.check-tag.outputs.need-new-tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: get version
         id: version
@@ -79,13 +89,13 @@ jobs:
           fi
 
   create-release:
-    needs: [prechecks, run-tests]
+    needs: [prechecks, run-tests, run-tests-6000]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         
       - name: Reexport version
         id: version
@@ -126,7 +136,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: package-zip
           path: ${{ env.zipFile }}

@@ -45,7 +45,7 @@ jobs:
     # TODO: Refactor into reusable workflow?
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install docfx
         run: |
@@ -68,7 +68,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       # https://github.com/orgs/community/discussions/13836#discussioncomment-8535364
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         id: app-token
         with:
           app-id: ${{ vars.NDMF_RELEASER_APP_ID }}
@@ -115,7 +115,7 @@ jobs:
           esac
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -165,18 +165,18 @@ jobs:
             
       - name: Upload CHANGELOG.md
         if: ${{ github.event.inputs.release_kind == 'stable' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: CHANGELOG
           path: CHANGELOG.md
       - name: Upload CHANGELOG-PRERELEASE.md
         if: ${{ github.event.inputs.release_kind == 'prerelease' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: CHANGELOG-PRERELEASE
           path: CHANGELOG-PRERELEASE.md
       - name: Upload release note
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: changelog
           path: release-note.md
@@ -204,7 +204,7 @@ jobs:
         run: |
           mv .github/${{env.zipFile}} ${{env.zipFile}}
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: package-zip
           path: ${{ env.zipFile }}

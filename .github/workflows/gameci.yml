@@ -65,10 +65,14 @@ jobs:
       checks: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          
+          # We are forced to use pull_request_target to get access to a unity license to run the unit tests.
+          # To limit the risk here, we explicitly opt out of all permissions (except for read-contents and write-checks)
+          # and expose only the unity license secret.
+          allow-unsafe-pr-checkout: 'true'
+
       - run: |
           sudo apt-get update && sudo apt-get -y install libxml2-utils # xmllint
 
@@ -92,7 +96,7 @@ jobs:
           cd Packages/nadena.dev.ndmf
           ln -s 'Dependencies~' Dependencies
 
-      - uses: anatawa12/sh-actions/setup-vrc-get@master
+      - uses: anatawa12/sh-actions/setup-vrc-get@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd # master
         if: ${{ matrix.sdk == 'vrcsdk' }}
 
       - name: Resolve packages
@@ -107,13 +111,13 @@ jobs:
           ls -lR
           ls -lR Packages/nadena*
 
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: Library
           key: Library-${{ matrix.unity_version }}-${{ matrix.sdk }}
           restore-keys: Library-
 
-      - uses: game-ci/unity-test-runner@v3
+      - uses: game-ci/unity-test-runner@275df9854c669438c91b442cc3beb8bac3cbfc8c # v3
         id: gameci
         env:
           # meh, just a personal license...
@@ -151,14 +155,14 @@ jobs:
             xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  ${{ steps.gameci.outputs.artifactsPath }}/editmode-results.xml
           fi
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: '!cancelled()'
         continue-on-error: true
         with:
           name: Coverage results ${{ matrix.unity_version }} ${{ matrix.sdk }}
           path: ${{ steps.gameci.outputs.coveragePath }}
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: '!cancelled()'
         continue-on-error: true
         with:
