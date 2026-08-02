@@ -104,7 +104,10 @@ namespace nadena.dev.ndmf.preview
             [CallerLineNumber] int callerLine = 0
             )
         {
-            return val.Observe(ctx, extract, eq, callerPath: callerPath, callerLine: callerLine);
+            return val.Observe(ctx,
+                ObserveProfiling.Extract(extract, callerPath, callerLine),
+                ObserveProfiling.Compare(eq, callerPath, callerLine),
+                callerPath: callerPath, callerLine: callerLine);
         }
 
         /// <summary>
@@ -130,7 +133,7 @@ namespace nadena.dev.ndmf.preview
 
             return obj;
         }
-
+        
         /// <summary>
         ///     Monitors a given Unity object for changes, and recomputes when changes are detected. The `extract` function
         ///     is used to extract the specific information of interest from the object, and the `compare` function (or,
@@ -148,7 +151,10 @@ namespace nadena.dev.ndmf.preview
             [CallerLineNumber] int callerLine = 0)
             where T : Object
         {
-            return ObjectWatcher.Instance.MonitorObjectProps(obj, ctx, extract, compare, true, callerPath, callerLine);
+            return ObjectWatcher.Instance.MonitorObjectProps(obj, ctx,
+                ObserveProfiling.Extract(extract, callerPath, callerLine),
+                ObserveProfiling.Compare(compare, callerPath, callerLine),
+                true, callerPath, callerLine);
         }
 
         /// <summary>
@@ -174,6 +180,32 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+        private const float TRANSFORM_EPSILON = 0.0001f;
+        private const float TRANSFORM_EPSILON_SQR = TRANSFORM_EPSILON * TRANSFORM_EPSILON;
+
+        // It's common for multiple downstream observers to observe the position of the same transform.
+        // If we were to directly use Observe(), propcache would re-evaluate the equality condition for every such
+        // watcher, which is a major perf drag. Instead, we use PropCache solely as a way to deduplicate this comparison.
+        private static PropCache<Transform, object> TransformPositionCache = new(
+            "ComputeContextQueries.ObserveTransformPosition",
+            (ctx, t) =>
+            {
+                foreach (var node in ctx.ObservePath(t))
+                {
+                    ctx.Observe(node, obj => (obj.localPosition, obj.localRotation, obj.localScale), (a, b) =>
+                    {
+                        return (a.Item1 - b.Item1).sqrMagnitude <= TRANSFORM_EPSILON_SQR &&
+                               Quaternion.Angle(a.Item2, b.Item2) <= TRANSFORM_EPSILON &&
+                               (a.Item3 - b.Item3).sqrMagnitude <= TRANSFORM_EPSILON_SQR;
+                    });
+                }
+
+                return null;
+            },
+            // Always trigger downstream workflows when a change is detected in the underlying position
+            (a, b) => false
+        );
+        
         /// <summary>
         /// Observes the world space position of a given transform.
         /// </summary>
@@ -181,15 +213,7 @@ namespace nadena.dev.ndmf.preview
         /// <param name="t"></param>
         public static Transform ObserveTransformPosition(this ComputeContext ctx, Transform t)
         {
-            foreach (var node in ctx.ObservePath(t))
-            {
-                ctx.Observe(node, obj => (obj.localPosition, obj.localRotation, obj.localScale), (a, b) =>
-                {
-                    return Vector3.Distance(a.Item1, b.Item1) <= 0.0001f &&
-                           Quaternion.Angle(a.Item2, b.Item2) <= 0.0001f &&
-                           Vector3.Distance(a.Item3, b.Item3) <= 0.0001f;
-                });
-            }
+            TransformPositionCache.Get(ctx, t);
 
             return t;
         }
@@ -220,7 +244,8 @@ namespace nadena.dev.ndmf.preview
             [CallerLineNumber] int callerLine = 0
         )
         {
-            return ActiveInHierarchy(ctx, c.gameObject) && ctx.Observe(c, c2 => c2.enabled, callerPath: callerPath, callerLine: callerLine);
+            return ActiveInHierarchy(ctx, c.gameObject, callerPath, callerLine)
+                   && ctx.Observe(c, c2 => c2.enabled, callerPath: callerPath, callerLine: callerLine);
         }
 
         private static C InternalGetComponent<C>(GameObject obj) where C : class
