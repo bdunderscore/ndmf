@@ -26,7 +26,7 @@ name: Unity tests
 
 on:
   push:
-    branches: [main, dev, ci, refactor-structure]
+    branches: [main, dev, ci, ci2, refactor-structure]
   # This is a bit of a radioactive event; we need to be very careful with what permissions
   # we assign this action, as we're allowing arbitrary code execution with the context of
   # whatever permissions we assign.
@@ -181,7 +181,7 @@ jobs:
             -logFile "test-results~/build.log"
             -enableCodeCoverage
             -debugCodeOptimization
-            -overrideTextureCompression ForceFastCompressor
+            -overrideTextureCompression ForceUncompressed
 
       # The 2022.3.6f1 editor is flaky when running edit mode tests in CI, so we tolerate a single
       # failure there and retry once before giving up.
@@ -206,7 +206,7 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
-            -overrideTextureCompression ForceFastCompressor
+            -overrideTextureCompression ForceUncompressed
 
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: PlayMode UnitTests
@@ -228,7 +228,7 @@ jobs:
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
             -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
-            -overrideTextureCompression ForceFastCompressor
+            -overrideTextureCompression ForceUncompressed
             
       - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: ${{ matrix.testmode != 'EditMode' }}
