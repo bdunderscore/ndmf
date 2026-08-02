@@ -210,7 +210,12 @@ jobs:
 
       - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
         name: PlayMode UnitTests
+        id: playmode-tests
         if: always()
+        # Unity 2022.3/VRCSDK intermittently crashes while reloading assemblies for PlayMode.
+        # Allow that specific combination to reach the retry below; all other configurations
+        # retain their existing fail-fast behavior.
+        continue-on-error: ${{ matrix.unity_major_version == '2022.3.6f1' && matrix.sdk == 'vrcsdk' }}
         with:
           build-target: StandaloneWindows64
           editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
@@ -220,6 +225,29 @@ jobs:
             -batchmode
             -force-graphics
             -logFile "test-results~/playmode.log"
+            -runTests
+            -testPlatform playmode
+            -enableCodeCoverage
+            -debugCodeOptimization
+            -testResults "test-results~/playmode-results.xml"
+            -coverageResultsPath "test-results~/coverage"
+            -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
+            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -overrideTextureCompression ForceUncompressed
+
+      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+        name: Retry PlayMode UnitTests
+        id: retry-playmode-tests
+        if: ${{ steps.playmode-tests.outcome == 'failure' }}
+        with:
+          build-target: StandaloneWindows64
+          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
+          project-path: .
+          args: >
+            -buildTarget StandaloneWindows64
+            -batchmode
+            -force-graphics
+            -logFile "test-results~/playmode-retry.log"
             -runTests
             -testPlatform playmode
             -enableCodeCoverage
