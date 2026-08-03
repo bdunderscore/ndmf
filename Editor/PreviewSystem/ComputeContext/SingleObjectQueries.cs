@@ -180,44 +180,6 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
-        private const float TRANSFORM_EPSILON = 0.0001f;
-        private const float TRANSFORM_EPSILON_SQR = TRANSFORM_EPSILON * TRANSFORM_EPSILON;
-
-        // It's common for multiple downstream observers to observe the position of the same transform.
-        // If we were to directly use Observe(), propcache would re-evaluate the equality condition for every such
-        // watcher, which is a major perf drag. Instead, we use PropCache solely as a way to deduplicate this comparison.
-        private static PropCache<Transform, object> TransformPositionCache = new(
-            "ComputeContextQueries.ObserveTransformPosition",
-            (ctx, t) =>
-            {
-                foreach (var node in ctx.ObservePath(t))
-                {
-                    ctx.Observe(node, obj => (obj.localPosition, obj.localRotation, obj.localScale), (a, b) =>
-                    {
-                        return (a.Item1 - b.Item1).sqrMagnitude <= TRANSFORM_EPSILON_SQR &&
-                               Quaternion.Angle(a.Item2, b.Item2) <= TRANSFORM_EPSILON &&
-                               (a.Item3 - b.Item3).sqrMagnitude <= TRANSFORM_EPSILON_SQR;
-                    });
-                }
-
-                return null;
-            },
-            // Always trigger downstream workflows when a change is detected in the underlying position
-            (a, b) => false
-        );
-        
-        /// <summary>
-        /// Observes the world space position of a given transform.
-        /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="t"></param>
-        public static Transform ObserveTransformPosition(this ComputeContext ctx, Transform t)
-        {
-            TransformPositionCache.Get(ctx, t);
-
-            return t;
-        }
-
         /// <summary>
         /// Observes whether a given game object and all its parents are active.
         /// </summary>

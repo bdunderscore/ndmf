@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.preview.trace;
 using UnityEngine;
+using Unity.Profiling;
 using Object = UnityEngine.Object;
 
 namespace nadena.dev.ndmf.preview
@@ -83,6 +84,7 @@ namespace nadena.dev.ndmf.preview
         private readonly Func<ComputeContext, TKey, TValue> _operator;
         private readonly Func<TValue, TValue, bool>? _equalityComparer;
         private readonly Dictionary<TKey, CacheEntry> _cache;
+        private static readonly ProfilerMarker _operatorMarker = new("PropCache.Operator");
 
         // This is used only for debugging purposes to identify when the propcache is regenerated,
         // we don't mind it not being shared across different instantiations.
@@ -157,7 +159,12 @@ namespace nadena.dev.ndmf.preview
             {
                 try
                 {
-                    var newValue = entry.Owner._operator(newGenContext, entry.Key);
+                    TValue newValue;
+                    using (_operatorMarker.Auto())
+                    {
+                        newValue = entry.Owner._operator(newGenContext, entry.Key);
+                    }
+
                     if (entry.Owner._equalityComparer(entry.Value!, newValue))
                     {
                         TraceBuffer.RecordTraceEvent(
@@ -226,7 +233,11 @@ namespace nadena.dev.ndmf.preview
                 {
                     try
                     {
-                        entry.Value = _operator(entry.GenerateContext, key);
+                        using (_operatorMarker.Auto())
+                        {
+                            entry.Value = _operator(entry.GenerateContext, key);
+                        }
+
                         entry.GenerateContext.InvokeOnInvalidate(entry, InvalidateEntry);
                     }
                     catch

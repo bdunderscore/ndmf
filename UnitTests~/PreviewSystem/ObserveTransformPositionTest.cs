@@ -7,26 +7,14 @@ using Object = UnityEngine.Object;
 namespace UnitTests
 {
     /// <summary>
-    ///     Covers ComputeContextQueries.ObserveTransformPosition, which routes through a shared PropCache so that
-    ///     the (relatively expensive) position comparison is evaluated once per transform rather than once per
-    ///     downstream observer. The cache must not change the observable contract: every observer of a transform
-    ///     still has to be invalidated when that transform's world position changes, and must not be invalidated
-    ///     when it doesn't.
+    ///     Covers ComputeContextQueries.ObserveTransformPosition, which uses one Burst job to check every monitored
+    ///     transform each editor frame. The job result is consumed on the following frame.
     /// </summary>
     public class ObserveTransformPositionTest : TestBase
     {
-        /// <summary>
-        ///     Simulates the change stream event the editor would emit after a transform's properties are touched.
-        /// </summary>
-        private static void FireChanged(Transform t)
+        private static void AdvanceFrame()
         {
-            ObjectWatcher.Instance.Hierarchy.FireObjectChangeNotification(t.GetInstanceID());
-            ComputeContext.FlushInvalidates();
-        }
-
-        private static void FireReparented(GameObject go)
-        {
-            ObjectWatcher.Instance.Hierarchy.FireReparentNotification(go.GetInstanceID());
+            TransformPositionMonitor.UpdateForTesting();
             ComputeContext.FlushInvalidates();
         }
 
@@ -45,8 +33,25 @@ namespace UnitTests
 
             Assert.IsFalse(ctx.IsInvalidated);
 
-            go.transform.localPosition = new Vector3(1, 0, 0);
-            FireChanged(go.transform);
+            go.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame(); // Schedule the Burst read.
+            AdvanceFrame(); // Consume the result on the following frame.
+
+            Assert.IsTrue(ctx.IsInvalidated);
+        }
+
+        [Test]
+        public void WhenTransformMovesBeforePendingMonitorIsRegistered_ObserverIsInvalidated()
+        {
+            var go = NewObject("target");
+
+            var ctx = new ComputeContext("observer");
+            ctx.ObserveTransformPosition(go.transform);
+
+            // The monitor has only been queued at this point. Moving before the first update must be compared
+            // against the matrix captured by ObserveTransformPosition, not a new matrix captured during Update.
+            go.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame();
 
             Assert.IsTrue(ctx.IsInvalidated);
         }
@@ -64,10 +69,9 @@ namespace UnitTests
             scaleCtx.ObserveTransformPosition(scaled.transform);
 
             rotated.transform.localRotation = Quaternion.Euler(0, 90, 0);
-            FireChanged(rotated.transform);
-
             scaled.transform.localScale = new Vector3(2, 2, 2);
-            FireChanged(scaled.transform);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsTrue(rotateCtx.IsInvalidated);
             Assert.IsTrue(scaleCtx.IsInvalidated);
@@ -81,8 +85,8 @@ namespace UnitTests
             var ctx = new ComputeContext("observer");
             ctx.ObserveTransformPosition(go.transform);
 
-            // A change event with no actual movement; the epsilon comparison should absorb it.
-            FireChanged(go.transform);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsFalse(ctx.IsInvalidated);
         }
@@ -96,8 +100,9 @@ namespace UnitTests
             ctx.ObserveTransformPosition(go.transform);
 
             // Threshold is 0.0001; this is an order of magnitude below it.
-            go.transform.localPosition = new Vector3(0.00001f, 0, 0);
-            FireChanged(go.transform);
+            go.transform.position = new Vector3(0.00001f, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsFalse(ctx.IsInvalidated);
         }
@@ -105,8 +110,6 @@ namespace UnitTests
         [Test]
         public void WhenTransformMoves_AllSharedObserversAreInvalidated()
         {
-            // The dedup case: the second and third Get() calls are cache hits, and must still be wired up to the
-            // shared cache entry's invalidation.
             var go = NewObject("target");
 
             var ctx1 = new ComputeContext("observer-1");
@@ -117,8 +120,9 @@ namespace UnitTests
             ctx2.ObserveTransformPosition(go.transform);
             ctx3.ObserveTransformPosition(go.transform);
 
-            go.transform.localPosition = new Vector3(1, 0, 0);
-            FireChanged(go.transform);
+            go.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsTrue(ctx1.IsInvalidated);
             Assert.IsTrue(ctx2.IsInvalidated);
@@ -128,15 +132,15 @@ namespace UnitTests
         [Test]
         public void AfterInvalidation_NewObserversAreStillInvalidated()
         {
-            // Once a cache entry has been invalidated and evicted, observing again must produce a fresh, live entry
-            // rather than a stale one that never fires.
+            // Once a monitor has fired and released its slot, observing again must produce a fresh, live monitor.
             var go = NewObject("target");
 
             var ctx1 = new ComputeContext("observer-1");
             ctx1.ObserveTransformPosition(go.transform);
 
-            go.transform.localPosition = new Vector3(1, 0, 0);
-            FireChanged(go.transform);
+            go.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsTrue(ctx1.IsInvalidated);
 
@@ -145,8 +149,9 @@ namespace UnitTests
 
             Assert.IsFalse(ctx2.IsInvalidated);
 
-            go.transform.localPosition = new Vector3(2, 0, 0);
-            FireChanged(go.transform);
+            go.transform.position = new Vector3(2, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsTrue(ctx2.IsInvalidated);
         }
@@ -163,8 +168,9 @@ namespace UnitTests
             var ctx = new ComputeContext("observer");
             ctx.ObserveTransformPosition(child.transform);
 
-            parent.transform.localPosition = new Vector3(1, 0, 0);
-            FireChanged(parent.transform);
+            parent.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsTrue(ctx.IsInvalidated);
         }
@@ -172,7 +178,7 @@ namespace UnitTests
         [Test]
         public void WhenUnrelatedTransformMoves_ObserverIsNotInvalidated()
         {
-            // Verifies the cache is keyed per transform, and that observers aren't cross-wired.
+            // Verifies monitors are keyed per transform, and that observers aren't cross-wired.
             var a = NewObject("a");
             var b = NewObject("b");
 
@@ -182,42 +188,41 @@ namespace UnitTests
             var ctxB = new ComputeContext("observer-b");
             ctxB.ObserveTransformPosition(b.transform);
 
-            b.transform.localPosition = new Vector3(1, 0, 0);
-            FireChanged(b.transform);
+            b.transform.position = new Vector3(1, 0, 0);
+            AdvanceFrame();
+            AdvanceFrame();
 
             Assert.IsFalse(ctxA.IsInvalidated);
             Assert.IsTrue(ctxB.IsInvalidated);
         }
 
         [Test]
-        public void WhenReparented_ObserverIsInvalidated()
+        public void WhenReparentedWithoutMoving_ObserverIsNotInvalidated()
         {
             var oldParent = NewObject("old-parent");
             var newParent = NewObject("new-parent");
             var child = NewObject("child");
 
-            child.transform.SetParent(oldParent.transform, false);
-            newParent.transform.localPosition = new Vector3(5, 0, 0);
+            child.transform.SetParent(oldParent.transform, true);
+            newParent.transform.position = new Vector3(5, 0, 0);
 
             var ctx = new ComputeContext("observer");
             ctx.ObserveTransformPosition(child.transform);
 
             Assert.IsFalse(ctx.IsInvalidated);
 
-            child.transform.SetParent(newParent.transform, false);
-            FireReparented(child);
+            child.transform.SetParent(newParent.transform, true);
+            AdvanceFrame();
+            AdvanceFrame();
 
-            Assert.IsTrue(ctx.IsInvalidated);
+            Assert.IsFalse(ctx.IsInvalidated);
         }
 
         [Test]
         public void WhenObservedTransformIsDestroyed_ObserverIsInvalidatedWithoutThrowing()
         {
-            // The cache key is a Transform, so eviction has to cope with the key having been destroyed out from
-            // under it rather than trying to re-run the comparison against a dead object.
             // Not TrackObject'd: this test destroys the object itself, and teardown must not destroy it twice.
             var go = new GameObject("target");
-            var instanceId = go.GetInstanceID();
 
             var ctx = new ComputeContext("observer");
             ctx.ObserveTransformPosition(go.transform);
@@ -226,8 +231,7 @@ namespace UnitTests
 
             Assert.DoesNotThrow(() =>
             {
-                ObjectWatcher.Instance.Hierarchy.FireDestroyNotification(instanceId);
-                ComputeContext.FlushInvalidates();
+                AdvanceFrame();
             });
 
             Assert.IsTrue(ctx.IsInvalidated);
