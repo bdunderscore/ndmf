@@ -35,7 +35,7 @@ namespace nadena.dev.ndmf.VRChat
                 }
 #if NDMF_VRCSDK3_AVATARS_VRC_DYNAMICS_FOR_WORLDS
                 VRCDynamicsScheduler.UpdateConstraints(true);
-#elseif NDMF_VRCSDK3_AVATARS_PHYSBONE_CONTACT_INTEGRATION
+#elif NDMF_VRCSDK3_AVATARS_PHYSBONE_CONTACT_INTEGRATION
                 VRCAvatarDynamicsScheduler.UpdateConstraints(true);
 #else
                 VRCConstraintManager.UpdateConstraints();
