@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#824] Additional performance improvements in NDMF preview
 
 ### Changed
 
@@ -20,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.3] - [2026-08-03]
+
+### Fixed
+- [#824] Additional performance improvements in NDMF preview
 
 ## [1.14.2] - [2026-08-02]
 
