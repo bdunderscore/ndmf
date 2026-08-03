@@ -37,6 +37,16 @@
             "name": "com.vrchat.avatars",
             "expression": "3.7.0",
             "define": "NDMF_VRCSDK3_AVATARS_VRC_CONSTRAINTS"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.10.0",
+            "define": "NDMF_VRCSDK3_AVATARS_VRC_DYNAMICS_FOR_WORLDS"
+        },
+        {
+            "name": "com.vrchat.avatars",
+            "expression": "3.7.3",
+            "define": "NDMF_VRCSDK3_AVATARS_PHYSBONE_CONTACT_INTEGRATION"
         }
     ],
     "noEngineReferences": false
