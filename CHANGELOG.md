@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#825] Compile error with VRChat SDK 3.9.0 or earlier
 
 ### Changed
+- [#788] Improve preview node reuse matching to reduce unnecessary node rebuilds.
 
 ### Removed
 
