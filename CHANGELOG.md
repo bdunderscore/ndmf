@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#825] Compile error with VRChat SDK 3.9.0 or earlier
 
 ### Changed
 
@@ -20,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.14.4] - [2026-08-09]
+
+### Fixed
+- [#825] Compile error with VRChat SDK 3.9.0 or earlier
 
 ## [1.14.3] - [2026-08-03]
 
