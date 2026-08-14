@@ -295,7 +295,7 @@ namespace nadena.dev.ndmf
         public void DeactivateExtensionContext(Type t)
         {
             using (new ExecutionScope(this))
-            using (_report.WithExtensionContextTrace(t))
+            using (ErrorReport.CurrentReport.WithExtensionContextTrace(t))
                 try
                 {
                     if (_activeExtensions.ContainsKey(t))
@@ -324,8 +324,8 @@ namespace nadena.dev.ndmf
         internal void RunPass(ConcretePass pass)
         {
             using (new ExecutionScope(this))
-            using (_report.WithContext(pass.Plugin as PluginBase))
-            using (_report.WithContextPassName(pass.Description))
+            using (ErrorReport.CurrentReport.WithContext(pass.Plugin as PluginBase))
+            using (ErrorReport.CurrentReport.WithContextPassName(pass.Description))
             {
                 sw.Start();
 
@@ -358,8 +358,8 @@ namespace nadena.dev.ndmf
         {
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             using (new ExecutionScope(this))
-            using (_report.WithContext(pass.Plugin as PluginBase))
-            using (_report.WithContextPassName(pass.Description))
+            using (ErrorReport.CurrentReport.WithContext(pass.Plugin as PluginBase))
+            using (ErrorReport.CurrentReport.WithContextPassName(pass.Description))
             {
                 sw.Start();
                 try
@@ -377,8 +377,8 @@ namespace nadena.dev.ndmf
         {
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             using (new ExecutionScope(this))
-            using (_report.WithContext(pass.Plugin as PluginBase))
-            using (_report.WithContextPassName(pass.Description))
+            using (ErrorReport.CurrentReport.WithContext(pass.Plugin as PluginBase))
+            using (ErrorReport.CurrentReport.WithContextPassName(pass.Description))
             {
                 sw.Start();
                 try
@@ -396,8 +396,8 @@ namespace nadena.dev.ndmf
         {
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             using (new ExecutionScope(this))
-            using (_report.WithContext(pass.Plugin as PluginBase))
-            using (_report.WithContextPassName(pass.Description))
+            using (ErrorReport.CurrentReport.WithContext(pass.Plugin as PluginBase))
+            using (ErrorReport.CurrentReport.WithContextPassName(pass.Description))
             {
                 sw.Start();
                 try
@@ -506,7 +506,7 @@ namespace nadena.dev.ndmf
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             
             using (new ExecutionScope(this))
-            using (_report.WithExtensionContextTrace(ty))
+            using (ErrorReport.CurrentReport.WithExtensionContextTrace(ty))
                 try
                 {
                     if (!_extensions.TryGetValue(ty, out var ctx))
