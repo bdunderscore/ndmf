@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#827] Animator parameter harmonization now converts parameters used by blend trees to Float.
 
 ### Changed
 

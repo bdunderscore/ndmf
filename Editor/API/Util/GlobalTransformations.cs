@@ -79,18 +79,52 @@ namespace nadena.dev.ndmf.util
                 }
             }
 
+            // Blend trees can only consume float parameters. Record those requirements before updating
+            // parameter declarations and transition conditions so both are harmonized against the final type.
+            foreach (var blendTree in controllers.SelectMany(controller =>
+                         controller.AllReachableNodes().OfType<VirtualBlendTree>()))
+            {
+                switch (blendTree.BlendType)
+                {
+                    case BlendTreeType.Direct:
+                        foreach (var child in blendTree.Children)
+                        {
+                            RequireFloat(child.DirectBlendParameter);
+                        }
+
+                        break;
+                    case BlendTreeType.Simple1D:
+                        RequireFloat(blendTree.BlendParameter);
+                        break;
+                    case BlendTreeType.SimpleDirectional2D:
+                    case BlendTreeType.FreeformDirectional2D:
+                    case BlendTreeType.FreeformCartesian2D:
+                        RequireFloat(blendTree.BlendParameter);
+                        RequireFloat(blendTree.BlendParameterY);
+                        break;
+                }
+            }
+
             foreach (var controller in controllers)
             {
                 var newParams = controller.Parameters;
                 foreach (var (name, acp) in controller.Parameters)
                 {
+                    var newType = parameterTypes[name];
                     var newAcp = new AnimatorControllerParameter
                     {
                         name = acp.name,
                         defaultBool = acp.defaultBool,
-                        defaultFloat = acp.defaultFloat,
+                        defaultFloat = newType == AnimatorControllerParameterType.Float
+                            ? acp.type switch
+                            {
+                                AnimatorControllerParameterType.Bool => acp.defaultBool ? 1 : 0,
+                                AnimatorControllerParameterType.Int => acp.defaultInt,
+                                _ => acp.defaultFloat
+                            }
+                            : acp.defaultFloat,
                         defaultInt = acp.defaultInt,
-                        type = parameterTypes[name]
+                        type = newType
                     };
                     newParams = newParams.SetItem(name, newAcp);
                 }
@@ -107,6 +141,14 @@ namespace nadena.dev.ndmf.util
                     {
                         HarmonizeStateMachine(vsm, parameterTypes);
                     }
+                }
+            }
+
+            void RequireFloat(string parameterName)
+            {
+                if (!string.IsNullOrEmpty(parameterName))
+                {
+                    parameterTypes[parameterName] = AnimatorControllerParameterType.Float;
                 }
             }
         }

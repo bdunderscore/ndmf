@@ -12,6 +12,78 @@ using UnityEngine;
 public class HarmonizeTransitionsTest : TestBase
 {
     [Test]
+    public void BlendTreeParametersAreConvertedToFloat()
+    {
+        var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+        var vac = VirtualAnimatorController.Create(cloneContext);
+        vac.Parameters = ImmutableDictionary.Create<string, AnimatorControllerParameter>()
+            .Add("oneD", Parameter("oneD", AnimatorControllerParameterType.Bool, defaultBool: true))
+            .Add("twoDX", Parameter("twoDX", AnimatorControllerParameterType.Int, defaultInt: 3))
+            .Add("twoDY", Parameter("twoDY", AnimatorControllerParameterType.Bool))
+            .Add("direct", Parameter("direct", AnimatorControllerParameterType.Int));
+
+        var oneD = VirtualBlendTree.Create("1D");
+        oneD.BlendType = BlendTreeType.Simple1D;
+        oneD.BlendParameter = "oneD";
+
+        var twoD = VirtualBlendTree.Create("2D");
+        twoD.BlendType = BlendTreeType.FreeformCartesian2D;
+        twoD.BlendParameter = "twoDX";
+        twoD.BlendParameterY = "twoDY";
+
+        var root = VirtualBlendTree.Create("Direct");
+        root.BlendType = BlendTreeType.Direct;
+        root.Children = root.Children
+            .Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = oneD,
+                DirectBlendParameter = "direct"
+            })
+            .Add(new VirtualBlendTree.VirtualChildMotion
+            {
+                Motion = twoD,
+                DirectBlendParameter = "direct"
+            });
+
+        vac.AddLayer(LayerPriority.Default, "Blend Trees").StateMachine!.AddState("State", motion: root);
+
+        GlobalTransformations.HarmonizeParameterTypes(new List<VirtualAnimatorController> { vac });
+
+        Assert.AreEqual(AnimatorControllerParameterType.Float, vac.Parameters["oneD"].type);
+        Assert.AreEqual(AnimatorControllerParameterType.Float, vac.Parameters["twoDX"].type);
+        Assert.AreEqual(AnimatorControllerParameterType.Float, vac.Parameters["twoDY"].type);
+        Assert.AreEqual(AnimatorControllerParameterType.Float, vac.Parameters["direct"].type);
+        Assert.AreEqual(1, vac.Parameters["oneD"].defaultFloat);
+        Assert.AreEqual(3, vac.Parameters["twoDX"].defaultFloat);
+    }
+
+    [Test]
+    public void BlendTreeParameterTypeIsAppliedBeforeTransitionCorrection()
+    {
+        var controller = LoadAsset<AnimatorController>("test_harmonize.controller");
+        var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+        var vac = cloneContext.Clone(controller);
+
+        vac.Parameters = ImmutableDictionary.Create<string, AnimatorControllerParameter>()
+            .Add("test", Parameter("test", AnimatorControllerParameterType.Bool));
+
+        var blendTree = VirtualBlendTree.Create("1D");
+        blendTree.BlendType = BlendTreeType.Simple1D;
+        blendTree.BlendParameter = "test";
+        vac.Layers.First().StateMachine!.DefaultState!.Motion = blendTree;
+
+        GlobalTransformations.HarmonizeParameterTypes(new List<VirtualAnimatorController> { vac });
+
+        Assert.AreEqual(AnimatorControllerParameterType.Float, vac.Parameters["test"].type);
+        foreach (var condition in vac.Layers.First().StateMachine!.DefaultState!.Transitions
+                     .SelectMany(transition => transition.Conditions))
+        {
+            Assert.That(condition.mode,
+                Is.EqualTo(AnimatorConditionMode.Greater).Or.EqualTo(AnimatorConditionMode.Less));
+        }
+    }
+
+    [Test]
     public void TestBoolTransitionAdjustments()
     {
         var controller = LoadAsset<AnimatorController>("test_harmonize.controller");
@@ -48,5 +120,21 @@ public class HarmonizeTransitionsTest : TestBase
                     break;
             }
         }
+    }
+
+    private static AnimatorControllerParameter Parameter(
+        string name,
+        AnimatorControllerParameterType type,
+        bool defaultBool = false,
+        int defaultInt = 0
+    )
+    {
+        return new AnimatorControllerParameter
+        {
+            name = name,
+            type = type,
+            defaultBool = defaultBool,
+            defaultInt = defaultInt
+        };
     }
 }
