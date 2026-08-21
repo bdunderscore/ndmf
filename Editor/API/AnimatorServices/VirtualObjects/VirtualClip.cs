@@ -162,8 +162,6 @@ namespace nadena.dev.ndmf.animator
             AnimationClip clip
         )
         {
-            clip = cloneContext.MapClipOnClone(clip);
-
             return CloneWithoutOverrideController(cloneContext, clip);
         }
 

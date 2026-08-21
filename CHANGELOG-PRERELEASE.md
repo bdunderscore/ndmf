@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#829] AnimatorOverrideControllers with swapped or cross-referencing clip mappings now produce correct build output
 
 ### Changed
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+- `CloneContext.MapClipOnClone()` no longer performs any mapping and is marked obsolete; AnimatorOverrideController mappings are now applied automatically after cloning completes.
 
 ## [1.14.5] - [2026-08-20]
 

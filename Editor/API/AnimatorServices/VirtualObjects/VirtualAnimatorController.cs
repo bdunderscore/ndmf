@@ -327,11 +327,102 @@ namespace nadena.dev.ndmf.animator
                 case AnimatorController ac: return new VirtualAnimatorController(context, ac);
                 case AnimatorOverrideController aoc:
                 {
-                    using var _ = context.PushOverrideController(aoc);
+                    // Clone distinct to ensure that we don't share any state with preexisting objects when we're about
+                    // to mutate them in-place.
+                    var result = context.CloneDistinct(aoc.runtimeAnimatorController);
 
-                    return Clone(context, aoc.runtimeAnimatorController);
+                    // Ensure all deferred clones (blend tree children, transitions) have run so the graph is fully
+                    // materialized before override mappings are resolved.
+                    context.FlushDeferredCalls();
+
+                    ApplyClipOverrides(result, context, aoc);
+
+                    return result;
                 }
                 default: throw new NotImplementedException($"Unknown controller type {controller.GetType()}");
+            }
+        }
+
+        /// <summary>
+        ///     Replaces the motions of states and blend tree children in a cloned controller with their
+        ///     AnimatorOverrideController mappings, if any.
+        ///     This is done after cloning so that every original clip gets exactly one clone keyed by itself; resolving
+        ///     overrides during cloning corrupts the clone cache when mappings are swapped or otherwise cyclic (#828).
+        /// </summary>
+        private static void ApplyClipOverrides(
+            VirtualAnimatorController controller,
+            CloneContext context,
+            AnimatorOverrideController aoc
+        )
+        {
+            foreach (var node in controller.AllReachableNodes())
+            {
+                switch (node)
+                {
+                    case VirtualState state:
+                        if (TryMapMotion(state.Motion, context, aoc) is VirtualMotion mappedStateMotion)
+                        {
+                            state.Motion = mappedStateMotion;
+                        }
+
+                        break;
+
+                    case VirtualBlendTree tree:
+                    {
+                        var changed = false;
+                        foreach (var child in tree.Children)
+                        {
+                            if (TryMapMotion(child.Motion, context, aoc) is VirtualMotion mappedChildMotion)
+                            {
+                                child.Motion = mappedChildMotion;
+                                changed = true;
+                            }
+                        }
+
+                        // Reassign to notify cache observers of the change.
+                        // (VirtualChildMotion is a bare class with no property setter on Motion to trigger cache
+                        // invalidation; this can't be changed without breaking IL-level compatibility)
+                        if (changed) tree.Children = tree.Children.ToImmutableList();
+
+                        break;
+                    }
+
+                    case VirtualLayer layer:
+                    {
+                        var changed = false;
+                        var builder = ImmutableDictionary.CreateBuilder<VirtualState, VirtualMotion>();
+                        foreach (var kvp in layer.SyncedLayerMotionOverrides)
+                        {
+                            if (TryMapMotion(kvp.Value, context, aoc) is VirtualMotion mappedOverride)
+                            {
+                                builder.Add(kvp.Key, mappedOverride);
+                                changed = true;
+                            }
+                            else
+                            {
+                                builder.Add(kvp.Key, kvp.Value);
+                            }
+                        }
+
+                        if (changed) layer.SyncedLayerMotionOverrides = builder.ToImmutable();
+
+                        break;
+                    }
+                }
+            }
+
+            static VirtualMotion? TryMapMotion(VirtualMotion? motion, CloneContext context, AnimatorOverrideController aoc)
+            {
+                if (motion is not VirtualClip clip) return null;
+
+                var original = (AnimationClip?)clip.OriginalObjectExposed;
+                if (original == null) return null;
+
+                // The indexer returns the original clip when no override is set for it.
+                var mapped = aoc[original];
+                if (mapped == null || ReferenceEquals(mapped, original)) return null;
+
+                return context.Clone(mapped);
             }
         }
 
