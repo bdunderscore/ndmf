@@ -40,12 +40,14 @@ namespace nadena.dev.ndmf.multiplatform.components
         public static string GuessTemplateName(Component pb, Transform root)
         {
             var rootPath = RuntimeUtil.AvatarRootPath(root.gameObject);
-            var path = RuntimeUtil.AvatarRootPath(pb.gameObject)!.ToLowerInvariant();
+            var path = RuntimeUtil.AvatarRootPath(pb.gameObject);
             
-            if (rootPath == null)
+            if (rootPath == null || path == null)
             {
                 return "generic";
             }
+
+            path = path.ToLowerInvariant();
             
             foreach (var segment in rootPath.Split("/"))
             {
