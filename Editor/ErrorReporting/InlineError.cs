@@ -31,6 +31,10 @@ namespace nadena.dev.ndmf
                 {
                     substitutions.Add("<missing>");
                 }
+                else if (arg is Object destroyedObject && destroyedObject == null)
+                {
+                    substitutions.Add("<missing>");
+                }
                 else if (arg is string s)
                 {
                     // string is IEnumerable, so we have to special case this

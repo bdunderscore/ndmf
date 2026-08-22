@@ -32,6 +32,24 @@ namespace UnitTests
         }
         
         [Test]
+        public void NDMF0020_DestroyedUnityObjectFormatsAsMissing()
+        {
+            var destroyedObject = new GameObject("destroyed");
+            try
+            {
+                UnityEngine.Object.DestroyImmediate(destroyedObject);
+
+                var error = new InlineError(TEST_LOCALIZER, ErrorSeverity.Error, "Errors:test", destroyedObject);
+
+                Assert.AreEqual("Test error <missing>", error.FormatTitle());
+            }
+            finally
+            {
+                if (destroyedObject != null) UnityEngine.Object.DestroyImmediate(destroyedObject);
+            }
+        }
+        
+        [Test]
         public void TestEnumerableExpansion()
         {
             var or1 = new ObjectReference(null, "a");
