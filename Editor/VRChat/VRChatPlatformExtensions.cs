@@ -103,11 +103,12 @@ namespace nadena.dev.ndmf.multiplatform.editor
                     {
                         var maxBoneDepth =
                             (float)GetMaxBoneDepth(rootBone, new HashSet<Transform>(pb.ignoreTransforms));
-                        for (int i = 0; i < radiusCurve.keys.Length; i++)
+                        var keys = radiusCurve.keys;
+                        for (int i = 0; i < keys.Length; i++)
                         {
-                            radiusCurve.keys[i].time =
-                                radiusCurve.keys[i].time * (maxBoneDepth) / (maxBoneDepth + 1);
+                            keys[i].time = keys[i].time * maxBoneDepth / (maxBoneDepth + 1);
                         }
+                        radiusCurve.keys = keys;
                     }
 
                     portable.RadiusCurve.WeakSet(radiusCurve);
