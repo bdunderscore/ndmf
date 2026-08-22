@@ -91,7 +91,7 @@ namespace nadena.dev.ndmf.preview
 
         public IEnumerable<(Renderer, Renderer?)> Renderers
             => _proxies.Select(kvp => (kvp.Key, (Renderer?)kvp.Value.Renderer))
-                .Where(kvp => kvp.Key != null && !_hiddenRenderers.Contains(kvp.Item2!))
+                .Where(kvp => kvp.Key != null && !_hiddenRenderers.Contains(kvp.Key))
                 .Concat(_hiddenRenderers.Select(r => (r, (Renderer?)null)));
 
         public ProxyPipeline(
