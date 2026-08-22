@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Immutable;
+using System.Reflection;
+using UnityEngine;
+using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.platform;
@@ -13,6 +17,30 @@ namespace UnitTests.PluginResolverTests
     {
         public string QualifiedName => "test-platform";
         public string DisplayName => "test-platform";
+    }
+
+    class AmbiguousPlatformRootA : MonoBehaviour
+    {
+    }
+
+    class AmbiguousPlatformRootB : MonoBehaviour
+    {
+    }
+
+    class AmbiguousPlatformProvider : INDMFPlatformProvider
+    {
+        private readonly string _qualifiedName;
+        private readonly Type _avatarRootComponentType;
+
+        public AmbiguousPlatformProvider(string qualifiedName, Type avatarRootComponentType)
+        {
+            _qualifiedName = qualifiedName;
+            _avatarRootComponentType = avatarRootComponentType;
+        }
+
+        public string QualifiedName => _qualifiedName;
+        public string DisplayName => _qualifiedName;
+        public Type AvatarRootComponentType => _avatarRootComponentType;
     }
     
     class DefaultPlatformPlugin : Plugin<DefaultPlatformPlugin>
@@ -157,6 +185,31 @@ namespace UnitTests.PluginResolverTests
                 .First(pass => pass.Skipped && pass.Plugin.QualifiedName == NeverRunsPlugin.Instance.QualifiedName);
             
             pass.Execute(CreateContext(CreateRoot("root")));
+        }
+
+        [Test]
+        public void NDMF0009_ThrowsWhenTwoProvidersMatchOneAvatarRoot()
+        {
+            var root = CreateRoot("avatar");
+            root.AddComponent<AmbiguousPlatformRootA>();
+            root.AddComponent<AmbiguousPlatformRootB>();
+            var registryField = typeof(PlatformRegistry).GetField(
+                "_platformProviders", BindingFlags.Static | BindingFlags.NonPublic);
+            var originalRegistry = registryField.GetValue(null);
+            var providers = ImmutableDictionary<string, INDMFPlatformProvider>.Empty
+                .Add("first", new AmbiguousPlatformProvider("first", typeof(AmbiguousPlatformRootA)))
+                .Add("second", new AmbiguousPlatformProvider("second", typeof(AmbiguousPlatformRootB)));
+
+            try
+            {
+                registryField.SetValue(null, providers);
+
+                Assert.Throws<Exception>(() => PlatformRegistry.GetPrimaryPlatformForAvatar(root));
+            }
+            finally
+            {
+                registryField.SetValue(null, originalRegistry);
+            }
         }
     }
 }
