@@ -6,7 +6,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using JetBrains.Annotations;
 using nadena.dev.ndmf.runtime.components;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 #if NDMF_VRCSDK3_AVATARS
