@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using UnityEditor.Animations;
@@ -29,17 +28,11 @@ namespace nadena.dev.ndmf.animator
 
         private struct DynamicScopeState
         {
-            public ImmutableList<AnimatorOverrideController> OverrideControllers;
             public object? InnateAnimatorKey;
             public Func<int, int>? PhysicalToVirtualLayerMapper;
         }
 
-        private DynamicScopeState _curDynScope = new()
-        {
-            OverrideControllers = ImmutableList<AnimatorOverrideController>.Empty
-        };
-
-        private ImmutableList<AnimatorOverrideController> OverrideControllers => _curDynScope.OverrideControllers;
+        private DynamicScopeState _curDynScope = new();
 
         /// <summary>
         ///     When cloning an innate animator, this property will be set to the key of the animator.
@@ -85,15 +78,6 @@ namespace nadena.dev.ndmf.animator
             }
         }
 
-        internal IDisposable PushOverrideController(AnimatorOverrideController controller)
-        {
-            var scope = new DynamicScope(this);
-
-            _curDynScope.OverrideControllers = _curDynScope.OverrideControllers.Add(controller);
-
-            return scope;
-        }
-
         internal IDisposable PushActiveInnateKey(object? key)
         {
             var scope = new DynamicScope(this);
@@ -119,17 +103,14 @@ namespace nadena.dev.ndmf.animator
         }
 
         /// <summary>
-        ///     Applies any in-scope AnimationOverrideControllers to the given motion to get the effective motion.
+        ///     Resolves AnimatorOverrideController mappings for the given clip.
+        ///     This method no longer performs any mapping (mappings are applied after cloning completes) and always
+        ///     returns the original clip.
         /// </summary>
-        /// <param name="clip"></param>
-        /// <returns></returns>
+        [Obsolete(
+            "This method never returned a non-identity mapping from externally-facing extension surfaces; it has no purpose and should not be used.")]
         public AnimationClip MapClipOnClone(AnimationClip clip)
         {
-            foreach (var controller in OverrideControllers)
-            {
-                clip = controller[clip];
-            }
-
             return clip;
         }
 
@@ -166,21 +147,27 @@ namespace nadena.dev.ndmf.animator
             }
             finally
             {
-                if (--_cloneDepth == 0)
-                {
-                    // Flush deferred actions. Note that deferred actions might spawn other clones, so be careful not
-                    // to recurse while flushing.
-                    try
-                    {
-                        _cloneDepth++;
+                if (--_cloneDepth == 0) FlushDeferredCalls();
+            }
+        }
 
-                        while (_deferredCalls.TryDequeue(out var action)) action();
-                    }
-                    finally
-                    {
-                        _cloneDepth--;
-                    }
-                }
+        /// <summary>
+        ///     Runs all deferred clone actions, including any spawned by previously deferred actions. Deferred actions exist
+        ///     only to bound recursion depth during cloning, so it is safe to flush them at an arbitrary point; animator
+        ///     controllers cannot be nested indefinitely.
+        /// </summary>
+        internal void FlushDeferredCalls()
+        {
+            // Note that deferred actions might spawn other clones, so be careful not to recurse while flushing.
+            _cloneDepth++;
+
+            try
+            {
+                while (_deferredCalls.TryDequeue(out var action)) action();
+            }
+            finally
+            {
+                _cloneDepth--;
             }
         }
 
@@ -293,7 +280,7 @@ namespace nadena.dev.ndmf.animator
         public void DeferCall(Action action)
         {
             var overrideStack = _curDynScope;
-            // Preserve ambient AnimatorOverrideController context when we defer calls
+            // Preserve ambient dynamic-scope state (innate animator key, layer mapper) when we defer calls
             if (_cloneDepth > 0)
                 _deferredCalls.Enqueue(() =>
                 {
