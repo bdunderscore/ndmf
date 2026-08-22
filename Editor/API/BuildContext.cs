@@ -135,7 +135,7 @@ namespace nadena.dev.ndmf
                     NDMFLocales.L, ErrorSeverity.Error,
                     "Errors:EditorOnlyAvatarRoot"
                 );
-                error.AddReference(ObjectRegistry.GetReference(obj));
+                error.AddReference(((IObjectRegistry)_registry).GetReference(obj));
                 _report.AddError(error);
                 ErrorReportWindow.ShowErrorReportWindow();
 

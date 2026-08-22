@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
@@ -103,6 +104,35 @@ namespace UnitTests
 
             var completion = BuildEvent.LastBuildEvents.OfType<BuildEvent.BuildEnded>().Single();
             Assert.That(completion.Successful, Is.False);
+        }
+
+        [Test]
+        public void NDMF0016EditorOnlyRootErrorUsesTheContextLocalObjectRegistry()
+        {
+            var root = CreateRoot("NDMF-0016");
+            root.tag = "EditorOnly";
+            var priorReports = ErrorReport.Reports.ToList();
+
+            try
+            {
+                using (new ObjectRegistryScope(new ObjectRegistry(null)))
+                {
+                    var exception = Assert.Throws<Exception>(() => new BuildContext(root, null));
+                    Assert.That(exception!.Message, Is.EqualTo(
+                        "Can't process an avatar whose root object is marked as EditorOnly"
+                    ));
+                }
+
+                var error = ErrorReport.Reports.Except(priorReports).Single().Errors.Single().TheError
+                    as SimpleError;
+                Assert.That(error, Is.Not.Null);
+                Assert.That(error!.References.Single().Object, Is.SameAs(root));
+                Assert.That(error.References.Single().Path, Is.EqualTo(""));
+            }
+            finally
+            {
+                ErrorReport.Reports.RemoveAll(report => !priorReports.Contains(report));
+            }
         }
     }
 }
