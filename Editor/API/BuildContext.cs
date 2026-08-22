@@ -553,7 +553,7 @@ namespace nadena.dev.ndmf
                 Serialize();
                 sw.Stop();
 
-                BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, true));
+                BuildEvent.Dispatch(new BuildEvent.BuildEnded(sw.ElapsedMilliseconds, _report.Errors.Count == 0));
 
                 if (!Application.isBatchMode && _report.Errors.Count > 0)
                 {
