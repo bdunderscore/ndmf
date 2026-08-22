@@ -269,6 +269,7 @@ namespace nadena.dev.ndmf.animator
                         _layers.Remove(priority);
                     }
                 }
+                _layerPriorities.Remove(layer);
             }
         }
 
