@@ -37,5 +37,20 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("hello, world", p.innateKey);
         }
 #endif
+
+        [Test]
+        public void DistinctScopeRestoresPriorCloneCache()
+        {
+            var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var source = new AnimationClip();
+            var originalClone = context.Clone(source);
+
+            using (context.PushDistinctScope())
+            {
+                Assert.AreNotSame(originalClone, context.Clone(source));
+            }
+
+            Assert.AreSame(originalClone, context.Clone(source));
+        }
     }
 }

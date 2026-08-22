@@ -65,16 +65,18 @@ namespace nadena.dev.ndmf.animator
 
         private class DistinctScope : IDisposable
         {
+            private readonly CloneContext _context;
             private readonly Dictionary<object, object> _priorClones;
 
-            public DistinctScope(Dictionary<object, object> clones)
+            public DistinctScope(CloneContext context)
             {
-                _priorClones = clones;
+                _context = context;
+                _priorClones = context._clones;
             }
 
             public void Dispose()
             {
-                _priorClones.Clear();
+                _context._clones = _priorClones;
             }
         }
 
@@ -96,7 +98,7 @@ namespace nadena.dev.ndmf.animator
         /// <returns></returns>
         internal IDisposable PushDistinctScope()
         {
-            var scope = new DistinctScope(_clones);
+            var scope = new DistinctScope(this);
             _clones = new Dictionary<object, object>();
 
             return scope;
