@@ -1,8 +1,12 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.reporting;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace UnitTests
 {
@@ -33,6 +37,37 @@ namespace UnitTests
         }
     }
 
+    internal sealed class NDMF0015ErrorContext : IExtensionContext
+    {
+        private sealed class BuildError : IError
+        {
+            public ErrorSeverity Severity => ErrorSeverity.Error;
+
+            public UnityEngine.UIElements.VisualElement CreateVisualElement(ErrorReport report)
+            {
+                return new UnityEngine.UIElements.VisualElement();
+            }
+
+            public string ToMessage()
+            {
+                return "NDMF-0015";
+            }
+
+            public void AddReference(ObjectReference obj)
+            {
+            }
+        }
+
+        public void OnActivate(BuildContext context)
+        {
+        }
+
+        public void OnDeactivate(BuildContext context)
+        {
+            ErrorReport.ReportError(new BuildError());
+        }
+    }
+
     public class BuildContextLifecycleTests : TestBase
     {
         [Test]
@@ -56,6 +91,18 @@ namespace UnitTests
             {
                 NDMF0003RequiredContext.DeactivationOrder.Clear();
             }
+        }
+
+        [Test]
+        public void NDMF0015FinishReportsAnUnsuccessfulBuildWhenErrorsWereRecorded()
+        {
+            var context = new BuildContext(CreateRoot("NDMF-0015"), null);
+            context.ActivateExtensionContext<NDMF0015ErrorContext>();
+
+            context.Finish();
+
+            var completion = BuildEvent.LastBuildEvents.OfType<BuildEvent.BuildEnded>().Single();
+            Assert.That(completion.Successful, Is.False);
         }
     }
 }
