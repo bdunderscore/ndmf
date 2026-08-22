@@ -113,7 +113,7 @@ namespace nadena.dev.ndmf.platform
                 throw new Exception("Multiple avatar roots found in hierarchy.");
             }
 
-            if (candidateObjects.Count > 1)
+            if (platforms.Count > 1)
             {
                 if (platforms.Contains(GenericPlatform.Instance)) return GenericPlatform.Instance;
                 throw new Exception("Multiple platform providers found for avatar root: " +
