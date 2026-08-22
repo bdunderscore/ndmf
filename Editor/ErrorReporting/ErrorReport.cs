@@ -89,10 +89,11 @@ namespace nadena.dev.ndmf
         
         internal static List<ObjectReference> ReferenceStack = new List<ObjectReference>();
 
-        private ErrorReport(string avatarName, string avatarPath)
+        private ErrorReport(string avatarName, string avatarPath, Scene scene)
         {
             AvatarName = avatarName;
             AvatarRootPath = avatarPath;
+            Scene = scene;
             Errors = ImmutableList<ErrorContext>.Empty;
         }
 
@@ -104,6 +105,8 @@ namespace nadena.dev.ndmf
         /// The path (from the scene root) of the avatar being processed
         /// </summary>
         public string AvatarRootPath { get; }
+
+        internal Scene Scene { get; }
 
         /// <summary>
         /// A list of reported errors.
@@ -134,7 +137,7 @@ namespace nadena.dev.ndmf
                 path = path.Substring(0, path.Length - 7);
             }
 
-            var report = new ErrorReport(name, path);
+            var report = new ErrorReport(name, path, root.scene);
             Reports.Add(report);
 
             return report;
@@ -214,7 +217,7 @@ namespace nadena.dev.ndmf
         /// <returns>true if the avatar was found, otherwise false</returns>
         public bool TryResolveAvatar(out GameObject av)
         {
-            var scene = SceneManager.GetActiveScene();
+            var scene = Scene;
 
             var firstPathElement = AvatarRootPath.Split('/')[0];
             var remaining = firstPathElement == AvatarRootPath ? null : AvatarRootPath.Substring(firstPathElement.Length + 1);
@@ -330,7 +333,7 @@ namespace nadena.dev.ndmf
         /// <returns></returns>
         public static List<ErrorContext> CaptureErrors(Action action)
         {
-            var report = new ErrorReport("test avatar", "test avatar");
+            var report = new ErrorReport("test avatar", "test avatar", SceneManager.GetActiveScene());
             
             using (new ErrorReportScope(report))
             {

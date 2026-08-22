@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.localization;
@@ -48,7 +48,56 @@ namespace UnitTests
                 if (destroyedObject != null) UnityEngine.Object.DestroyImmediate(destroyedObject);
             }
         }
-        
+
+        [Test]
+        public void NDMF0021_ErrorReportResolvesAvatarFromItsOriginatingAdditiveScene()
+        {
+            var activeScenePath = "Assets/NDMF0021_ActiveScene.unity";
+            var activeScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            EditorSceneManager.SaveScene(activeScene, activeScenePath);
+            var testScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            Assert.IsTrue(SceneManager.SetActiveScene(activeScene));
+            var avatar = new GameObject("test avatar");
+            SceneManager.MoveGameObjectToScene(avatar, testScene);
+
+            try
+            {
+                Assert.AreNotEqual(testScene, SceneManager.GetActiveScene());
+
+                var report = ErrorReport.Create(avatar, false);
+                Assert.IsTrue(report.TryResolveAvatar(out var resolvedAvatar));
+                Assert.AreSame(avatar, resolvedAvatar);
+            }
+            finally
+            {
+                if (avatar != null) UnityEngine.Object.DestroyImmediate(avatar);
+                EditorSceneManager.CloseScene(testScene, true);
+                AssetDatabase.DeleteAsset(activeScenePath);
+            }
+        }
+
+        [Test]
+        public void NDMF0022_ResolveEmptyReferencePathToAvatarRoot()
+        {
+            var avatar = new GameObject("avatar");
+            try
+            {
+                using (new ObjectRegistryScope(new ObjectRegistry(avatar.transform)))
+                {
+                    var reference = ObjectRegistry.GetReference(avatar);
+                    var report = ErrorReport.Create(avatar, false);
+
+                    Assert.AreEqual("", reference.Path);
+                    Assert.IsTrue(reference.TryResolve(report, out var resolvedObject));
+                    Assert.AreSame(avatar, resolvedObject);
+                }
+            }
+            finally
+            {
+                ErrorReport.Clear();
+                if (avatar != null) UnityEngine.Object.DestroyImmediate(avatar);
+            }
+        }
         [Test]
         public void TestEnumerableExpansion()
         {
