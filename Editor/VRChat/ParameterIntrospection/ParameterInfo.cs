@@ -137,7 +137,7 @@ namespace nadena.dev.ndmf
             ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> mappings
                 = ImmutableDictionary<(ParameterNamespace, string), ParameterMapping>.Empty;
 
-            if (!RuntimeUtil.IsAvatarRoot(c.transform))
+            if (!RuntimeUtil.IsAvatarRoot(c.transform) && c.transform.parent != null)
             {
                 _computeContext.ObservePath(c.transform);
                 mappings = GetParameterRemappingsAt(c.transform.parent.gameObject);
