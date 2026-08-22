@@ -71,7 +71,7 @@ namespace nadena.dev.ndmf
 
             _currentFrame.Value = newFrame;
 
-            return new PopFrame(newFrame);
+            return new PopFrame(currentFrame);
         }
 
         private class PopFrame : IDisposable
@@ -86,7 +86,8 @@ namespace nadena.dev.ndmf
             public void Dispose()
             {
                 var currentFrame = _currentFrame.Value;
-                if (currentFrame.Root != _targetFrame.Root || currentFrame.Depth < _targetFrame.Depth) return;
+                if (currentFrame?.Root != _targetFrame?.Root ||
+                    currentFrame?.Depth < _targetFrame?.Depth) return;
 
                 _currentFrame.Value = _targetFrame;
             }
