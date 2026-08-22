@@ -75,7 +75,7 @@ namespace nadena.dev.ndmf.multiplatform.editor
                 colliders[pbc] = portable;
             }
             
-            foreach (var pb in root.GetComponentsInChildren<VRCPhysBone>())
+            foreach (var pb in root.GetComponentsInChildren<VRCPhysBone>(true))
             {
                 var rootBone = pb.rootTransform ?? pb.transform;
                 var portable = explicitDynBones.GetValueOrDefault(rootBone) ??
