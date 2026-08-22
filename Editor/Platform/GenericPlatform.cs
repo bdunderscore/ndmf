@@ -114,7 +114,7 @@ namespace nadena.dev.ndmf.platform
             }
             
             visemes.TargetRenderer = info.VisemeRenderer;
-            visemes.Shapes.RemoveAll(s => s.Blendshape == null || !info.VisemeBlendshapes.ContainsKey(s.Blendshape));
+            visemes.Shapes.RemoveAll(s => s.VisemeName == null || !info.VisemeBlendshapes.ContainsKey(s.VisemeName));
 
             var toAdd = new Dictionary<string, string>(info.VisemeBlendshapes);
             for (int i = 0; i < visemes.Shapes.Count; i++)

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf.animator;
 using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
+using nadena.dev.ndmf.platform;
+using nadena.dev.ndmf.runtime.components;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -104,6 +107,29 @@ namespace UnitTests.AnimationServices
 
             var newController = (AnimatorController) childComponent.AnimatorController;
             Assert.AreEqual(1f, newController.layers[0].defaultWeight);
+        }
+
+        [Test]
+        public void NDMF0014_VisemeInitializationMatchesExistingShapeByVisemeName()
+        {
+            var avatar = CreateRoot("avatar");
+            var renderer = TrackObject(new GameObject("face")).AddComponent<SkinnedMeshRenderer>();
+            renderer.transform.SetParent(avatar.transform);
+            var visemes = avatar.AddComponent<PortableBlendshapeVisemes>();
+            visemes.TargetRenderer = renderer;
+            visemes.Shapes.Add(new PortableBlendshapeVisemes.Shape
+            {
+                VisemeName = "legacy",
+                Blendshape = CommonAvatarInfo.Viseme_aa
+            });
+            var info = new CommonAvatarInfo { VisemeRenderer = renderer };
+            info.VisemeBlendshapes[CommonAvatarInfo.Viseme_aa] = "new-blendshape";
+
+            Assert.DoesNotThrow(() => GenericPlatform.Instance.InitFromCommonAvatarInfo(avatar, info));
+            Assert.AreEqual(
+                "new-blendshape",
+                visemes.Shapes.Single(shape => shape.VisemeName == CommonAvatarInfo.Viseme_aa).Blendshape
+            );
         }
     }
 }
