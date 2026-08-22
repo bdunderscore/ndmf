@@ -546,28 +546,7 @@ namespace nadena.dev.ndmf
             using (new ExecutionScope(this))
             {
                 sw.Start();
-                foreach (var kvp in _activeExtensions.ToList())
-                {
-                    using (_report.WithExtensionContextTrace(kvp.Key))
-                    {
-                        try
-                        {
-                            kvp.Value.OnDeactivate(this);
-
-                            // ReSharper disable once SuspiciousTypeConversion.Global
-                            if (kvp.Value is IDisposable d)
-                            {
-                                d.Dispose();
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            ErrorReport.ReportException(e);
-                        }
-                    }
-
-                    _activeExtensions.Remove(kvp.Key);
-                }
+                DeactivateAllExtensionContexts();
 
                 RecalculateAllMeshes();
 
