@@ -449,6 +449,36 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual(m1, newCurve[0].value);
             Assert.AreEqual(m3, newCurve[1].value);
         }
+
+        [Test]
+        public void RemovingObjectCurveRemovesClipFromPPtrCache()
+        {
+            var referencedObject = new AnimationClip();
+            try
+            {
+                var context = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+                var controller = VirtualAnimatorController.Create(context, "test");
+                var layer = controller.AddLayer(LayerPriority.Default, "test");
+                var clip = VirtualClip.Create("clip");
+                var binding = EditorCurveBinding.PPtrCurve("path", typeof(MeshRenderer), "m_Materials.Array.data[0]");
+                clip.SetObjectCurve(binding, new[]
+                {
+                    new ObjectReferenceKeyframe { time = 0, value = referencedObject }
+                });
+                layer.StateMachine!.AddState("state", motion: clip);
+                var index = new AnimationIndex(new[] { controller });
+
+                Assert.That(index.GetPPtrReferencedObjects, Is.EquivalentTo(new[] { referencedObject }));
+
+                clip.SetObjectCurve(binding, null);
+
+                Assert.IsEmpty(index.GetPPtrReferencedObjects);
+            }
+            finally
+            {
+                Object.DestroyImmediate(referencedObject);
+            }
+        }
     }
 }
 

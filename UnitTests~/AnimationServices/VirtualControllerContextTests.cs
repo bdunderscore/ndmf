@@ -89,5 +89,35 @@ namespace UnitTests.AnimationServices
             Assert.NotNull(findFxLayer(root, "test_layer"));
         }
         #endif
+
+        [Test]
+        public void RemovingControllersInvalidatesControllerCache()
+        {
+            var context = CreateContext(CreateRoot("root"));
+            var controllerContext = context.ActivateExtensionContext<VirtualControllerContext>();
+            try
+            {
+                controllerContext.Controllers["removed"] =
+                    VirtualAnimatorController.Create(controllerContext.CloneContext, "removed");
+                var tokenBeforeRemove = controllerContext.CacheInvalidationToken;
+
+                Assert.IsTrue(controllerContext.Controllers.Remove("removed"));
+                Assert.Greater(controllerContext.CacheInvalidationToken, tokenBeforeRemove);
+
+                controllerContext.Controllers["first"] =
+                    VirtualAnimatorController.Create(controllerContext.CloneContext, "first");
+                controllerContext.Controllers["second"] =
+                    VirtualAnimatorController.Create(controllerContext.CloneContext, "second");
+                var tokenBeforeClear = controllerContext.CacheInvalidationToken;
+
+                controllerContext.Controllers.Clear();
+
+                Assert.Greater(controllerContext.CacheInvalidationToken, tokenBeforeClear);
+            }
+            finally
+            {
+                context.DeactivateExtensionContext<VirtualControllerContext>();
+            }
+        }
     }
 }

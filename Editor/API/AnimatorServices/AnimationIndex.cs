@@ -379,6 +379,8 @@ namespace nadena.dev.ndmf.animator
             lastBindings.UnionWith(clip.GetObjectCurveBindings());
             lastBindings.UnionWith(clip.GetFloatCurveBindings());
 
+            _pptrClips.Remove(clip);
+
             if (clip.GetObjectCurveBindings().Any())
             {
                 _pptrClips.Add(clip);

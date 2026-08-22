@@ -76,14 +76,16 @@ namespace nadena.dev.ndmf.animator
         private readonly ISet<K> _filter;
         private readonly Func<K, I, V> _valueFilter;
         private readonly Action<K, V> _setterCallback;
+        private readonly Action<K>? _removalCallback;
 
         public FilteredDictionaryView(IDictionary<K, I> delegateDict, ISet<K> filter, Func<K, I, V> valueFilter,
-            Action<K, V> setterCallback)
+            Action<K, V> setterCallback, Action<K>? removalCallback = null)
         {
             _delegate = delegateDict;
             _filter = filter;
             _valueFilter = valueFilter;
             _setterCallback = setterCallback;
+            _removalCallback = removalCallback;
         }
 
         public IEnumerator<KeyValuePair<K, V>> GetEnumerator()
@@ -116,7 +118,9 @@ namespace nadena.dev.ndmf.animator
 
         public bool Remove(K key)
         {
-            return !_filter.Contains(key) && _delegate.Remove(key);
+            if (_filter.Contains(key) || !_delegate.Remove(key)) return false;
+            _removalCallback?.Invoke(key);
+            return true;
         }
 
         public bool TryGetValue(K key, out V value)
@@ -175,13 +179,19 @@ namespace nadena.dev.ndmf.animator
 
         public void Clear()
         {
-            var retained = _delegate.Where(kv => !!_filter.Contains(kv.Key)).ToList();
+            var removed = _delegate.Keys.Where(key => !_filter.Contains(key)).ToList();
+            var retained = _delegate.Where(kv => _filter.Contains(kv.Key)).ToList();
 
             _delegate.Clear();
 
             foreach (var pair in retained)
             {
                 _delegate.Add(pair);
+            }
+
+            foreach (var key in removed)
+            {
+                _removalCallback?.Invoke(key);
             }
         }
 
@@ -205,7 +215,7 @@ namespace nadena.dev.ndmf.animator
 
         public bool Remove(KeyValuePair<K, V> item)
         {
-            return Contains(item) && _delegate.Remove(item.Key);
+            return Contains(item) && Remove(item.Key);
         }
 
         public int Count => _delegate.Count - _filter.Where(_delegate.ContainsKey).Count();
