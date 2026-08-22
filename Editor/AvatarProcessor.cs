@@ -110,23 +110,31 @@ namespace nadena.dev.ndmf
             using (new OverrideTemporaryDirectoryScope("Assets/ZZZ_GeneratedAssets"))
             {
                 var avatar = UnityObject.Instantiate(obj);
-                platform ??= AmbientPlatform.CurrentPlatform;
-                var buildContext = new BuildContext(avatar, TemporaryAssetRoot, platform);
-
-                avatar.transform.position += Vector3.forward * 2f;
                 try
                 {
-                    AssetDatabase.StartAssetEditing();
-                    ProcessAvatar(buildContext, BuildPhase.BuiltInPhases.First(), BuildPhase.BuiltInPhases.Last());
+                    platform ??= AmbientPlatform.CurrentPlatform;
+                    var buildContext = new BuildContext(avatar, TemporaryAssetRoot, platform);
 
-                    buildContext.Finish();
+                    avatar.transform.position += Vector3.forward * 2f;
+                    try
+                    {
+                        AssetDatabase.StartAssetEditing();
+                        ProcessAvatar(buildContext, BuildPhase.BuiltInPhases.First(), BuildPhase.BuiltInPhases.Last());
 
-                    OnManualProcessAvatar?.Invoke(avatar, platform);
-                    return avatar;
+                        buildContext.Finish();
+
+                        OnManualProcessAvatar?.Invoke(avatar, platform);
+                        return avatar;
+                    }
+                    finally
+                    {
+                        AssetDatabase.StopAssetEditing();
+                    }
                 }
-                finally
+                catch
                 {
-                    AssetDatabase.StopAssetEditing();
+                    UnityObject.DestroyImmediate(avatar);
+                    throw;
                 }
             }
         }
