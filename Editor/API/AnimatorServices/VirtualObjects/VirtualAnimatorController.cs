@@ -270,6 +270,7 @@ namespace nadena.dev.ndmf.animator
                     }
                 }
                 _layerPriorities.Remove(layer);
+                Invalidate();
             }
         }
 
@@ -295,6 +296,7 @@ namespace nadena.dev.ndmf.animator
                     _layers.Remove(prio);
                 }
             }
+            Invalidate();
         }
 
         /// <summary>

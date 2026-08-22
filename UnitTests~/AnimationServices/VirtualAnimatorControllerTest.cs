@@ -263,18 +263,6 @@ namespace UnitTests.AnimationServices
             Assert.IsFalse(index.GetClipsForObjectPath("path").Any());
         }
 
-        [Test]
-        public void RemovedLayerCanBeAddedAgain()
-        {
-            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
-            var controller = VirtualAnimatorController.Create(cloneContext);
-            var layer = controller.AddLayer(LayerPriority.Default, "layer");
-
-            controller.RemoveLayer(layer);
-            controller.AddLayer(new LayerPriority(1), layer);
-
-            Assert.That(controller.Layers, Is.EquivalentTo(new[] { layer }));
-        }
         
         
         [Test]

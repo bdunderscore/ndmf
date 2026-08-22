@@ -182,7 +182,8 @@ namespace nadena.dev.ndmf.animator
                 {
                     CacheInvalidationToken++;
                     _layerStates[k] = new LayerState(null) { VirtualController = v };
-                }
+                },
+                _ => CacheInvalidationToken++
             );
 
             #if NDMF_VRCSDK3_AVATARS
