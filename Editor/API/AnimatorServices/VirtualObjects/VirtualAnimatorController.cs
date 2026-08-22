@@ -242,10 +242,11 @@ namespace nadena.dev.ndmf.animator
             get { return _layers.Values.SelectMany(l => l.Layers); }
             set
             {
+                var replacementLayers = value.ToList();
                 _layerPriorities.Clear();
                 _layers.Clear();
 
-                foreach (var layer in value)
+                foreach (var layer in replacementLayers)
                 {
                     AddLayer(new LayerPriority(0), layer);
                 }

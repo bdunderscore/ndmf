@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -216,6 +216,51 @@ namespace UnitTests.AnimationServices
             Assert.AreEqual("t+10", layers[1].Name);
             Assert.AreEqual("t-10", layers[2].Name);
             Assert.AreEqual("t0.1", layers[3].Name);
+        }
+
+        [Test]
+        public void ReplacingLayersFromControllerEnumerationRetainsLayers()
+        {
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(cloneContext);
+            controller.AddLayer(LayerPriority.Default, "retained");
+            controller.AddLayer(LayerPriority.Default, "removed");
+
+            controller.Layers = controller.Layers.Where(layer => layer.Name == "retained");
+
+            CollectionAssert.AreEquivalent(new[] { "retained" }, controller.Layers.Select(layer => layer.Name));
+        }
+
+        [Test]
+        public void RemovedLayerCanBeAddedAgain()
+        {
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(cloneContext);
+            var layer = controller.AddLayer(LayerPriority.Default, "layer");
+
+            controller.RemoveLayer(layer);
+            controller.AddLayer(new LayerPriority(1), layer);
+
+            CollectionAssert.AreEquivalent(new[] { layer }, controller.Layers);
+        }
+
+        [Test]
+        public void RemovingLayerInvalidatesAnimationIndex()
+        {
+            var cloneContext = new CloneContext(GenericPlatformAnimatorBindings.Instance);
+            var controller = VirtualAnimatorController.Create(cloneContext);
+            var layer = controller.AddLayer(LayerPriority.Default, "layer");
+            var clip = VirtualClip.Create("clip");
+            var binding = EditorCurveBinding.FloatCurve("path", typeof(Transform), "m_LocalPosition.x");
+            clip.SetFloatCurve(binding, AnimationCurve.Constant(0, 1, 1));
+            layer.StateMachine!.AddState("state", motion: clip);
+            var index = new AnimationIndex(new[] { controller });
+
+            CollectionAssert.AreEquivalent(new[] { clip }, index.GetClipsForObjectPath("path"));
+
+            controller.RemoveLayer(layer);
+
+            Assert.IsFalse(index.GetClipsForObjectPath("path").Any());
         }
         
         
