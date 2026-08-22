@@ -79,7 +79,7 @@ namespace nadena.dev.ndmf
 
             if (av == null || _path == null) return false;
 
-            GameObject go = av.transform.Find(_path)?.gameObject;
+            GameObject go = _path.Length == 0 ? av : av.transform.Find(_path)?.gameObject;
 
             if (go == null) return false;
             if (Type == typeof(GameObject))

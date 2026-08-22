@@ -5,6 +5,8 @@ using nadena.dev.ndmf.localization;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 namespace UnitTests
 {
@@ -98,6 +100,7 @@ namespace UnitTests
                 if (avatar != null) UnityEngine.Object.DestroyImmediate(avatar);
             }
         }
+
         [Test]
         public void TestEnumerableExpansion()
         {
