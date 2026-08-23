@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#830] Fixed NDMF preview continuing to render proxies for renderers returned by `PreviewSession.HiddenRenderers`.
 
 ### Changed
+- [#788] Improve preview node reuse matching to reduce unnecessary node rebuilds.
 
 ### Removed
 
