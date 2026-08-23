@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#830] Fixed a number of issues with error report object reference resolution
+- [#830] Fixed failed manual avatar processing leaving a generated avatar clone in the scene.
+- [#830] Fixed extension contexts being deactivated before contexts that depend on them
+- [#830] Fixed `BuildEnded` incorrectly reporting failed builds as successful.
+- [#830] Fixed stale animation-index/controller caches and incorrect layer behavior when virtual animator layers or object curves are removed or replaced.
+- [#830] Fixed `AsyncProfiler` nested scopes not restoring their parent profiling context when disposed.
+- [#830] Fixed parameter introspection throwing when queried for an object outside an avatar hierarchy.
+- [#830] Fixed ambiguous platform providers being selected arbitrarily instead of reported as an error.
+- [#830] Fixed generic-platform viseme initialization failing to update existing viseme shapes when their blendshape mapping changes.
+- [#830] Fixed generic PhysBone conversion skipping inactive PhysBones and losing adjusted radius-curve key times.
+- [#830] Fixed portable Dynamic Bone template selection throwing when the component is outside an avatar root.
+- [#830] Fixed NDMF preview continuing to render proxies for renderers returned by `PreviewSession.HiddenRenderers`.
 
 ### Changed
 
