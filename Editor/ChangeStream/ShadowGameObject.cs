@@ -267,7 +267,7 @@ namespace nadena.dev.ndmf.cs
             {
                 sb.Append(' ', indent);
                 sb.Append("+ ");
-                sb.AppendLine(obj.GameObject == null ? "<" + obj.InstanceID + ">" : obj.GameObject.name);
+                sb.AppendLine(obj.GameObject == null ? "<" + obj.EntityId + ">" : obj.GameObject.name);
                 indent += 2;
                 DumpListenerSet(obj._listeners);
                 sb.AppendLine();
