@@ -162,11 +162,11 @@ namespace nadena.dev.ndmf.animator
             }
 
             var path = RuntimeUtil.RelativePath(_root, t);
-            if (path == null) path = t.gameObject.name + "###UNROOTED_" + t.GetInstanceID();
+            if (path == null) path = t.gameObject.name + "###UNROOTED_" + t.GetEntityId();
 
             if (_pathToObject.ContainsKey(path))
             {
-                path += "###PENDING_" + t.GetInstanceID();
+                path += "###PENDING_" + t.GetEntityId();
             }
 
             _objectToOriginalPaths[t] = new List<string> { path };

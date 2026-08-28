@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using nadena.dev.ndmf;
 using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.preview;
 using NUnit.Framework;
@@ -52,19 +53,19 @@ namespace UnitTests.EditorTests
                 return doInvalidate;
             }, ctx);
             
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             Assert.IsTrue(wasFired);
             Assert.IsFalse(ctx.IsInvalidated);
 
             wasFired = false;
             doInvalidate = true;
             
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             Assert.IsTrue(wasFired);
             Assert.IsTrue(ctx.IsInvalidated);
 
             wasFired = false;
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             Assert.IsFalse(wasFired);
         }
 
@@ -83,8 +84,8 @@ namespace UnitTests.EditorTests
                 return true;
             }, ctx);
             
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             
             Assert.AreEqual(1, count);
         }
@@ -113,7 +114,7 @@ namespace UnitTests.EditorTests
             System.GC.Collect(999, GCCollectionMode.Forced, true);
             System.GC.WaitForPendingFinalizers();
             
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             
             Assert.IsFalse(wasFired[0]);
         }
@@ -135,7 +136,7 @@ namespace UnitTests.EditorTests
             }, ctx);
 
             listener.Dispose();
-            shadow.FireObjectChangeNotification(gameObject.GetInstanceID());
+            shadow.FireObjectChangeNotification(gameObject.GetEntityId());
             
             Assert.IsFalse(wasFired);
         }
@@ -163,7 +164,7 @@ namespace UnitTests.EditorTests
             
             p2.transform.SetParent(p1.transform);
             
-            shadow.FireReparentNotification(p2.GetInstanceID());
+            shadow.FireReparentNotification(p2.GetEntityId());
             
             Assert.IsTrue(wasFired);
         }
@@ -194,7 +195,7 @@ namespace UnitTests.EditorTests
             
             p2.transform.SetParent(p3.transform);
             
-            shadow.FireReparentNotification(p2.GetInstanceID());
+            shadow.FireReparentNotification(p2.GetEntityId());
             
             Assert.IsTrue(wasFired);
         }
@@ -215,7 +216,7 @@ namespace UnitTests.EditorTests
             }, ctx);
             
             obj.AddComponent<MeshFilter>();
-            shadow.MaybeFireStructureChangeEvent(obj.GetInstanceID());
+            shadow.MaybeFireStructureChangeEvent(obj.GetEntityId());
             
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(HierarchyEvent.SelfComponentsChanged, events[0]);
@@ -242,7 +243,7 @@ namespace UnitTests.EditorTests
             shadow.EnableComponentMonitoring(parent);
             
             child.AddComponent<MeshFilter>();
-            shadow.MaybeFireStructureChangeEvent(child.GetInstanceID());
+            shadow.MaybeFireStructureChangeEvent(child.GetEntityId());
             
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(HierarchyEvent.ChildComponentsChanged, events[0]);
@@ -270,7 +271,7 @@ namespace UnitTests.EditorTests
             shadow.EnableComponentMonitoring(p1);
             
             p2.transform.SetParent(p1.transform);
-            shadow.FireReparentNotification(p2.GetInstanceID());
+            shadow.FireReparentNotification(p2.GetEntityId());
             
             // Assert.AreEqual(1, events.Count); - TODO - deduplicate events
             Assert.IsFalse(events.Contains(HierarchyEvent.PathChange)); // we didn't register for this
@@ -279,7 +280,7 @@ namespace UnitTests.EditorTests
             events.Clear();
 
             p3.AddComponent<MeshFilter>();
-            shadow.MaybeFireStructureChangeEvent(p3.GetInstanceID());
+            shadow.MaybeFireStructureChangeEvent(p3.GetEntityId());
             
             // Assert.AreEqual(1, events.Count); - TODO - deduplicate events
             Assert.IsTrue(events.Contains(HierarchyEvent.ChildComponentsChanged));
@@ -305,7 +306,7 @@ namespace UnitTests.EditorTests
             
             shadow.EnableComponentMonitoring(p);
             
-            shadow.FireReorderNotification(c1.GetInstanceID());
+            shadow.FireReorderNotification(c1.GetEntityId());
             
             Assert.AreEqual(1, events.Count);
             Assert.IsTrue(events.Contains(HierarchyEvent.ChildComponentsChanged));
@@ -343,7 +344,7 @@ namespace UnitTests.EditorTests
             
             shadow.EnableComponentMonitoring(o1);
             
-            var o2_id = o2.GetInstanceID();
+            var o2_id = o2.GetEntityId();
             Object.DestroyImmediate(o2);
             
             shadow.FireDestroyNotification(o2_id);
@@ -383,7 +384,7 @@ namespace UnitTests.EditorTests
             
             shadow.EnableComponentMonitoring(o1);
             
-            var o2_id = o2.GetInstanceID();
+            var o2_id = o2.GetEntityId();
             Object.DestroyImmediate(o2);
             
             shadow.FireReparentNotification(o2_id);
@@ -415,7 +416,7 @@ namespace UnitTests.EditorTests
             shadow.RegisterGameObjectListener(o3, AddToList(events, 3), ctx3);
             
             shadow.InvalidateAll();
-            shadow.FireObjectChangeNotification(o1.GetInstanceID()); // should be ignored
+            shadow.FireObjectChangeNotification(o1.GetEntityId()); // should be ignored
             
             Assert.IsTrue(ctx1.IsInvalidated);
             Assert.IsTrue(ctx2.IsInvalidated);
@@ -435,7 +436,7 @@ namespace UnitTests.EditorTests
             List<(int, HierarchyEvent)> events = new List<(int, HierarchyEvent)>();
             shadow.RegisterObjectListener(component, AddToList(events, 1), ctx);
             
-            shadow.FireObjectChangeNotification(component.GetInstanceID());
+            shadow.FireObjectChangeNotification(component.GetEntityId());
             
             Assert.Contains((1, HierarchyEvent.ObjectDirty), events);
         }
@@ -453,7 +454,7 @@ namespace UnitTests.EditorTests
             var c1 = o2.AddComponent<BoxCollider>();
             var c2 = o2.AddComponent<BoxCollider>();
             
-            var (iid1, iid2) = (c1.GetInstanceID(), c2.GetInstanceID());
+            var (iid1, iid2) = (c1.GetEntityId(), c2.GetEntityId());
             
             o2.transform.SetParent(o1.transform);
             
@@ -465,12 +466,12 @@ namespace UnitTests.EditorTests
 
             UnityEditorInternal.ComponentUtility.MoveComponentUp(c2);
             var newComponents = o2.GetComponents<BoxCollider>();
-            var (iid1a, iid2a) = (newComponents[0].GetInstanceID(), newComponents[1].GetInstanceID());
+            var (iid1a, iid2a) = (newComponents[0].GetEntityId(), newComponents[1].GetEntityId());
             
             Assert.AreEqual(iid1, iid2a);
             Assert.AreEqual(iid2, iid1a);
             
-            shadow.FireObjectChangeNotification(o2.GetInstanceID());
+            shadow.FireObjectChangeNotification(o2.GetEntityId());
             
             Assert.Contains((1, HierarchyEvent.ChildComponentsChanged), events);
             Assert.Contains((2, HierarchyEvent.SelfComponentsChanged), events);

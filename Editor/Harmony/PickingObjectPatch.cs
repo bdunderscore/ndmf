@@ -22,8 +22,11 @@ namespace nadena.dev.ndmf.preview
         private static ConstructorInfo ctor_l = AccessTools.Constructor(l_PickingObject);
 
         private static ConstructorInfo ctor_PickingObject =
+#if UNITY_6000_5_OR_NEWER
+            AccessTools.Constructor(t_PickingObject, new[] { typeof(EntityId), typeof(int) });
+#else
             AccessTools.Constructor(t_PickingObject, new[] { typeof(Object), typeof(int) });
-
+#endif
         private static PropertyInfo p_materialIndex = AccessTools.Property(t_PickingObject, "materialIndex");
 
         private static MethodInfo m_TryGetGameObject = AccessTools.Method(t_PickingObject, "TryGetGameObject");
@@ -31,7 +34,6 @@ namespace nadena.dev.ndmf.preview
         internal static void Patch(Harmony h)
         {
             var t_PickingObject = AccessTools.TypeByName("UnityEditor.PickingObject");
-            var ctor_PickingObject = AccessTools.Constructor(t_PickingObject, new[] { typeof(Object), typeof(int) });
 
             var t_SceneViewPicking = AccessTools.TypeByName("UnityEditor.SceneViewPicking");
             var m_GetAllOverlapping = AccessTools.Method(t_SceneViewPicking, "GetAllOverlapping");
@@ -66,7 +68,11 @@ namespace nadena.dev.ndmf.preview
                     {
                         list.Add(ctor_PickingObject.Invoke(new[]
                         {
+#if UNITY_6000_5_OR_NEWER
+                            original.GetEntityId(),
+#else
                             original,
+#endif
                             p_materialIndex.GetValue(obj)
                         }));
                         continue;

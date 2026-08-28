@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#808] Experimental support for Unity 6.1~6.7
 
 ### Fixed
 - [#830] Fixed a number of issues with error report object reference resolution
