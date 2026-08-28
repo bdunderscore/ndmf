@@ -158,6 +158,12 @@ namespace nadena.dev.ndmf
 
         public static bool operator ==(EntityId left, EntityId right) => left.Equals(right);
         public static bool operator !=(EntityId left, EntityId right) => !left.Equals(right);
+        public static implicit operator int(EntityId entityId) => entityId.InstanceID;
+
+        public static EntityId FromULong(ulong val)
+        {
+            return new(unchecked((int)val));
+        }
     }
 #endif
 }
