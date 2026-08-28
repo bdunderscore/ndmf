@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.14.7] - [2026-08-28]
+
+### Added
 - [#808] Experimental support for Unity 6.1~6.7
 
 ### Fixed
@@ -27,12 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#788] Improve preview node reuse matching to reduce unnecessary node rebuilds.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.6] - [2026-08-22]
 
