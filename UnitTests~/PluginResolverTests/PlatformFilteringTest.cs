@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Immutable;
-using System.Reflection;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.platform;
+using nadena.dev.ndmf.runtime.components;
 #if NDMF_VRCSDK3_AVATARS
 using nadena.dev.ndmf.vrchat;
 #endif
@@ -188,27 +187,33 @@ namespace UnitTests.PluginResolverTests
         }
 
         [Test]
+        public void GenericProviderDoesNotOverridePrimaryPlatform()
+        {
+            var root = TrackObject(new GameObject("avatar"));
+            root.AddComponent<NDMFAvatarRoot>();
+            root.AddComponent<AmbiguousPlatformRootA>();
+            var primaryPlatform =
+                new AmbiguousPlatformProvider("primary", typeof(AmbiguousPlatformRootA));
+
+            using (PlatformRegistry.InjectPlatformProviderForTesting(primaryPlatform))
+            {
+                Assert.That(PlatformRegistry.GetPrimaryPlatformForAvatar(root), Is.SameAs(primaryPlatform));
+            }
+        }
+
+        [Test]
         public void NDMF0009_ThrowsWhenTwoProvidersMatchOneAvatarRoot()
         {
-            var root = CreateRoot("avatar");
+            var root = TrackObject(new GameObject("avatar"));
             root.AddComponent<AmbiguousPlatformRootA>();
             root.AddComponent<AmbiguousPlatformRootB>();
-            var registryField = typeof(PlatformRegistry).GetField(
-                "_platformProviders", BindingFlags.Static | BindingFlags.NonPublic);
-            var originalRegistry = registryField.GetValue(null);
-            var providers = ImmutableDictionary<string, INDMFPlatformProvider>.Empty
-                .Add("first", new AmbiguousPlatformProvider("first", typeof(AmbiguousPlatformRootA)))
-                .Add("second", new AmbiguousPlatformProvider("second", typeof(AmbiguousPlatformRootB)));
+            var firstProvider = new AmbiguousPlatformProvider("first", typeof(AmbiguousPlatformRootA));
+            var secondProvider = new AmbiguousPlatformProvider("second", typeof(AmbiguousPlatformRootB));
 
-            try
+            using (PlatformRegistry.InjectPlatformProviderForTesting(firstProvider))
+            using (PlatformRegistry.InjectPlatformProviderForTesting(secondProvider))
             {
-                registryField.SetValue(null, providers);
-
                 Assert.Throws<Exception>(() => PlatformRegistry.GetPrimaryPlatformForAvatar(root));
-            }
-            finally
-            {
-                registryField.SetValue(null, originalRegistry);
             }
         }
     }
