@@ -254,7 +254,8 @@ namespace nadena.dev.ndmf
         private void ResolveConflict(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
         {
             ResolveParameterType(oldP, newP, onConflict);
-
+            
+            oldP.IsNameDeferred |= newP.IsNameDeferred;
             oldP.IsAnimatorOnly &= newP.IsAnimatorOnly;
             oldP.IsHidden &= newP.IsHidden;
             oldP.WantSynced |= newP.WantSynced;
