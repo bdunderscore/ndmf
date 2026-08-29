@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#832] Fixed regression in resonite builds resulting in `Unable to determine viewpoint position` error.
+- [#826] ErrorReport.CaptureErrors did not correctly capture errors in certain build contexts
 
 ### Changed
 
