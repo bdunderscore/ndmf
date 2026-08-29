@@ -87,6 +87,34 @@ namespace nadena.dev.ndmf.platform
             }
         }
 
+        internal static IDisposable InjectPlatformProviderForTesting(INDMFPlatformProvider provider)
+        {
+            if (provider == null) throw new ArgumentNullException(nameof(provider));
+
+            var previousProviders = _platformProviders;
+            _platformProviders = _platformProviders.Add(provider.QualifiedName, provider);
+            return new ProviderInjectionScope(previousProviders);
+        }
+
+        private sealed class ProviderInjectionScope : IDisposable
+        {
+            private ImmutableDictionary<string, INDMFPlatformProvider>? _previousProviders;
+
+            internal ProviderInjectionScope(
+                ImmutableDictionary<string, INDMFPlatformProvider> previousProviders)
+            {
+                _previousProviders = previousProviders;
+            }
+
+            public void Dispose()
+            {
+                if (_previousProviders == null) return;
+
+                _platformProviders = _previousProviders;
+                _previousProviders = null;
+            }
+        }
+
         public static INDMFPlatformProvider? GetPrimaryPlatformForAvatar(GameObject avatarObject)
         {
             GameObject? cursor = avatarObject;
@@ -113,14 +141,16 @@ namespace nadena.dev.ndmf.platform
                 throw new Exception("Multiple avatar roots found in hierarchy.");
             }
 
-            if (platforms.Count > 1)
+            var nonGenericPlatforms = platforms.Where(p => p != GenericPlatform.Instance).ToList();
+
+            if (nonGenericPlatforms.Count > 1)
             {
                 if (platforms.Contains(GenericPlatform.Instance)) return GenericPlatform.Instance;
                 throw new Exception("Multiple platform providers found for avatar root: " +
                                 string.Join(", ", platforms));
             }
             
-            return platforms.FirstOrDefault();
+            return nonGenericPlatforms.Concat(platforms).FirstOrDefault();
         }
     }
 }
