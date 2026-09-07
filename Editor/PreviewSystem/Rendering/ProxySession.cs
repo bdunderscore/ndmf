@@ -130,7 +130,6 @@ namespace nadena.dev.ndmf.preview
 
             using (var scope = ev.Scope())
             {
-                ShadowBoneManager.Instance.Update();
 
                 bool activeIsReady = _active?.IsReady == true;
                 bool activeNeedsReplacement = _active?.IsInvalidated != false;
