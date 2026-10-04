@@ -375,6 +375,8 @@ namespace nadena.dev.ndmf.animator
                 throw new ArgumentException("Binding must not be an object curve", nameof(binding));
             }
 
+            ValidateBinding(binding);
+
             if (IsMarkerClip) return;
 
             Invalidate();
@@ -403,6 +405,8 @@ namespace nadena.dev.ndmf.animator
                 throw new ArgumentException("Binding must be a PPtr curve", nameof(binding));
             }
 
+            ValidateBinding(binding);
+
             if (IsMarkerClip) return;
 
             IsDirty = true;
@@ -422,6 +426,19 @@ namespace nadena.dev.ndmf.animator
             cached.Value = curve;
 
             _pptrCurveCache[binding] = cached;
+        }
+
+        private static void ValidateBinding(EditorCurveBinding binding)
+        {
+            if (binding.type == null)
+            {
+                throw new ArgumentException("Binding type must not be null", nameof(binding));
+            }
+
+            if (!typeof(Object).IsAssignableFrom(binding.type))
+            {
+                throw new ArgumentException("Binding type must be a UnityEngine.Object", nameof(binding));
+            }
         }
 
         protected override Motion Prepare(object context)
@@ -464,7 +481,7 @@ namespace nadena.dev.ndmf.animator
                 {
                     var bindings = changedBindings.Select(c => c.Key).ToArray();
                     var curves = changedBindings.Select(c => c.Value.Value).ToArray();
-
+                    
                     AnimationUtility.SetEditorCurves(clip, bindings, curves);
                 }
 
