@@ -164,6 +164,11 @@ namespace nadena.dev.ndmf
         {
             return new(unchecked((int)val));
         }
+        
+        public override string ToString()
+        {
+            return $"{InstanceID}";
+        }
     }
 #endif
 }
