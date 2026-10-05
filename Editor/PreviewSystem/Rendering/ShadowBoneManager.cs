@@ -619,7 +619,9 @@ namespace nadena.dev.ndmf.preview
 
         private static void ApplyRendererState(Renderer renderer, RendererReplacementState state)
         {
-            if (renderer is SkinnedMeshRenderer skinnedRenderer && renderer != null)
+            if (renderer == null) return;
+            
+            if (renderer is SkinnedMeshRenderer skinnedRenderer)
             {
                 skinnedRenderer.bones = state.Bones;
                 skinnedRenderer.rootBone = state.RootBone;
