@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.15.0-beta.0] - [2026-10-05]
 
+### Added
+- [#839] Added ShadowBoneManager
+
 ### Fixed
 - [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
 
