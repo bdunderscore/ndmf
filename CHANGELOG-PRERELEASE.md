@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
-- [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
 
 ### Changed
 
@@ -19,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0-beta.0] - [2026-10-05]
+
+### Fixed
+- [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
 
 ## [1.14.8] - [2026-08-29]
 
