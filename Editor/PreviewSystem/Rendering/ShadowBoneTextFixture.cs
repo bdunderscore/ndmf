@@ -14,7 +14,6 @@ namespace nadena.dev.ndmf.preview
     public sealed class ShadowBoneTextFixture : IDisposable
     {
         private readonly ShadowBoneManager _manager;
-        private readonly IDisposable _stageScope;
 
         /// <summary>
         ///     Gets the shadow-bone manager handle for use by the preview context.
@@ -22,18 +21,31 @@ namespace nadena.dev.ndmf.preview
         public IShadowBoneManagerHandle Handle { get; }
 
         /// <summary>
-        ///     Initializes a shadow-bone manager for stage zero using <paramref name="rendererMap" />.
+        ///     Initializes a shadow-bone manager for preview tests.
         /// </summary>
-        /// <param name="rendererMap">The mutable source-to-proxy renderer map for the test stage.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="rendererMap" /> is <c>null</c>.</exception>
-        public ShadowBoneTextFixture(IReadOnlyDictionary<Renderer, Renderer> rendererMap)
+        public ShadowBoneTextFixture()
         {
-            if (rendererMap == null) throw new ArgumentNullException(nameof(rendererMap));
-
             _manager = new ShadowBoneManager();
             _manager.ResetPipeline();
-            _stageScope = _manager.EnterStage(0, rendererMap);
             Handle = _manager.Handle;
+        }
+
+        /// <summary>
+        ///     Runs one synchronous operation in a fresh stage emulating a render-filter instantation
+        ///     task and commits its shadow-bone replacements.
+        /// </summary>
+        public T ExecuteInStageSync<T>(
+            IReadOnlyDictionary<Renderer, Renderer> rendererMap,
+            Func<T> operation
+        ) where T : class
+        {
+            if (rendererMap == null) throw new ArgumentNullException(nameof(rendererMap));
+            if (operation == null) throw new ArgumentNullException(nameof(operation));
+
+            using var stageScope = _manager.EnterStage(0, rendererMap);
+            var result = operation();
+            if (result != null) stageScope.Commit();
+            return result;
         }
 
         /// <summary>
@@ -47,7 +59,6 @@ namespace nadena.dev.ndmf.preview
         /// <inheritdoc />
         public void Dispose()
         {
-            _stageScope.Dispose();
             _manager.Dispose();
         }
     }
