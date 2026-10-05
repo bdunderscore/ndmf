@@ -26,6 +26,7 @@ namespace nadena.dev.ndmf.preview
         private readonly RefCount _refCount;
 
         private readonly ComputeContext _context;
+        private readonly bool _usesShadowBoneManager;
 
         private CustomSampler _profileSampler_onFrame;
         private CustomSampler _profileSampler_onFrameGroup;
@@ -49,7 +50,8 @@ namespace nadena.dev.ndmf.preview
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
             RefCount refCount,
             ComputeContext context,
-            ObjectRegistry registry
+            ObjectRegistry registry,
+            bool usesShadowBoneManager
         )
         {
             _filter = filter;
@@ -59,7 +61,8 @@ namespace nadena.dev.ndmf.preview
             _refCount = refCount;
             _context = context;
             ObjectRegistry = registry;
-            
+
+            _usesShadowBoneManager = usesShadowBoneManager;
             _profileSampler_onFrame = CustomSampler.Create(filter.GetType() + ".OnFrame");
             _profileSampler_onFrameGroup = CustomSampler.Create(filter.GetType() + ".OnFrameGroup");
             
@@ -93,10 +96,13 @@ namespace nadena.dev.ndmf.preview
             IRenderFilter filter,
             RenderGroup group,
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
-            string trace
+            string trace,
+            PreviewContext previewContext,
+            int stageIndex
         )
         {
-            return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies, trace);
+            return Create(filter, group, ObjectRegistry.Merge(null, proxies.Select(p => p.Item3)), proxies, trace,
+                previewContext, stageIndex);
         }
 
         private static async Task<NodeController> Create(
@@ -104,7 +110,9 @@ namespace nadena.dev.ndmf.preview
             RenderGroup group,
             ObjectRegistry registry,
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
-            string trace
+            string trace,
+            PreviewContext previewContext,
+            int stageIndex
         )
         {
             var ev = TraceBuffer.RecordTraceEvent(
@@ -128,15 +136,29 @@ namespace nadena.dev.ndmf.preview
                       " Registry dump:\n" + registry.RegistryDump());
 #endif
                 IRenderFilterNode node;
+                bool usesShadowBoneManager;
                 using (var scope = new ObjectRegistryScope(registry))
+                using (var shadowBoneAccessScope = previewContext.TrackAccess())
                 {
                     var savedMaterials = group.Renderers.Select(r => r.sharedMaterials).ToArray();
 
-                    node = await filter.Instantiate(
-                        group,
-                        proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                        context
-                    );
+                    using (var sbStage = previewContext.EnterShadowBoneStage(
+                               stageIndex,
+                               proxies.ToDictionary(pair => pair.Item1, pair => pair.Item2.Renderer)
+                           ))
+                    {
+                        node = await filter.Instantiate(
+                            group,
+                            proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                            context
+                        );
+                        if (node != null)
+                        {
+                            sbStage.Commit();
+                        }
+                    }
+
+                    usesShadowBoneManager = shadowBoneAccessScope.ShadowBoneManagerWasAccessed;
 
                     for (var i = 0; i < group.Renderers.Count; i++)
                     {
@@ -155,14 +177,18 @@ namespace nadena.dev.ndmf.preview
                       " Registry dump:\n" + registry.RegistryDump());
 #endif
 
-                return new NodeController(filter, group, node, proxies, new RefCount(), context, registry);
+                return new NodeController(filter, group, node, proxies, new RefCount(), context, registry,
+                    usesShadowBoneManager);
             }
         }
+
 
         public async Task<NodeController> Refresh(
             List<(Renderer, ProxyObjectController, ObjectRegistry)> proxies,
             RenderAspects changes,
-            string trace
+            string trace,
+            PreviewContext previewContext,
+            int stageIndex
         )
         {
             var ev = TraceBuffer.RecordTraceEvent(
@@ -185,9 +211,10 @@ namespace nadena.dev.ndmf.preview
                 IRenderFilterNode node;
                 bool reusedNodeInEntirety;
 
-                if (changes == 0 && !IsInvalidated)
+                var usesShadowBoneManager = _usesShadowBoneManager;
+                if (changes == 0 && !IsInvalidated && !usesShadowBoneManager)
                 {
-                    // Reuse the old node in its entirety
+                    // A node that did not access the pipeline-scoped manager has no registrations to restore.
                     node = _node;
                     context = _context;
                     reusedNodeInEntirety = true;
@@ -195,12 +222,22 @@ namespace nadena.dev.ndmf.preview
                 else
                 {
                     using (var scope = new ObjectRegistryScope(registry))
+                    using (var shadowBoneAccessScope = previewContext.TrackAccess())
+                    using (var shadowBoneStageScope = previewContext.EnterShadowBoneStage(
+                               stageIndex,
+                               proxies.ToDictionary(pair => pair.Item1, pair => pair.Item2.Renderer)
+                           ))
                     {
                         node = await _node.Refresh(
                             proxies.Select(p => (p.Item1, p.Item2.Renderer)),
                             context,
                             changes
                         );
+                        if (node != null)
+                        {
+                            shadowBoneStageScope.Commit();
+                        }
+                        usesShadowBoneManager |= shadowBoneAccessScope.ShadowBoneManagerWasAccessed;
                     }
                     reusedNodeInEntirety = false;
                 }
@@ -222,7 +259,8 @@ namespace nadena.dev.ndmf.preview
 
                 var nodeChanges = reusedNodeInEntirety ? 0 : node.WhatChanged;
 
-                var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry);
+                var controller = new NodeController(_filter, _group, node, proxies, refCount, context, registry,
+                    usesShadowBoneManager);
                 controller.WhatChanged = nodeChanges;
 
                 return controller;

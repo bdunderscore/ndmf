@@ -60,6 +60,8 @@ namespace nadena.dev.ndmf.preview
             {
                 if (proxy == null) return;
 
+                proxy.transform.SetParent(null, true);
+
                 if (_state.InactiveSetupProxy != null || _state.ActivePrimaryCount == 0)
                 {
                     DestroyProxy(proxy);

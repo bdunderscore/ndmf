@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using nadena.dev.ndmf.cs;
 using nadena.dev.ndmf.preview.trace;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -102,14 +103,18 @@ namespace nadena.dev.ndmf.preview
     /// </summary>
     internal class ProxyPipeline
     {
+        private static readonly object ShadowBoneManagerLock = new();
+        private static readonly HashSet<ShadowBoneManager> ShadowBoneManagers = new();
+        private static ShadowBoneManager? _pooledShadowBoneManager;
+
         private TargetSet? _targetSet;
         private List<StageDescriptor> _stages = new();
         private Dictionary<Renderer, ProxyObjectController> _proxies = new();
-        private List<NodeController> _nodes = new(); // in OnFrame execution order
-
+        private readonly ShadowBoneManager _shadowBoneManager;
+        private readonly PreviewContext _previewContext;
+        private int _disposed;
         private readonly Task _buildTask;
 
-        private readonly TaskCompletionSource<object?> _completedBuild = new();
 
         internal ImmutableDictionary<Renderer, Renderer> OriginalToProxyRenderer =
             ImmutableDictionary<Renderer, Renderer>.Empty;
@@ -143,6 +148,28 @@ namespace nadena.dev.ndmf.preview
                 .Where(kvp => kvp.Key != null && !_hiddenRenderers.Contains(kvp.Key))
                 .Concat(_hiddenRenderers.Select(r => (r, (Renderer?)null)));
 
+        static ProxyPipeline()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += DisposeAllShadowBoneManagers;
+            EditorApplication.quitting += DisposeAllShadowBoneManagers;
+        }
+
+        private static void DisposeAllShadowBoneManagers()
+        {
+            ShadowBoneManager[] managers;
+            lock (ShadowBoneManagerLock)
+            {
+                managers = ShadowBoneManagers.ToArray();
+                ShadowBoneManagers.Clear();
+                _pooledShadowBoneManager = null;
+            }
+
+            foreach (var manager in managers)
+            {
+                manager.Dispose();
+            }
+        }
+
         public ProxyPipeline(
             ProxyObjectCache proxyCache,
             IEnumerable<IRenderFilter> filters,
@@ -155,25 +182,42 @@ namespace nadena.dev.ndmf.preview
             var context = new ComputeContext($"ProxyPipeline {_generation}");
             _ctx = context; // prevent GC
 
-            _hiddenRenderers = hideRenderers?.Invoke(context) ?? ImmutableHashSet<Renderer>.Empty;
-            _excludeRenderer = excludeRenderer;
-            
-            var buildEvent = TraceBuffer.RecordTraceEvent(
-                "ProxyPipeline.Build",
-                (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Start build",
-                arg0: this
-            );
-
-            using (var scope = NDMFSyncContext.Scope())
-            using (var evScope = buildEvent.Scope())
+            lock (ShadowBoneManagerLock)
             {
-                _buildTask = Task.Factory.StartNew(
-                    _ => Build(proxyCache, filters, priorPipeline),
-                    null,
-                    CancellationToken.None,
-                    0,
-                    TaskScheduler.FromCurrentSynchronizationContext()
-                ).Unwrap();
+                _shadowBoneManager = _pooledShadowBoneManager ?? new ShadowBoneManager();
+                _pooledShadowBoneManager = null;
+                ShadowBoneManagers.Add(_shadowBoneManager);
+            }
+
+            _shadowBoneManager.ResetPipeline();
+            _previewContext = new PreviewContext
+            {
+                ShadowBoneManager = _shadowBoneManager.Handle
+            };
+            _previewContext.Seal();
+
+            _excludeRenderer = excludeRenderer;
+            using (var previewContextScope = _previewContext.Activate())
+            {
+                _hiddenRenderers = hideRenderers?.Invoke(context) ?? ImmutableHashSet<Renderer>.Empty;
+
+                var buildEvent = TraceBuffer.RecordTraceEvent(
+                    "ProxyPipeline.Build",
+                    ev => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Start build",
+                    this
+                );
+
+                using (var scope = NDMFSyncContext.Scope())
+                using (var evScope = buildEvent.Scope())
+                {
+                    _buildTask = Task.Factory.StartNew(
+                        _ => Build(proxyCache, filters, priorPipeline),
+                        null,
+                        CancellationToken.None,
+                        0,
+                        TaskScheduler.FromCurrentSynchronizationContext()
+                    ).Unwrap();
+                }
             }
         }
 
@@ -188,6 +232,7 @@ namespace nadena.dev.ndmf.preview
             ProxyPipeline? priorPipeline
         )
         {
+            using var previewContextScope = _previewContext.Activate();
             using var syncContextScope = NDMFSyncContext.Scope();
             var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
             
@@ -231,6 +276,7 @@ namespace nadena.dev.ndmf.preview
             for (int i = 0; i < activeStages.Count(); i++)
             {
                 var stageTemplate = activeStages[i];
+                var stageIndex = i;
                 
                 Profiler.BeginSample("new StageDescriptor");
                 StageDescriptor stage = new StageDescriptor(stageTemplate);
@@ -252,6 +298,11 @@ namespace nadena.dev.ndmf.preview
                 foreach (var group_raw in stage.Originals.OrderBy(g => g.GetHashCode()))
                 {
                     var group = group_raw.FilterLive();
+                    foreach (var renderer in group.Renderers)
+                    {
+                        _shadowBoneManager.RegisterRendererStage(renderer, i);
+                    }
+
                     total_nodes++;
                     
                     groupIndex++;
@@ -281,7 +332,14 @@ namespace nadena.dev.ndmf.preview
                             var proxy = new ProxyObjectController(proxyCache, r, priorProxy);
                             proxy.InvalidateMonitor.Invalidates(_ctx);
 
-                            if (!proxy.OnPreFrame()) Invalidate();
+                            if (!proxy.OnPreFrame())
+                            {
+                                Invalidate();
+                            }
+                            else
+                            {
+                                _shadowBoneManager.SetInitialParent(r, proxy.Renderer);
+                            }
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
                             // we render for real).
                             _proxies.Add(r, proxy);
@@ -339,11 +397,11 @@ namespace nadena.dev.ndmf.preview
                                     changeFlags |= RenderAspects.Everything;
                                 }
 
-                                node = await priorNode.Task.Result.Refresh(proxies, changeFlags, trace);
+                                node = await priorNode.Task.Result.Refresh(proxies, changeFlags, trace, _previewContext,
+                                    stageIndex);
                                 if (node != null)
                                 {
                                     reused++;
-
                                 }
                                 else
                                 {
@@ -353,7 +411,8 @@ namespace nadena.dev.ndmf.preview
 
                             if (node == null)
                             {
-                                node = await NodeController.Create(stage.Filter, group, items.Result.ToList(), trace);
+                                node = await NodeController.Create(stage.Filter, group, items.Result.ToList(), trace,
+                                    _previewContext, stageIndex);
                                 // Force a rebuild of downstream nodes
                                 node.WhatChanged = RenderAspects.Everything;
                             }
@@ -379,17 +438,14 @@ namespace nadena.dev.ndmf.preview
             
             Profiler.EndSample();
 
-            await Task.WhenAll(_stages.SelectMany(s => s.Nodes.Select(n => n.Task)))
-                .ContinueWith(_ =>
-                {
-                    TraceBuffer.RecordTraceEvent(
-                        "ProxyPipeline.Build",
-                        (ev) => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Build complete",
-                        arg0: this
-                    );
-                    _completedBuild.TrySetResult(null);
-                    RepaintTrigger.RequestRepaint();
-                }, scheduler);
+            await Task.WhenAll(_stages.SelectMany(s => s.Nodes.Select(n => n.Task)));
+
+            TraceBuffer.RecordTraceEvent(
+                "ProxyPipeline.Build",
+                ev => $"Pipeline {((ProxyPipeline)ev.Arg0)._generation}: Build complete",
+                this
+            );
+            RepaintTrigger.RequestRepaint();
 
             //UnityEngine.Debug.Log($"Total nodes: {total_nodes}, reused: {reused}, refresh failed: {refresh_failed}");
 
@@ -402,6 +458,8 @@ namespace nadena.dev.ndmf.preview
                     Invalidate();
                     continue;
                 }
+
+                _shadowBoneManager.SetInitialParent(r, proxy.Renderer);
 
                 // Setup uses a different proxy than rendering, so make sure we install the rendering proxy
                 // as well (since that's the one that scene view picking will use)
@@ -419,16 +477,18 @@ namespace nadena.dev.ndmf.preview
                 foreach (var node in stage.Nodes.Select(n => n.Task))
                 {
                     var resolvedNode = await node;
-                    _nodes.Add(resolvedNode);
                     _ = resolvedNode.OnInvalidate.ContinueWith(_ => Invalidate());
                 }
             }
+
+            _shadowBoneManager.SealPipeline();
         }
 
         public void OnFrame(bool isSceneView)
         {
             if (!IsReady) return;
 
+            using var previewContextScope = _previewContext.Activate();
             using (var scope = FrameTimeLimiter.OpenFrameScope())
             {
                 if (!scope.ShouldContinue()) return;
@@ -439,7 +499,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         Invalidate();
                     }
-                    
+
                     if (!scope.ShouldContinue())
                     {
                         RepaintTrigger.RequestRepaint();
@@ -447,7 +507,20 @@ namespace nadena.dev.ndmf.preview
                     }
                 }
 
-                foreach (var node in _nodes)
+                if (_stages.Count == 0)
+                {
+                    _shadowBoneManager.OnFrameStart(0, OriginalToProxyRenderer);
+                    if (_shadowBoneManager.UnexpectedlyDestroyed)
+                    {
+                        // Something destroyed a shadow bone unexpectedly
+                        Debug.LogWarning("Proxy bone was destroyed improperly! Resetting preview system...");
+                        Invalidate();
+                        RepaintTrigger.RequestRepaint();
+                        return;
+                    }
+                }
+
+                for (var stageIndex = 0; stageIndex < _stages.Count; stageIndex++)
                 {
                     if (!scope.ShouldContinue())
                     {
@@ -455,7 +528,18 @@ namespace nadena.dev.ndmf.preview
                         return;
                     }
 
-                    node.OnFrame();
+                    var stage = _stages[stageIndex];
+                    _shadowBoneManager.OnFrameStart(stageIndex, OriginalToProxyRenderer);
+                    foreach (var node in stage.Nodes)
+                    {
+                        if (!scope.ShouldContinue())
+                        {
+                            RepaintTrigger.RequestRepaint();
+                            return;
+                        }
+
+                        node.Task.Result.OnFrame();
+                    }
                 }
 
                 foreach (var pair in _proxies)
@@ -471,12 +555,35 @@ namespace nadena.dev.ndmf.preview
             }
         }
 
+        private static void ReturnShadowBoneManager(ShadowBoneManager manager)
+        {
+            ShadowBoneManager? displaced = null;
+            lock (ShadowBoneManagerLock)
+            {
+                if (!ShadowBoneManagers.Contains(manager) || ReferenceEquals(_pooledShadowBoneManager, manager))
+                {
+                    return;
+                }
+
+                displaced = _pooledShadowBoneManager;
+                _pooledShadowBoneManager = manager;
+                if (displaced != null)
+                {
+                    ShadowBoneManagers.Remove(displaced);
+                }
+            }
+
+            displaced?.Dispose();
+        }
+
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+
             // We need to make sure this task runs on the unity main thread so it can delete the proxy objects
-            using var scope = NDMFSyncContext.Scope(); 
-            
-            _completedBuild.Task.ContinueWith(_ =>
+            using var scope = NDMFSyncContext.Scope();
+
+            _buildTask.ContinueWith(_ =>
                 {
                     foreach (var stage in _stages)
                     {
@@ -493,6 +600,8 @@ namespace nadena.dev.ndmf.preview
                     {
                         proxy.Dispose();
                     }
+
+                    ReturnShadowBoneManager(_shadowBoneManager);
                 },
                 CancellationToken.None,
                 TaskContinuationOptions.RunContinuationsAsynchronously,

@@ -3,8 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using UnityEditor;
 using Unity.Profiling;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
@@ -212,19 +212,6 @@ namespace nadena.dev.ndmf.preview
                         var originalFilter = _originalRenderer.GetComponent<MeshFilter>();
                         var filter = Renderer.GetComponent<MeshFilter>();
                         filter.sharedMesh = originalFilter != null ? originalFilter.sharedMesh : null;
-
-                        var shadowBone = ShadowBoneManager.Instance.GetBone(_originalRenderer.transform).proxy;
-
-                        var rendererTransform = Renderer.transform;
-                        if (shadowBone != rendererTransform.parent)
-                        {
-                            using (_transformCopyMarker.Auto())
-                            {
-                                rendererTransform.SetParent(shadowBone, false);
-                                rendererTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                                rendererTransform.localScale = Vector3.one;
-                            }
-                        }
                     }
                 }
 
