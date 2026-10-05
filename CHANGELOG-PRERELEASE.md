@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Changed
+- [#840] Adjusted `ShadowBoneTestFixture` API
 
 ### Removed
 
