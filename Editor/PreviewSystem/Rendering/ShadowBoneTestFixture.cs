@@ -11,7 +11,7 @@ namespace nadena.dev.ndmf.preview
     /// <summary>
     ///     Provides a real shadow-bone manager for preview tests.
     /// </summary>
-    public sealed class ShadowBoneTextFixture : IDisposable
+    public sealed class ShadowBoneTestFixture : IDisposable
     {
         private readonly ShadowBoneManager _manager;
 
@@ -23,7 +23,7 @@ namespace nadena.dev.ndmf.preview
         /// <summary>
         ///     Initializes a shadow-bone manager for preview tests.
         /// </summary>
-        public ShadowBoneTextFixture()
+        public ShadowBoneTestFixture()
         {
             _manager = new ShadowBoneManager();
             _manager.ResetPipeline();
