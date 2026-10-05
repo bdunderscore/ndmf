@@ -128,6 +128,12 @@ namespace nadena.dev.ndmf.preview
                     );
                 }
 
+                if (!_stateProxies.ContainsKey(r))
+                {
+                    throw new InvalidOperationException("Renderer " + r.gameObject.name +
+                                                        " is not registered for this stage");
+                }
+
                 if (_pendingState.TryGetValue(r, out var state)) return state;
 
                 // We initialize from the setup proxy so we can capture any non-SBM manipulation
@@ -613,6 +619,8 @@ namespace nadena.dev.ndmf.preview
 
         private static void ApplyRendererState(Renderer renderer, RendererReplacementState state)
         {
+            if (renderer == null) return;
+            
             if (renderer is SkinnedMeshRenderer skinnedRenderer)
             {
                 skinnedRenderer.bones = state.Bones;
