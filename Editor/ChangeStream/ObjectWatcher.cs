@@ -229,9 +229,9 @@ namespace nadena.dev.ndmf.cs
                     if (obj is Component c && c.gameObject.hideFlags != 0) return curVal;
 
                     var propsListeners = PropertyMonitor.MonitorObjectProps(obj);
-                    propsListeners.Register(_ => obj == null || !compare(curVal, extract(obj)), ctx);
+                    var propsCancel = propsListeners.Register(_ => obj == null || !compare(curVal, extract(obj)), ctx);
 
-                    BindCancel(ctx, cancel);
+                    BindCancel(ctx, propsCancel);
                 }
             }
 
