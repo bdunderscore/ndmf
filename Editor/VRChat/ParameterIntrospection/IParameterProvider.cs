@@ -59,6 +59,7 @@ namespace nadena.dev.ndmf
                    Equals(Source, other.Source) &&
                    Equals(Plugin, other.Plugin) &&
                    ParameterType == other.ParameterType &&
+                   IsNameDeferred == other.IsNameDeferred &&
                    ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
                    WantSynced == other.WantSynced;
@@ -80,6 +81,7 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ (Source != null ? Source.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Plugin != null ? Plugin.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ ParameterType.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsNameDeferred.GetHashCode();
                 hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
@@ -92,7 +94,8 @@ namespace nadena.dev.ndmf
             ParameterNamespace namespace_,
             Component source,
             PluginBase plugin,
-            AnimatorControllerParameterType? parameterType
+            AnimatorControllerParameterType? parameterType,
+            bool isNameDeferred = false
         )
         {
             OriginalName = name;
@@ -100,6 +103,7 @@ namespace nadena.dev.ndmf
             Source = source;
             Plugin = plugin;
             ParameterType = parameterType;
+            IsNameDeferred = isNameDeferred;
         }
 
         internal (ParameterNamespace, string) NamePair => (Namespace, EffectiveName);
@@ -143,6 +147,12 @@ namespace nadena.dev.ndmf
             get => _effectiveName ?? OriginalName;
             set => _effectiveName = value;
         }
+        
+        /// <summary>
+        /// If true, the final parameter name is not known during editor-time introspection
+        /// and will be resolved during avatar processing.
+        /// </summary>
+        public bool IsNameDeferred { get; set; }
 
         /// <summary>
         /// The component which originated this parameter.
@@ -208,11 +218,11 @@ namespace nadena.dev.ndmf
             }
             return new ProvidedParameter[]
             {
-                new ProvidedParameter(OriginalName + "_IsGrabbed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool) { IsHidden = IsHidden, WantSynced = WantSynced },
-                new ProvidedParameter(OriginalName + "_IsPosed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool) { IsHidden = IsHidden, WantSynced = WantSynced },
-                new ProvidedParameter(OriginalName + "_Angle", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
-                new ProvidedParameter(OriginalName + "_Stretch", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
-                new ProvidedParameter(OriginalName + "_Squish", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_IsGrabbed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool, IsNameDeferred) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_IsPosed", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Bool, IsNameDeferred) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Angle", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float, IsNameDeferred) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Stretch", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float, IsNameDeferred) { IsHidden = IsHidden, WantSynced = WantSynced },
+                new ProvidedParameter(OriginalName + "_Squish", ParameterNamespace.Animator, Source, Plugin, AnimatorControllerParameterType.Float, IsNameDeferred) { IsHidden = IsHidden, WantSynced = WantSynced },
             };
         }
 
