@@ -222,6 +222,10 @@ namespace nadena.dev.ndmf.preview
             return null;
         }
 
+        /// <summary>
+        /// Gets the first matching component and invalidates when that result changes. Changes to unrelated
+        /// component types do not invalidate the caller. Object lifetime/forced invalidations are still propagated.
+        /// </summary>
         public static C GetComponent<C>(this ComputeContext ctx, GameObject obj,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -229,11 +233,11 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-
-            return obj.GetComponent<C>();
+            return ObjectWatcher.Instance.MonitorComponentQuery(obj, ctx, false, true,
+                () => obj.GetComponent<C>(), ReferenceEquals);
         }
 
+        /// <inheritdoc cref="GetComponent{C}"/>
         public static Component GetComponent(this ComputeContext ctx, GameObject obj, Type type,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -241,11 +245,23 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-
-            return obj.GetComponent(type);
+            return ObjectWatcher.Instance.MonitorComponentQuery(obj, ctx, false, true,
+                () => obj.GetComponent(type), ReferenceEquals);
         }
 
+        private static C[] ObserveComponentArray<C>(ComputeContext ctx, GameObject obj, bool includeChildren,
+            bool includeInactive, Func<C[]> query) where C : class
+        {
+            var snapshot = ObjectWatcher.Instance.MonitorComponentQuery(obj, ctx, includeChildren, includeInactive,
+                query, (left, right) => left.SequenceEqual(right, ReferenceEqualityComparer<C>.Instance));
+            // Callers may modify returned arrays or reuse their output lists; the monitor owns its snapshot.
+            return (C[])snapshot.Clone();
+        }
+
+        /// <summary>
+        /// Gets matching components and invalidates when their references or order change. Changes to unrelated
+        /// component types do not invalidate the caller. Object lifetime/forced invalidations are still propagated.
+        /// </summary>
         public static C[] GetComponents<C>(this ComputeContext ctx, GameObject obj,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -253,11 +269,10 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-
-            return obj.GetComponents<C>();
+            return ObserveComponentArray(ctx, obj, false, true, () => obj.GetComponents<C>());
         }
 
+        /// <inheritdoc cref="GetComponents{C}(ComputeContext, GameObject, string, int)"/>
         public static void GetComponents<C>(this ComputeContext ctx, GameObject obj, List<C> results,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -265,11 +280,12 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-
-            obj.GetComponents(results);
+            var components = ctx.GetComponents<C>(obj, callerPath, callerLine);
+            results.Clear();
+            results.AddRange(components);
         }
 
+        /// <inheritdoc cref="GetComponents{C}(ComputeContext, GameObject, string, int)"/>
         public static Component[] GetComponents(this ComputeContext ctx, GameObject obj, Type type,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -277,11 +293,10 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-
-            return obj.GetComponents(type);
+            return ObserveComponentArray(ctx, obj, false, true, () => obj.GetComponents(type));
         }
 
+        /// <inheritdoc cref="GetComponents{C}(ComputeContext, GameObject, string, int)"/>
         public static void GetComponents(this ComputeContext ctx, GameObject obj, Type type, List<Component> results,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -289,10 +304,17 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, false);
-            obj.GetComponents(type, results);
+            var components = ctx.GetComponents(obj, type, callerPath, callerLine);
+            results.Clear();
+            results.AddRange(components);
         }
 
+        /// <summary>
+        /// Gets matching components in the hierarchy and invalidates when their references or order change,
+        /// including changes caused by hierarchy edits or activeness when includeInactive is false.
+        /// Changes to unrelated component types do not invalidate the caller. Object lifetime/forced
+        /// invalidations are still propagated.
+        /// </summary>
         public static C[] GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -301,11 +323,11 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
-
-            return obj.GetComponentsInChildren<C>(includeInactive);
+            return ObserveComponentArray(ctx, obj, true, includeInactive,
+                () => obj.GetComponentsInChildren<C>(includeInactive));
         }
 
+        /// <inheritdoc cref="GetComponentsInChildren{C}(ComputeContext, GameObject, bool, string, int)"/>
         public static void GetComponentsInChildren<C>(this ComputeContext ctx, GameObject obj, bool includeInactive, List<C> results,
             [CallerFilePath] string callerPath = "",
             [CallerLineNumber] int callerLine = 0
@@ -314,11 +336,12 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
-
-            obj.GetComponentsInChildren(includeInactive, results);
+            var components = ctx.GetComponentsInChildren<C>(obj, includeInactive, callerPath, callerLine);
+            results.Clear();
+            results.AddRange(components);
         }
 
+        /// <inheritdoc cref="GetComponentsInChildren{C}(ComputeContext, GameObject, bool, string, int)"/>
         public static Component[] GetComponentsInChildren(this ComputeContext ctx, GameObject obj, Type type,
             bool includeInactive,
             [CallerFilePath] string callerPath = "",
@@ -327,9 +350,8 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            ObjectWatcher.Instance.MonitorGetComponents(obj, ctx, true);
-
-            return obj.GetComponentsInChildren(type, includeInactive);
+            return ObserveComponentArray(ctx, obj, true, includeInactive,
+                () => obj.GetComponentsInChildren(type, includeInactive));
         }
     }
 }

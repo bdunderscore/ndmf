@@ -445,6 +445,12 @@ namespace nadena.dev.ndmf.cs
                 {
                     shadow.IsActive = shadow.GameObject.activeSelf;
                     FirePathChangeNotifications(shadow);
+                    // Path notifications alone do not reach a component query rooted above this object:
+                    // component monitoring does not enable path monitoring on every descendant.
+                    if (shadow.Parent?.ComponentMonitoring == true)
+                    {
+                        FireParentComponentChangeNotifications(shadow.Parent);
+                    }
                 }
 
                 MaybeFireStructureChangeEvent(instanceId);
