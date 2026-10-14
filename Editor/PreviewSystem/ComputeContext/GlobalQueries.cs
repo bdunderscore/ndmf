@@ -24,7 +24,7 @@ namespace nadena.dev.ndmf.preview
                     {
                         // We are iterating scene roots, so it is okay to monitor just child components
                         // (parent components may affect avatar rootness) 
-                        ObjectWatcher.Instance.MonitorGetComponents(root, ctx, true);
+                        ObjectWatcher.Instance.MonitorComponentStructure(root, ctx, true);
                         return RuntimeUtil.FindAvatarRoots(root, true);
                     }).Distinct();
 

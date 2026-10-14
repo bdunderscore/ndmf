@@ -264,17 +264,10 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
-        public void MonitorGetComponents(GameObject obj, ComputeContext ctx, bool includeChildren)
+        public void MonitorComponentStructure(GameObject obj, ComputeContext ctx, bool includeChildren)
         {
-            var previewScene = NDMFPreviewSceneManager.GetPreviewScene();
-
-            // Ensure component structure data is up-to-date
-            Hierarchy.RequestComponentStructureCheck(obj.GetEntityId());
-            
-            var cancel = Hierarchy.RegisterGameObjectListener(obj, e =>
+            RegisterComponentStructureListener(obj, ctx, includeChildren, e =>
             {
-                if (e == HierarchyEvent.ChildComponentsChanged && !includeChildren) return false;
-
                 switch (e)
                 {
                     case HierarchyEvent.ChildComponentsChanged:
@@ -285,10 +278,19 @@ namespace nadena.dev.ndmf.cs
                     default:
                         return false;
                 }
-            }, ctx);
+            });
+        }
 
+        private void RegisterComponentStructureListener(GameObject obj, ComputeContext ctx, bool includeChildren,
+            ListenerSet<HierarchyEvent>.Filter filter)
+        {
+            NDMFPreviewSceneManager.GetPreviewScene();
+
+            // Ensure component structure data is up-to-date
+            Hierarchy.RequestComponentStructureCheck(obj.GetEntityId());
+
+            var cancel = Hierarchy.RegisterGameObjectListener(obj, filter, ctx);
             if (includeChildren) Hierarchy.EnableComponentMonitoring(obj);
-
             BindCancel(ctx, cancel);
         }
         
