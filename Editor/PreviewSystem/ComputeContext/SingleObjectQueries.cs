@@ -229,8 +229,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
-
+            ObjectWatcher.Instance.MonitorComponent(obj, ctx, () => obj.GetComponent<C>());
             return obj.GetComponent<C>();
         }
 
@@ -241,8 +240,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return null;
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
-
+            ObjectWatcher.Instance.MonitorComponent(obj, ctx, () => obj.GetComponent(type));
             return obj.GetComponent(type);
         }
 
@@ -253,8 +251,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, false, () => obj.GetComponents<C>());
             return obj.GetComponents<C>();
         }
 
@@ -265,8 +262,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, false, () => obj.GetComponents<C>());
             obj.GetComponents(results);
         }
 
@@ -277,8 +273,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, false, () => obj.GetComponents(type));
             return obj.GetComponents(type);
         }
 
@@ -289,7 +284,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, false);
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, false, () => obj.GetComponents(type));
             obj.GetComponents(type, results);
         }
 
@@ -301,8 +296,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<C>();
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, true);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, true, () => obj.GetComponentsInChildren<C>(includeInactive));
             return obj.GetComponentsInChildren<C>(includeInactive);
         }
 
@@ -314,8 +308,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return;
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, true);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, true, () => obj.GetComponentsInChildren<C>(includeInactive));
             obj.GetComponentsInChildren(includeInactive, results);
         }
 
@@ -327,8 +320,7 @@ namespace nadena.dev.ndmf.preview
         {
             if (obj == null) return Array.Empty<Component>();
 
-            ObjectWatcher.Instance.MonitorComponentStructure(obj, ctx, true);
-
+            ObjectWatcher.Instance.MonitorComponents(obj, ctx, true, () => obj.GetComponentsInChildren(type, includeInactive));
             return obj.GetComponentsInChildren(type, includeInactive);
         }
     }

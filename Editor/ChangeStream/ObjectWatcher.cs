@@ -264,6 +264,40 @@ namespace nadena.dev.ndmf.cs
             }
         }
 
+        public void MonitorComponent<C>(GameObject obj, ComputeContext ctx, Func<C> query) where C : class
+        {
+            MonitorComponentQuery(obj, ctx, false, query, EqualityComparer<C>.Default.Equals);
+        }
+
+        public void MonitorComponents<C>(GameObject obj, ComputeContext ctx, bool includeChildren,
+            Func<C[]> query) where C : class
+        {
+            MonitorComponentQuery(obj, ctx, includeChildren, query, (a, b) => a.SequenceEqual(b));
+        }
+
+        // Structure notifications are untyped; filter query results to avoid invalidation from unrelated component changes.
+        private void MonitorComponentQuery<R>(GameObject obj, ComputeContext ctx, bool includeChildren,
+            Func<R> query, Func<R, R, bool> equals)
+        {
+            var snapshot = query();
+            bool HasResultChanged() => obj == null || !equals(snapshot, query());
+
+            RegisterComponentStructureListener(obj, ctx, includeChildren, e =>
+            {
+                switch (e)
+                {
+                    case HierarchyEvent.ChildComponentsChanged:
+                        return includeChildren && HasResultChanged();
+                    case HierarchyEvent.SelfComponentsChanged:
+                        return HasResultChanged();
+                    case HierarchyEvent.ForceInvalidate:
+                        return true;
+                    default:
+                        return false;
+                }
+            });
+        }
+
         public void MonitorComponentStructure(GameObject obj, ComputeContext ctx, bool includeChildren)
         {
             RegisterComponentStructureListener(obj, ctx, includeChildren, e =>
