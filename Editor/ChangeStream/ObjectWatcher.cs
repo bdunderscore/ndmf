@@ -296,6 +296,10 @@ namespace nadena.dev.ndmf.cs
                         return false;
                 }
             });
+
+            var propsListeners = PropertyMonitor.MonitorObjectProps(obj);
+            var propsCancel = propsListeners.Register(_ => HasResultChanged(), ctx);
+            BindCancel(ctx, propsCancel);
         }
 
         public void MonitorComponentStructure(GameObject obj, ComputeContext ctx, bool includeChildren)
