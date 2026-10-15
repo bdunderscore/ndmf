@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
+- [#848] Improve preview performance
 
 ### Changed
 
