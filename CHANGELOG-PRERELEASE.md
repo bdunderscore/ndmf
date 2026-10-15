@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [#848] Improve preview performance
+- [#848] Fix ShadowBoneManager overwriting bones array replacements performed by legacy preview stages
+- [#848] Fix explicit preview bone replacements not being applied after invoking `GetBone()` for the original bone
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
