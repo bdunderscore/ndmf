@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#848] Improve preview performance
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.

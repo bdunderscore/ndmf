@@ -49,6 +49,9 @@ namespace nadena.dev.ndmf.preview
 
         private static void OnGUIStarted(SceneView sceneView)
         {
+            // Unity issues multiple GUI events in a single frame, but only Repaint is actually displayed
+            if (Event.current.type != EventType.Repaint) return;
+            
             OnPreCull(sceneView.camera);
             _inSceneViewRendering = true;
         }
