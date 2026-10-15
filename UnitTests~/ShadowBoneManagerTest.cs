@@ -539,6 +539,78 @@ namespace UnitTests
         }
 
         [Test]
+        public void ReplacementMatchesCapturedOriginalAfterItsShadowIsRequested()
+        {
+            var source = CreateRoot("source").transform;
+            var replacement = CreateRoot("replacement").transform;
+            var unrelated = CreateRoot("unrelated").transform;
+            var unrelatedReplacement = CreateRoot("unrelated replacement").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+
+            SetRendererReferences(setupProxy, source, source);
+            SetRendererReferences(activeProxy, source, source);
+
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, unrelated, unrelatedReplacement);
+                var shadow = _manager.GetBone(source);
+                _manager.ReplaceBone(original, source, replacement);
+                stage.Commit();
+
+                AssertRendererReferences(setupProxy, replacement, replacement);
+                Assert.That(shadow, Is.Not.SameAs(replacement));
+            }
+
+            _manager.SealPipeline();
+            AssertRendererReferences(setupProxy, replacement, replacement);
+
+            SetRendererReferences(activeProxy, source, source);
+            ReplayThroughStage(1, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+            AssertRendererReferences(activeProxy, replacement, replacement);
+        }
+
+        [Test]
+        public void ReplacementMatchesOriginalAndShadowSlotsCapturedAfterShadowIsRequested()
+        {
+            var source = CreateRoot("source").transform;
+            var replacement = CreateRoot("replacement").transform;
+            var unrelated = CreateRoot("unrelated").transform;
+            var unrelatedReplacement = CreateRoot("unrelated replacement").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+
+            SetRendererReferences(setupProxy, source, source);
+            SetRendererReferences(activeProxy, source, source);
+
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                var shadow = _manager.GetBone(source);
+                setupProxy.bones = new[] { source, shadow };
+                _manager.ReplaceBone(original, unrelated, unrelatedReplacement);
+                _manager.ReplaceBone(original, source, replacement);
+                stage.Commit();
+
+                AssertRendererReferences(setupProxy, replacement, replacement, replacement);
+            }
+
+            _manager.SealPipeline();
+            AssertRendererReferences(setupProxy, replacement, replacement, replacement);
+
+            SetRendererReferences(activeProxy, source, source);
+            ReplayThroughStage(1, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+            AssertRendererReferences(activeProxy, replacement, replacement, replacement);
+        }
+
+        [Test]
         public void StagedReplacementIsExactRendererScopedAndReplayed()
         {
             var source = CreateRoot("source");
@@ -551,6 +623,7 @@ namespace UnitTests
             skinned.rootBone = source.transform;
             skinned.probeAnchor = source.transform;
 
+            var meshOriginal = CreateChild(source, "mesh original").AddComponent<MeshRenderer>();
             var meshObject = CreateChild(source, "mesh proxy");
             var mesh = meshObject.AddComponent<MeshRenderer>();
             mesh.probeAnchor = source.transform;
@@ -563,15 +636,23 @@ namespace UnitTests
 
             using (var stage = _manager.EnterStage(
                        2,
-                       new Dictionary<Renderer, Renderer> { { skinned, skinned }, { mesh, mesh } }
+                       new Dictionary<Renderer, Renderer> { { skinned, skinned }, { meshOriginal, mesh } }
                    ))
             {
                 _manager.ReplaceBone(skinned, source.transform, replacement.transform);
-                _manager.ReplaceBone(mesh, source.transform, replacement.transform);
+                _manager.ReplaceBone(meshOriginal, source.transform, replacement.transform);
                 stage.Commit();
             }
 
-            AssertReplacementState(source.transform, sourceChild.transform, replacement.transform, skinned, mesh, unlisted);
+            AssertReplacementState(
+                source.transform,
+                sourceChild.transform,
+                replacement.transform,
+                _manager.GetBone(meshOriginal.transform),
+                skinned,
+                mesh,
+                unlisted
+            );
 
             skinned.bones = new[] { source.transform, sourceChild.transform, null };
             skinned.rootBone = source.transform;
@@ -583,7 +664,7 @@ namespace UnitTests
             var activeProxies = new Dictionary<Renderer, Renderer>
             {
                 { skinned, skinned },
-                { mesh, mesh }
+                { meshOriginal, mesh }
             };
 
             skinned.bones = new[] { sourceChild.transform, sourceChild.transform, null };
@@ -594,7 +675,15 @@ namespace UnitTests
 
             ReplayThroughStage(2, activeProxies);
 
-            AssertReplacementState(source.transform, sourceChild.transform, replacement.transform, skinned, mesh, unlisted);
+            AssertReplacementState(
+                source.transform,
+                sourceChild.transform,
+                replacement.transform,
+                _manager.GetBone(meshOriginal.transform),
+                skinned,
+                mesh,
+                unlisted
+            );
         }
 
         [Test]
@@ -669,7 +758,12 @@ namespace UnitTests
                    ))
             {
                 var shadow = _manager.GetBone(source.transform);
-                AssertImplicitReplacement(shadow, setupSkinned, setupMesh);
+                AssertImplicitReplacement(
+                    shadow,
+                    _manager.GetBone(originalMesh.transform),
+                    setupSkinned,
+                    setupMesh
+                );
                 stage.Commit();
             }
 
@@ -684,7 +778,12 @@ namespace UnitTests
                 }
             );
 
-            AssertImplicitReplacement(_manager.GetBone(source.transform), activeSkinned, activeMesh);
+            AssertImplicitReplacement(
+                _manager.GetBone(source.transform),
+                _manager.GetBone(originalMesh.transform),
+                activeSkinned,
+                activeMesh
+            );
         }
 
         [Test]
@@ -737,6 +836,230 @@ namespace UnitTests
             Assert.That(activeProxy.transform.localPosition, Is.EqualTo(Vector3.zero));
             Assert.That(Quaternion.Angle(activeProxy.transform.localRotation, Quaternion.identity), Is.LessThan(0.0001f));
             Assert.That(activeProxy.transform.localScale, Is.EqualTo(Vector3.one));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CommittedStageCapturesDirectFinalRendererState(bool createInitialReplacementState)
+        {
+            var source = CreateRoot("source").transform;
+            var replacement = CreateRoot("replacement").transform;
+            var directBone = CreateRoot("direct bone").transform;
+            var directRootBone = CreateRoot("direct root bone").transform;
+            var directProbeAnchor = CreateRoot("direct probe anchor").transform;
+            var directParent = CreateRoot("direct parent").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+
+            foreach (var renderer in new[] { setupProxy, activeProxy })
+            {
+                renderer.bones = new[] { source };
+                renderer.rootBone = source;
+                renderer.probeAnchor = source;
+                renderer.transform.SetParent(source, false);
+            }
+
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                if (createInitialReplacementState)
+                {
+                    _manager.ReplaceBone(original, source, replacement);
+                }
+
+                stage.Commit();
+
+                setupProxy.bones = new[] { directBone };
+                setupProxy.rootBone = directRootBone;
+                setupProxy.probeAnchor = directProbeAnchor;
+                setupProxy.transform.SetParent(directParent, false);
+            }
+
+            _manager.SealPipeline();
+            Assert.That(setupProxy.bones, Is.EqualTo(new[] { directBone }));
+            Assert.That(setupProxy.rootBone, Is.SameAs(directRootBone));
+            Assert.That(setupProxy.probeAnchor, Is.SameAs(directProbeAnchor));
+            Assert.That(setupProxy.transform.parent, Is.SameAs(directParent));
+
+            ReplayThroughStage(
+                1,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
+
+            Assert.That(activeProxy.bones, Is.EqualTo(new[] { directBone }));
+            Assert.That(activeProxy.rootBone, Is.SameAs(directRootBone));
+            Assert.That(activeProxy.probeAnchor, Is.SameAs(directProbeAnchor));
+            Assert.That(activeProxy.transform.parent, Is.SameAs(directParent));
+        }
+
+        [Test]
+        public void MeshProxyKeepsIdentityLocalPoseUnderOriginalRendererShadowAfterSeal()
+        {
+            var source = CreateRoot("source");
+            var original = CreateChild(source, "original").AddComponent<MeshRenderer>();
+            original.transform.localPosition = new Vector3(1, 2, 3);
+            original.transform.localRotation = Quaternion.Euler(10, 20, 30);
+            original.transform.localScale = new Vector3(2, 3, 4);
+            var setupProxy = CreateRoot("setup proxy").AddComponent<MeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<MeshRenderer>();
+
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+            }
+
+            _manager.SealPipeline();
+            _manager.SetInitialParent(original, activeProxy);
+            ReplayThroughStage(
+                1,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
+
+            var shadow = _manager.GetBone(original.transform);
+            Assert.That(activeProxy.transform.parent, Is.SameAs(shadow));
+            Assert.That(activeProxy.transform.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(Quaternion.Angle(activeProxy.transform.localRotation, Quaternion.identity), Is.LessThan(0.0001f));
+            Assert.That(activeProxy.transform.localScale, Is.EqualTo(Vector3.one));
+        }
+
+        [Test]
+        public void EquivalentUpdatesArePrunedInStageOrderDespiteOutOfOrderInsertion()
+        {
+            var fixture = CreateRendererStateFixture(RendererStatePart.Bones);
+            var unrelated = CreateRendererStateFixture(RendererStatePart.Bones);
+            var state = CreateRoot("state").transform;
+            var interveningMutation = CreateRoot("intervening mutation").transform;
+
+            CommitRendererState(2, unrelated, RendererStatePart.Bones, state);
+            CommitRendererState(1, fixture, RendererStatePart.Bones, state);
+            CommitRendererState(2, fixture, RendererStatePart.Bones, state);
+            _manager.SealPipeline();
+
+            ResetRendererState(fixture.ActiveProxy, RendererStatePart.Bones, fixture.Source, fixture.Unchanged);
+            ReplayThroughStage(
+                2,
+                fixture.ActiveProxies,
+                stage =>
+                {
+                    if (stage == 1)
+                    {
+                        AssertRendererStatePart(fixture.ActiveProxy, RendererStatePart.Bones, state);
+                        SetRendererStatePart(fixture.ActiveProxy, RendererStatePart.Bones, interveningMutation);
+                    }
+                }
+            );
+
+            AssertRendererStatePart(fixture.ActiveProxy, RendererStatePart.Bones, interveningMutation);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ExplicitReplacementDestinationIsNotReplacedByItsShadowAfterSeal(bool requestShadowWithinStage)
+        {
+            var source = CreateRoot("source");
+            var sourceTransform = source.transform;
+            var replacement = CreateRoot("replacement").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+            setupProxy.bones = new[] { sourceTransform, replacement };
+            activeProxy.bones = new[] { sourceTransform, replacement };
+
+            Transform shadow;
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, sourceTransform, replacement);
+                stage.Commit();
+                shadow = requestShadowWithinStage ? _manager.GetBone(replacement) : null;
+            }
+
+            if (!requestShadowWithinStage) shadow = _manager.GetBone(replacement);
+
+            _manager.SealPipeline();
+            ReplayThroughStage(
+                1,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
+
+            Assert.That(activeProxy.bones, Is.EqualTo(new[] { replacement, shadow }));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void DirectReplacementRemainsEligibleForImplicitShadowing(bool requestShadowWithinStage)
+        {
+            var source = CreateRoot("source").transform;
+            var directReplacement = CreateRoot("direct replacement").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+            setupProxy.bones = new[] { source };
+            activeProxy.bones = new[] { source };
+
+            Transform shadow = null;
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                stage.Commit();
+                setupProxy.bones = new[] { directReplacement };
+                if (requestShadowWithinStage) shadow = _manager.GetBone(directReplacement);
+            }
+
+            if (!requestShadowWithinStage) shadow = _manager.GetBone(directReplacement);
+            _manager.SealPipeline();
+
+            Assert.That(setupProxy.bones, Is.EqualTo(new[] { shadow }));
+            ReplayThroughStage(1, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+            Assert.That(activeProxy.bones, Is.EqualTo(new[] { shadow }));
+        }
+
+        [Test]
+        public void LaterDirectStagePreservesEarlierExplicitSlotsOnly()
+        {
+            var source = CreateRoot("source").transform;
+            var explicitReplacement = CreateRoot("explicit replacement").transform;
+            var directReplacement = CreateRoot("direct replacement").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+            setupProxy.bones = new[] { source, explicitReplacement };
+            activeProxy.bones = new[] { source, explicitReplacement };
+
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, source, explicitReplacement);
+                stage.Commit();
+            }
+
+            using (var stage = _manager.EnterStage(
+                       2,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                stage.Commit();
+                setupProxy.bones = new[] { explicitReplacement, directReplacement };
+            }
+
+            var explicitShadow = _manager.GetBone(explicitReplacement);
+            var directShadow = _manager.GetBone(directReplacement);
+            _manager.SealPipeline();
+            ReplayThroughStage(2, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+
+            Assert.That(activeProxy.bones, Is.EqualTo(new[] { explicitReplacement, directShadow }));
+            Assert.That(explicitShadow, Is.Not.SameAs(explicitReplacement));
         }
 
         public enum RendererStatePart
@@ -941,8 +1264,33 @@ namespace UnitTests
             internal IReadOnlyDictionary<Renderer, Renderer> ActiveProxies;
         }
 
+        private static void SetRendererReferences(
+            SkinnedMeshRenderer renderer,
+            Transform bone,
+            Transform scalar
+        )
+        {
+            renderer.bones = new[] { bone };
+            renderer.rootBone = scalar;
+            renderer.probeAnchor = scalar;
+            renderer.transform.SetParent(scalar, false);
+        }
+
+        private static void AssertRendererReferences(
+            SkinnedMeshRenderer renderer,
+            Transform scalar,
+            params Transform[] bones
+        )
+        {
+            Assert.That(renderer.bones, Is.EqualTo(bones));
+            Assert.That(renderer.rootBone, Is.SameAs(scalar));
+            Assert.That(renderer.probeAnchor, Is.SameAs(scalar));
+            Assert.That(renderer.transform.parent, Is.SameAs(scalar));
+        }
+
         private static void AssertImplicitReplacement(
             Transform replacement,
+            Transform meshParent,
             SkinnedMeshRenderer skinned,
             MeshRenderer mesh
         )
@@ -952,13 +1300,14 @@ namespace UnitTests
             Assert.That(skinned.probeAnchor, Is.SameAs(replacement));
             Assert.That(skinned.transform.parent, Is.SameAs(replacement));
             Assert.That(mesh.probeAnchor, Is.SameAs(replacement));
-            Assert.That(mesh.transform.parent, Is.SameAs(replacement));
+            Assert.That(mesh.transform.parent, Is.SameAs(meshParent));
         }
 
         private static void AssertReplacementState(
             Transform source,
             Transform sourceChild,
             Transform replacement,
+            Transform meshParent,
             SkinnedMeshRenderer skinned,
             MeshRenderer mesh,
             SkinnedMeshRenderer unlisted
@@ -969,7 +1318,7 @@ namespace UnitTests
             Assert.That(skinned.probeAnchor, Is.SameAs(replacement));
             Assert.That(skinned.transform.parent, Is.SameAs(replacement));
             Assert.That(mesh.probeAnchor, Is.SameAs(replacement));
-            Assert.That(mesh.transform.parent, Is.SameAs(replacement));
+            Assert.That(mesh.transform.parent, Is.SameAs(meshParent));
 
             Assert.That(unlisted.bones, Is.EqualTo(new[] { source, sourceChild }));
             Assert.That(unlisted.rootBone, Is.SameAs(source));

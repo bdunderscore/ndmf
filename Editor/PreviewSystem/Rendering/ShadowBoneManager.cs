@@ -46,9 +46,13 @@ namespace nadena.dev.ndmf.preview
             internal readonly Dictionary<Transform, Transform> Mappings = new();
             internal readonly Transform[] OriginalBones;
             internal readonly Transform[] Bones;
+            internal readonly bool[] ExplicitBones;
             internal Transform RootBone, OriginalRootBone;
+            internal bool ExplicitRootBone;
             internal Transform ProbeAnchor, OriginalProbeAnchor;
+            internal bool ExplicitProbeAnchor;
             internal Transform Parent, OriginalParent;
+            internal bool ExplicitParent;
 
             internal RendererReplacementState(Renderer renderer)
             {
@@ -57,11 +61,13 @@ namespace nadena.dev.ndmf.preview
                     var bones = skinnedRenderer.bones;
                     OriginalBones = (Transform[])bones.Clone();
                     Bones = (Transform[])OriginalBones.Clone();
+                    ExplicitBones = new bool[Bones.Length];
                     OriginalRootBone = RootBone = skinnedRenderer.rootBone;
                 }
                 else
                 {
                     OriginalBones = Bones = Array.Empty<Transform>();
+                    ExplicitBones = Array.Empty<bool>();
                 }
 
                 OriginalProbeAnchor = ProbeAnchor = renderer.probeAnchor;
@@ -72,11 +78,15 @@ namespace nadena.dev.ndmf.preview
             {
                 OriginalBones = source.OriginalBones;
                 Bones = (Transform[])source.Bones.Clone();
+                ExplicitBones = (bool[])source.ExplicitBones.Clone();
                 OriginalParent = source.OriginalParent;
                 Parent = source.Parent;
+                ExplicitParent = source.ExplicitParent;
                 OriginalProbeAnchor = source.OriginalProbeAnchor;
+                ExplicitProbeAnchor = source.ExplicitProbeAnchor;
                 OriginalRootBone = source.OriginalRootBone;
                 RootBone = source.RootBone;
+                ExplicitRootBone = source.ExplicitRootBone;
                 ProbeAnchor = source.ProbeAnchor;
                 Mappings = new Dictionary<Transform, Transform>(source.Mappings);
             }
@@ -91,9 +101,13 @@ namespace nadena.dev.ndmf.preview
             public bool StateEquals(RendererReplacementState other)
             {
                 return Bones.SequenceEqual(other.Bones)
+                       && ExplicitBones.SequenceEqual(other.ExplicitBones)
                        && RootBone == other.RootBone
+                       && ExplicitRootBone == other.ExplicitRootBone
                        && ProbeAnchor == other.ProbeAnchor
+                       && ExplicitProbeAnchor == other.ExplicitProbeAnchor
                        && Parent == other.Parent
+                       && ExplicitParent == other.ExplicitParent
                        && Mappings.Count == other.Mappings.Count
                        && Mappings.All(pair =>
                            other.Mappings.TryGetValue(pair.Key, out var value) && value == pair.Value);
@@ -103,14 +117,15 @@ namespace nadena.dev.ndmf.preview
             {
                 for (var i = 0; i < Bones.Length; i++)
                 {
+                    if (ExplicitBones[i]) continue;
                     var tmp = Bones[i];
                     ReplaceOne(ref tmp);
                     Bones[i] = tmp;
                 }
 
-                ReplaceOne(ref RootBone);
-                ReplaceOne(ref ProbeAnchor);
-                ReplaceOne(ref Parent);
+                if (!ExplicitRootBone) ReplaceOne(ref RootBone);
+                if (!ExplicitProbeAnchor) ReplaceOne(ref ProbeAnchor);
+                if (!ExplicitParent) ReplaceOne(ref Parent);
 
                 void ReplaceOne(ref Transform bone)
                 {
@@ -120,6 +135,20 @@ namespace nadena.dev.ndmf.preview
                     }
                 }
             }
+
+            public void PreserveExplicitFlags(RendererReplacementState previous)
+            {
+                var length = Math.Min(Bones.Length, previous.Bones.Length);
+                for (var i = 0; i < length; i++)
+                {
+                    ExplicitBones[i] = previous.ExplicitBones[i] && Bones[i] == previous.Bones[i];
+                }
+
+                ExplicitRootBone = previous.ExplicitRootBone && RootBone == previous.RootBone;
+                ExplicitProbeAnchor = previous.ExplicitProbeAnchor && ProbeAnchor == previous.ProbeAnchor;
+                ExplicitParent = previous.ExplicitParent && Parent == previous.Parent;
+            }
+
         }
 
         public sealed class StageScope : IDisposable
@@ -130,6 +159,7 @@ namespace nadena.dev.ndmf.preview
             private readonly IReadOnlyDictionary<Renderer, Renderer> _stateProxies;
             private readonly Dictionary<Renderer, RendererReplacementState> _rollbackState = new();
             private readonly Dictionary<Renderer, RendererReplacementState> _pendingState = new();
+            private readonly Dictionary<Renderer, RendererReplacementState> _previousLatestStates = new();
             private bool _committed;
 
             public int? Stage => _stage;
@@ -154,7 +184,14 @@ namespace nadena.dev.ndmf.preview
             public void Dispose()
             {
                 if (IsDisposed) return;
-                if (!_committed) Rollback();
+                if (_committed)
+                {
+                    CaptureFinalState();
+                }
+                else
+                {
+                    Rollback();
+                }
                 
                 IsDisposed = true;
                 if (_manager._activeScope.Value == this) _manager._activeScope.Value = null;
@@ -180,18 +217,71 @@ namespace nadena.dev.ndmf.preview
                 // We initialize from the setup proxy so we can capture any non-SBM manipulation
                 // happening.
                 var setupProxy = _manager._setupProxies[r];
+                _manager._latestStates.TryGetValue(r, out var previousLatest);
+                _previousLatestStates[r] = previousLatest;
+
                 state = new RendererReplacementState(setupProxy);
+                if (previousLatest != null) state.PreserveExplicitFlags(previousLatest);
                 _rollbackState[setupProxy] = new RendererReplacementState(state);
                 _pendingState[r] = state;
+                _manager._latestStates[r] = state;
 
                 return state;
             }
+
+            private void CaptureFinalState()
+            {
+                var stageState = _manager._replacements[_stage];
+                foreach (var (renderer, proxy) in _stateProxies)
+                {
+                    var captured = new RendererReplacementState(proxy);
+                    RendererReplacementState previous = null;
+                    if (_pendingState.TryGetValue(renderer, out var pending))
+                    {
+                        previous = pending;
+                    }
+                    else if (stageState.TryGetValue(renderer, out var previousStageState))
+                    {
+                        previous = previousStageState;
+                    }
+                    else if (_manager._latestStates.TryGetValue(renderer, out var previousLatest))
+                    {
+                        previous = previousLatest;
+                    }
+
+                    if (previous != null)
+                    {
+                        foreach (var (original, replacement) in previous.Mappings)
+                        {
+                            captured.Mappings[original] = replacement;
+                        }
+
+                        captured.PreserveExplicitFlags(previous);
+                    }
+
+                    stageState[renderer] = captured;
+                    _manager._latestStates[renderer] = captured;
+                }
+            }
+
 
             private void Rollback()
             {
                 foreach (var (proxy, state) in _rollbackState)
                 {
                     ApplyRendererState(proxy, state);
+                }
+
+                foreach (var (renderer, previous) in _previousLatestStates)
+                {
+                    if (previous != null)
+                    {
+                        _manager._latestStates[renderer] = previous;
+                    }
+                    else
+                    {
+                        _manager._latestStates.Remove(renderer);
+                    }
                 }
             }
 
@@ -223,6 +313,7 @@ namespace nadena.dev.ndmf.preview
         private readonly Dictionary<Renderer, int> _firstRendererStages = new();
         private readonly Dictionary<Transform, Transform> _implicitReplacements = new();
         private readonly Dictionary<Renderer, Renderer> _setupProxies = new();
+        private readonly Dictionary<Renderer, RendererReplacementState> _latestStates = new();
 
         private TransformAccessArray _sourceBones;
         private TransformAccessArray _proxyBones;
@@ -279,18 +370,9 @@ namespace nadena.dev.ndmf.preview
 
             var state = _activeScope.Value.StateForRenderer(originalRenderer);
 
-            if (state.Mappings.TryGetValue(original, out var previous) && previous != replacement)
-            {
-                ReplaceReferences(state, previous, replacement);
-            }
-            else if (_implicitReplacements.TryGetValue(original, out var implicitReplacement))
-            {
-                ReplaceReferences(state, implicitReplacement, replacement);
-            }
-            else
-            {
-                ReplaceReferences(state, original, replacement);
-            }
+            _implicitReplacements.TryGetValue(original, out var implicitReplacement);
+            state.Mappings.TryGetValue(original, out var previousReplacement);
+            ReplaceReferences(state, original, implicitReplacement, previousReplacement, replacement);
 
             state.Mappings[original] = replacement;
             ApplyRendererState(proxy, state);
@@ -310,11 +392,12 @@ namespace nadena.dev.ndmf.preview
                 _replacements[0] = stageZero;
             }
 
-            foreach (var renderer in proxies.Keys)
+            foreach (var (renderer, proxy) in proxies)
             {
                 if (!stageZero.ContainsKey(renderer))
                 {
-                    stageZero[renderer] = new RendererReplacementState(renderer);
+                    SetInitialParent(renderer, proxy);
+                    stageZero[renderer] = new RendererReplacementState(proxy);
                 }
             }
             
@@ -370,6 +453,7 @@ namespace nadena.dev.ndmf.preview
             _replacements.Clear();
             _implicitReplacements.Clear();
             _setupProxies.Clear();
+            _latestStates.Clear();
             foreach (var state in _bones.Values)
             {
                 state.UsedInPipeline = false;
@@ -408,7 +492,7 @@ namespace nadena.dev.ndmf.preview
 
             // Prune any redundant replacements
             Dictionary<Renderer, (int, RendererReplacementState)> previousState = new();
-            foreach (var (stage, entries) in _replacements)
+            foreach (var (stage, entries) in _replacements.OrderBy(pair => pair.Key))
             {
                 foreach (var (renderer, state) in entries.ToList())
                 {
@@ -458,6 +542,7 @@ namespace nadena.dev.ndmf.preview
             _replacements.Clear();
             _implicitReplacements.Clear();
             _setupProxies.Clear();
+            _latestStates.Clear();
             _firstRendererStages.Clear();
             _transferDataDirty = true;
         }
@@ -600,9 +685,9 @@ namespace nadena.dev.ndmf.preview
         private void ApplyImplicitReplacements(IReadOnlyDictionary<Renderer, Renderer> proxies)
         {
             if (proxies == null) return;
-            foreach (var proxy in proxies.Values)
+            foreach (var (original, proxy) in proxies)
             {
-                ApplyImplicitReplacements(proxy);
+                ApplyImplicitReplacements(original, proxy);
             }
         }
 
@@ -616,39 +701,27 @@ namespace nadena.dev.ndmf.preview
         {
             for (var i = 0; i < state.OriginalBones.Length; i++)
             {
-                var original = state.OriginalBones[i];
-                if (original == null || state.Mappings.ContainsKey(original)) continue;
-                if (_implicitReplacements.TryGetValue(original, out var replacement))
+                Replace(state.OriginalBones[i], state.ExplicitBones[i], ref state.Bones[i]);
+            }
+
+            Replace(state.OriginalRootBone, state.ExplicitRootBone, ref state.RootBone);
+            Replace(state.OriginalProbeAnchor, state.ExplicitProbeAnchor, ref state.ProbeAnchor);
+            Replace(state.OriginalParent, state.ExplicitParent, ref state.Parent);
+
+            void Replace(Transform original, bool isExplicit, ref Transform target)
+            {
+                if (original != null && !isExplicit
+                                     && _implicitReplacements.TryGetValue(original, out var replacement))
                 {
-                    state.Bones[i] = replacement;
+                    target = replacement;
                 }
-            }
-
-            if (state.OriginalRootBone != null
-                && !state.Mappings.ContainsKey(state.OriginalRootBone)
-                && _implicitReplacements.TryGetValue(state.OriginalRootBone, out var rootBone))
-            {
-                state.RootBone = rootBone;
-            }
-
-            if (state.OriginalProbeAnchor != null
-                && !state.Mappings.ContainsKey(state.OriginalProbeAnchor)
-                && _implicitReplacements.TryGetValue(state.OriginalProbeAnchor, out var probeAnchor))
-            {
-                state.ProbeAnchor = probeAnchor;
-            }
-
-            if (state.OriginalParent != null
-                && !state.Mappings.ContainsKey(state.OriginalParent)
-                && _implicitReplacements.TryGetValue(state.OriginalParent, out var parent))
-            {
-                state.Parent = parent;
             }
         }
 
-        private void ApplyImplicitReplacements(Renderer renderer)
+        private void ApplyImplicitReplacements(Renderer original, Renderer renderer)
         {
             if (renderer == null || _implicitReplacements.Count == 0) return;
+            _latestStates.TryGetValue(original, out var state);
 
             if (renderer is SkinnedMeshRenderer skinnedRenderer)
             {
@@ -656,48 +729,80 @@ namespace nadena.dev.ndmf.preview
                 var bonesChanged = false;
                 for (var i = 0; i < bones.Length; i++)
                 {
-                    if (bones[i] == null || !_implicitReplacements.TryGetValue(bones[i], out var replacement)) continue;
+                    var isExplicit = state != null && state.ExplicitBones.Length > i && state.ExplicitBones[i];
+                    var explicitValue = isExplicit ? state.Bones[i] : null;
+                    if (!TryGetReplacement(bones[i], isExplicit, explicitValue, out var replacement)) continue;
                     bones[i] = replacement;
                     bonesChanged = true;
                 }
 
                 if (bonesChanged) skinnedRenderer.bones = bones;
 
-                if (skinnedRenderer.rootBone != null
-                    && _implicitReplacements.TryGetValue(skinnedRenderer.rootBone, out var rootBone))
+                if (TryGetReplacement(skinnedRenderer.rootBone, state?.ExplicitRootBone ?? false,
+                        state?.RootBone, out var rootBone))
                 {
                     skinnedRenderer.rootBone = rootBone;
                 }
             }
 
-            if (renderer.probeAnchor != null
-                && _implicitReplacements.TryGetValue(renderer.probeAnchor, out var probeAnchor))
+            if (TryGetReplacement(renderer.probeAnchor, state?.ExplicitProbeAnchor ?? false,
+                    state?.ProbeAnchor, out var probeAnchor))
             {
                 renderer.probeAnchor = probeAnchor;
             }
 
-            if (renderer.transform.parent != null
-                && _implicitReplacements.TryGetValue(renderer.transform.parent, out var parent)
-                && renderer.transform.parent != parent)
+            if (TryGetReplacement(renderer.transform.parent, state?.ExplicitParent ?? false,
+                    state?.Parent, out var parent) && renderer.transform.parent != parent)
             {
                 renderer.transform.SetParent(parent, false);
             }
+
+            bool TryGetReplacement(Transform current, bool isExplicit, Transform explicitValue,
+                out Transform replacement)
+            {
+                replacement = null;
+                return current != null
+                       && !(isExplicit && explicitValue == current)
+                       && _implicitReplacements.TryGetValue(current, out replacement);
+            }
         }
+
 
         private static void ReplaceReferences(
             RendererReplacementState state,
             Transform original,
+            Transform implicitReplacement,
+            Transform previousReplacement,
             Transform replacement
         )
         {
             for (var i = 0; i < state.Bones.Length; i++)
             {
-                if (state.OriginalBones[i] == original) state.Bones[i] = replacement;
+                if (Matches(state.OriginalBones[i], state.Bones[i], state.ExplicitBones[i]))
+                {
+                    state.Bones[i] = replacement;
+                    state.ExplicitBones[i] = true;
+                }
             }
 
-            if (state.OriginalRootBone == original) state.RootBone = replacement;
-            if (state.OriginalProbeAnchor == original) state.ProbeAnchor = replacement;
-            if (state.OriginalParent == original) state.Parent = replacement;
+            Replace(ref state.RootBone, ref state.ExplicitRootBone, state.OriginalRootBone);
+            Replace(ref state.ProbeAnchor, ref state.ExplicitProbeAnchor, state.OriginalProbeAnchor);
+            Replace(ref state.Parent, ref state.ExplicitParent, state.OriginalParent);
+
+            void Replace(ref Transform current, ref bool isExplicit, Transform actualOriginal)
+            {
+                if (!Matches(actualOriginal, current, isExplicit)) return;
+                current = replacement;
+                isExplicit = true;
+            }
+
+            bool Matches(Transform actualOriginal, Transform current, bool isExplicit)
+            {
+                if (actualOriginal != original
+                    && (implicitReplacement == null || actualOriginal != implicitReplacement)) return false;
+                if (isExplicit) return previousReplacement != null && current == previousReplacement;
+                return current == original || (implicitReplacement != null && current == implicitReplacement);
+            }
         }
 
         private static void ApplyRendererState(Renderer renderer, RendererReplacementState state)

@@ -336,10 +336,7 @@ namespace nadena.dev.ndmf.preview
                             {
                                 Invalidate();
                             }
-                            else
-                            {
-                                _shadowBoneManager.SetInitialParent(r, proxy.Renderer);
-                            }
+
                             // OnPreFrame can enable rendering, turn it off for now (until the pipeline goes active and
                             // we render for real).
                             _proxies.Add(r, proxy);
@@ -458,8 +455,6 @@ namespace nadena.dev.ndmf.preview
                     Invalidate();
                     continue;
                 }
-
-                _shadowBoneManager.SetInitialParent(r, proxy.Renderer);
 
                 // Setup uses a different proxy than rendering, so make sure we install the rendering proxy
                 // as well (since that's the one that scene view picking will use)
