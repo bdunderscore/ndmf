@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
@@ -78,6 +79,46 @@ namespace nadena.dev.ndmf.preview
                 RootBone = source.RootBone;
                 ProbeAnchor = source.ProbeAnchor;
                 Mappings = new Dictionary<Transform, Transform>(source.Mappings);
+            }
+
+            public bool IsUnchanged =>
+                Bones.SequenceEqual(OriginalBones)
+                && RootBone == OriginalRootBone
+                && ProbeAnchor == OriginalProbeAnchor
+                && Parent == OriginalParent
+                && Mappings.Count == 0;
+
+            public bool StateEquals(RendererReplacementState other)
+            {
+                return Bones.SequenceEqual(other.Bones)
+                       && RootBone == other.RootBone
+                       && ProbeAnchor == other.ProbeAnchor
+                       && Parent == other.Parent
+                       && Mappings.Count == other.Mappings.Count
+                       && Mappings.All(pair =>
+                           other.Mappings.TryGetValue(pair.Key, out var value) && value == pair.Value);
+            }
+
+            public void ApplyReplacements(Dictionary<Transform, Transform> implicitReplacements)
+            {
+                for (var i = 0; i < Bones.Length; i++)
+                {
+                    var tmp = Bones[i];
+                    ReplaceOne(ref tmp);
+                    Bones[i] = tmp;
+                }
+
+                ReplaceOne(ref RootBone);
+                ReplaceOne(ref ProbeAnchor);
+                ReplaceOne(ref Parent);
+
+                void ReplaceOne(ref Transform bone)
+                {
+                    if (bone != null && implicitReplacements.TryGetValue(bone, out var replacement))
+                    {
+                        bone = replacement;
+                    }
+                }
             }
         }
 
@@ -261,6 +302,22 @@ namespace nadena.dev.ndmf.preview
         )
         {
             ThrowIfDisposed();
+
+            // Ensure stage 0 has all proxies registered
+            if (!_replacements.TryGetValue(0, out var stageZero))
+            {
+                stageZero = new Dictionary<Renderer, RendererReplacementState>();
+                _replacements[0] = stageZero;
+            }
+
+            foreach (var renderer in proxies.Keys)
+            {
+                if (!stageZero.ContainsKey(renderer))
+                {
+                    stageZero[renderer] = new RendererReplacementState(renderer);
+                }
+            }
+            
             var scope = new StageScope(this, stageIndex, proxies);
             _activeScope.Value = scope;
 
@@ -297,7 +354,6 @@ namespace nadena.dev.ndmf.preview
                 UpdateAllBones();
             }
 
-            ApplyImplicitReplacements(activeProxies);
             ReplayStage(stageIndex, activeProxies);
         }
 
@@ -350,7 +406,34 @@ namespace nadena.dev.ndmf.preview
                 }
             }
 
-            ApplyImplicitReplacements(_setupProxies);
+            // Prune any redundant replacements
+            Dictionary<Renderer, (int, RendererReplacementState)> previousState = new();
+            foreach (var (stage, entries) in _replacements)
+            {
+                foreach (var (renderer, state) in entries.ToList())
+                {
+                    state.ApplyReplacements(_implicitReplacements);
+
+                    if (previousState.TryGetValue(renderer, out var pair) && pair.Item2.StateEquals(state))
+                    {
+                        entries.Remove(renderer);
+                    }
+
+                    previousState[renderer] = (stage, state);
+                }
+            }
+
+            // If we never manipulated the renderer, prune it entirely
+            foreach (var (renderer, (stage, state)) in previousState)
+            {
+                if (stage == 0 && state.IsUnchanged)
+                {
+                    _replacements[0].Remove(renderer);
+                }
+
+                ApplyRendererState(_setupProxies[renderer], state);
+            }
+            
             _setupProxies.Clear();
         }
 
