@@ -19,17 +19,16 @@ namespace nadena.dev.ndmf.animator
     [PublicAPI]
     public sealed class AnimatorServicesContext : IExtensionContext
     {
-        private VirtualControllerContext? _controllerContext;
+        private BuildContext? _context;
 
-        public VirtualControllerContext ControllerContext => _controllerContext ??
-                                                             throw new InvalidOperationException(
-                                                                 "ControllerContext is not available outside of the AnimatorServicesContext");
+        public VirtualControllerContext ControllerContext =>
+            (_context ?? throw new InvalidOperationException(
+                "ControllerContext is not available outside of the AnimatorServicesContext"))
+            .Extension<VirtualControllerContext>();
 
         private AnimationIndex? _animationIndex;
 
-        public AnimationIndex AnimationIndex => _animationIndex ??
-                                                throw new InvalidOperationException(
-                                                    "AnimationIndex is not available outside of the AnimatorServicesContext");
+        public AnimationIndex AnimationIndex => _animationIndex ??= CreateAnimationIndex();
 
         private ObjectPathRemapper? _objectPathRemapper;
 
@@ -39,13 +38,20 @@ namespace nadena.dev.ndmf.animator
 
         public void OnActivate(BuildContext context)
         {
-            _controllerContext = context.Extension<VirtualControllerContext>();
-            _animationIndex = new AnimationIndex(
+            _context = context;
+            // Record paths before any pass can change the hierarchy, without initializing animator services.
+            _objectPathRemapper = new ObjectPathRemapper(context.AvatarRootTransform);
+        }
+
+        private AnimationIndex CreateAnimationIndex()
+        {
+            return new AnimationIndex(
                 () => ControllerContext.GetAllControllers(),
                 () => ControllerContext.CacheInvalidationToken
-            );
-            _objectPathRemapper = new ObjectPathRemapper(context.AvatarRootTransform);
-            _animationIndex.PlatformBindings = _controllerContext.PlatformBindings;
+            )
+            {
+                PlatformBindings = ControllerContext.PlatformBindings
+            };
         }
 
         public void OnDeactivate(BuildContext context)
@@ -54,7 +60,7 @@ namespace nadena.dev.ndmf.animator
 
             _objectPathRemapper = null;
             _animationIndex = null;
-            _controllerContext = null;
+            _context = null;
         }
     }
 }
