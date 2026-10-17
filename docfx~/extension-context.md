@@ -23,3 +23,11 @@ sequence.WithCompatibleExtension("foo.bar.ExtensionClass", seq2 => {
 });
 
 ```
+
+## Lazy initialization
+
+`[LazyExtension]` defers `OnActivate` until the context is first needed by `BuildContext.Extension<T>()`.
+If never initialized, the context does not receive `OnDeactivate`.
+Explicit calls to `ActivateExtensionContext` or `ActivateExtensionContextRecursive` initialize it immediately.
+
+Do not use this attribute if activation has side effects required even when the context is not accessed.

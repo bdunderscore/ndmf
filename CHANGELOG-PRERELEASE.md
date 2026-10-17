@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#850] Added `[LazyExtension]` to defer extension context initialization until first use.
 
 ### Fixed
 - [#850] Deactivate dependent extension contexts before their dependencies at phase boundaries.

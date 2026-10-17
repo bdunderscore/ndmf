@@ -83,7 +83,8 @@ namespace nadena.dev.ndmf
 
         private Dictionary<Type, object> _state = new Dictionary<Type, object>();
         private Dictionary<Type, IExtensionContext> _extensions = new Dictionary<Type, IExtensionContext>();
-        private Dictionary<Type, IExtensionContext> _activeExtensions = new Dictionary<Type, IExtensionContext>();
+        private readonly HashSet<Type> _availableExtensions = new();
+        private Dictionary<Type, IExtensionContext> _initializedExtensions = new Dictionary<Type, IExtensionContext>();
 
         public T GetState<T>() where T : new()
         {
@@ -104,12 +105,12 @@ namespace nadena.dev.ndmf
 
         public T Extension<T>() where T : IExtensionContext
         {
-            if (!_activeExtensions.TryGetValue(typeof(T), out var value))
+            if (!_availableExtensions.Contains(typeof(T)))
             {
                 throw new Exception($"Extension {typeof(T)} not active");
             }
 
-            return (T)value;
+            return ActivateExtensionContext<T>();
         }
         
         public BuildContext(GameObject obj, string assetRootPath, bool isClone = true)
@@ -298,9 +299,9 @@ namespace nadena.dev.ndmf
             using (ErrorReport.CurrentReport.WithExtensionContextTrace(t))
                 try
                 {
-                    if (_activeExtensions.ContainsKey(t))
+                    if (_initializedExtensions.ContainsKey(t))
                     {
-                        var ctx = _activeExtensions[t];
+                        var ctx = _initializedExtensions[t];
                         Profiler.BeginSample("NDMF Deactivate: " + t);
                         try
                         {
@@ -311,8 +312,10 @@ namespace nadena.dev.ndmf
                             Profiler.EndSample();
                         }
 
-                        _activeExtensions.Remove(t);
+                        _initializedExtensions.Remove(t);
                     }
+
+                    _availableExtensions.Remove(t);
                 }
                 catch (Exception e)
                 {
@@ -344,7 +347,7 @@ namespace nadena.dev.ndmf
                 {
                     Stopwatch sw2 = new Stopwatch();
                     sw2.Start();
-                    ActivateExtensionContext(ty);
+                    PrepareExtensionContext(ty);
                     activationTimes = activationTimes.Add(ty, sw2.Elapsed.TotalMilliseconds);
                 }
 
@@ -383,7 +386,7 @@ namespace nadena.dev.ndmf
                 sw.Start();
                 try
                 {
-                    ActivateExtensionContext(extensionType);
+                    PrepareExtensionContext(extensionType);
                 }
                 finally
                 {
@@ -452,7 +455,7 @@ namespace nadena.dev.ndmf
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             
             Dictionary<Type, List<Type>> depIndex = new();
-            foreach (var ty in _activeExtensions.Keys)
+            foreach (var ty in _availableExtensions)
             {
                 foreach (var dep in ty.RequiredContexts())
                 {
@@ -465,16 +468,16 @@ namespace nadena.dev.ndmf
                 }
             }
 
-            while (_activeExtensions.Keys.Count > 0)
+            while (_availableExtensions.Count > 0)
             {
-                Type next = _activeExtensions.Keys.First();
+                Type next = _availableExtensions.First();
                 Type candidate;
                 do
                 {
                     candidate = next;
                     var revDeps = depIndex.GetValueOrDefault(next) as IEnumerable<Type>
                                   ?? Array.Empty<Type>();
-                    next = revDeps.FirstOrDefault(t => _activeExtensions.ContainsKey(t));
+                    next = revDeps.FirstOrDefault(t => _availableExtensions.Contains(t));
                 } while (next != null);
                 
                 DeactivateExtensionContext(candidate);
@@ -496,12 +499,47 @@ namespace nadena.dev.ndmf
             return ActivateExtensionContext(ty);
         }
         
+        private void PrepareExtensionContext(Type ty)
+        {
+            if (_availableExtensions.Contains(ty))
+            {
+                return;
+            }
+
+            if (Attribute.IsDefined(ty, typeof(LazyExtension)))
+            {
+                _availableExtensions.Add(ty);
+            }
+            else
+            {
+                InitializeExtensionContext(ty);
+            }
+        }
+
         public T ActivateExtensionContext<T>() where T : IExtensionContext
         {
             return (T)ActivateExtensionContext(typeof(T));
         }
-        
+
         public IExtensionContext ActivateExtensionContext(Type ty)
+        {
+            if (_initializedExtensions.TryGetValue(ty, out var context))
+            {
+                return context;
+            }
+
+            foreach (var dependency in ty.RequiredContexts())
+            {
+                if (_availableExtensions.Contains(dependency))
+                {
+                    ActivateExtensionContext(dependency);
+                }
+            }
+
+            return InitializeExtensionContext(ty);
+        }
+
+        private IExtensionContext InitializeExtensionContext(Type ty)
         {
             using var _platformScope = new AmbientPlatform.Scope(PlatformProvider);
             
@@ -515,22 +553,19 @@ namespace nadena.dev.ndmf
                         _extensions[ty] = ctx;
                     }
 
-                    if (!_activeExtensions.ContainsKey(ty))
+                    Profiler.BeginSample("NDMF Activate: " + ty);
+                    try
                     {
-                        Profiler.BeginSample("NDMF Activate: " + ty);
-                        try
-                        {
-                            ctx.OnActivate(this);
-                        }
-                        finally
-                        {
-                            Profiler.EndSample();
-                        }
-
-                        _activeExtensions.Add(ty, ctx);
+                        ctx.OnActivate(this);
+                    }
+                    finally
+                    {
+                        Profiler.EndSample();
                     }
 
-                    return _activeExtensions[ty];
+                    _initializedExtensions.Add(ty, ctx);
+                    _availableExtensions.Add(ty);
+                    return ctx;
                 }
                 catch (Exception e)
                 {
