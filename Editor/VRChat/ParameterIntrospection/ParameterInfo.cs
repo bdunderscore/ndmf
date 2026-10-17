@@ -117,6 +117,7 @@ namespace nadena.dev.ndmf
                 if (EnhancerDatabase<ParameterProviderFor, IParameterProvider>.Query(component, out var provider))
                 {
                     _computeContext.Observe(component); // TODO: Can we add an extract condition here?
+                    (provider as IParameterProviderWithDependencies)?.ObserveDependencies(_computeContext);
                     provider.RemapParameters(ref mappings, _context);
                 }
             }
@@ -153,6 +154,7 @@ namespace nadena.dev.ndmf
                 if (EnhancerDatabase<ParameterProviderFor, IParameterProvider>.Query(component, out var provider))
                 {
                     _computeContext.Observe(component); // TODO: Can we add an extract condition here?
+                    (provider as IParameterProviderWithDependencies)?.ObserveDependencies(_computeContext);
                     provider.RemapParameters(ref mappings, _context);
                 }
 
@@ -176,6 +178,7 @@ namespace nadena.dev.ndmf
                 }
 
                 _computeContext.Observe(component); // TODO: Can we add an extract condition here?
+                (provider as IParameterProviderWithDependencies)?.ObserveDependencies(_computeContext);
 
                 // Apply mappings first
                 provider.RemapParameters(ref remaps, _context);
@@ -228,7 +231,7 @@ namespace nadena.dev.ndmf
 
             foreach (Transform childTransform in root.transform)
             {
-                if (childTransform.gameObject.CompareTag("EditorOnly"))
+                if (_computeContext.Observe(childTransform.gameObject, obj => obj.CompareTag("EditorOnly")))
                 {
                     continue;
                 }
