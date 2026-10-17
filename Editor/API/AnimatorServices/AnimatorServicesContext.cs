@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace nadena.dev.ndmf.animator
@@ -56,7 +57,11 @@ namespace nadena.dev.ndmf.animator
 
         public void OnDeactivate(BuildContext context)
         {
-            AnimationIndex.RewritePaths(ObjectPathRemapper.GetVirtualToRealPathMap());
+            var pathMap = ObjectPathRemapper.GetVirtualToRealPathMap();
+            if (pathMap.Any(entry => entry.Key != entry.Value))
+            {
+                AnimationIndex.RewritePaths(pathMap);
+            }
 
             _objectPathRemapper = null;
             _animationIndex = null;

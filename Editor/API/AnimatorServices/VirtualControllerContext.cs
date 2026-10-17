@@ -36,6 +36,7 @@ namespace nadena.dev.ndmf.animator
     ///     subsequent NDMF processing steps may directly modify the serialized animator controllers; conversely, when the
     ///     virtual controller context is reactivated, it may or may not reuse the same virtual nodes as before.
     /// </summary>
+    [LazyExtension]
     [PublicAPI]
     public sealed class VirtualControllerContext : IExtensionContext
     {

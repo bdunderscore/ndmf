@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#848] Improve preview performance
 
 ### Changed
+- [#851] Avoid initializing and committing unused animator contexts while preserving automatic animation path updates.
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
 
 ### Removed
