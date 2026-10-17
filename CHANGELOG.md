@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added an optional parameter provider interface for observing preview dependencies.
 - [#839] Added ShadowBoneManager
 
 ### Fixed
+- Fixed stale parameter preview queries after default value, expression parameter asset, or EditorOnly tag changes.
 - [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
 - [#848] Improve preview performance
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -13,7 +14,7 @@ using VRC.SDK3.Avatars.ScriptableObjects;
 namespace nadena.dev.ndmf.VRChatProviders
 {
     [ParameterProviderFor(typeof(VRCAvatarDescriptor))]
-    internal class AvatarDescriptorProvider : IParameterProvider
+    internal class AvatarDescriptorProvider : IParameterProvider, IParameterProviderWithDependencies
     {
         private VRCAvatarDescriptor _avatarDescriptor;
 
@@ -41,6 +42,14 @@ namespace nadena.dev.ndmf.VRChatProviders
                     DefaultValue = p.defaultValue
                 };
             });
+        }
+
+        public void ObserveDependencies(preview.ComputeContext context)
+        {
+            if (_avatarDescriptor.expressionParameters != null)
+            {
+                context.Observe(_avatarDescriptor.expressionParameters);
+            }
         }
 
         public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> nameMap,

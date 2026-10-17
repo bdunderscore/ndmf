@@ -61,6 +61,7 @@ namespace nadena.dev.ndmf
                    ParameterType == other.ParameterType &&
                    ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
+                   Nullable.Equals(DefaultValue, other.DefaultValue) &&
                    WantSynced == other.WantSynced;
         }
 
@@ -83,6 +84,7 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
+                hashCode = (hashCode * 397) ^ DefaultValue.GetHashCode();
                 return hashCode;
             }
         }
@@ -288,5 +290,15 @@ namespace nadena.dev.ndmf
             // Sorry, if you're maintaining compatibility with Unity 2019, you need to explicitly declare this member.
             ;
 #endif
+    }
+
+    /// <summary>
+    /// Optional interface for providers which read assets or objects other than their source component.
+    /// The source component is observed automatically. Register additional dependencies here so preview queries
+    /// invalidate when those dependencies change. Called before querying parameters or remappings.
+    /// </summary>
+    public interface IParameterProviderWithDependencies
+    {
+        void ObserveDependencies(preview.ComputeContext context);
     }
 }
