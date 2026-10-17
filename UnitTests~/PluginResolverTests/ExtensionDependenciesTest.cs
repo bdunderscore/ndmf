@@ -177,6 +177,20 @@ namespace UnitTests.PluginResolverTests
         }
 
         [Test]
+        public void PhaseCleanupDeactivatesDependentsBeforeTheirDependencies()
+        {
+            var resolver = new PluginResolver(new[] { typeof(PluginWithCompatiblePass) }, GenericPlatform.Instance);
+            var phase = resolver.Passes.First(p => p.Item1 == BuildPhase.Generating).Item2;
+            var cleanup = phase.Last();
+
+            Assert.That(cleanup.ActivatePlugins, Is.Empty);
+            Assert.That(cleanup.DeactivatePlugins, Is.EqualTo(new[]
+            {
+                typeof(Ctx4), typeof(Ctx1), typeof(Ctx3), typeof(Ctx2)
+            }));
+        }
+
+        [Test]
         public void CompatibleWithContext_ActivatesOnceWithCompatiblePass()
         {
             // Pass1 depends on Ctx4, Pass2 is compatible with Ctx4, Pass3 depends on Ctx4
