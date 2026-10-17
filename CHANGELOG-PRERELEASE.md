@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#849] Fixed preview filter failures causing continuous rebuilds and repeated error logs.
 
 ### Changed
 

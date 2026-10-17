@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using nadena.dev.ndmf;
 using nadena.dev.ndmf.preview;
@@ -82,6 +83,121 @@ namespace UnitTests
             _cache.Dispose();
         }
         
+        [TestCase("Instantiate")]
+        [TestCase("null")]
+        [TestCase("Refresh")]
+        public void NodeFailureDoesNotAbortEvaluation(string operation)
+        {
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            using var proxy = new ProxyObjectController(_cache, original, null);
+            var proxies = new List<(Renderer, ProxyObjectController, ObjectRegistry)>
+            {
+                (original, proxy, new ObjectRegistry(null))
+            };
+            var node = new TestRenderFilterNode
+            {
+                RefreshFunc = (_, _, _) => Task.FromException<IRenderFilterNode>(new Exception("test failure"))
+            };
+            var filter = new TestRenderFilter
+            {
+                InstantiateFunc = (_, _, _) => operation == "Instantiate"
+                    ? throw new Exception("test failure")
+                    : Task.FromResult<IRenderFilterNode>(operation == "null" ? null : node)
+            };
+            LogAssert.Expect(LogType.Exception, new Regex(operation == "null"
+                ? "^InvalidOperationException:"
+                : "^Exception: test failure$"));
+            using var created = NodeController.Create(filter, RenderGroup.For(original), proxies, "", _context, 0).Result;
+            Assert.That(created, Is.Not.Null);
+
+            if (operation == "Refresh")
+            {
+                using var refreshed = created.Refresh(proxies, RenderAspects.Mesh, "", _context, 0).Result;
+                Assert.That(refreshed, Is.Not.Null);
+                Assert.That(refreshed.WhatChanged, Is.EqualTo(RenderAspects.Everything));
+            }
+        }
+
+        [Test]
+        public void TargetGroupFailureRetriesWhenDependencyChanges()
+        {
+            var retry = new PublishedValue<bool>(false);
+            var calls = 0;
+            var filter = new TestRenderFilter
+            {
+                GetTargetGroupsFunc = context =>
+                {
+                    calls++;
+                    if (!context.Observe(retry))
+                    {
+                        throw new Exception("test failure");
+                    }
+
+                    return ImmutableList<RenderGroup>.Empty;
+                }
+            };
+            var filters = ImmutableList.Create<IRenderFilter>(filter);
+            LogAssert.Expect(LogType.Exception, "Exception: test failure");
+            var targets = new TargetSet(filters, ImmutableHashSet<Renderer>.Empty, null);
+
+            targets = targets.Refresh(filters, ImmutableHashSet<Renderer>.Empty, null);
+            Assert.That(targets.ResolveActiveStages(new ComputeContext("failed targets")), Is.Empty);
+            Assert.That(calls, Is.EqualTo(1));
+
+            retry.Value = true;
+            ComputeContext.FlushInvalidates();
+            Assert.That(calls, Is.EqualTo(2));
+        }
+
+        [UnityTest]
+        public IEnumerator SessionRetriesFailedNodeOnlyWhenDependencyChanges()
+        {
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var group = RenderGroup.For(original);
+            var retry = new PublishedValue<bool>(false);
+            var attempts = 0;
+            var node = new TestRenderFilterNode();
+            var filter = new TestRenderFilter
+            {
+                GetTargetGroupsFunc = _ => ImmutableList.Create(group),
+                InstantiateFunc = (_, _, context) =>
+                {
+                    attempts++;
+                    if (!context.Observe(retry))
+                    {
+                        return Task.FromResult<IRenderFilterNode>(null);
+                    }
+
+                    return Task.FromResult<IRenderFilterNode>(node);
+                }
+            };
+            using var session = new ProxySession(ImmutableList.Create<IRenderFilter>(filter));
+            LogAssert.Expect(LogType.Exception, new Regex("^InvalidOperationException:"));
+
+            for (var frame = 0; frame < 120 && session.OriginalToProxyRenderer.Count == 0; frame++)
+            {
+                session.OnPreCull(true);
+                yield return null;
+            }
+
+            Assert.That(session.OriginalToProxyRenderer.ContainsKey(original), Is.True);
+            for (var frame = 0; frame < 10; frame++)
+            {
+                session.OnPreCull(true);
+                yield return null;
+            }
+            Assert.That(attempts, Is.EqualTo(1));
+
+            retry.Value = true;
+            for (var frame = 0; frame < 120 && attempts < 2; frame++)
+            {
+                session.OnPreCull(true);
+                yield return null;
+            }
+
+            Assert.That(attempts, Is.EqualTo(2));
+        }
+
         [Test]
         public void TestObjectRegistryProcessing()
         {
