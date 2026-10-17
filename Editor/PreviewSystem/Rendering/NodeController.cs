@@ -14,6 +14,11 @@ namespace nadena.dev.ndmf.preview
 {
     internal class NodeController : IDisposable
     {
+        private sealed class FailedNode : IRenderFilterNode
+        {
+            public RenderAspects WhatChanged => RenderAspects.Everything;
+        }
+
         private class RefCount
         {
             public int Count = 1;
@@ -147,12 +152,26 @@ namespace nadena.dev.ndmf.preview
                                proxies.ToDictionary(pair => pair.Item1, pair => pair.Item2.Renderer)
                            ))
                     {
-                        node = await filter.Instantiate(
-                            group,
-                            proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                            context
-                        );
-                        if (node != null)
+                        try
+                        {
+                            node = await filter.Instantiate(
+                                group,
+                                proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                                context
+                            );
+                            if (node == null)
+                            {
+                                throw new InvalidOperationException("Instantiate returned null instead of a render filter node.");
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogException(new InvalidOperationException(
+                                $"Preview filter {filter.GetType().FullName} failed in Instantiate.", exception));
+                            node = new FailedNode();
+                        }
+
+                        if (node is not FailedNode)
                         {
                             sbStage.Commit();
                         }
@@ -228,12 +247,22 @@ namespace nadena.dev.ndmf.preview
                                proxies.ToDictionary(pair => pair.Item1, pair => pair.Item2.Renderer)
                            ))
                     {
-                        node = await _node.Refresh(
-                            proxies.Select(p => (p.Item1, p.Item2.Renderer)),
-                            context,
-                            changes
-                        );
-                        if (node != null)
+                        try
+                        {
+                            node = await _node.Refresh(
+                                proxies.Select(p => (p.Item1, p.Item2.Renderer)),
+                                context,
+                                changes
+                            );
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogException(new InvalidOperationException(
+                                $"Preview filter {_filter.GetType().FullName} failed in Refresh.", exception));
+                            node = new FailedNode();
+                        }
+
+                        if (node != null && node is not FailedNode)
                         {
                             shadowBoneStageScope.Commit();
                         }
