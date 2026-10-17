@@ -283,7 +283,8 @@ namespace nadena.dev.ndmf
                     ctx => { });
 
                 concrete.Add(new ConcretePass(InternalPasses.Instance, cleanup,
-                    activeExtensions.ToImmutableList(),
+                    activeExtensions.OrderByDescending(t => (t.RequiredContexts(true).Count(), t.FullName))
+                        .ToImmutableList(),
                     ImmutableList<Type>.Empty,
                     ImmutableList<IRenderFilter>.Empty
                 ));
