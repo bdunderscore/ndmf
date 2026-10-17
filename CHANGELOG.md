@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#839] Fixed preview renderer proxies being destroyed when returned to the pool from a temporary hierarchy.
 - [#848] Improve preview performance
+- [#849] Fixed preview filter failures causing continuous rebuilds and repeated error logs.
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
