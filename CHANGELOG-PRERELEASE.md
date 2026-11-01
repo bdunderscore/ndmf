@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#854] Fixed upstream preview changes not propagating to downstream previews.
 - [#856] Fixed unnecessary delays when resuming preview updates after throttling.
 - [#857] Reduced preview overhead from polling component queries.
 

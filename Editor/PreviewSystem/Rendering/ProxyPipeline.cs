@@ -69,7 +69,7 @@ namespace nadena.dev.ndmf.preview
             Inputs = inputs;
         }
 
-        public bool HasLostInputNodes(ImmutableList<NodeDescriptor?> currentInputs)
+        public bool HasInputNodeChanges(ImmutableList<NodeDescriptor?> currentInputs)
         {
             if (Inputs.Count != currentInputs.Count)
             {
@@ -384,15 +384,19 @@ namespace nadena.dev.ndmf.preview
                             
                             if (priorNode != null)
                             {
+                                // Changes within existing upstream nodes are already carried by proxy ChangeFlags.
+                                // A changed input connection may remove prior effects without a node reporting them.
+                                // Record that change on the proxies so it reaches this node and downstream nodes alike.
+                                if (priorNode.HasInputNodeChanges(inputNodes))
+                                {
+                                    foreach (var proxy in proxies)
+                                    {
+                                        proxy.Item2.ChangeFlags |= RenderAspects.Everything;
+                                    }
+                                }
+
                                 RenderAspects changeFlags = proxies.Select(p => p.Item2.ChangeFlags)
                                     .Aggregate((a, b) => a | b);
-
-                                // Changes within upstream nodes are already carried by proxy ChangeFlags.
-                                // Escalate only when a direct input node from the prior pipeline is no longer present.
-                                if (priorNode.HasLostInputNodes(inputNodes))
-                                {
-                                    changeFlags |= RenderAspects.Everything;
-                                }
 
                                 node = await priorNode.Task.Result.Refresh(proxies, changeFlags, trace, _previewContext,
                                     stageIndex);
