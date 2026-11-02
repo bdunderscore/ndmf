@@ -8,12 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- [#861] Support advanced features of ExpressionsParameter on IParameterProvider
 
 ### Fixed
-- [#854] Fixed upstream preview changes not propagating to downstream previews.
-- [#856] Fixed unnecessary delays when resuming preview updates after throttling.
-- [#857] Reduced preview overhead from polling component queries.
 
 ### Changed
 
@@ -22,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0-beta.3] - [2026-11-02]
+
+### Added
+- [#861] Support advanced features of ExpressionsParameter on IParameterProvider
+
+### Fixed
+- [#854] Fixed upstream preview changes not propagating to downstream previews.
+- [#856] Fixed unnecessary delays when resuming preview updates after throttling.
+- [#857] Reduced preview overhead from polling component queries.
 
 ## [1.15.0-beta.2] - [2026-10-15]
 
