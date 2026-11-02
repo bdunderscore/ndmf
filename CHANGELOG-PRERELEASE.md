@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [#861] Support advanced features of ExpressionsParameter on IParameterProvider
 
 ### Fixed
 - [#854] Fixed upstream preview changes not propagating to downstream previews.

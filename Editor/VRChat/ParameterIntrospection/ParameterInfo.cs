@@ -35,7 +35,10 @@ namespace nadena.dev.ndmf
 
         public enum ConflictType
         {
-            TypeMismatch
+            TypeMismatch,
+            BitWidthMismatch,
+            SignednessMismatch,
+            LerpDurationMismatch
         }
 
         /// <summary>
@@ -254,6 +257,7 @@ namespace nadena.dev.ndmf
         private void ResolveConflict(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
         {
             ResolveParameterType(oldP, newP, onConflict);
+            ResolveNumericFormat(oldP, newP, onConflict);
 
             oldP.IsAnimatorOnly &= newP.IsAnimatorOnly;
             oldP.IsHidden &= newP.IsHidden;
@@ -289,6 +293,55 @@ namespace nadena.dev.ndmf
             {
                 oldP.ParameterType = newP.ParameterType;
                 return;
+            }
+        }
+
+        private void ResolveNumericFormat(ProvidedParameter oldP, ProvidedParameter newP, ConflictHandler onConflict)
+        {
+            if (oldP.IsAnimatorOnly && !newP.IsAnimatorOnly)
+            {
+                oldP.NumericBitWidth = newP.NumericBitWidth;
+                oldP.StoredSignedness = newP.StoredSignedness;
+                oldP.StoredLerpDuration = newP.StoredLerpDuration;
+                return;
+            }
+
+            if (!oldP.IsAnimatorOnly && newP.IsAnimatorOnly)
+            {
+                return;
+            }
+
+            var isNumeric = oldP.ParameterType == AnimatorControllerParameterType.Int ||
+                            oldP.ParameterType == AnimatorControllerParameterType.Float;
+
+            if (oldP.NumericBitWidth == null)
+            {
+                oldP.NumericBitWidth = newP.NumericBitWidth;
+            }
+            else if (isNumeric && newP.NumericBitWidth != null &&
+                     oldP.NumericBitWidth != newP.NumericBitWidth)
+            {
+                onConflict(ConflictType.BitWidthMismatch, oldP, newP);
+            }
+
+            if (oldP.StoredSignedness == null)
+            {
+                oldP.StoredSignedness = newP.StoredSignedness;
+            }
+            else if (isNumeric && newP.StoredSignedness != null &&
+                     oldP.StoredSignedness != newP.StoredSignedness)
+            {
+                onConflict(ConflictType.SignednessMismatch, oldP, newP);
+            }
+
+            if (oldP.StoredLerpDuration == null)
+            {
+                oldP.StoredLerpDuration = newP.StoredLerpDuration;
+            }
+            else if (isNumeric && newP.StoredLerpDuration != null &&
+                     oldP.StoredLerpDuration != newP.StoredLerpDuration)
+            {
+                onConflict(ConflictType.LerpDurationMismatch, oldP, newP);
             }
         }
     }
