@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -106,8 +107,21 @@ namespace nadena.dev.ndmf.preview
         private static CachedGroups ComputeGroupsForFilter(ComputeContext context, IRenderFilter filter)
         {
             Profiler.BeginSample("TargetSet.GetTargetGroups[" + filter + "]");
-            var groups = filter.GetTargetGroups(context);
-            Profiler.EndSample();
+            ImmutableList<RenderGroup> groups;
+            try
+            {
+                groups = filter.GetTargetGroups(context);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(new InvalidOperationException(
+                    $"Preview filter {filter.GetType().FullName} failed in GetTargetGroups.", exception));
+                return new CachedGroups(ImmutableList<RenderGroup>.Empty);
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
             if (groups.IsEmpty) 
             {
                 return new CachedGroups(ImmutableList<RenderGroup>.Empty);
