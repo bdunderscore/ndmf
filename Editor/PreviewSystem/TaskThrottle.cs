@@ -41,7 +41,7 @@ namespace nadena.dev.ndmf.preview
                         var frameReleaser = _nextFrame;
                         _nextFrame = null;
 
-                        EditorApplication.delayCall += () => frameReleaser.TrySetResult(true);
+                        NDMFSyncContext.Context.Post(_ => frameReleaser.TrySetResult(true), null);
                     }
                 }
             };

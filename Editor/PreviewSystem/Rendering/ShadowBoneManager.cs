@@ -177,7 +177,10 @@ namespace nadena.dev.ndmf.preview
                 _previousStage = manager.CurrentStage;
                 _stage = stage;
                 _stateProxies = proxies;
-                foreach (var pair in proxies) manager._setupProxies[pair.Key] = pair.Value;
+                foreach (var pair in proxies)
+                {
+                    manager.RegisterSetupProxy(pair.Key, pair.Value);
+                }
                 manager.ApplyImplicitReplacements(proxies);
             }
 
@@ -312,9 +315,11 @@ namespace nadena.dev.ndmf.preview
         private readonly List<BoneState> _stateList = new();
         private readonly Dictionary<Renderer, int> _firstRendererStages = new();
         private readonly Dictionary<Transform, Transform> _implicitReplacements = new();
+        private readonly Dictionary<Transform, Transform> _implicitReplacementSources = new();
         private readonly Dictionary<Renderer, Renderer> _setupProxies = new();
         private readonly Dictionary<Renderer, RendererReplacementState> _latestStates = new();
 
+        private readonly Dictionary<Transform, List<(Renderer Renderer, int Index)>> _setupProxyReferences = new();
         private TransformAccessArray _sourceBones;
         private TransformAccessArray _proxyBones;
         private NativeArray<bool> _boneIsValid;
@@ -452,8 +457,11 @@ namespace nadena.dev.ndmf.preview
             _unexpectedDestroy = false;
             _replacements.Clear();
             _implicitReplacements.Clear();
+            _implicitReplacementSources.Clear();
             _setupProxies.Clear();
             _latestStates.Clear();
+            _setupProxyReferences.Clear();
+            RebuildImplicitReplacementSources();
             foreach (var state in _bones.Values)
             {
                 state.UsedInPipeline = false;
@@ -519,6 +527,7 @@ namespace nadena.dev.ndmf.preview
             }
             
             _setupProxies.Clear();
+            _setupProxyReferences.Clear();
         }
 
         public void Dispose()
@@ -541,8 +550,10 @@ namespace nadena.dev.ndmf.preview
             _stateList.Clear();
             _replacements.Clear();
             _implicitReplacements.Clear();
+            _implicitReplacementSources.Clear();
             _setupProxies.Clear();
             _latestStates.Clear();
+            _setupProxyReferences.Clear();
             _firstRendererStages.Clear();
             _transferDataDirty = true;
         }
@@ -597,8 +608,172 @@ namespace nadena.dev.ndmf.preview
         private void RegisterImplicitReplacement(Transform source, Transform proxy)
         {
             _implicitReplacements[source] = proxy;
+            _implicitReplacementSources[proxy] = _implicitReplacementSources.TryGetValue(source, out var original)
+                ? original
+                : source;
             RegisterReplacement(source, proxy);
-            ApplyImplicitReplacements(_setupProxies);
+            ApplyIndexedImplicitReplacement(source, proxy);
+        }
+
+        private const int RootBoneReference = -1;
+        private const int ProbeAnchorReference = -2;
+        private const int ParentReference = -3;
+
+
+        private void RegisterSetupProxy(Renderer original, Renderer renderer)
+        {
+            if (_setupProxies.TryGetValue(original, out var registeredRenderer))
+            {
+                if (ReferenceEquals(registeredRenderer, renderer)) return;
+
+                throw new InvalidOperationException(
+                    "A setup proxy has already been registered for this original renderer."
+                );
+            }
+
+            _setupProxies[original] = renderer;
+
+            if (renderer == null) return;
+
+            if (renderer is SkinnedMeshRenderer skinnedRenderer)
+            {
+                var bones = skinnedRenderer.bones;
+                for (var i = 0; i < bones.Length; i++)
+                {
+                    AddSetupProxyReference(bones[i], renderer, i);
+                    if (bones[i] != null && _implicitReplacementSources.TryGetValue(bones[i], out var source))
+                    {
+                        AddSetupProxyReference(source, renderer, i);
+                    }
+                }
+
+                AddSetupProxyReference(skinnedRenderer.rootBone, renderer, RootBoneReference);
+                if (skinnedRenderer.rootBone != null
+                    && _implicitReplacementSources.TryGetValue(skinnedRenderer.rootBone, out var rootBoneSource))
+                {
+                    AddSetupProxyReference(rootBoneSource, renderer, RootBoneReference);
+                }
+            }
+
+            AddSetupProxyReference(renderer.probeAnchor, renderer, ProbeAnchorReference);
+            if (renderer.probeAnchor != null
+                && _implicitReplacementSources.TryGetValue(renderer.probeAnchor, out var probeAnchorSource))
+            {
+                AddSetupProxyReference(probeAnchorSource, renderer, ProbeAnchorReference);
+            }
+
+            AddSetupProxyReference(renderer.transform.parent, renderer, ParentReference);
+            if (renderer.transform.parent != null
+                && _implicitReplacementSources.TryGetValue(renderer.transform.parent, out var parentSource))
+            {
+                AddSetupProxyReference(parentSource, renderer, ParentReference);
+            }
+        }
+
+        private void AddSetupProxyReference(Transform source, Renderer renderer, int index)
+        {
+            if (source == null) return;
+
+            if (!_setupProxyReferences.TryGetValue(source, out var references))
+            {
+                references = new List<(Renderer Renderer, int Index)>();
+                _setupProxyReferences[source] = references;
+            }
+
+            references.Add((renderer, index));
+        }
+
+
+        private void RebuildImplicitReplacementSources()
+        {
+            foreach (var state in _bones.Values)
+            {
+                if (state.Proxy != null) _implicitReplacementSources[state.Proxy] = state.Original;
+            }
+
+            _toRemove.Clear();
+            _toRemove.AddRange(_implicitReplacementSources.Keys);
+            foreach (var proxy in _toRemove)
+            {
+                var source = _implicitReplacementSources[proxy];
+                while (_implicitReplacementSources.TryGetValue(source, out var original)) source = original;
+                _implicitReplacementSources[proxy] = source;
+            }
+
+            _toRemove.Clear();
+        }
+
+
+        private void ApplyIndexedImplicitReplacement(Transform source, Transform replacement)
+        {
+            if (!_setupProxyReferences.TryGetValue(source, out var references)) return;
+
+            Renderer currentRenderer = null;
+            SkinnedMeshRenderer currentSkinnedRenderer = null;
+            Transform[] bones = null;
+            var bonesLoaded = false;
+            var bonesChanged = false;
+
+            foreach (var reference in references)
+            {
+                if (reference.Renderer == null) continue;
+
+                if (reference.Renderer != currentRenderer)
+                {
+                    if (bonesChanged && currentSkinnedRenderer != null)
+                    {
+                        currentSkinnedRenderer.bones = bones;
+                    }
+
+                    currentRenderer = reference.Renderer;
+                    currentSkinnedRenderer = currentRenderer as SkinnedMeshRenderer;
+                    bones = null;
+                    bonesLoaded = false;
+                    bonesChanged = false;
+                }
+
+                switch (reference.Index)
+                {
+                    case RootBoneReference:
+                        if (currentRenderer is SkinnedMeshRenderer rootRenderer
+                            && rootRenderer.rootBone == source)
+                        {
+                            rootRenderer.rootBone = replacement;
+                        }
+
+                        break;
+                    case ProbeAnchorReference:
+                        if (currentRenderer.probeAnchor == source) currentRenderer.probeAnchor = replacement;
+                        break;
+                    case ParentReference:
+                        if (currentRenderer.transform.parent == source)
+                        {
+                            currentRenderer.transform.SetParent(replacement, false);
+                        }
+
+                        break;
+                    default:
+                        if (currentSkinnedRenderer == null) break;
+                        if (!bonesLoaded)
+                        {
+                            bones = currentSkinnedRenderer.bones;
+                            bonesLoaded = true;
+                        }
+
+                        if (reference.Index < bones.Length && bones[reference.Index] == source)
+                        {
+                            bones[reference.Index] = replacement;
+                            bonesChanged = true;
+                        }
+
+                        break;
+                }
+            }
+
+            if (bonesChanged && currentSkinnedRenderer != null)
+            {
+                currentSkinnedRenderer.bones = bones;
+            }
         }
 
         private static void RegisterReplacement(Transform source, Transform proxy)

@@ -10,6 +10,19 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf
 {
+    public enum ParameterSignedness
+    {
+        /// <summary>
+        /// Indicates that this holds an unsigned value.
+        /// </summary>
+        Unsigned,
+
+        /// <summary>
+        /// Indicates that this holds a signed value.
+        /// </summary>
+        Signed
+    }
+
     public enum ParameterNamespace
     {
         /// <summary>
@@ -59,8 +72,12 @@ namespace nadena.dev.ndmf
                    Equals(Source, other.Source) &&
                    Equals(Plugin, other.Plugin) &&
                    ParameterType == other.ParameterType &&
+                   EffectiveNumericBitWidth == other.EffectiveNumericBitWidth &&
+                   EffectiveSignedness == other.EffectiveSignedness &&
+                   EffectiveLerpDuration == other.EffectiveLerpDuration &&
                    ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
+                   Nullable.Equals(DefaultValue, other.DefaultValue) &&
                    WantSynced == other.WantSynced;
         }
 
@@ -80,9 +97,13 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ (Source != null ? Source.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Plugin != null ? Plugin.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ ParameterType.GetHashCode();
+                hashCode = (hashCode * 397) ^ EffectiveNumericBitWidth;
+                hashCode = (hashCode * 397) ^ (int)EffectiveSignedness;
+                hashCode = (hashCode * 397) ^ EffectiveLerpDuration.GetHashCode();
                 hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
+                hashCode = (hashCode * 397) ^ DefaultValue.GetHashCode();
                 return hashCode;
             }
         }
@@ -104,6 +125,28 @@ namespace nadena.dev.ndmf
 
         internal (ParameterNamespace, string) NamePair => (Namespace, EffectiveName);
 
+        private bool IsNumeric =>
+            ParameterType == AnimatorControllerParameterType.Int ||
+            ParameterType == AnimatorControllerParameterType.Float;
+
+
+        private int? _numericBitWidth;
+
+        private int EffectiveNumericBitWidth => IsNumeric ? (NumericBitWidth ?? 8) : 0;
+
+        /// <summary>
+        /// The width of this parameter when its type is numeric (Int/Float).
+        /// Set value will be clamped.
+        /// </summary>
+        public int? NumericBitWidth
+        {
+            get => _numericBitWidth;
+            set => _numericBitWidth = value.HasValue ? Math.Clamp(value.Value, 2, 8) : (int?)null;
+        }
+
+        /// <summary>
+        /// The width that this parameter takes.
+        /// </summary>
         public int BitUsage
         {
             get
@@ -119,11 +162,46 @@ namespace nadena.dev.ndmf
                         return 1;
                     case AnimatorControllerParameterType.Int:
                     case AnimatorControllerParameterType.Float:
-                        return 8;
+                        return EffectiveNumericBitWidth;
                     default:
                         return 0;
                 }
             }
+        }
+
+        internal ParameterSignedness? StoredSignedness;
+
+        private ParameterSignedness EffectiveSignedness => IsNumeric ? Signedness : ParameterSignedness.Unsigned;
+
+        /// <summary>
+        /// The signedness of this parameter when its type is numeric (Int/Float).
+        /// </summary>
+        public ParameterSignedness Signedness
+        {
+            get
+            {
+                if (StoredSignedness.HasValue) return StoredSignedness.Value;
+                return ParameterType == AnimatorControllerParameterType.Float ? ParameterSignedness.Signed : ParameterSignedness.Unsigned;
+            }
+
+            set
+            {
+                StoredSignedness = value;
+            }
+        }
+
+        internal float? StoredLerpDuration;
+
+        private float? EffectiveLerpDuration => IsNumeric ? LerpDuration : null;
+
+        /// <summary>
+        /// The duration lerping the value of this parameter.
+        /// Set value will be clamped.
+        /// </summary>
+        public float? LerpDuration
+        {
+            get => StoredLerpDuration;
+            set => StoredLerpDuration = value.HasValue && float.IsFinite(value.Value) ? Math.Clamp(value.Value, 0f, 300f) : (float?)null;
         }
 
         /// <summary>
@@ -169,7 +247,7 @@ namespace nadena.dev.ndmf
         /// If true, this parameter will not be registered in the VRC Expressions Parameters asset. Forced to true for
         /// PhysBones prefixes.
         ///
-        /// Conflict resolution: "false" wins. 
+        /// Conflict resolution: "false" wins.
         /// </summary>
         private bool _isAnimatorOnly;
 
@@ -245,7 +323,7 @@ namespace nadena.dev.ndmf
     }
 
     /// <summary>
-    /// Provides information about parameters supplied by a (custom) component. 
+    /// Provides information about parameters supplied by a (custom) component.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IParameterProvider
@@ -288,5 +366,14 @@ namespace nadena.dev.ndmf
             // Sorry, if you're maintaining compatibility with Unity 2019, you need to explicitly declare this member.
             ;
 #endif
+        /// <summary>
+        /// Registers dependencies on assets or objects other than the source component, which is observed automatically.
+        /// Called before querying parameters or remappings so preview queries invalidate when these dependencies change.
+        /// Providers which only read their source component can use the default no-op implementation.
+        /// </summary>
+        void ObserveDependencies(preview.ComputeContext context)
+        {
+            // default is a no-op
+        }
     }
 }

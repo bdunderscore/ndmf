@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -29,7 +30,7 @@ namespace nadena.dev.ndmf.VRChatProviders
 
             return _avatarDescriptor.expressionParameters.parameters.Select(p =>
             {
-                return new ProvidedParameter(
+                var parameter = new ProvidedParameter(
                     p.name,
                     ParameterNamespace.Animator,
                     _avatarDescriptor,
@@ -40,7 +41,26 @@ namespace nadena.dev.ndmf.VRChatProviders
                     WantSynced = p.networkSynced,
                     DefaultValue = p.defaultValue
                 };
+
+#if NDMF_VRCSDK3_AVATARS_PARAMETER_ADVANCED_FEATURES
+                if (p.valueType != VRCExpressionParameters.ValueType.Bool)
+                {
+                    parameter.NumericBitWidth = p.GetBitWidthByType();
+                    parameter.Signedness = ConvertSignedness(p.GetRepresentationByType());
+                    parameter.LerpDuration = p.GetCustomLerpDuration();
+                }
+#endif
+
+                return parameter;
             });
+        }
+
+        public void ObserveDependencies(preview.ComputeContext context)
+        {
+            if (_avatarDescriptor.expressionParameters != null)
+            {
+                context.Observe(_avatarDescriptor.expressionParameters);
+            }
         }
 
         public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> nameMap,
@@ -63,5 +83,18 @@ namespace nadena.dev.ndmf.VRChatProviders
                     return AnimatorControllerParameterType.Trigger; // TODO
             }
         }
+
+#if NDMF_VRCSDK3_AVATARS_PARAMETER_ADVANCED_FEATURES
+        private ParameterSignedness ConvertSignedness(VRCExpressionParameters.Parameter.ValueRepresentation representation)
+        {
+            switch (representation)
+            {
+                case VRCExpressionParameters.Parameter.ValueRepresentation.Signed:
+                    return ParameterSignedness.Signed;
+                default:
+                    return ParameterSignedness.Unsigned;
+            }
+        }
+#endif
     }
 }
