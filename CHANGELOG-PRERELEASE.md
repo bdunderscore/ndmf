@@ -8,13 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added a default no-op ObserveDependencies method to IParameterProvider for observing preview dependencies.
 
 ### Fixed
-- [#849] Fixed preview filter failures causing continuous rebuilds and repeated error logs.
-- [#857] Reduced preview overhead from polling component queries.
-- Fixed stale parameter preview queries after default value, expression parameter asset, or EditorOnly tag changes.
-- [#863] Improved performance of ShadowBoneManager
 
 ### Changed
 
@@ -23,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Deprecated
+
+## [1.15.0-beta.4] - [2026-11-02]
+
+### Added
+- Added a default no-op ObserveDependencies method to IParameterProvider for observing preview dependencies.
+
+### Fixed
+- [#849] Fixed preview filter failures causing continuous rebuilds and repeated error logs.
+- [#857] Reduced preview overhead from polling component queries.
+- Fixed stale parameter preview queries after default value, expression parameter asset, or EditorOnly tag changes.
+- [#863] Improved performance of ShadowBoneManager
 
 ## [1.15.0-beta.3] - [2026-11-02]
 
