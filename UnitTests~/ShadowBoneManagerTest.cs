@@ -432,6 +432,274 @@ namespace UnitTests
         }
 
         [Test]
+        public void RequestedShadowUpdatesDuplicateSlotsAcrossRegisteredSetupProxies()
+        {
+            var source = CreateRoot("source");
+            var firstOriginal = CreateChild(source, "first original").AddComponent<SkinnedMeshRenderer>();
+            var firstProxy = CreateChild(source, "first proxy").AddComponent<SkinnedMeshRenderer>();
+            var secondOriginal = CreateChild(source, "second original").AddComponent<SkinnedMeshRenderer>();
+            var secondProxy = CreateChild(source, "second proxy").AddComponent<SkinnedMeshRenderer>();
+            firstProxy.bones = new[] { source.transform, source.transform };
+            secondProxy.bones = new[] { source.transform, source.transform };
+
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer>
+                       {
+                           { firstOriginal, firstProxy },
+                           { secondOriginal, secondProxy }
+                       }
+                   ))
+            {
+                var shadow = _manager.GetBone(source.transform);
+
+                Assert.That(firstProxy.bones, Is.EqualTo(new[] { shadow, shadow }));
+                Assert.That(secondProxy.bones, Is.EqualTo(new[] { shadow, shadow }));
+            }
+        }
+
+        [Test]
+        public void FutureSetupProxyRegistrationAppliesExistingImplicitReplacement()
+        {
+            var source = CreateRoot("source");
+            var shadow = _manager.GetBone(source.transform);
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform, source.transform };
+            proxy.rootBone = source.transform;
+            proxy.probeAnchor = source.transform;
+            proxy.transform.SetParent(source.transform, false);
+
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                Assert.That(proxy.bones, Is.EqualTo(new[] { shadow, shadow }));
+                Assert.That(proxy.rootBone, Is.SameAs(shadow));
+                Assert.That(proxy.probeAnchor, Is.SameAs(shadow));
+                Assert.That(proxy.transform.parent, Is.SameAs(shadow));
+            }
+        }
+
+        [Test]
+        public void ReregisteringSameSetupProxyIsIdempotentAndRetainsIndexedImplicitReplacement()
+        {
+            var source = CreateRoot("source");
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform };
+
+            Transform shadow;
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                shadow = _manager.GetBone(source.transform);
+            }
+
+            using (_manager.EnterStage(
+                       2,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                proxy.bones = new[] { source.transform };
+
+                Assert.That(_manager.GetBone(source.transform), Is.SameAs(shadow));
+                Assert.That(proxy.bones, Is.EqualTo(new[] { shadow }));
+            }
+        }
+
+        [Test]
+        public void ReregisteringDifferentSetupProxyThrowsWithoutReplacingOriginalMappingOrIndex()
+        {
+            var source = CreateRoot("source");
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            var replacementProxy = CreateChild(source, "replacement proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform };
+            replacementProxy.bones = new[] { source.transform };
+
+            Transform shadow;
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                shadow = _manager.GetBone(source.transform);
+            }
+
+            Assert.Throws<InvalidOperationException>(() => _manager.EnterStage(
+                2,
+                new Dictionary<Renderer, Renderer> { { original, replacementProxy } }
+            ));
+
+            proxy.bones = new[] { source.transform };
+            using (_manager.EnterStage(
+                       3,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                Assert.That(_manager.GetBone(source.transform), Is.SameAs(shadow));
+                Assert.That(proxy.bones, Is.EqualTo(new[] { shadow }));
+                Assert.That(replacementProxy.bones, Is.EqualTo(new[] { source.transform }));
+            }
+        }
+
+        [Test]
+        public void ResetRetainsOriginalReferenceForCachedShadowProxy()
+        {
+            var source = CreateRoot("source");
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform };
+
+            Transform shadow;
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                shadow = _manager.GetBone(source.transform);
+            }
+
+            ResetManagerLease();
+            using (_manager.EnterStage(
+                       2,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                proxy.bones = new[] { source.transform };
+
+                Assert.That(_manager.GetBone(source.transform), Is.SameAs(shadow));
+                Assert.That(proxy.bones, Is.EqualTo(new[] { shadow }));
+            }
+        }
+
+        [Test]
+        public void RepeatedShadowLookupDoesNotOverwriteExplicitReplacement()
+        {
+            var source = CreateRoot("source");
+            var replacement = CreateRoot("replacement");
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform };
+            proxy.rootBone = source.transform;
+            proxy.probeAnchor = source.transform;
+            proxy.transform.SetParent(source.transform, false);
+
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, source.transform, replacement.transform);
+                _manager.GetBone(source.transform);
+
+                Assert.That(proxy.bones, Is.EqualTo(new[] { replacement.transform }));
+                Assert.That(proxy.rootBone, Is.SameAs(replacement.transform));
+                Assert.That(proxy.probeAnchor, Is.SameAs(replacement.transform));
+                Assert.That(proxy.transform.parent, Is.SameAs(replacement.transform));
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void NoOpReplacementRemainsEligibleForImplicitShadowing(bool requestShadowWithinStage)
+        {
+            var source = CreateRoot("source").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
+            SetRendererReferences(setupProxy, source, source);
+            SetRendererReferences(activeProxy, source, source);
+
+            Transform shadow = null;
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, source, source);
+                if (requestShadowWithinStage)
+                {
+                    shadow = _manager.GetBone(source);
+                    Assert.That(shadow, Is.Not.SameAs(source));
+                    AssertRendererReferences(setupProxy, shadow, shadow);
+                }
+
+                stage.Commit();
+            }
+
+            if (!requestShadowWithinStage)
+            {
+                shadow = _manager.GetBone(source);
+                Assert.That(shadow, Is.Not.SameAs(source));
+            }
+
+            _manager.SealPipeline();
+            AssertRendererReferences(setupProxy, shadow, shadow);
+
+            ReplayThroughStage(1, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+            AssertRendererReferences(activeProxy, shadow, shadow);
+        }
+
+        [Test]
+        public void NoOpReplacementDoesNotBlockImplicitReplacementOnStageEntry()
+        {
+            var source = CreateRoot("source").transform;
+            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
+            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
+            var nextSetupProxy = CreateRoot("next setup proxy").AddComponent<SkinnedMeshRenderer>();
+            SetRendererReferences(setupProxy, source, source);
+            SetRendererReferences(nextSetupProxy, source, source);
+
+            using (var stage = _manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
+                   ))
+            {
+                _manager.ReplaceBone(original, source, source);
+                stage.Commit();
+            }
+
+            var shadow = _manager.GetBone(source);
+            Assert.That(shadow, Is.Not.SameAs(source));
+
+            using (var stage = _manager.EnterStage(
+                       2,
+                       new Dictionary<Renderer, Renderer> { { original, nextSetupProxy } }
+                   ))
+            {
+                AssertRendererReferences(nextSetupProxy, shadow, shadow);
+                stage.Commit();
+            }
+        }
+
+        [Test]
+        public void ShadowLookupSkipsShortenedIndexedBoneArray()
+        {
+            var source = CreateRoot("source");
+            var original = CreateChild(source, "original").AddComponent<SkinnedMeshRenderer>();
+            var proxy = CreateChild(source, "proxy").AddComponent<SkinnedMeshRenderer>();
+            proxy.bones = new[] { source.transform };
+            proxy.rootBone = source.transform;
+
+            using (_manager.EnterStage(
+                       1,
+                       new Dictionary<Renderer, Renderer> { { original, proxy } }
+                   ))
+            {
+                proxy.bones = Array.Empty<Transform>();
+                var shadow = _manager.GetBone(source.transform);
+
+                Assert.That(proxy.bones, Is.Empty);
+                Assert.That(proxy.rootBone, Is.SameAs(shadow));
+            }
+        }
+
+        [Test]
         public void DisposedStageRestoresPreviousAmbientStage()
         {
             using (_manager.EnterStage(1, new Dictionary<Renderer, Renderer>()))
