@@ -191,6 +191,10 @@ namespace nadena.dev.ndmf.preview
         ///     Returns a shadow transform whose pose is synchronized with <paramref name="bone" /> at preview frame start.
         ///     Requesting a non-null transform also replaces exact matching references in renderer proxies with that
         ///     shadow, including skinned bones and root bones, probe anchors, and proxy parents.
+        ///
+        ///     Note that, for performance reasons, this call will only replace bone references that were
+        ///     present in the original hierarchy; any bone references added or changed after that point
+        ///     will not be replaced by this call.
         /// </summary>
         /// <param name="bone">The source transform to shadow.</param>
         /// <returns>The corresponding shadow transform, or <c>null</c> when <paramref name="bone" /> is <c>null</c>.</returns>
