@@ -77,6 +77,7 @@ namespace nadena.dev.ndmf
                    EffectiveLerpDuration == other.EffectiveLerpDuration &&
                    ExpandTypeOnConflict == other.ExpandTypeOnConflict &&
                    IsHidden == other.IsHidden &&
+                   Nullable.Equals(DefaultValue, other.DefaultValue) &&
                    WantSynced == other.WantSynced;
         }
 
@@ -102,6 +103,7 @@ namespace nadena.dev.ndmf
                 hashCode = (hashCode * 397) ^ ExpandTypeOnConflict.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsHidden.GetHashCode();
                 hashCode = (hashCode * 397) ^ WantSynced.GetHashCode();
+                hashCode = (hashCode * 397) ^ DefaultValue.GetHashCode();
                 return hashCode;
             }
         }
@@ -364,5 +366,14 @@ namespace nadena.dev.ndmf
             // Sorry, if you're maintaining compatibility with Unity 2019, you need to explicitly declare this member.
             ;
 #endif
+        /// <summary>
+        /// Registers dependencies on assets or objects other than the source component, which is observed automatically.
+        /// Called before querying parameters or remappings so preview queries invalidate when these dependencies change.
+        /// Providers which only read their source component can use the default no-op implementation.
+        /// </summary>
+        void ObserveDependencies(preview.ComputeContext context)
+        {
+            // default is a no-op
+        }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using nadena.dev.ndmf.preview;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
@@ -52,6 +53,14 @@ namespace nadena.dev.ndmf.VRChatProviders
 
                 return parameter;
             });
+        }
+
+        public void ObserveDependencies(preview.ComputeContext context)
+        {
+            if (_avatarDescriptor.expressionParameters != null)
+            {
+                context.Observe(_avatarDescriptor.expressionParameters);
+            }
         }
 
         public void RemapParameters(ref ImmutableDictionary<(ParameterNamespace, string), ParameterMapping> nameMap,

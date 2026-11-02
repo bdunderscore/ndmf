@@ -1,12 +1,16 @@
 ﻿#if NDMF_VRCSDK3_AVATARS
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.preview;
 using nadena.dev.ndmf.UnitTestSupport;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -31,6 +35,19 @@ namespace UnitTests.Parameters
             
             var parameters = ParameterInfo.ForUI.GetParametersForObject(av);
             Assert.IsEmpty(parameters);
+        }
+
+        [TestCase(null, 0f, false)]
+        [TestCase(0f, 1f, false)]
+        [TestCase(1f, 1f, true)]
+        public void DefaultValueParticipatesInEquality(float? first, float? second, bool equal)
+        {
+            var p = new ProvidedParameter("p", ParameterNamespace.Animator, null, null,
+                AnimatorControllerParameterType.Float) { DefaultValue = first };
+            var other = p.Clone();
+            other.DefaultValue = second;
+            Assert.AreEqual(equal, p.Equals(other));
+            if (equal) Assert.AreEqual(p.GetHashCode(), other.GetHashCode());
         }
 
         [Test]
@@ -88,6 +105,35 @@ namespace UnitTests.Parameters
             var parameters = ParameterInfo.ForUI.GetParametersForObject(av).ToList();
             Assert.AreEqual(1, parameters.Count());
             Assert.AreEqual(p2, parameters[0]);
+        }
+
+        [UnityTest]
+        public IEnumerator EditorOnlyTagChangeInvalidatesParameterQuery()
+        {
+            var root = CreateRoot("avatar");
+            var child = CreateChild(root, "editor-only");
+            child.tag = "EditorOnly";
+            var component = CreateChild(child, "provider").AddComponent<ParamTestComponent>();
+            ParamTestComponentProvider.SetParameters(component,
+                new ProvidedParameter("p", ParameterNamespace.Animator, component, null,
+                    AnimatorControllerParameterType.Float));
+            var context = new ComputeContext("parameter-editor-only-test");
+            try
+            {
+                Assert.IsEmpty(ParameterInfo.ForPreview(context).GetParametersForObject(root).ToArray());
+                var serialized = new SerializedObject(child);
+                serialized.FindProperty("m_TagString").stringValue = "Untagged";
+                serialized.ApplyModifiedProperties();
+                yield return null;
+                ComputeContext.FlushInvalidates();
+                Assert.IsTrue(context.IsInvalidated);
+                Assert.AreEqual("p", ParameterInfo.ForUI.GetParametersForObject(root).Single().EffectiveName);
+            }
+            finally
+            {
+                context.Invalidate();
+                ComputeContext.FlushInvalidates();
+            }
         }
 
         [Test]

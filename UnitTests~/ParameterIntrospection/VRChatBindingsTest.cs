@@ -2,7 +2,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using nadena.dev.ndmf;
+using nadena.dev.ndmf.preview;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using VRC.Dynamics;
 using VRC.SDK3.Avatars.Components;
@@ -14,6 +16,36 @@ namespace UnitTests.Parameters
 {
     public class VRChatBindingsTest : TestBase
     {
+        [Test]
+        public void ExpressionAssetReimportInvalidatesParameterQuery()
+        {
+            var path = AssetDatabase.GenerateUniqueAssetPath("Assets/ParameterIntrospectionDefaultsTest.asset");
+            var root = CreateRoot("avatar");
+            var descriptor = root.GetComponent<VRCAvatarDescriptor>();
+            var asset = ScriptableObject.CreateInstance<VRCExpressionParameters>();
+            var context = new ComputeContext("expression-default-test");
+            try
+            {
+                asset.parameters = new[] { new VRCExpressionParameters.Parameter
+                    { name = "p", valueType = VRCExpressionParameters.ValueType.Float, defaultValue = 0 } };
+                AssetDatabase.CreateAsset(asset, path);
+                descriptor.expressionParameters = asset;
+                Assert.AreEqual(0f, ParameterInfo.ForPreview(context).GetParametersForObject(root).Single().DefaultValue);
+                Assert.IsFalse(context.IsInvalidated);
+                asset.parameters[0].defaultValue = 1;
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                Assert.IsTrue(context.IsInvalidated);
+                Assert.AreEqual(1f, ParameterInfo.ForUI.GetParametersForObject(root).Single().DefaultValue);
+            }
+            finally
+            {
+                context.Invalidate();
+                ComputeContext.FlushInvalidates();
+                AssetDatabase.DeleteAsset(path);
+            }
+        }
         
         [Test]
         public void VRCParams()
