@@ -136,6 +136,11 @@ namespace nadena.dev.ndmf.preview
             _cache.Clear();
         }
 
+        private static void OnEntryInvalidated(CacheEntry entry)
+        {
+            entry.Owner.RevalidateEntry(entry.Key);
+        }
+
         private CacheEntry? RevalidateEntry(TKey key)
         {
             if (!_cache.TryGetValue(key, out var entry))
@@ -184,7 +189,7 @@ namespace nadena.dev.ndmf.preview
                         );
 
                         entry.GenerateContext = newGenContext;
-                        entry.GenerateContext.InvokeOnInvalidate(entry, e => e.Owner.RevalidateEntry(e.Key));
+                        entry.GenerateContext.InvokeOnInvalidate(entry, OnEntryInvalidated);
                         return entry;
                     }
                 }
@@ -251,7 +256,7 @@ namespace nadena.dev.ndmf.preview
                             entry.Value = _operator(entry.GenerateContext, key);
                         }
 
-                        entry.GenerateContext.InvokeOnInvalidate(entry, e => e.Owner.RevalidateEntry(e.Key));
+                        entry.GenerateContext.InvokeOnInvalidate(entry, OnEntryInvalidated);
                     }
                     catch
                     {
