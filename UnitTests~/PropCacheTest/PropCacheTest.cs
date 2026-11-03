@@ -144,6 +144,96 @@ namespace UnitTests.PropCacheTest
             Assert.AreEqual(13, val); // 13 currently as we compute on invalidate and again on get
         }
 
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestGetBeforeInvalidationDispatch(bool useComparer, bool valueChanges)
+        {
+            int value = 1;
+            int callCount = 0;
+            ComputeContext generationContext = null;
+            Func<int, int, bool> comparer = useComparer ? (a, b) => a == b : null;
+            var cache = new PropCache<int, int>("getBeforeDispatch", (ctx, key) =>
+            {
+                generationContext = ctx;
+                callCount++;
+                return value;
+            }, comparer);
+
+            var originalObserver = new ComputeContext("originalObserver");
+            Assert.AreEqual(1, cache.Get(originalObserver, 0));
+
+            if (valueChanges)
+            {
+                value = 2;
+            }
+            generationContext.Invalidate();
+
+            var currentObserver = new ComputeContext("currentObserver");
+            Assert.AreEqual(value, cache.Get(currentObserver, 0));
+            Assert.IsFalse(currentObserver.IsInvalidated);
+
+            int callsBeforeDispatch = callCount;
+            ComputeContext.FlushInvalidates();
+
+            Assert.AreEqual(!useComparer || valueChanges, originalObserver.IsInvalidated);
+            Assert.AreEqual(callsBeforeDispatch, callCount, "Deferred callbacks must not repeat the refresh.");
+            Assert.AreEqual(value, cache.Get(currentObserver, 0));
+            Assert.AreEqual(callsBeforeDispatch, callCount, "The refreshed entry must remain cached.");
+            Assert.IsFalse(currentObserver.IsInvalidated);
+
+            value = 3;
+            generationContext.Invalidate();
+            ComputeContext.FlushInvalidates();
+
+            Assert.IsTrue(currentObserver.IsInvalidated, "The refreshed entry must still forward later changes.");
+            Assert.AreEqual(3, cache.Get(new ComputeContext("nextObserver"), 0));
+        }
+
+        [Test]
+        public void TestDependentRefreshBeforeUpstreamInvalidationDispatch()
+        {
+            int value = 0;
+            ComputeContext upstreamContext = null;
+            ComputeContext dependentContext = null;
+            var upstream = new PropCache<int, int>("upstream", (ctx, key) =>
+            {
+                upstreamContext = ctx;
+                return value;
+            }, (a, b) => a == b);
+            var dependent = new PropCache<int, int>("dependent", (ctx, key) =>
+            {
+                dependentContext = ctx;
+                return upstream.Get(ctx, key) % 2;
+            }, (a, b) => a == b);
+            var otherDependent = new PropCache<int, int>("otherDependent",
+                (ctx, key) => upstream.Get(ctx, key), (a, b) => a == b);
+
+            var observer = new ComputeContext("initialObserver");
+            Assert.AreEqual(0, dependent.Get(observer, 0));
+            Assert.AreEqual(0, otherDependent.Get(observer, 0));
+
+            // Refresh the dependent first, while the upstream's invalidation is still queued.
+            // Its result stays equal, so its new dependencies must survive the deferred callback.
+            value = 2;
+            dependentContext.Invalidate();
+            upstreamContext.Invalidate();
+            ComputeContext.FlushInvalidates();
+
+            var nextObserver = new ComputeContext("nextObserver");
+            Assert.AreEqual(0, dependent.Get(nextObserver, 0));
+            Assert.AreEqual(2, otherDependent.Get(nextObserver, 0));
+
+            value = 3;
+            upstreamContext.Invalidate();
+            ComputeContext.FlushInvalidates();
+
+            var finalObserver = new ComputeContext("finalObserver");
+            Assert.AreEqual(1, dependent.Get(finalObserver, 0));
+            Assert.AreEqual(3, otherDependent.Get(finalObserver, 0));
+        }
+
         [Test]
         public void TestInvalidateAllAndGlobalInvalidate()
         {
