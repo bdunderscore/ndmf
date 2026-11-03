@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#854] Fixed upstream preview changes not propagating to downstream previews.
 - [#856] Fixed unnecessary delays when resuming preview updates after throttling.
 - [#857] Reduced preview overhead from polling component queries.
-- [#867] Fixed incorrect MeshRenderer preview transforms.
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
