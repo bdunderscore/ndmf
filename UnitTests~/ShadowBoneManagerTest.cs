@@ -1163,8 +1163,9 @@ namespace UnitTests
             Assert.That(activeProxy.transform.parent, Is.SameAs(directParent));
         }
 
-        [Test]
-        public void MeshProxyKeepsIdentityLocalPoseUnderOriginalRendererShadowAfterSeal()
+        [TestCase(0, true)]
+        [TestCase(1, false)]
+        public void MeshProxyKeepsIdentityLocalPoseUnderOriginalRendererShadowAfterSeal(int stageIndex, bool commitStage)
         {
             var source = CreateRoot("source");
             var original = CreateChild(source, "original").AddComponent<MeshRenderer>();
@@ -1174,17 +1175,20 @@ namespace UnitTests
             var setupProxy = CreateRoot("setup proxy").AddComponent<MeshRenderer>();
             var activeProxy = CreateRoot("active proxy").AddComponent<MeshRenderer>();
 
-            using (_manager.EnterStage(
-                       1,
+            using (var stage = _manager.EnterStage(
+                       stageIndex,
                        new Dictionary<Renderer, Renderer> { { original, setupProxy } }
                    ))
             {
+                if (commitStage)
+                {
+                    stage.Commit();
+                }
             }
 
             _manager.SealPipeline();
-            _manager.SetInitialParent(original, activeProxy);
             ReplayThroughStage(
-                1,
+                stageIndex,
                 new Dictionary<Renderer, Renderer> { { original, activeProxy } }
             );
 

@@ -516,9 +516,10 @@ namespace nadena.dev.ndmf.preview
             }
 
             // If we never manipulated the renderer, prune it entirely
+            // Keep MeshRenderer state to replay its initial shadow parent on the rendering proxy.
             foreach (var (renderer, (stage, state)) in previousState)
             {
-                if (stage == 0 && state.IsUnchanged)
+                if (stage == 0 && state.IsUnchanged && renderer is not MeshRenderer)
                 {
                     _replacements[0].Remove(renderer);
                 }
