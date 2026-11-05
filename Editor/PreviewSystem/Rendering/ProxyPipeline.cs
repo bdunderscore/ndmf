@@ -476,7 +476,8 @@ namespace nadena.dev.ndmf.preview
                 foreach (var node in stage.Nodes.Select(n => n.Task))
                 {
                     var resolvedNode = await node;
-                    _ = resolvedNode.OnInvalidate.ContinueWith(_ => Invalidate());
+                    _ = resolvedNode.OnInvalidate.ContinueWith(_ => Invalidate(),
+                        TaskContinuationOptions.ExecuteSynchronously);
                 }
             }
 
