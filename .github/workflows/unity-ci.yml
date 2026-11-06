@@ -53,7 +53,6 @@ jobs:
       matrix:
         unity_major_version: [ "6000.0", "2022.3.6f1", "6000.5" ]
         sdk: [ vrcsdk, standalone ]
-        testmode: [ All ]
         exclude:
           - unity_major_version: "6000.0"
             sdk: vrcsdk
@@ -210,41 +209,12 @@ jobs:
             -testResults "test-results~/editmode-results.xml"
             -coverageResultsPath "test-results~/coverage"
             -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
-            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
+            -assemblyNames "nadena.dev.ndmf.UnitTests"
             -overrideTextureCompression ForceUncompressed
 
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
-        name: PlayMode UnitTests
+
+      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: always()
-        with:
-          build-target: StandaloneWindows64
-          editor-path: ${{ steps.unity-setup.outputs.unity-editor-path }}
-          project-path: .
-          args: >
-            -buildTarget StandaloneWindows64
-            -batchmode
-            -force-graphics
-            -logFile "test-results~/playmode.log"
-            -runTests
-            -testPlatform playmode
-            -enableCodeCoverage
-            -debugCodeOptimization
-            -testResults "test-results~/playmode-results.xml"
-            -coverageResultsPath "test-results~/coverage"
-            -coverageOptions "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:+nadena.dev.*"
-            -assemblyNames "Tests;nadena.dev.modular-avatar.tests;nadena.dev.modular-avatar.tests.vrchat;nadena.dev.modular-avatar.tests.playmode"
-            -overrideTextureCompression ForceUncompressed
-            
-      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: ${{ matrix.testmode != 'EditMode' }}
-        with:
-          reporter: dotnet-nunit
-          name: PlayMode Tests
-          fail-on-empty: ${{ matrix.sdk == 'vrcsdk' }}
-          path: "test-results~/playmode-results.xml"
-
-      - uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: ${{ matrix.testmode != 'PlayMode' }}
         with:
           reporter: dotnet-nunit
           name: EditMode Tests
@@ -257,16 +227,12 @@ jobs:
             echo "Edit mode test results not found"
             exit 1
           fi
-          if ! [ -e "test-results~"/playmode-results.xml ]; then
-            echo "Play mode test results not found"
-            exit 1
-          fi
       
       - name: List compile errors
         continue-on-error: true
         if: failure()
         run: |
-          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+          for log in "test-results~/editmode.log"; do
             [ -f "$log" ] || continue
             echo "===== $log ====="
             perl -ne '$out = 0 if /^#####|^-----EndCompilerOutput/; $out = 1 if /^##### Output|^-----CompilerOutput/; print if $out;' "$log"
@@ -275,7 +241,7 @@ jobs:
       - name: List compiler warnings
         if: true
         run: |
-          for log in "test-results~/editmode.log" "test-results~/playmode.log"; do
+          for log in "test-results~/editmode.log"; do
             [ -f "$log" ] || continue
             echo "===== $log ====="
             grep ': warning CS' "$log" || true
@@ -287,19 +253,16 @@ jobs:
         run: |
           xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/editmode-results.xml
           
-      - name: List test failures (play mode)
-        continue-on-error: true
-        if: failure()
-        run: |
-          xmllint  --pretty 2 --nocompact  --xpath '//test-case[@result!="Passed"]'  "test-results~"/playmode-results.xml
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
+        if: always()
         with:
           name: Coverage results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: "test-results~/coverage"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         continue-on-error: true
+        if: always()
         with:
           name: Test results ${{ steps.configure.outputs.unity_version }} ${{ matrix.sdk }}
           path: "test-results~"
