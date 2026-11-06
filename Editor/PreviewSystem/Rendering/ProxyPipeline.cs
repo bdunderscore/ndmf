@@ -460,6 +460,8 @@ namespace nadena.dev.ndmf.preview
                     continue;
                 }
 
+                _shadowBoneManager.SetInitialParent(r, proxy.Renderer);
+
                 // Setup uses a different proxy than rendering, so make sure we install the rendering proxy
                 // as well (since that's the one that scene view picking will use)
                 ProxyToOriginalObject = ProxyToOriginalObject.SetItem(proxy.Renderer.gameObject, r.gameObject);
