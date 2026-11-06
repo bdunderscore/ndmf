@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [#866] Improved NDMF preview performance.
 - [#867] Fixed incorrect MeshRenderer preview transforms.
+- [#865] Fixed preview updates no longer propagating after a cached value is refreshed.
 
 ### Changed
 

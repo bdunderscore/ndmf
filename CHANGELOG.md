@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#856] Fixed unnecessary delays when resuming preview updates after throttling.
 - [#857] Reduced preview overhead from polling component queries.
 - [#866] Improved NDMF preview performance.
+- [#865] Fixed preview updates no longer propagating after a cached value is refreshed.
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
