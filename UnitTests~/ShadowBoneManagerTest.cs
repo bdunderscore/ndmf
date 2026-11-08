@@ -604,9 +604,8 @@ namespace UnitTests
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void NoOpReplacementRemainsEligibleForImplicitShadowing(bool requestShadowWithinStage)
+        [Test]
+        public void NoOpReplacementBlocksImplicitShadowingFromItsStageForward()
         {
             var source = CreateRoot("source").transform;
             var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
@@ -614,67 +613,47 @@ namespace UnitTests
             var activeProxy = CreateRoot("active proxy").AddComponent<SkinnedMeshRenderer>();
             SetRendererReferences(setupProxy, source, source);
             SetRendererReferences(activeProxy, source, source);
+            var proxies = new Dictionary<Renderer, Renderer> { { original, setupProxy } };
 
-            Transform shadow = null;
-            using (var stage = _manager.EnterStage(
-                       1,
-                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
-                   ))
+            Transform shadow;
+            using (var stage = _manager.EnterStage(0, proxies))
+            {
+                shadow = _manager.GetBone(source);
+                stage.Commit();
+                AssertRendererReferences(setupProxy, shadow, shadow);
+            }
+
+            using (var stage = _manager.EnterStage(1, proxies))
             {
                 _manager.ReplaceBone(original, source, source);
-                if (requestShadowWithinStage)
-                {
-                    shadow = _manager.GetBone(source);
-                    Assert.That(shadow, Is.Not.SameAs(source));
-                    AssertRendererReferences(setupProxy, shadow, shadow);
-                }
-
+                Assert.That(_manager.GetBone(source), Is.SameAs(shadow));
+                AssertRendererReferences(setupProxy, source, source);
                 stage.Commit();
             }
 
-            if (!requestShadowWithinStage)
+            using (var stage = _manager.EnterStage(2, proxies))
             {
-                shadow = _manager.GetBone(source);
-                Assert.That(shadow, Is.Not.SameAs(source));
+                Assert.That(_manager.GetBone(source), Is.SameAs(shadow));
+                AssertRendererReferences(setupProxy, source, source);
+                stage.Commit();
             }
 
             _manager.SealPipeline();
-            AssertRendererReferences(setupProxy, shadow, shadow);
-
-            ReplayThroughStage(1, new Dictionary<Renderer, Renderer> { { original, activeProxy } });
+            ReplayThroughStage(
+                0,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
             AssertRendererReferences(activeProxy, shadow, shadow);
-        }
-
-        [Test]
-        public void NoOpReplacementDoesNotBlockImplicitReplacementOnStageEntry()
-        {
-            var source = CreateRoot("source").transform;
-            var original = CreateRoot("original").AddComponent<SkinnedMeshRenderer>();
-            var setupProxy = CreateRoot("setup proxy").AddComponent<SkinnedMeshRenderer>();
-            var nextSetupProxy = CreateRoot("next setup proxy").AddComponent<SkinnedMeshRenderer>();
-            SetRendererReferences(setupProxy, source, source);
-            SetRendererReferences(nextSetupProxy, source, source);
-
-            using (var stage = _manager.EnterStage(
-                       1,
-                       new Dictionary<Renderer, Renderer> { { original, setupProxy } }
-                   ))
-            {
-                _manager.ReplaceBone(original, source, source);
-                stage.Commit();
-            }
-
-            var shadow = _manager.GetBone(source);
-            Assert.That(shadow, Is.Not.SameAs(source));
-
-            using (var stage = _manager.EnterStage(
-                       2,
-                       new Dictionary<Renderer, Renderer> { { original, nextSetupProxy } }
-                   ))
-            {
-                AssertRendererReferences(nextSetupProxy, shadow, shadow);
-                stage.Commit();
-            }
+            ReplayThroughStage(
+                1,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
+            AssertRendererReferences(activeProxy, source, source);
+            ReplayThroughStage(
+                2,
+                new Dictionary<Renderer, Renderer> { { original, activeProxy } }
+            );
+            AssertRendererReferences(activeProxy, source, source);
         }
 
         [Test]
