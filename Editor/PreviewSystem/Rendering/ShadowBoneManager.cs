@@ -319,7 +319,8 @@ namespace nadena.dev.ndmf.preview
         private readonly Dictionary<Renderer, Renderer> _setupProxies = new();
         private readonly Dictionary<Renderer, RendererReplacementState> _latestStates = new();
 
-        private readonly Dictionary<Transform, List<(Renderer Renderer, int Index)>> _setupProxyReferences = new();
+        private readonly Dictionary<Transform, List<(Renderer Original, Renderer Proxy, int Index)>>
+            _setupProxyReferences = new();
         private TransformAccessArray _sourceBones;
         private TransformAccessArray _proxyBones;
         private NativeArray<bool> _boneIsValid;
@@ -641,47 +642,47 @@ namespace nadena.dev.ndmf.preview
                 var bones = skinnedRenderer.bones;
                 for (var i = 0; i < bones.Length; i++)
                 {
-                    AddSetupProxyReference(bones[i], renderer, i);
+                    AddSetupProxyReference(bones[i], original, renderer, i);
                     if (bones[i] != null && _implicitReplacementSources.TryGetValue(bones[i], out var source))
                     {
-                        AddSetupProxyReference(source, renderer, i);
+                        AddSetupProxyReference(source, original, renderer, i);
                     }
                 }
 
-                AddSetupProxyReference(skinnedRenderer.rootBone, renderer, RootBoneReference);
+                AddSetupProxyReference(skinnedRenderer.rootBone, original, renderer, RootBoneReference);
                 if (skinnedRenderer.rootBone != null
                     && _implicitReplacementSources.TryGetValue(skinnedRenderer.rootBone, out var rootBoneSource))
                 {
-                    AddSetupProxyReference(rootBoneSource, renderer, RootBoneReference);
+                    AddSetupProxyReference(rootBoneSource, original, renderer, RootBoneReference);
                 }
             }
 
-            AddSetupProxyReference(renderer.probeAnchor, renderer, ProbeAnchorReference);
+            AddSetupProxyReference(renderer.probeAnchor, original, renderer, ProbeAnchorReference);
             if (renderer.probeAnchor != null
                 && _implicitReplacementSources.TryGetValue(renderer.probeAnchor, out var probeAnchorSource))
             {
-                AddSetupProxyReference(probeAnchorSource, renderer, ProbeAnchorReference);
+                AddSetupProxyReference(probeAnchorSource, original, renderer, ProbeAnchorReference);
             }
 
-            AddSetupProxyReference(renderer.transform.parent, renderer, ParentReference);
+            AddSetupProxyReference(renderer.transform.parent, original, renderer, ParentReference);
             if (renderer.transform.parent != null
                 && _implicitReplacementSources.TryGetValue(renderer.transform.parent, out var parentSource))
             {
-                AddSetupProxyReference(parentSource, renderer, ParentReference);
+                AddSetupProxyReference(parentSource, original, renderer, ParentReference);
             }
         }
 
-        private void AddSetupProxyReference(Transform source, Renderer renderer, int index)
+        private void AddSetupProxyReference(Transform source, Renderer original, Renderer proxy, int index)
         {
             if (source == null) return;
 
             if (!_setupProxyReferences.TryGetValue(source, out var references))
             {
-                references = new List<(Renderer Renderer, int Index)>();
+                references = new List<(Renderer Original, Renderer Proxy, int Index)>();
                 _setupProxyReferences[source] = references;
             }
 
-            references.Add((renderer, index));
+            references.Add((original, proxy, index));
         }
 
 
@@ -709,7 +710,9 @@ namespace nadena.dev.ndmf.preview
         {
             if (!_setupProxyReferences.TryGetValue(source, out var references)) return;
 
+            Renderer currentOriginal = null;
             Renderer currentRenderer = null;
+            RendererReplacementState currentState = null;
             SkinnedMeshRenderer currentSkinnedRenderer = null;
             Transform[] bones = null;
             var bonesLoaded = false;
@@ -717,16 +720,18 @@ namespace nadena.dev.ndmf.preview
 
             foreach (var reference in references)
             {
-                if (reference.Renderer == null) continue;
+                if (reference.Proxy == null) continue;
 
-                if (reference.Renderer != currentRenderer)
+                if (reference.Original != currentOriginal || reference.Proxy != currentRenderer)
                 {
                     if (bonesChanged && currentSkinnedRenderer != null)
                     {
                         currentSkinnedRenderer.bones = bones;
                     }
 
-                    currentRenderer = reference.Renderer;
+                    currentOriginal = reference.Original;
+                    currentRenderer = reference.Proxy;
+                    _latestStates.TryGetValue(currentOriginal, out currentState);
                     currentSkinnedRenderer = currentRenderer as SkinnedMeshRenderer;
                     bones = null;
                     bonesLoaded = false;
@@ -736,7 +741,8 @@ namespace nadena.dev.ndmf.preview
                 switch (reference.Index)
                 {
                     case RootBoneReference:
-                        if (currentRenderer is SkinnedMeshRenderer rootRenderer
+                        if (currentState?.ExplicitRootBone != true
+                            && currentRenderer is SkinnedMeshRenderer rootRenderer
                             && rootRenderer.rootBone == source)
                         {
                             rootRenderer.rootBone = replacement;
@@ -744,17 +750,24 @@ namespace nadena.dev.ndmf.preview
 
                         break;
                     case ProbeAnchorReference:
-                        if (currentRenderer.probeAnchor == source) currentRenderer.probeAnchor = replacement;
+                        if (currentState?.ExplicitProbeAnchor != true && currentRenderer.probeAnchor == source)
+                        {
+                            currentRenderer.probeAnchor = replacement;
+                        }
+
                         break;
                     case ParentReference:
-                        if (currentRenderer.transform.parent == source)
+                        if (currentState?.ExplicitParent != true && currentRenderer.transform.parent == source)
                         {
                             currentRenderer.transform.SetParent(replacement, false);
                         }
 
                         break;
                     default:
-                        if (currentSkinnedRenderer == null) break;
+                        if (currentSkinnedRenderer == null
+                            || (currentState != null
+                                && reference.Index < currentState.ExplicitBones.Length
+                                && currentState.ExplicitBones[reference.Index])) break;
                         if (!bonesLoaded)
                         {
                             bones = currentSkinnedRenderer.bones;
