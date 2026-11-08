@@ -73,6 +73,9 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+#if UNITY_6000_5 || UNITY_6000_6
+        [Ignore("Unity bug IN-160029: synced-layer GetOverrideBehaviours returns null after an AnimatorController.layers round-trip.")]
+#endif
         public void Test_SetStateBehaviourPairs()
         {
             var ac = CreateTestController(out var clip1, out var clip2, out var s1);
