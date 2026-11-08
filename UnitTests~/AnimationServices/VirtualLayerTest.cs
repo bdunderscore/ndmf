@@ -133,6 +133,9 @@ namespace UnitTests.AnimationServices
         }
 
         [Test]
+#if UNITY_6000_5 || UNITY_6000_6
+        [Ignore("Unity bug IN-160029: synced-layer GetOverrideBehaviours returns null after an AnimatorController.layers round-trip.")]
+#endif
         public void SyncedLayerOverridesArePreserved()
         {
             var testController = LoadAsset<AnimatorController>("TestAssets/SyncedLayers.controller");
@@ -172,6 +175,9 @@ namespace UnitTests.AnimationServices
         }
         
         [Test]
+#if UNITY_6000_5 || UNITY_6000_6
+        [Ignore("Unity bug IN-160029: synced-layer GetOverrideBehaviours returns null after an AnimatorController.layers round-trip.")]
+#endif
         public void SyncedLayerOverridesCanBeChanged()
         {
             var testController = LoadAsset<AnimatorController>("TestAssets/SyncedLayers.controller");
