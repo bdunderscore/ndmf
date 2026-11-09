@@ -167,7 +167,7 @@ jobs:
 
       # I've observed editor crashes when trying to run the initial build and test in a single step.
       # Not sure why - could be related to VRCSDK trying to change the editor platform?
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+      - uses: buildalon/unity-action@44d34289477726e7d24cd4f62d6376479e6251a2 # v4.0.1
         name: Build project
         continue-on-error: true
         with:
@@ -190,7 +190,7 @@ jobs:
       # The 2022.3.6f1 editor is flaky when running edit mode tests in CI, so we tolerate a single
       # failure there and retry once before giving up.
       
-      - uses: buildalon/unity-action@2d420bea0f47fbe01377601fa3231bcf4de04f3a # v3
+      - uses: buildalon/unity-action@44d34289477726e7d24cd4f62d6376479e6251a2 # v4.0.1
         name: EditMode UnitTests
         id: editmode-tests
         with:
