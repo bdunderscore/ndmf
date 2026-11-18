@@ -58,7 +58,7 @@ jobs:
             sdk: vrcsdk
           - unity_major_version: "6000.5"
             sdk: vrcsdk
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       checks: write
       contents: read
