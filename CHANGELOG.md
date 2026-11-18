@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
+### Security
+
+### Deprecated
+
+## [1.15.0] - [2026-11-18]
+
+### Added
 - Added a default no-op ObserveDependencies method to IParameterProvider for observing preview dependencies.
 - [#839] Added ShadowBoneManager
 - [#861] Support advanced features of ExpressionsParameter on IParameterProvider
@@ -26,12 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#847] Reduced unnecessary preview recalculation when adding or removing components of types not matched by monitored queries.
-
-### Removed
-
-### Security
-
-### Deprecated
 
 ## [1.14.8] - [2026-08-29]
 
