@@ -30,7 +30,7 @@ namespace nadena.dev.ndmf.VRChat
                 foreach (var physBone in avatarGameObject.GetComponentsInChildren<VRCPhysBone>(true))
                 {
                     physBone.InitTransforms(true);
-                    physBone.InitParameters();
+                    // don't init parameters - the animator isn't initialized with a playable graph yet
                 }
 
                 foreach (var collider in avatarGameObject.GetComponentsInChildren<VRCPhysBoneColliderBase>(true))
