@@ -187,6 +187,11 @@ namespace nadena.dev.ndmf.preview
                         _lastVisibilityCheck = VisibilityMonitor.Sequence;
                     }
                 }
+
+                if (original.gameObject.layer != target.gameObject.layer)
+                {
+                    target.gameObject.layer = original.gameObject.layer;
+                }
                 
                 // Copies the mesh, bones, materials, blend shape weights, bounds, and the various shadow/probe
                 // settings in one go. Anything outside the renderer component itself still needs handling below.
