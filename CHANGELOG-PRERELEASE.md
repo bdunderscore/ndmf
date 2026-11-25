@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#877] Fixed an editor crash that can happen when exiting play mode
 
 ### Changed
 

@@ -96,7 +96,12 @@ namespace nadena.dev.ndmf.preview
 
             // Create scene on scene transition. Unity doesn't allow us to create a new scene additively when an unsaved
             // scene is open, so we do this now to head off user interaction.
-            EditorSceneManager.activeSceneChangedInEditMode += (prev, next) => { GetPreviewScene(); };
+            // When play mode exits, Unity fires this event while it still restores the scene backups. Opening a scene
+            // at that point can crash the editor, so we wait one editor update.
+            EditorSceneManager.activeSceneChangedInEditMode += (prev, next) =>
+            {
+                EditorApplication.delayCall += () => { GetPreviewScene(); };
+            };
             EditorApplication.delayCall += () => { GetPreviewScene(); };
 
             // Make sure that we never, ever save any gameobjects in the preview scene. If we start saving, destroy them
