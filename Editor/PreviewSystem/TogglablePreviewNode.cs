@@ -44,10 +44,17 @@ namespace nadena.dev.ndmf.preview
 
             if (qualifiedName != null)
             {
+                void SaveState(bool value)
+                {
+                    // PublishedValue clears OnChange before invoking its listeners.
+                    node.IsEnabled.OnChange += SaveState;
+                    PreviewPrefs.instance.SetNodeState(qualifiedName, value);
+                }
+
                 EditorApplication.CallbackFunction loadSaved = () =>
                 {
                     node.IsEnabled.Value = PreviewPrefs.instance.GetNodeState(qualifiedName, initialState);
-                    node.IsEnabled.OnChange += value => PreviewPrefs.instance.SetNodeState(qualifiedName, value);
+                    node.IsEnabled.OnChange += SaveState;
                 };
 
                 if (IN_STATIC_INIT)
