@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace nadena.dev.ndmf.preview.UI
 {
+    [FilePath("UserSettings/NDMFConfigurePreviews.asset", FilePathAttribute.Location.ProjectFolder)]
     internal class PreviewPrefs : ScriptableSingleton<PreviewPrefs>
     {
         [SerializeField] private List<string> _disabledPreviewPlugins = new();
@@ -54,7 +55,7 @@ namespace nadena.dev.ndmf.preview.UI
             _nodeStates[qualifiedName] = value;
             _savedNodeStates = _nodeStates.Select(kv => new KeyValue { key = kv.Key, value = kv.Value }).ToList();
 
-            EditorUtility.SetDirty(this);
+            Save(true);
         }
 
         public bool IsPreviewPluginEnabled(string qualifiedName)
@@ -72,6 +73,7 @@ namespace nadena.dev.ndmf.preview.UI
                 _disabledPreviewPlugins.Add(qualifiedName);
 
             OnValidate();
+            Save(true);
 
             OnPreviewConfigChanged?.Invoke();
         }
