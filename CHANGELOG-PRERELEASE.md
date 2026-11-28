@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Fixed
+- [#878] Configure Previews now retains the latest toggle settings across domain reloads and Unity restarts.
 
 ### Changed
 
